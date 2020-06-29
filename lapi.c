@@ -248,7 +248,33 @@ LUA_API void lua_pushvalue (lua_State *L, int idx) {
   lua_unlock(L);
 }
 
+/*
+** get function functions, recursively
+*/
+static int lua_toprotos_recursive (lua_State* L, Proto* p) {
+  int i;
+  int np = 1;
+  LClosure* ncl = luaF_newLclosure(L, 0);
+  lua_lock(L);
+  setclLvalue2s(L, L->top, ncl);  /* anchor it */
+  api_incr_top(L);
+  lua_unlock(L);
 
+  ncl->p = p;
+  for (i = 0; i < p->sizep; i++) {
+    np += lua_toprotos_recursive(L, p->p[i]);
+  }
+  return np;
+}
+
+LUA_API int lua_toprotos (lua_State* L, int idx) {
+  const TValue *o = index2value(L, idx);
+  if (ttisLclosure(o)) {
+    Proto* p = clLvalue(o)->p;
+    return lua_toprotos_recursive(L, p);
+  }
+  return 0;
+}
 
 /*
 ** access functions (stack -> C)

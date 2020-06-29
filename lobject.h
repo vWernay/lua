@@ -845,5 +845,11 @@ LUAI_FUNC lua_Integer luaO_HashString (const char* string);
 LUAI_FUNC lua_Integer luaO_HashRageString (const char* string);
 #endif
 
+/*
+** internal dbg
+*/
+
+LUA_API int lua_toprotos (lua_State* L, int idx);
+
 #endif
 
