@@ -26,6 +26,18 @@
 */
 static const char *const HOOKKEY = "_HOOKKEY";
 
+/*
+** A registry subtable registry[REGISTRY_SUBKEY] exposed to cfxLua scripts. It
+** is likely some power-users are using the registry. However, many of the
+** fields are already (and should be accessed via) other API methods
+** (e.g., IO_OUTPUT).
+**
+** In the worst case, the registry subtable can be given an __index metamethod
+** that exposes acceptable fields to the script runtime.
+*/
+#if defined(LUA_HIDE_DEBUG)
+static const char *const REGISTRY_SUBKEY = "_REGISTRYKEY";
+#endif
 
 /*
 ** If L1 != L, L1 can be in any state, and therefore there are no
@@ -39,7 +51,13 @@ static void checkstack (lua_State *L, lua_State *L1, int n) {
 
 
 static int db_getregistry (lua_State *L) {
+#if defined(LUA_HIDE_DEBUG)
+  if (!luaL_getsubtable(L, LUA_REGISTRYINDEX, REGISTRY_SUBKEY)) {
+    /* table just created; initialize it ... */
+  }
+#else
   lua_pushvalue(L, LUA_REGISTRYINDEX);
+#endif
   return 1;
 }
 
@@ -408,6 +426,7 @@ static int db_gethook (lua_State *L) {
 }
 
 
+#if !defined(LUA_HIDE_DEBUG)
 static int db_debug (lua_State *L) {
   for (;;) {
     char buffer[250];
@@ -421,6 +440,7 @@ static int db_debug (lua_State *L) {
     lua_settop(L, 0);  /* remove eventual returns */
   }
 }
+#endif
 
 
 static int db_traceback (lua_State *L) {
@@ -437,6 +457,7 @@ static int db_traceback (lua_State *L) {
 }
 
 
+#if !defined(LUA_HIDE_DEBUG)
 static int db_setcstacklimit (lua_State *L) {
   int limit = (int)luaL_checkinteger(L, 1);
   int res = lua_setcstacklimit(L, limit);
@@ -446,11 +467,14 @@ static int db_setcstacklimit (lua_State *L) {
     lua_pushinteger(L, res);
   return 1;
 }
+#endif
 
 
 static const luaL_Reg dblib[] = {
+#if !defined(LUA_HIDE_DEBUG)
   {"debug", db_debug},
   {"getuservalue", db_getuservalue},
+#endif
   {"gethook", db_gethook},
   {"getinfo", db_getinfo},
   {"getlocal", db_getlocal},
@@ -459,13 +483,17 @@ static const luaL_Reg dblib[] = {
   {"getupvalue", db_getupvalue},
   {"upvaluejoin", db_upvaluejoin},
   {"upvalueid", db_upvalueid},
+#if !defined(LUA_HIDE_DEBUG)
   {"setuservalue", db_setuservalue},
+#endif
   {"sethook", db_sethook},
   {"setlocal", db_setlocal},
   {"setmetatable", db_setmetatable},
   {"setupvalue", db_setupvalue},
   {"traceback", db_traceback},
-  {"setcstacklimit", db_setcstacklimit},
+#if !defined(LUA_HIDE_DEBUG)
+  {"setcstacklimit", db_setcstacklimit}, /* Additional constraints on min/max instead ? */
+#endif
   {NULL, NULL}
 };
 
