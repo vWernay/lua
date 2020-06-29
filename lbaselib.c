@@ -290,7 +290,39 @@ static int ipairsaux (lua_State *L) {
   return (lua_geti(L, 1, i) == LUA_TNIL) ? 1 : 2;
 }
 
+#if defined(GRIT_COMPAT_IPAIRS)
+/*
+** Traversal function for 'ipairs' for raw tables
+*/
+static int ipairsaux_raw (lua_State *L) {
+  lua_Integer i = luaL_checkinteger(L, 2) + 1;
+  luaL_checktype(L, 1, LUA_TTABLE);
+  lua_pushinteger(L, i);
+  return (lua_rawgeti(L, 1, i) == LUA_TNIL) ? 1 : 2;
+}
 
+
+/*
+** This function will use either 'ipairsaux' or 'ipairsaux_raw' to
+** traverse a table, depending on whether the table has metamethods
+** that can affect the traversal.
+*/
+static int luaB_ipairs (lua_State *L) {
+  lua_CFunction iter = (luaL_getmetafield(L, 1, "__index") != LUA_TNIL)
+                       ? ipairsaux : ipairsaux_raw;
+  luaL_checkany(L, 1);
+  if (luaL_getmetafield(L, 1, "__ipairs") == LUA_TNIL) {  /* no metamethod? */
+    lua_pushcfunction(L, iter);  /* iteration function */
+    lua_pushvalue(L, 1);  /* state */
+    lua_pushinteger(L, 0);  /* initial value */
+  }
+  else {
+    lua_pushvalue(L, 1);  /* argument 'self' to metamethod */
+    lua_call(L, 1, 3);  /* get 3 values from metamethod */
+  }
+  return 3;
+}
+#else
 /*
 ** 'ipairs' function. Returns 'ipairsaux', given "table", 0.
 ** (The given "table" may not be a table.)
@@ -309,6 +341,7 @@ static int luaB_ipairs (lua_State *L) {
   }
   return 3;
 }
+#endif
 
 
 static int load_aux (lua_State *L, int status, int envidx) {
@@ -494,6 +527,22 @@ static int luaB_tostring (lua_State *L) {
 }
 
 
+#if defined(GRIT_DEFER)
+/* func2close */
+static int luaB_defer (lua_State *L) {
+  luaL_checktype(L, 1, LUA_TFUNCTION);  /* check defer function */
+
+  lua_newtable(L);  /* to-be-closed dummy object */
+  lua_newtable(L);  /* metatable */
+  lua_pushvalue(L, 1);
+  lua_setfield(L, -2, "__close");
+  lua_setmetatable(L, -2);  /* pops: metatable */
+
+  return 1;
+}
+#endif
+
+
 static const luaL_Reg base_funcs[] = {
   {"assert", luaB_assert},
   {"collectgarbage", luaB_collectgarbage},
@@ -518,6 +567,9 @@ static const luaL_Reg base_funcs[] = {
   {"tostring", luaB_tostring},
   {"type", luaB_type},
   {"xpcall", luaB_xpcall},
+#if defined(GRIT_DEFER)
+  {"defer", luaB_defer},
+#endif
   /* placeholders */
 
   {"vec", lua_vectorN}, {"vector", lua_vectorN},

@@ -58,6 +58,23 @@ static void checktab (lua_State *L, int arg, int what) {
 }
 
 
+#if defined(GRIT_POWER_TCREATE)
+static int tcreate (lua_State *L) {
+  lua_Integer narray = luaL_checkinteger(L, 1);
+  lua_Integer nhash = luaL_checkinteger(L, 2);
+  if (narray < 0 || narray >= INT_MAX)
+    luaL_argerror(L, 1, "array: 0 <= count < INT_MAX");
+  if (nhash < 0 || nhash > INT_MAX)
+    luaL_argerror(L, 1, "record: 0 <= count < INT_MAX");
+
+  lua_createtable(L,
+    narray >= 0 && narray < INT_MAX ? (int)narray : 0,  /* Sanitize arguments */
+    nhash >= 0 && nhash < INT_MAX ? (int)nhash : 0
+  );
+  return 1;
+}
+#endif
+
 static int tinsert (lua_State *L) {
   lua_Integer e = aux_getn(L, 1, TAB_RW) + 1;  /* first empty element */
   lua_Integer pos;  /* where to insert new element */
@@ -410,10 +427,32 @@ static int sort (lua_State *L) {
   return 0;
 }
 
+#if defined(GRIT_POWER_TTYPE)
+static int type (lua_State *L) {
+  if (lua_type(L, 1) == LUA_TTABLE) {
+    switch (lua_tabletype(L, 1)) {
+      case LUA_TTEMPTY: lua_pushstring(L, "empty"); break;
+      case LUA_TTARRAY: lua_pushstring(L, "array"); break;
+      case LUA_TTHASH: lua_pushstring(L, "hash"); break;
+      case LUA_TTMIXED: lua_pushstring(L, "mixed"); break;
+      default: luaL_pushfail(L); break;
+    }
+  }
+  else {
+    luaL_checkany(L, 1);
+    luaL_pushfail(L);
+  }
+  return 1;
+}
+#endif
+
 /* }====================================================== */
 
 
 static const luaL_Reg tab_funcs[] = {
+#if defined(GRIT_POWER_TCREATE)
+  {"create", tcreate},
+#endif
   {"concat", tconcat},
   {"insert", tinsert},
   {"pack", tpack},
@@ -421,6 +460,9 @@ static const luaL_Reg tab_funcs[] = {
   {"remove", tremove},
   {"move", tmove},
   {"sort", sort},
+#if defined(GRIT_POWER_TTYPE)
+  {"type", type},
+#endif
   {NULL, NULL}
 };
 

@@ -36,6 +36,17 @@ static lua_State *globalL = NULL;
 
 static const char *progname = LUA_PROGNAME;
 
+#if defined(GRIT_POWER_SIGACTION) && defined(LUA_USE_POSIX)
+  static void sig_catch(int sig, void (*handler)(int)) {
+    struct sigaction sa;
+    sa.sa_handler = handler;
+    sa.sa_flags = 0;
+    sigemptyset(&sa.sa_mask);
+    sigaction(sig, &sa, NULL);  /* ignore error: none possible */
+  }
+#else
+  #define sig_catch		signal
+#endif
 
 /*
 ** Hook set by signal function to stop the interpreter.
@@ -55,7 +66,9 @@ static void lstop (lua_State *L, lua_Debug *ar) {
 */
 static void laction (int i) {
   int flag = LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE | LUA_MASKCOUNT;
+#if !defined(GRIT_POWER_SIGACTION) || !defined(LUA_USE_POSIX)
   signal(i, SIG_DFL); /* if another SIGINT happens, terminate process */
+#endif
   lua_sethook(globalL, lstop, flag, 1);
 }
 
@@ -135,9 +148,17 @@ static int docall (lua_State *L, int narg, int nres) {
   lua_pushcfunction(L, msghandler);  /* push message handler */
   lua_insert(L, base);  /* put it under function and args */
   globalL = L;  /* to be available to 'laction' */
+#if defined(GRIT_POWER_SIGACTION)
+  sig_catch(SIGINT, laction);  /* set C-signal handler */
+#else
   signal(SIGINT, laction);  /* set C-signal handler */
+#endif
   status = lua_pcall(L, narg, nres, base);
+#if defined(GRIT_POWER_SIGACTION)
+  sig_catch(SIGINT, SIG_DFL); /* reset C-signal handler */
+#else
   signal(SIGINT, SIG_DFL); /* reset C-signal handler */
+#endif
   lua_remove(L, base);  /* remove message handler from the stack */
   return status;
 }
@@ -192,11 +213,25 @@ static int dostring (lua_State *L, const char *s, const char *name) {
 */
 static int dolibrary (lua_State *L, const char *name) {
   int status;
+#if defined(GRIT_POWER_PRELOADLIBS)
+  char *eq = strchr(name,'=');
+  lua_getglobal(L, "require");
+  if (eq)
+    lua_pushstring(L, eq + 1);
+  else
+    lua_pushstring(L, name);
+  if ((status = docall(L, 1, 1)) == LUA_OK) { /* call 'require(name)' */
+    if (eq) *eq = 0;
+    lua_setglobal(L, name);  /* global[name] = require return */
+    if (eq) *eq = '=';
+  }
+#else
   lua_getglobal(L, "require");
   lua_pushstring(L, name);
   status = docall(L, 1, 1);  /* call 'require(name)' */
   if (status == LUA_OK)
     lua_setglobal(L, name);  /* global[name] = require return */
+#endif
   return report(L, status);
 }
 

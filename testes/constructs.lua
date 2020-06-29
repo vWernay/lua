@@ -64,7 +64,7 @@ do   -- testing operators with diffent kinds of constants
   --  * fit in register
   --  * constant doesn't fit in register
   --  * floats with integral values
-  local operand = {3, 100, 5.0, -10, -5.0, 10000, -10000}
+  local operand = {3.0, 100.0, 5.0, -10.0, -5.0, 10000.0, -10000.0}
   local operator = {"+", "-", "*", "/", "//", "%", "^",
                     "&", "|", "^", "<<", ">>",
                     "==", "~=", "<", ">", "<=", ">=",}

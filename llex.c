@@ -48,6 +48,9 @@ static const char *const luaX_tokens [] = {
 #if !defined(GRIT_USE_PATH)
     , "<hash>"
 #endif
+#if defined(GRIT_POWER_COMPOUND)
+    , "+=", "-=", "*=", "/=", "<<=", ">>=", "&=", "|=", "^="
+#endif
 };
 
 
@@ -459,9 +462,15 @@ static int llex (LexState *ls, SemInfo *seminfo) {
       }
       case '-': {  /* '-' or '--' (comment) */
         next(ls);
+#if defined(GRIT_POWER_COMPOUND)
+        if (check_next1(ls, '=')) return TK_MINUSEQ;
+#endif
         if (ls->current != '-') return '-';
         /* else is a comment */
         next(ls);
+#if defined(GRIT_POWER_COMPOUND)
+        if (check_next1(ls, '=')) return TK_MINUSEQ;
+#endif
         if (ls->current == '[') {  /* long comment? */
           size_t sep = skip_sep(ls);
           luaZ_resetbuffer(ls->buff);  /* 'skip_sep' may dirty the buffer */
@@ -494,20 +503,90 @@ static int llex (LexState *ls, SemInfo *seminfo) {
       case '<': {
         next(ls);
         if (check_next1(ls, '=')) return TK_LE;
+#if defined(GRIT_POWER_COMPOUND)
+        else if (check_next1(ls, '<')) {
+          if (check_next1(ls, '='))
+            return TK_SHLEQ;
+          else
+            return TK_SHL;
+        }
+#else
         else if (check_next1(ls, '<')) return TK_SHL;
+#endif
         else return '<';
       }
       case '>': {
         next(ls);
         if (check_next1(ls, '=')) return TK_GE;
+#if defined(GRIT_POWER_COMPOUND)
+        else if (check_next1(ls, '>')) {
+          if (check_next1(ls, '='))
+            return TK_SHREQ;
+          else
+            return TK_SHR;
+        }
+#else
         else if (check_next1(ls, '>')) return TK_SHR;
+#endif
         else return '>';
       }
       case '/': {
         next(ls);
         if (check_next1(ls, '/')) return TK_IDIV;
-        else return '/';
+#if defined(GRIT_POWER_COMPOUND)
+        else if (check_next1(ls, '=')) return TK_DIVEQ;
+#endif
+        else {
+#if defined(GRIT_POWER_CCOMMENT)
+          int last = 0;
+          if (ls->current == '*') { /* long comment */
+            next(ls);
+            while (ls->current != EOZ) {
+              if (last == '*' && ls->current == '/')
+                break;
+              last = ls->current;
+              next(ls); /* skip until closing marker (or end of file) */
+            }
+            if (ls->current == EOZ) {
+              const char *msg = luaO_pushfstring(ls->L, "unfinished long comment (starting at line %d)", ls->linenumber);
+              lexerror(ls, msg, TK_EOS);
+              break; /* to avoid warnings */
+            }
+            else
+              next(ls);
+            break;
+          }
+#endif
+          return '/';
+        }
       }
+#if defined(GRIT_POWER_COMPOUND)
+      case '+': {
+        next(ls);
+        if (check_next1(ls, '=')) return TK_PLUSEQ;
+        else return '+';
+      }
+      case '*': {
+        next(ls);
+        if (check_next1(ls, '=')) return TK_MULTEQ;
+        else return '*';
+      }
+      case '&': {
+        next(ls);
+        if (check_next1(ls, '=')) return TK_BANDEQ;
+        else return '&';
+      }
+      case '|': {
+        next(ls);
+        if (check_next1(ls, '=')) return TK_BOREQ;
+        else return '|';
+      }
+      case '^': {
+        next(ls);
+        if (check_next1(ls, '=')) return TK_BXOREQ;
+        else return '^';
+      }
+#endif
       case '~': {
         next(ls);
         if (check_next1(ls, '=')) return TK_NE;

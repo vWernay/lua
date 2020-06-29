@@ -131,4 +131,48 @@ LUAI_FUNC lua_Number luaV_modf (lua_State *L, lua_Number x, lua_Number y);
 LUAI_FUNC lua_Integer luaV_shiftl (lua_Integer x, lua_Integer y);
 LUAI_FUNC void luaV_objlen (lua_State *L, StkId ra, const TValue *rb);
 
+#if defined(GRIT_POWER_INTEXP)
+/* [IPOW]
+** Set the "mode" for how integer exponentiation (ipow) handles a
+** negative exponent. Defaults to IPOW_DOERROR (see below)
+**
+** IPOW_DOERROR - raise error for negative exponent
+** IPOW_DOCONVERT - convert operation to float for negative exponent
+** IPOW_DOIDIV - handle negative exponent as '1 // (b ^ abs(n))'
+** IPOW_DISABLE - disable ipow completely
+**
+** Defaults to raising error for a negative exponent since this
+** a) follows the rule that it is the type of numbers which determine
+**    if an operation results in an integer or a float type
+** b) is more consistent with integer division and modulus which raise
+**    errors instead of converting result to float for a 0 dividend,
+**    that is returning 'inf' for '1 // 0' and 'nan' for '1 % 0'
+** c) makes integer and float arithmetic more distinct, lowering
+**    the possibility of floats appearing where they are not desired
+**
+*/
+#define IPOW_DOERROR     1
+#define IPOW_DOCONVERT   2
+#define IPOW_DOIDIV      3
+#define IPOW_DISABLE     0
+
+#if !defined(LUA_IPOW_MODE)
+  #define LUA_IPOW_MODE IPOW_DOCONVERT
+#endif
+
+/* 'luaV_doipow' checks if ipow should be done for the given 'b^n' */
+#if (LUA_IPOW_MODE == IPOW_DOERROR) || (LUA_IPOW_MODE == IPOW_DOIDIV)
+/* do ipow for integers */
+#define luaV_doipow(b,n) (ttisinteger(b) && ttisinteger(n))
+#elif (LUA_IPOW_MODE == IPOW_DOCONVERT)
+/* only do ipow for integers when 'n >= 0' */
+#define luaV_doipow(b,n) ((ttisinteger(b) && ttisinteger(n)) && (!luai_numlt(ivalue(n), 0)))
+#else /* IPOW_DISABLE */
+/* no ipow */
+#define luaV_doipow(b,n) (0)
+#endif
+
+LUAI_FUNC lua_Integer luaV_ipow (lua_State *L, lua_Integer x, lua_Integer y); /* [IPOW] */
+#endif
+
 #endif

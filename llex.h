@@ -39,11 +39,16 @@ enum RESERVED {
 #else
   , TK_HASH
 #endif
+#if defined(GRIT_POWER_COMPOUND)
+  , TK_PLUSEQ, TK_MINUSEQ, TK_MULTEQ, TK_DIVEQ, TK_SHLEQ, TK_SHREQ, TK_BANDEQ, TK_BOREQ, TK_BXOREQ
+#endif
 };
 
 /* number of reserved words */
 #define NUM_RESERVED	(cast_int(TK_WHILE-FIRST_RESERVED + 1))
 
+/* ORDER RESERVED */
+#define opeqexpr(t) ((t) >= TK_PLUSEQ && (t) <= TK_BXOREQ)
 
 typedef union {
   lua_Number r;

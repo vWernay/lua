@@ -771,6 +771,64 @@ lua_Number luaV_modf (lua_State *L, lua_Number m, lua_Number n) {
 }
 
 
+#if defined(GRIT_POWER_INTEXP)
+/* [IPOW]
+** Integer exponentiation; return 'b ^ n', where 'n >= 0'
+** Negative 'n' is handled according to the mode defined in lvm.h
+** Overflow wraps around the result consistent with repeated 'b*b'
+*/
+lua_Integer luaV_ipow (lua_State *L, lua_Integer b, lua_Integer n) {
+  lua_Integer r;
+#if (LUA_IPOW_MODE == IPOW_DOERROR)
+  /* throw on negative 'n' (default) */
+  if (n < 0)
+    luaG_runerror(L, "attempt to perform integer 'b^n' with negative 'n'");
+#elif (LUA_IPOW_MODE == IPOW_DOCONVERT)
+  /* should not be called for negative 'n' */
+  UNUSED(L);
+  lua_assert(n >= 0);
+#elif (LUA_IPOW_MODE == IPOW_DOIDIV)
+  /* handle negative 'n' as '1 // (b ^ abs(n))' */
+  if (n < 0) {
+    if (b == 0)  /* b^n == 0 */
+      luaG_runerror(L, "integer 'b^n' would result in divide by zero");
+    else  /* b^n != 0 */
+      return 0;
+  }
+#else /* IPOW_DISABLE */
+  /* should not be called at all */
+  UNUSED(L);
+  lua_assert(0);
+#endif
+  if (b == 0 || n == 0) {  /* special cases: 0 base and/or exponent */
+    if (b == n)
+      r = 1;  /* 0^0 == 1 */
+    else if (b == 0)
+      r = 0;  /* 0^n == 0 */
+    else  /* n == 0 */
+      r = 1;  /* b^0 == 1 */
+  }
+  else {  /* b != 0 && n > 0 */
+    lua_Unsigned bu = l_castS2U(b);
+    lua_Unsigned nu = l_castS2U(n);
+    lua_Unsigned ru = 1u;
+    if (b < 0)  /* negative base? */
+      bu = 0u - bu;  /* use its magnitude */
+    while (nu != 1u) {  /* do exponentiation by squaring */
+      if (nu & 1u)
+        ru *= bu;
+      bu *= bu;
+      nu >>= 1u;
+    }
+    ru *= bu;  /* last (or only) multiply */
+    if (b < 0 && n & 1)  /* 'r' should be negative? */
+      ru = 0u - ru;  /* negate the result */
+    r = l_castU2S(ru);
+  }
+  return r;
+}
+#endif
+
 /* number of bits in an integer */
 #define NBITS	cast_int(sizeof(lua_Integer) * CHAR_BIT)
 
@@ -871,6 +929,17 @@ void luaV_finishOp (lua_State *L) {
 }
 
 
+#if defined(GRIT_POWER_OITER)
+static int objiter_next(lua_State *L) {
+  lua_settop(L, 2);  /* create a 2nd argument if there isn't one */
+  if (lua_next(L, 1))
+    return 2;
+  else {
+    lua_pushnil(L);
+    return 1;
+  }
+}
+#endif
 
 
 /*
@@ -1820,6 +1889,32 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
         vmbreak;
       }
       vmcase(OP_TFORPREP) {
+#if defined(GRIT_POWER_OITER)
+        StkId cb = ra + 4;  /* call base */
+        if (!ttisfunction(s2v(ra)) && ttisnil(s2v(ra + 1)) && ttisnil(s2v(ra + 2))) {
+          /* Intervene before first iteration if sole iteration value is not an iterator function */
+          const TValue *tm = luaT_gettmbyobj(L, s2v(ra), TM_ITER);
+          if (ttisnil(tm)) {
+            if (ttistable(s2v(ra))) { /* Table with no metamethod: default to 'next' */
+              setobjs2s(L, ra + 1, ra);
+              setfvalue(s2v(ra), objiter_next);
+            }
+          }
+          else { /* Metamethod found: call it to replace the iteration values */
+            setobj(L, s2v(cb), tm);
+            setobj(L, s2v(cb + 1), s2v(ra));
+            L->top = cb + 2; /* metamethod + object for method call */
+            ProtectNT(luaD_call(L, cb, 4));
+            L->top = L->ci->top;
+            ra = RA(i);
+            setobj(L, s2v(ra + 3), s2v(cb + 3));
+            setobj(L, s2v(ra + 2), s2v(cb + 2));
+            setobj(L, s2v(ra + 1), s2v(cb + 1));
+            setobj(L, s2v(ra), s2v(cb));
+            L->top = ra + 3;
+          }
+        }
+#endif
         /* create to-be-closed upvalue (if needed) */
         halfProtect(luaF_newtbcupval(L, ra + 3));
         pc += GETARG_Bx(i);

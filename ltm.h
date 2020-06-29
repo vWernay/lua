@@ -41,6 +41,9 @@ typedef enum {
   TM_CONCAT,
   TM_CALL,
   TM_CLOSE,
+#if defined(GRIT_POWER_OITER)
+  TM_ITER,
+#endif
   TM_N		/* number of elements in the enum */
 } TMS;
 
