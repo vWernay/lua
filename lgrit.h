@@ -53,6 +53,20 @@ LUAI_FUNC int luaVec_axis (const lua_Float4 v, lua_Float4 *r);
 #define op_vector4(L, o) (ttisvector4((o)) ? vvalue((o)) : luaVec_value((L), (o)))
 #define op_quat(L, o) (ttisquat((o)) ? vvalue((o)) : luaVec_value((L), (o)))
 
+/* */
+LUAI_FUNC int (luaVec_rawget) (lua_State *L, const lua_Float4 *v, int vdims,
+                                                                     StkId key);
+
+/*
+** Pops a key from the stack and pushes a <key, value> pair from the vector at
+** the given stack index, the "next" pair after the given key.
+**
+** If there are no more elements in the vector, then returns 0 and pushes
+** nothing.
+*/
+LUAI_FUNC int (luaVec_next) (lua_State *L, const lua_Float4 *v, int vdims,
+                                                                     StkId key);
+
 /* Place the magnitude of the vector (o) at the specified stack index (ra) */
 LUAI_FUNC void (luaVec_objlen) (lua_State *L, StkId ra, const TValue *o);
 

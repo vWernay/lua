@@ -139,6 +139,24 @@ static Node *mainposition (const Table *t, int ktt, const Value *kvl) {
       return hashint(t, ivalueraw(*kvl));
     case LUA_VNUMFLT:
       return hashmod(t, l_hashfloat(fltvalueraw(*kvl)));
+    case LUA_VVECTOR2:
+      return hashmod(t,
+        l_hashfloat(cast_num(vvalueraw(*kvl).x)) ^
+        l_hashfloat(cast_num(vvalueraw(*kvl).y))
+      );
+    case LUA_VVECTOR3:
+      return hashmod(t,
+        l_hashfloat(cast_num(vvalueraw(*kvl).x)) ^
+        l_hashfloat(cast_num(vvalueraw(*kvl).y)) ^
+        l_hashfloat(cast_num(vvalueraw(*kvl).z))
+    );
+    case LUA_VVECTOR4: case LUA_VQUAT:
+      return hashmod(t,
+        l_hashfloat(cast_num(vvalueraw(*kvl).x)) ^
+        l_hashfloat(cast_num(vvalueraw(*kvl).y)) ^
+        l_hashfloat(cast_num(vvalueraw(*kvl).z)) ^
+        l_hashfloat(cast_num(vvalueraw(*kvl).w))
+      );
     case LUA_VSHRSTR:
       return hashstr(t, tsvalueraw(*kvl));
     case LUA_VLNGSTR:
@@ -189,6 +207,19 @@ static int equalkey (const TValue *k1, const Node *n2) {
       return fvalue(k1) == fvalueraw(keyval(n2));
     case LUA_VLNGSTR:
       return luaS_eqlngstr(tsvalue(k1), keystrval(n2));
+    case LUA_VVECTOR2:
+      return luai_numeq(vvalue(k1).x, vvalueraw(keyval(n2)).x) &&
+        luai_numeq(vvalue(k1).y, vvalueraw(keyval(n2)).y);
+    case LUA_VVECTOR3:
+      return luai_numeq(vvalue(k1).x, vvalueraw(keyval(n2)).x) &&
+        luai_numeq(vvalue(k1).y, vvalueraw(keyval(n2)).y) &&
+        luai_numeq(vvalue(k1).z, vvalueraw(keyval(n2)).z);
+    case LUA_VVECTOR4:
+    case LUA_VQUAT:
+      return luai_numeq(vvalue(k1).x, vvalueraw(keyval(n2)).x) &&
+        luai_numeq(vvalue(k1).y, vvalueraw(keyval(n2)).y) &&
+        luai_numeq(vvalue(k1).z, vvalueraw(keyval(n2)).z) &&
+        luai_numeq(vvalue(k1).w, vvalueraw(keyval(n2)).w);
     default:
       return gcvalue(k1) == gcvalueraw(keyval(n2));
   }

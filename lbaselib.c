@@ -157,15 +157,16 @@ static int luaB_rawequal (lua_State *L) {
 
 static int luaB_rawlen (lua_State *L) {
   int t = lua_type(L, 1);
-  luaL_argexpected(L, t == LUA_TTABLE || t == LUA_TSTRING, 1,
-                      "table or string");
+  luaL_argexpected(L, t == LUA_TTABLE || t == LUA_TSTRING || t == LUA_TVECTOR, 1,
+                      "table or string or vector");
   lua_pushinteger(L, lua_rawlen(L, 1));
   return 1;
 }
 
 
 static int luaB_rawget (lua_State *L) {
-  luaL_checktype(L, 1, LUA_TTABLE);
+  if (lua_type(L, 1) != LUA_TTABLE && lua_type(L, 1) != LUA_TVECTOR)
+    return luaL_typeerror(L, 1, lua_typename(L, LUA_TTABLE));
   luaL_checkany(L, 2);
   lua_settop(L, 2);
   lua_rawget(L, 1);
@@ -253,7 +254,8 @@ static int luaB_type (lua_State *L) {
 
 
 static int luaB_next (lua_State *L) {
-  luaL_checktype(L, 1, LUA_TTABLE);
+  if (lua_type(L, 1) != LUA_TTABLE && lua_type(L, 1) != LUA_TVECTOR)
+    return luaL_typeerror(L, 1, lua_typename(L, LUA_TTABLE));
   lua_settop(L, 2);  /* create a 2nd argument if there isn't one */
   if (lua_next(L, 1))
     return 2;
@@ -295,9 +297,16 @@ static int ipairsaux (lua_State *L) {
 */
 static int luaB_ipairs (lua_State *L) {
   luaL_checkany(L, 1);
+  if (lua_isvector(L, 1, V_NOTABLE)) {
+    lua_pushcfunction(L, luaB_next);  /* will return generator, */
+    lua_pushvalue(L, 1);  /* state, */
+    lua_pushinteger(L, 0);
+  }
+  else {
   lua_pushcfunction(L, ipairsaux);  /* iteration function */
   lua_pushvalue(L, 1);  /* state */
   lua_pushinteger(L, 0);  /* initial value */
+  }
   return 3;
 }
 

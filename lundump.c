@@ -104,6 +104,12 @@ static lua_Integer loadInteger (LoadState *S) {
 }
 
 
+static lua_Float4 loadFloat4 (LoadState *S) {
+  lua_Float4 x;
+  loadVar(S, x);
+  return x;
+}
+
 /*
 ** Load a nullable string into prototype 'p'.
 */
@@ -158,7 +164,7 @@ static void loadConstants (LoadState *S, Proto *f) {
     setnilvalue(&f->k[i]);
   for (i = 0; i < n; i++) {
     TValue *o = &f->k[i];
-    int t = loadByte(S);
+    lu_byte t = loadByte(S);
     switch (t) {
       case LUA_VNIL:
         setnilvalue(o);
@@ -174,6 +180,11 @@ static void loadConstants (LoadState *S, Proto *f) {
         break;
       case LUA_VNUMINT:
         setivalue(o, loadInteger(S));
+        break;
+      case LUA_VVECTOR2:
+      case LUA_VVECTOR3:
+      case LUA_VVECTOR4: case LUA_VQUAT:
+        setvvalue(o, loadFloat4(S), t);
         break;
       case LUA_VSHRSTR:
       case LUA_VLNGSTR:

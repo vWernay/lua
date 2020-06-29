@@ -310,6 +310,7 @@ typedef struct GCObject {
 
 #define fltvalueraw(v)	((v).n)
 #define ivalueraw(v)	((v).i)
+#define vvalueraw(v)  ((v).f4)
 
 #define setfltvalue(obj,x) \
   { TValue *io=(obj); val_(io).n=(x); settt_(io, LUA_VNUMFLT); }

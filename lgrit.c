@@ -41,6 +41,26 @@ static void luaV_assignf4 (lua_Float4 *to, int index, lua_VecF n) {
   }
 }
 
+static lua_VecF luaV_getf4 (const lua_Float4 *to, int index) {
+  switch (index) {
+    case 0: return to->x;
+    case 1: return to->y;
+    case 2: return to->z;
+    case 3: return to->w;
+    default:
+      return V_ZERO;
+  }
+}
+
+static int luaV_checkdimension (const char *v) {
+  int i;
+  for (i = 0; i < 4; i++) {
+    if (strcmp(dims[i], v) == 0)
+      return i;
+  }
+  return -1;
+}
+
 static int luaVec_swizzle (const char *key, const lua_Float4 *from, int from_sz,
                                                                lua_Float4 *to) {
   int counter = 0;
@@ -421,6 +441,55 @@ void luaVec_objlen (lua_State *L, StkId ra, const TValue *o) {
 #else
   #define l_vprintf(s,sz,f,...) ((void)(sz), sprintf(s,f,__VA_ARGS__))
 #endif
+
+int luaVec_rawget (lua_State *L, const lua_Float4 *v, int vdims, StkId key) {
+  lua_Integer dim = 0;
+  const TValue *k = s2v(key);
+  if (ttisinteger(k) && (dim = ivalue(k)) >= 1 && dim <= vdims) {
+    setfltvalue(s2v(L->top), cast_num(luaV_getf4(v, (int)(dim - 1))));  /* Accessing is 0-based */
+    return LUA_TNUMBER;
+  }
+  else if (ttisstring(k)) {
+    lua_Float4 out;
+    switch (luaVec_swizzle(svalue(k), v, vdims, &out)) {
+      case 1: setfltvalue(s2v(L->top), cast_num(out.x)); return LUA_TNUMBER;
+      case 2: setvvalue(s2v(L->top), out, LUA_VVECTOR2); return LUA_TVECTOR;
+      case 3: setvvalue(s2v(L->top), out, LUA_VVECTOR3); return LUA_TVECTOR;
+      case 4: setvvalue(s2v(L->top), out, LUA_VVECTOR4); return LUA_TVECTOR;
+      default:
+        break;
+    }
+  }
+  setnilvalue(s2v(L->top));
+  return LUA_TNIL;
+}
+
+int luaVec_next (lua_State *L, const lua_Float4 *v, int vdims, StkId key) {
+  int more = 0;
+  const TValue *k = s2v(key);
+  if (ttisnil(k)) {
+    setsvalue(L, s2v(key), luaS_new(L, dims[0]));
+    setfltvalue(s2v(key + 1), cast_num(v->x));
+    more = 1;
+  }
+  else if (ttisinteger(k)) {
+    lua_Integer dim = ivalue(k);
+    if (dim >= 0 && dim < vdims) {  /* Allow 0 as an initial value (although invalid) */
+      setivalue(s2v(key), dim + 1);  /* Iterator values are 1-based */
+      setfltvalue(s2v(key + 1), cast_num(luaV_getf4(v, (int)dim)));  /* Accessing is 0-based */
+      more = 1;
+    }
+  }
+  else if (ttisstring(k)) {
+    int dim = luaV_checkdimension(svalue(k));
+    if (dim >= 0 && dim < (vdims - 1)) {
+      setsvalue(L, s2v(key), luaS_new(L, dims[dim + 1]));
+      setfltvalue(s2v(key + 1), cast_num(luaV_getf4(v, dim + 1)));
+      more = 1;
+    }
+  }
+  return more;
+}
 
 int luaVec_tostr (char *buff, size_t len, const lua_Float4 v, int variant) {
   if (len < LUAI_MAXVECTORSTR)

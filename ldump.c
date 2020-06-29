@@ -85,6 +85,10 @@ static void dumpInteger (DumpState *D, lua_Integer x) {
 }
 
 
+static void dumpFloat4 (DumpState *D, lua_Float4 x) {
+  dumpVar(D, x);
+}
+
 static void dumpString (DumpState *D, const TString *s) {
   if (s == NULL)
     dumpSize(D, 0);
@@ -119,6 +123,11 @@ static void dumpConstants (DumpState *D, const Proto *f) {
         break;
       case LUA_VNUMINT:
         dumpInteger(D, ivalue(o));
+        break;
+      case LUA_VVECTOR2:
+      case LUA_VVECTOR3:
+      case LUA_VVECTOR4: case LUA_VQUAT:
+        dumpFloat4(D, vvalue(o));
         break;
       case LUA_VSHRSTR:
       case LUA_VLNGSTR:
