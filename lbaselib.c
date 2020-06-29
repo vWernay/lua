@@ -245,7 +245,7 @@ static int luaB_type (lua_State *L) {
   int t = lua_type(L, 1);
   luaL_argcheck(L, t != LUA_TNONE, 1, "value expected");
   if (t == LUA_TVECTOR)  /* isvector returns the variant */
-    lua_pushstring(L, lua_vectypename(L, lua_isvector(L, 1)));
+    lua_pushstring(L, lua_vectypename(L, lua_isvector(L, 1, V_NOTABLE)));
   else
     lua_pushstring(L, lua_typename(L, t));
   return 1;

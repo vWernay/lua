@@ -202,7 +202,7 @@ lcode.o:
 
 lapi.o: lapi.c lprefix.h lua.h luaconf.h lapi.h llimits.h lstate.h \
  lobject.h ltm.h lzio.h lmem.h ldebug.h ldo.h lfunc.h lgc.h lstring.h \
- ltable.h lundump.h lvm.h lgrit_lib.h
+ ltable.h lundump.h lvm.h lgrit.h lgrit_lib.h
 lauxlib.o: lauxlib.c lprefix.h lua.h luaconf.h lauxlib.h lgrit_lib.h
 lbaselib.o: lbaselib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h \
  lgrit_lib.h
@@ -225,8 +225,8 @@ lfunc.o: lfunc.c lprefix.h lua.h luaconf.h ldebug.h lstate.h lobject.h \
 lgc.o: lgc.c lprefix.h lua.h luaconf.h ldebug.h lstate.h lobject.h \
  llimits.h ltm.h lzio.h lmem.h ldo.h lfunc.h lgc.h lstring.h ltable.h
 lgrit.o: lgrit.c lua.h luaconf.h ldebug.h lstate.h lobject.h llimits.h \
- ltm.h lzio.h lmem.h lauxlib.h lstring.h lgc.h lvm.h ldo.h lgrit.h \
- lgrit_lib.h
+ ltm.h lzio.h lmem.h lauxlib.h lstring.h lgc.h ltable.h lvm.h ldo.h \
+ lgrit.h lgrit_lib.h
 lgrit_math.o: lgrit_math.c lua.h luaconf.h lauxlib.h ldebug.h lstate.h \
  lobject.h llimits.h ltm.h lzio.h lmem.h lgrit.h lgrit_lib.h
 linit.o: linit.c lprefix.h lua.h luaconf.h lualib.h lauxlib.h

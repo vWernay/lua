@@ -28,17 +28,17 @@
 ** ===================================================================
 */
 
-LUA_API int (lua_isvector1) (lua_State *L, int idx);  /* lua_isnumber casted to lua_VecF */
-LUA_API int (lua_isvector2) (lua_State* L, int idx);
-LUA_API int (lua_isvector3) (lua_State* L, int idx);
-LUA_API int (lua_isvector4) (lua_State* L, int idx);
-LUA_API int (lua_isquat) (lua_State* L, int idx);
+LUA_API int (lua_isvector1) (lua_State *L, int idx, int flags);  /* lua_isnumber casted to lua_VecF */
+LUA_API int (lua_isvector2) (lua_State* L, int idx, int flags);
+LUA_API int (lua_isvector3) (lua_State* L, int idx, int flags);
+LUA_API int (lua_isvector4) (lua_State* L, int idx, int flags);
+LUA_API int (lua_isquat) (lua_State* L, int idx, int flags);
 
-LUA_API void (lua_checkv1) (lua_State *L, int idx, lua_Float4 *v);
-LUA_API void (lua_checkv2) (lua_State *L, int idx, lua_Float4 *v);
-LUA_API void (lua_checkv3) (lua_State *L, int idx, lua_Float4 *v);
-LUA_API void (lua_checkv4) (lua_State *L, int idx, lua_Float4 *v);
-LUA_API void (lua_checkquat) (lua_State *L, int idx, lua_Float4 *v);
+LUA_API void (lua_checkv1) (lua_State *L, int idx, int flags, lua_Float4 *v);
+LUA_API void (lua_checkv2) (lua_State *L, int idx, int flags, lua_Float4 *v);
+LUA_API void (lua_checkv3) (lua_State *L, int idx, int flags, lua_Float4 *v);
+LUA_API void (lua_checkv4) (lua_State *L, int idx, int flags, lua_Float4 *v);
+LUA_API void (lua_checkquat) (lua_State *L, int idx, int flags, lua_Float4 *v);
 
 /* Compatibility API, replaced by: a single lua_pushvector in lua.h */
 

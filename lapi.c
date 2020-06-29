@@ -29,6 +29,7 @@
 #include "ltm.h"
 #include "lundump.h"
 #include "lvm.h"
+#include "lgrit.h"
 #include "lgrit_lib.h"
 
 
@@ -286,8 +287,16 @@ LUA_API int lua_isnumber (lua_State *L, int idx) {
 }
 
 
-LUA_API int lua_isvector (lua_State *L, int idx) {
+LUA_API int lua_isvector (lua_State *L, int idx, int flags) {
   const TValue *o = index2value(L, idx);
+  if (ttistable(o) && flags) {
+    switch (luaVec_parse(L, o, NULL)) {
+      case 4: return LUA_VVECTOR4;
+      case 3: return LUA_VVECTOR3;
+      case 2: return LUA_VVECTOR2;
+      default: return 0;
+    }
+  }
   return ttisvector(o) ? ttypetag(o) : 0;
 }
 
@@ -381,7 +390,7 @@ LUA_API int lua_toboolean (lua_State *L, int idx) {
 }
 
 
-LUA_API int lua_tovector (lua_State *L, int idx, lua_Float4 *vector) {
+LUA_API int lua_tovector (lua_State *L, int idx, int flags, lua_Float4 *vector) {
   lua_Number n = 0;
   const TValue *o = index2value(L, idx);
 
@@ -400,6 +409,15 @@ LUA_API int lua_tovector (lua_State *L, int idx, lua_Float4 *vector) {
     vector->z = value->z;
     vector->w = value->w;
     return ttypetag(o);
+  }
+  else if (flags && ttistable(o)) {
+    switch (luaVec_parse(L, o, vector)) {
+      case 1: return LUA_VNUMFLT;
+      case 2: return LUA_VVECTOR2;
+      case 3: return LUA_VVECTOR3;
+      case 4: return LUA_VVECTOR4;
+      default: return LUA_TNIL;
+    }
   }
   return LUA_TNIL;
 }

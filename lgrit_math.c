@@ -75,8 +75,8 @@ static LUA_INLINE long double toradl(long double x) { return x * (3.141592653589
 
 int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res, TMS event) {
   int result = 1;
-  if (ttisvector3(p1) && ttisvector3(p2)) {
-    lua_Float4 nb = vvalue(p1), nc = vvalue(p2), r = V_ZEROVEC;
+  if (op_isvector3(L, p1) && op_isvector3(L, p2)) {
+    lua_Float4 nb = op_vector3(L, p1), nc = op_vector3(L, p2), r = V_ZEROVEC;
     switch (event) {
       case TM_ADD:
         PW3(ADDF, nb, nc, r);
@@ -111,8 +111,8 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
     }
     setvvalue(s2v(res), r, LUA_VVECTOR3);
   }
-  else if (ttisvector2(p1) && ttisvector2(p2)) {
-    lua_Float4 nb = vvalue(p1), nc = vvalue(p2), r = V_ZEROVEC;
+  else if (op_isvector2(L, p1) && op_isvector2(L, p2)) {
+    lua_Float4 nb = op_vector2(L, p1), nc = op_vector2(L, p2), r = V_ZEROVEC;
     switch (event) {
       case TM_ADD:
         PW2(ADDF, nb, nc, r);
@@ -147,8 +147,8 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
     }
     setvvalue(s2v(res), r, LUA_VVECTOR2);
   }
-  else if (ttisvector4(p1) && ttisvector4(p2)) {
-    lua_Float4 nb = vvalue(p1), nc = vvalue(p2), r = V_ZEROVEC;
+  else if (op_isvector4(L, p1) && op_isvector4(L, p2)) {
+    lua_Float4 nb = op_vector4(L, p1), nc = op_vector4(L, p2), r = V_ZEROVEC;
     switch (event) {
       case TM_ADD:
         PW4(ADDF, nb, nc, r);
@@ -185,8 +185,8 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
     }
     setvvalue(s2v(res), r, LUA_VVECTOR4);
   }
-  else if (ttisvector3(p1) && ttisnumber(p2)) {
-    lua_Float4 nb = vvalue(p1), r = V_ZEROVEC;
+  else if (op_isvector3(L, p1) && ttisnumber(p2)) {
+    lua_Float4 nb = op_vector3(L, p1), r = V_ZEROVEC;
     lua_VecF nc = cast_vec(nvalue(p2));
     switch (event) {
       case TM_ADD:
@@ -218,8 +218,8 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
     }
     setvvalue(s2v(res), r, LUA_VVECTOR3);
   }
-  else if (ttisvector2(p1) && ttisnumber(p2)) {
-    lua_Float4 nb = vvalue(p1), r = V_ZEROVEC;
+  else if (op_isvector2(L, p1) && ttisnumber(p2)) {
+    lua_Float4 nb = op_vector2(L, p1), r = V_ZEROVEC;
     lua_VecF nc = cast_vec(nvalue(p2));
     switch (event) {
       case TM_ADD:
@@ -251,8 +251,8 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
     }
     setvvalue(s2v(res), r, LUA_VVECTOR2);
   }
-  else if (ttisvector4(p1) && ttisnumber(p2)) {
-    lua_Float4 nb = vvalue(p1), r = V_ZEROVEC;
+  else if (op_isvector4(L, p1) && ttisnumber(p2)) {
+    lua_Float4 nb = op_vector4(L, p1), r = V_ZEROVEC;
     lua_VecF nc = cast_vec(nvalue(p2));
     switch (event) {
       case TM_ADD:
@@ -284,8 +284,8 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
     }
     setvvalue(s2v(res), r, LUA_VVECTOR4);
   }
-  else if (ttisnumber(p1) && ttisvector3(p2)) {
-    lua_Float4 nb = vvalue(p2), r = V_ZEROVEC;
+  else if (ttisnumber(p1) && op_isvector3(L, p2)) {
+    lua_Float4 nb = op_vector3(L, p2), r = V_ZEROVEC;
     lua_VecF nc = cast_vec(nvalue(p1));
     switch (event) {
       case TM_ADD:
@@ -309,8 +309,8 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
     }
     setvvalue(s2v(res), r, LUA_VVECTOR3);
   }
-  else if (ttisnumber(p1) && ttisvector2(p2)) {
-    lua_Float4 nb = vvalue(p2), r = V_ZEROVEC;
+  else if (ttisnumber(p1) && op_isvector2(L, p2)) {
+    lua_Float4 nb = op_vector2(L, p2), r = V_ZEROVEC;
     lua_VecF nc = cast_vec(nvalue(p1));
     switch (event) {
       case TM_ADD:
@@ -334,8 +334,8 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
     }
     setvvalue(s2v(res), r, LUA_VVECTOR2);
   }
-  else if (ttisnumber(p1) && ttisvector4(p2)) {
-    lua_Float4 nb = vvalue(p2), r = V_ZEROVEC;
+  else if (ttisnumber(p1) && op_isvector4(L, p2)) {
+    lua_Float4 nb = op_vector4(L, p2), r = V_ZEROVEC;
     lua_VecF nc = cast_vec(nvalue(p1));
     switch (event) {
       case TM_ADD:
@@ -361,8 +361,8 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
     }
     setvvalue(s2v(res), r, LUA_VVECTOR4);
   }
-  else if (ttisquat(p1) && ttisquat(p2)) {
-    lua_Float4 nb = vvalue(p1), nc = vvalue(p2), r = V_ZEROVEC;
+  else if (op_isquat(L, p1) && op_isquat(L, p2)) {
+    lua_Float4 nb = op_quat(L, p1), nc = op_quat(L, p2), r = V_ZEROVEC;
     switch (event) {
       case TM_MUL:
         r.w = nb.w * nc.w - nb.x * nc.x - nb.y * nc.y - nb.z * nc.z;
@@ -375,8 +375,8 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
     }
     setvvalue(s2v(res), r, LUA_VQUAT);
   }
-  else if (ttisquat(p1) && ttisvector3(p2)) {
-    lua_Float4 nb = vvalue(p1), nc = vvalue(p2), r = V_ZEROVEC;
+  else if (op_isquat(L, p1) && op_isvector3(L, p2)) {
+    lua_Float4 nb = op_quat(L, p1), nc = op_vector3(L, p2), r = V_ZEROVEC;
     switch (event) {
       case TM_MUL: {
         const lua_VecF a = nb.w, b = nb.x, c = nb.y, d = nb.z;
@@ -521,25 +521,25 @@ int luaVec_dot (lua_State *L) {
     lua_pushnumber(L, luaL_checknumber(L, 1) * luaL_checknumber(L, 2));
   else {
     lua_Float4 v, v2;
-    switch (lua_tovector(L, 1, &v)) {
+    switch (lua_tovector(L, 1, V_PARSETABLE, &v)) {
       case LUA_VNUMFLT:
-        lua_checkv1(L, 2, &v2);
+        lua_checkv1(L, 2, V_NOTABLE, &v2);
         lua_pushnumber(L, cast_num(v.x) * cast_num(v2.x));
         break;
       case LUA_VVECTOR2:
-        lua_checkv2(L, 2, &v2);
+        lua_checkv2(L, 2, V_PARSETABLE, &v2);
         lua_pushnumber(L, DOT2(cast_num, v, v2));
         break;
       case LUA_VVECTOR3:
-        lua_checkv3(L, 2, &v2);
+        lua_checkv3(L, 2, V_PARSETABLE, &v2);
         lua_pushnumber(L, DOT3(cast_num, v, v2));
         break;
       case LUA_VVECTOR4:
-        lua_checkv4(L, 2, &v2);
+        lua_checkv4(L, 2, V_PARSETABLE, &v2);
         lua_pushnumber(L, DOT4(cast_num, v, v2));
         break;
       case LUA_VQUAT:
-        lua_checkquat(L, 2, &v2);
+        lua_checkquat(L, 2, V_PARSETABLE, &v2);
         lua_pushnumber(L, DOT4(cast_num, v, v2));
         break;
       default:
@@ -555,8 +555,8 @@ int luaVec_cross (lua_State *L) {
   if (lua_gettop(L) != 2)
     return luaL_error(L, "Invalid params, try cross(v,v)");
 
-  lua_checkv3(L, 1, &v);
-  lua_checkv3(L, 2, &v2);
+  lua_checkv3(L, 1, V_PARSETABLE, &v);
+  lua_checkv3(L, 2, V_PARSETABLE, &v2);
 
   c.x = v.y * v2.z - v.z * v2.y;
   c.y = v.z * v2.x - v.x * v2.z;
@@ -573,7 +573,7 @@ int luaVec_inv (lua_State *L) {
   if (lua_gettop(L) != 1)
     return luaL_error(L, "Invalid params, try inv(q)");
 
-  lua_checkquat(L, 1, &v);
+  lua_checkquat(L, 1, V_PARSETABLE, &v);
   v.x *= -V_ONE;
   v.y *= -V_ONE;
   v.z *= -V_ONE;
@@ -591,7 +591,7 @@ int luaVec_norm (lua_State *L) {
     return 1;
   }
 
-  switch ((variant = lua_tovector(L, 1, &v))) {
+  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
     case LUA_VNUMFLT:  /* Technically should never be reached. */
       lua_pushnumber(L, l_mathop(1.0));
       return 1;
@@ -629,8 +629,8 @@ int luaVec_slerp (lua_State *L) {
   if (lua_gettop(L) != 3)
     return luaL_error(L, "Invalid params, try slerp(q1, q2, a)");
 
-  lua_checkquat(L, 1, &v);
-  lua_checkquat(L, 2, &v2);
+  lua_checkquat(L, 1, V_PARSETABLE, &v);
+  lua_checkquat(L, 2, V_PARSETABLE, &v2);
   t = cast_vec(lua_tonumber(L, 3));
 
   if ((dot = DOT4(cast_vec, v, v2)) < V_ZERO) {
@@ -667,7 +667,7 @@ int luaVec_slerp (lua_State *L) {
 int luaVec_abs (lua_State *L) {
   int variant;
   lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, &v))) {
+  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
     case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(fabs)(cast_num(v.x))); return 1;
     case LUA_VVECTOR2: OP2(l_vecop(fabs), v, v); break;
     case LUA_VVECTOR3: OP3(l_vecop(fabs), v, v); break;
@@ -682,7 +682,7 @@ int luaVec_abs (lua_State *L) {
 int luaVec_sin (lua_State *L) {
   int variant;
   lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, &v))) {
+  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
     case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(sin)(cast_num(v.x))); return 1;
     case LUA_VVECTOR2: OP2(l_vecop(sin), v, v); break;
     case LUA_VVECTOR3: OP3(l_vecop(sin), v, v); break;
@@ -697,7 +697,7 @@ int luaVec_sin (lua_State *L) {
 int luaVec_cos (lua_State *L) {
   int variant;
   lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, &v))) {
+  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
     case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(cos)(cast_num(v.x))); return 1;
     case LUA_VVECTOR2: OP2(l_vecop(cos), v, v); break;
     case LUA_VVECTOR3: OP3(l_vecop(cos), v, v); break;
@@ -712,7 +712,7 @@ int luaVec_cos (lua_State *L) {
 int luaVec_tan (lua_State *L) {
   int variant;
   lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, &v))) {
+  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
     case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(tan)(cast_num(v.x))); return 1;
     case LUA_VVECTOR2: OP2(l_vecop(tan), v, v); break;
     case LUA_VVECTOR3: OP3(l_vecop(tan), v, v); break;
@@ -727,7 +727,7 @@ int luaVec_tan (lua_State *L) {
 int luaVec_asin (lua_State *L) {
   int variant;
   lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, &v))) {
+  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
     case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(asin)(cast_num(v.x))); return 1;
     case LUA_VVECTOR2: OP2(l_vecop(asin), v, v); break;
     case LUA_VVECTOR3: OP3(l_vecop(asin), v, v); break;
@@ -742,7 +742,7 @@ int luaVec_asin (lua_State *L) {
 int luaVec_acos (lua_State *L) {
   int variant;
   lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, &v))) {
+  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
     case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(acos)(cast_num(v.x))); return 1;
     case LUA_VVECTOR2: OP2(l_vecop(acos), v, v); break;
     case LUA_VVECTOR3: OP3(l_vecop(acos), v, v); break;
@@ -757,7 +757,7 @@ int luaVec_acos (lua_State *L) {
 int luaVec_atan (lua_State *L) {
   int variant;
   lua_Float4 v, v2;
-  switch ((variant = lua_tovector(L, 1, &v))) {
+  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
     case LUA_VNUMFLT: {
       v2.x = V_ONE;
       if (lua_type(L, 2) != LUA_TNONE)
@@ -769,7 +769,7 @@ int luaVec_atan (lua_State *L) {
       if (lua_type(L, 2) == LUA_TNONE)
         v2.x = v2.y = V_ONE;
       else if (lua_type(L, 2) == LUA_TVECTOR)
-        lua_checkv2(L, 2, &v2);
+        lua_checkv2(L, 2, V_PARSETABLE, &v2);
       else /* Assume it's a LUA_TNUMBER, throw an error otherwise. */
         v2.x = v2.y = cast_vec(luaL_checknumber(L, 2));
 
@@ -780,7 +780,7 @@ int luaVec_atan (lua_State *L) {
       if (lua_type(L, 2) == LUA_TNONE)
         v2.x = v2.y = v2.z = V_ONE;
       else if (lua_type(L, 2) == LUA_TVECTOR)
-        lua_checkv3(L, 2, &v2);
+        lua_checkv3(L, 2, V_PARSETABLE, &v2);
       else
         v2.x = v2.y = v2.z = cast_vec(luaL_checknumber(L, 2));
 
@@ -791,7 +791,7 @@ int luaVec_atan (lua_State *L) {
       if (lua_type(L, 2) == LUA_TNONE)
         v2.x = v2.y = v2.z = v2.w = V_ONE;
       else if (lua_type(L, 2) == LUA_TVECTOR)
-        lua_checkv4(L, 2, &v2);
+        lua_checkv4(L, 2, V_PARSETABLE, &v2);
       else
         v2.x = v2.y = v2.z = v2.w = cast_vec(luaL_checknumber(L, 2));
 
@@ -809,7 +809,7 @@ int luaVec_atan (lua_State *L) {
 int luaVec_floor (lua_State *L) {
   int variant;
   lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, &v))) {
+  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
     case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(floor)(cast_num(v.x))); return 1;
     case LUA_VVECTOR2: OP2(l_vecop(floor), v, v); break;
     case LUA_VVECTOR3: OP3(l_vecop(floor), v, v); break;
@@ -824,7 +824,7 @@ int luaVec_floor (lua_State *L) {
 int luaVec_ceil (lua_State *L) {
   int variant;
   lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, &v))) {
+  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
     case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(ceil)(cast_num(v.x))); return 1;
     case LUA_VVECTOR2: OP2(l_vecop(ceil), v, v); break;
     case LUA_VVECTOR3: OP3(l_vecop(ceil), v, v); break;
@@ -840,7 +840,7 @@ int luaVec_fmod (lua_State *L) {
   int variant;
   lua_Float4 v, v2;
   lua_VecF x;
-  switch ((variant = lua_tovector(L, 1, &v))) {
+  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
     case LUA_VNUMFLT:
       x = cast_vec(luaL_checknumber(L, 2));
       lua_pushnumber(L, l_mathop(fmod)(v.x, x));
@@ -851,7 +851,7 @@ int luaVec_fmod (lua_State *L) {
         SCALAR2(l_vecop(fmod), v, x, v);
       }
       else if (lua_type(L, 2) == LUA_TVECTOR) {
-        lua_checkv2(L, 2, &v2);
+        lua_checkv2(L, 2, V_PARSETABLE, &v2);
         PW2(l_vecop(fmod), v, v2, v);
       }
       else
@@ -863,7 +863,7 @@ int luaVec_fmod (lua_State *L) {
         SCALAR3(l_vecop(fmod), v, x, v);
       }
       else if (lua_type(L, 2) == LUA_TVECTOR) {
-        lua_checkv3(L, 2, &v2);
+        lua_checkv3(L, 2, V_PARSETABLE, &v2);
         PW3(l_vecop(fmod), v, v2, v);
       }
       else
@@ -875,7 +875,7 @@ int luaVec_fmod (lua_State *L) {
         SCALAR3(l_vecop(fmod), v, x, v);
       }
       else if (lua_type(L, 2) == LUA_TVECTOR) {
-        lua_checkv4(L, 2, &v2);
+        lua_checkv4(L, 2, V_PARSETABLE, &v2);
         PW4(l_vecop(fmod), v, v2, v);
       }
       else
@@ -892,7 +892,7 @@ int luaVec_fmod (lua_State *L) {
 int luaVec_sqrt (lua_State *L) {
   int variant;
   lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, &v))) {
+  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
     case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(sqrt)(cast_num(v.x))); return 1;
     case LUA_VVECTOR2: OP2(l_vecop(sqrt), v, v); break;
     case LUA_VVECTOR3: OP3(l_vecop(sqrt), v, v); break;
@@ -927,7 +927,7 @@ static lua_VecF log_helper (lua_State *L, lua_VecF x) {
 int luaVec_log (lua_State *L) {
   int variant;
   lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, &v))) {
+  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
     case LUA_VNUMFLT:
       lua_pushnumber(L, cast_num(log_helper(L, v.x)));
       return 1;
@@ -948,7 +948,7 @@ int luaVec_log (lua_State *L) {
 int luaVec_exp (lua_State *L) {
   int variant;
   lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, &v))) {
+  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
     case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(exp)(cast_num(v.x))); return 1;
     case LUA_VVECTOR2: OP2(l_vecop(exp), v, v); break;
     case LUA_VVECTOR3: OP3(l_vecop(exp), v, v); break;
@@ -963,7 +963,7 @@ int luaVec_exp (lua_State *L) {
 int luaVec_deg (lua_State *L) {
   int variant;
   lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, &v))) {
+  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
     case LUA_VNUMFLT:
       lua_pushnumber(L, cast_num(v.x) * (l_mathop(3.141592653589793238462643383279502884) / l_mathop(180.0)));
       return 1;
@@ -980,7 +980,7 @@ int luaVec_deg (lua_State *L) {
 int luaVec_rad (lua_State *L) {
   int variant;
   lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, &v))) {
+  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
     case LUA_VNUMFLT:
       lua_pushnumber(L, cast_num(v.x) * (l_mathop(180.0) / l_mathop(3.141592653589793238462643383279502884)));
       return 1;
@@ -999,29 +999,29 @@ int luaVec_min (lua_State *L) {
   int n = lua_gettop(L);  /* number of arguments */
 
   lua_Float4 v, v2;
-  switch ((variant = lua_tovector(L, 1, &v))) {
+  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
     case LUA_VNUMFLT:
       for (i = 2; i <= n; i++) {
-        lua_checkv1(L, i, &v2);
+        lua_checkv1(L, i, V_NOTABLE, &v2);
         PW1(luai_numlt_c, v, v2, v);
       }
       lua_pushnumber(L, cast_num(v.x));
       return 1;
     case LUA_VVECTOR2:
       for (i = 2; i <= n; i++) {
-        lua_checkv2(L, i, &v2);
+        lua_checkv2(L, i, V_PARSETABLE, &v2);
         PW2(luai_numlt_c, v, v2, v);
       }
       break;
     case LUA_VVECTOR3:
       for (i = 2; i <= n; i++) {
-        lua_checkv3(L, i, &v2);
+        lua_checkv3(L, i, V_PARSETABLE, &v2);
         PW3(luai_numlt_c, v, v2, v);
       }
       break;
     case LUA_VVECTOR4:
       for (i = 2; i <= n; i++) {
-        lua_checkv4(L, i, &v2);
+        lua_checkv4(L, i, V_PARSETABLE, &v2);
         PW4(luai_numlt_c, v, v2, v);
       }
       break;
@@ -1038,29 +1038,29 @@ int luaVec_max (lua_State *L) {
   int n = lua_gettop(L);  /* number of arguments */
 
   lua_Float4 v, v2;
-  switch ((variant = lua_tovector(L, 1, &v))) {
+  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
     case LUA_VNUMFLT:
       for (i = 2; i <= n; i++) {
-        lua_checkv1(L, i, &v2);
+        lua_checkv1(L, i, V_NOTABLE, &v2);
         PW1(luai_numgt_c, v, v2, v);
       }
       lua_pushnumber(L, cast_num(v.x));
       return 1;
     case LUA_VVECTOR2:
       for (i = 2; i <= n; i++) {
-        lua_checkv2(L, i, &v2);
+        lua_checkv2(L, i, V_PARSETABLE, &v2);
         PW2(luai_numgt_c, v, v2, v);
       }
       break;
     case LUA_VVECTOR3:
       for (i = 2; i <= n; i++) {
-        lua_checkv3(L, i, &v2);
+        lua_checkv3(L, i, V_PARSETABLE, &v2);
         PW3(luai_numgt_c, v, v2, v);
       }
       break;
     case LUA_VVECTOR4:
       for (i = 2; i <= n; i++) {
-        lua_checkv4(L, i, &v2);
+        lua_checkv4(L, i, V_PARSETABLE, &v2);
         PW4(luai_numgt_c, v, v2, v);
       }
       break;
@@ -1075,25 +1075,25 @@ int luaVec_max (lua_State *L) {
 int luaVec_clamp (lua_State *L) {
   int variant;
   lua_Float4 min, v, max;
-  switch ((variant = lua_tovector(L, 1, &v))) {
+  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
     case LUA_VNUMFLT:
-      lua_checkv1(L, 2, &min); lua_checkv1(L, 3, &max);
+      lua_checkv1(L, 2, V_NOTABLE, &min); lua_checkv1(L, 3, V_NOTABLE, &max);
       PW2(luai_numgt_c, v, min, v);
       PW2(luai_numlt_c, v, max, v);
       lua_pushnumber(L, cast_num(v.x));
       return 1;
     case LUA_VVECTOR2:
-      lua_checkv2(L, 2, &min); lua_checkv2(L, 3, &max);
+      lua_checkv2(L, 2, V_PARSETABLE, &min); lua_checkv2(L, V_PARSETABLE, 3, &max);
       PW2(luai_numgt_c, v, min, v);
       PW2(luai_numlt_c, v, max, v);
       break;
     case LUA_VVECTOR3:
-      lua_checkv3(L, 2, &min); lua_checkv3(L, 3, &max);
+      lua_checkv3(L, 2, V_PARSETABLE, &min); lua_checkv3(L, V_PARSETABLE, 3, &max);
       PW3(luai_numgt_c, v, min, v);
       PW3(luai_numlt_c, v, max, v);
       break;
     case LUA_VVECTOR4:
-      lua_checkv4(L, 2, &min); lua_checkv4(L, 3, &max);
+      lua_checkv4(L, 2, V_PARSETABLE, &min); lua_checkv4(L, V_PARSETABLE, 3, &max);
       PW4(luai_numgt_c, v, min, v);
       PW4(luai_numlt_c, v, max, v);
       break;
@@ -1116,7 +1116,7 @@ int luaVec_clamp (lua_State *L) {
 int luaV_sinh (lua_State *L) {
   int variant;
   lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, &v))) {
+  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
     case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(sinh)(cast_num(v.x))); return 1;
     case LUA_VVECTOR2: OP2(l_vecop(sinh), v, v); break;
     case LUA_VVECTOR3: OP3(l_vecop(sinh), v, v); break;
@@ -1131,7 +1131,7 @@ int luaV_sinh (lua_State *L) {
 int luaV_cosh (lua_State *L) {
   int variant;
   lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, &v))) {
+  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
     case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(cosh)(cast_num(v.x))); return 1;
     case LUA_VVECTOR2: OP2(l_vecop(cosh), v, v); break;
     case LUA_VVECTOR3: OP3(l_vecop(cosh), v, v); break;
@@ -1146,7 +1146,7 @@ int luaV_cosh (lua_State *L) {
 int luaV_tanh (lua_State *L) {
   int variant;
   lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, &v))) {
+  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
     case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(tanh)(cast_num(v.x))); return 1;
     case LUA_VVECTOR2: OP2(l_vecop(tanh), v, v); break;
     case LUA_VVECTOR3: OP3(l_vecop(tanh), v, v); break;
@@ -1162,7 +1162,7 @@ int luaV_pow (lua_State *L) {
   int variant;
   lua_Float4 v, v2;
   lua_VecF x;
-  switch ((variant = lua_tovector(L, 1, &v))) {
+  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
     case LUA_VNUMFLT:
       x = cast_vec(luaL_checknumber(L, 2));
       lua_pushnumber(L, l_mathop(pow)(v.x, x));
@@ -1173,7 +1173,7 @@ int luaV_pow (lua_State *L) {
         SCALAR2(l_vecop(pow), v, x, v);
       }
       else if (lua_type(L, 2) == LUA_TVECTOR) {
-        lua_checkv2(L, 2, &v2);
+        lua_checkv2(L, 2, V_PARSETABLE, &v2);
         PW2(l_vecop(pow), v, v2, v);
       }
       else
@@ -1185,7 +1185,7 @@ int luaV_pow (lua_State *L) {
         SCALAR3(l_vecop(pow), v, x, v);
       }
       else if (lua_type(L, 2) == LUA_TVECTOR) {
-        lua_checkv3(L, 2, &v2);
+        lua_checkv3(L, 2, V_PARSETABLE, &v2);
         PW3(l_vecop(pow), v, v2, v);
       }
       else
@@ -1197,7 +1197,7 @@ int luaV_pow (lua_State *L) {
         SCALAR3(l_vecop(pow), v, x, v);
       }
       else if (lua_type(L, 2) == LUA_TVECTOR) {
-        lua_checkv4(L, 2, &v2);
+        lua_checkv4(L, 2, V_PARSETABLE, &v2);
         PW4(l_vecop(pow), v, v2, v);
       }
       else
@@ -1235,7 +1235,7 @@ int luaV_pow (lua_State *L) {
 int luaV_log10 (lua_State *L) {
   int variant;
   lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, &v))) {
+  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
     case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(log10)(cast_num(v.x))); return 1;
     case LUA_VVECTOR2: OP2(l_vecop(log10), v, v); break;
     case LUA_VVECTOR3: OP3(l_vecop(log10), v, v); break;

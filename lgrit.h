@@ -44,6 +44,15 @@ LUAI_FUNC int luaVec_axis (const lua_Float4 v, lua_Float4 *r);
 ** ===================================================================
 */
 
+#define op_isvector2(L, o) (ttisvector2((o)) || luaVec_parse((L), (o), NULL) == 2)
+#define op_isvector3(L, o) (ttisvector3((o)) || luaVec_parse((L), (o), NULL) == 3)
+#define op_isvector4(L, o) (ttisvector4((o)) || luaVec_parse((L), (o), NULL) == 4)
+#define op_isquat(L, o) (ttisquat((o)) || luaVec_parse((L), (o), NULL) == 4)
+#define op_vector2(L, o) (ttisvector2((o)) ? vvalue((o)) : luaVec_value((L), (o)))
+#define op_vector3(L, o) (ttisvector3((o)) ? vvalue((o)) : luaVec_value((L), (o)))
+#define op_vector4(L, o) (ttisvector4((o)) ? vvalue((o)) : luaVec_value((L), (o)))
+#define op_quat(L, o) (ttisquat((o)) ? vvalue((o)) : luaVec_value((L), (o)))
+
 /* Place the magnitude of the vector (o) at the specified stack index (ra) */
 LUAI_FUNC void (luaVec_objlen) (lua_State *L, StkId ra, const TValue *o);
 
@@ -58,6 +67,19 @@ LUAI_FUNC int (luaVec_pullstring) (lua_State *L, const TValue *o,
 /* */
 LUAI_FUNC int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2,
                                                           StkId res, TMS event);
+
+/*
+** Attempt to parse the provided table as a vector, i.e., check if the table has
+** 'x', 'y', 'z', and 'w' fields and if those values are numeric types. If 'v'
+** is not NULL, then the parsed contents are stored within the provided Float4.
+**
+** Returning the number of valid vector dimensions (bounded by the first
+** dimension that is nil or not-numeric) the table has.
+*/
+LUAI_FUNC int (luaVec_parse) (lua_State* L, const TValue* o, lua_Float4 *v);
+
+/* Create a lua_Float4 from the given table Value. */
+LUAI_FUNC lua_Float4 (luaVec_value) (lua_State* L, const TValue* o);
 
 /* }================================================================== */
 
