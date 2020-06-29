@@ -130,6 +130,35 @@ LUAI_FUNC int (luaV_cosh) (lua_State *L);
 LUAI_FUNC int (luaV_tanh) (lua_State *L);
 LUAI_FUNC int (luaV_pow) (lua_State *L);
 LUAI_FUNC int (luaV_log10) (lua_State *L);
+#if defined(LUA_C99_MATHLIB)
+LUAI_FUNC int luaV_asinh (lua_State *L);
+LUAI_FUNC int luaV_acosh (lua_State *L);
+LUAI_FUNC int luaV_atanh (lua_State *L);
+LUAI_FUNC int luaV_cbrt (lua_State *L);
+LUAI_FUNC int luaV_erf (lua_State *L);
+LUAI_FUNC int luaV_erfc (lua_State *L);
+LUAI_FUNC int luaV_exp2 (lua_State *L);
+LUAI_FUNC int luaV_expm1 (lua_State *L);
+LUAI_FUNC int luaV_gamma (lua_State *L);
+LUAI_FUNC int luaV_lgamma (lua_State *L);
+LUAI_FUNC int luaV_log1p (lua_State *L);
+LUAI_FUNC int luaV_logb (lua_State *L);
+LUAI_FUNC int luaV_nearbyint (lua_State *L);
+LUAI_FUNC int luaV_round (lua_State *L);
+LUAI_FUNC int luaV_trunc (lua_State *L);
+
+LUAI_FUNC int luaV_isfinite (lua_State *L);
+LUAI_FUNC int luaV_isinf (lua_State *L);
+LUAI_FUNC int luaV_isnan (lua_State *L);
+LUAI_FUNC int luaV_isnormal (lua_State *L);
+
+LUAI_FUNC int luaV_fdim (lua_State *L);
+LUAI_FUNC int luaV_hypot (lua_State *L);
+LUAI_FUNC int luaV_scalbn (lua_State *L);
+LUAI_FUNC int luaV_copysign (lua_State *L);
+LUAI_FUNC int luaV_nextafter (lua_State *L);
+LUAI_FUNC int luaV_remainder (lua_State *L);
+#endif  /* LUA_C99_MATHLIB */
 #endif
 
 /* }================================================================== */

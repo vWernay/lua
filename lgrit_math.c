@@ -31,6 +31,11 @@
 #define MULF(x, y) ((x) * (y))
 #define DIVF(x, y) ((x) / (y))
 
+#define IS1(f, lhs) f(lhs.x)
+#define IS2(f, lhs) f(lhs.x) && f(lhs.y)
+#define IS3(f, lhs) f(lhs.x) && f(lhs.y) && f(lhs.z)
+#define IS4(f, lhs) f(lhs.x) && f(lhs.y) && f(lhs.z) && f(lhs.w)
+
 #define OP1(f, lhs, r) { r.x = f(lhs.x); }
 #define OP2(f, lhs, r) { r.x = f(lhs.x); r.y = f(lhs.y); }
 #define OP3(f, lhs, r) { r.x = f(lhs.x); r.y = f(lhs.y); r.z = f(lhs.z); }
@@ -55,6 +60,88 @@
 #define ISNORM2(lhs) (l_vecop(fabs)(DOT2(cast_vec, v, v) - V_ONE) <= LUA_VEC_NUMBER_EPS)
 #define ISNORM3(lhs) (l_vecop(fabs)(DOT3(cast_vec, v, v) - V_ONE) <= LUA_VEC_NUMBER_EPS)
 #define ISNORM4(lhs) (l_vecop(fabs)(DOT4(cast_vec, v, v) - V_ONE) <= LUA_VEC_NUMBER_EPS)
+
+#define LUA_VEC_OP1(L, op) {                                                   \
+  int variant;                                                                 \
+  lua_Float4 v;                                                                \
+  switch ((variant = lua_tovector((L), 1, V_PARSETABLE, &v))) {                \
+    case LUA_VNUMFLT:                                                          \
+      lua_pushnumber((L), l_mathop(op)(cast_num(v.x)));                        \
+      return 1;                                                                \
+    case LUA_VVECTOR2: OP2(l_vecop(op), v, v); break;                          \
+    case LUA_VVECTOR3: OP3(l_vecop(op), v, v); break;                          \
+    case LUA_VVECTOR4: OP4(l_vecop(op), v, v); break;                          \
+    default: return luaL_typeerror(L, 1, LABEL_ALL);                           \
+  }                                                                            \
+  lua_pushvector((L), v, variant);                                             \
+  return 1;                                                                    \
+}
+
+#define LUA_VEC_OP2(L, op) {                                                   \
+  int variant;                                                                 \
+  lua_VecF x;                                                                  \
+  lua_Float4 v, v2;                                                            \
+  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {                  \
+    case LUA_VNUMFLT:                                                          \
+      x = cast_vec(luaL_checknumber(L, 2));                                    \
+      lua_pushnumber(L, l_mathop(op)(v.x, x));                                 \
+      return 1;                                                                \
+    case LUA_VVECTOR2:                                                         \
+      if (lua_type(L, 2) == LUA_TNUMBER) {                                     \
+        x = cast_vec(luaL_checknumber(L, 2));                                  \
+        SCALAR2(l_vecop(op), v, x, v);                                         \
+      }                                                                        \
+      else if (lua_type(L, 2) == LUA_TVECTOR) {                                \
+        lua_checkv2(L, 2, V_PARSETABLE, &v2);                                  \
+        PW2(l_vecop(op), v, v2, v);                                            \
+      }                                                                        \
+      else                                                                     \
+        return luaL_typeerror(L, 2, LABEL_VECTOR2);                            \
+      break;                                                                   \
+    case LUA_VVECTOR3:                                                         \
+      if (lua_type(L, 2) == LUA_TNUMBER) {                                     \
+        x = cast_vec(luaL_checknumber(L, 2));                                  \
+        SCALAR3(l_vecop(op), v, x, v);                                         \
+      }                                                                        \
+      else if (lua_type(L, 2) == LUA_TVECTOR) {                                \
+        lua_checkv3(L, 2, V_PARSETABLE, &v2);                                  \
+        PW3(l_vecop(op), v, v2, v);                                            \
+      }                                                                        \
+      else                                                                     \
+        return luaL_typeerror(L, 2, LABEL_VECTOR3);                            \
+      break;                                                                   \
+    case LUA_VVECTOR4:                                                         \
+      if (lua_type(L, 2) == LUA_TNUMBER) {                                     \
+        x = cast_vec(luaL_checknumber(L, 2));                                  \
+        SCALAR3(l_vecop(op), v, x, v);                                         \
+      }                                                                        \
+      else if (lua_type(L, 2) == LUA_TVECTOR) {                                \
+        lua_checkv4(L, 2, V_PARSETABLE, &v2);                                  \
+        PW4(l_vecop(op), v, v2, v);                                            \
+      }                                                                        \
+      else                                                                     \
+        return luaL_typeerror(L, 2, LABEL_VECTOR4);                            \
+      break;                                                                   \
+    default:                                                                   \
+      return luaL_typeerror(L, 1, LABEL_ALL);                                  \
+  }                                                                            \
+  lua_pushvector(L, v, variant);                                               \
+  return 1;                                                                    \
+}
+
+#define LUA_VEC_CHECK1(L, op) {                                                \
+  lua_Float4 v;                                                                \
+  int variant, result = 0;                                                     \
+  switch ((variant = lua_tovector((L), 1, V_PARSETABLE, &v))) {                \
+    case LUA_VNUMFLT: result = IS1(op, v); break;                              \
+    case LUA_VVECTOR2: result = IS2(op, v); break;                             \
+    case LUA_VVECTOR3: result = IS3(op, v); break;                             \
+    case LUA_VVECTOR4: result = IS4(op, v); break;                             \
+    default: return luaL_typeerror(L, 1, LABEL_ALL);                           \
+  }                                                                            \
+  lua_pushboolean((L), result);                                                \
+  return 1;                                                                    \
+}
 
 static LUA_INLINE float todegf(float x) { return x * (180.f / 3.141592653589793238462643383279502884f); }
 static LUA_INLINE double todeg(double x) { return x * (180.0 / 3.141592653589793238462643383279502884); }
@@ -663,96 +750,19 @@ int luaVec_slerp (lua_State *L) {
   return 1;
 }
 
-
-int luaVec_abs (lua_State *L) {
-  int variant;
-  lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
-    case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(fabs)(cast_num(v.x))); return 1;
-    case LUA_VVECTOR2: OP2(l_vecop(fabs), v, v); break;
-    case LUA_VVECTOR3: OP3(l_vecop(fabs), v, v); break;
-    case LUA_VVECTOR4: OP4(l_vecop(fabs), v, v); break;
-    default: return luaL_typeerror(L, 1, LABEL_ALL);
-  }
-  lua_pushvector(L, v, variant);
-  return 1;
-}
-
-
-int luaVec_sin (lua_State *L) {
-  int variant;
-  lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
-    case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(sin)(cast_num(v.x))); return 1;
-    case LUA_VVECTOR2: OP2(l_vecop(sin), v, v); break;
-    case LUA_VVECTOR3: OP3(l_vecop(sin), v, v); break;
-    case LUA_VVECTOR4: OP4(l_vecop(sin), v, v); break;
-    default: return luaL_typeerror(L, 1, LABEL_ALL);
-  }
-  lua_pushvector(L, v, variant);
-  return 1;
-}
-
-
-int luaVec_cos (lua_State *L) {
-  int variant;
-  lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
-    case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(cos)(cast_num(v.x))); return 1;
-    case LUA_VVECTOR2: OP2(l_vecop(cos), v, v); break;
-    case LUA_VVECTOR3: OP3(l_vecop(cos), v, v); break;
-    case LUA_VVECTOR4: OP4(l_vecop(cos), v, v); break;
-    default: return luaL_typeerror(L, 1, LABEL_ALL);
-  }
-  lua_pushvector(L, v, variant);
-  return 1;
-}
-
-
-int luaVec_tan (lua_State *L) {
-  int variant;
-  lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
-    case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(tan)(cast_num(v.x))); return 1;
-    case LUA_VVECTOR2: OP2(l_vecop(tan), v, v); break;
-    case LUA_VVECTOR3: OP3(l_vecop(tan), v, v); break;
-    case LUA_VVECTOR4: OP4(l_vecop(tan), v, v); break;
-    default: return luaL_typeerror(L, 1, LABEL_ALL);
-  }
-  lua_pushvector(L, v, variant);
-  return 1;
-}
-
-
-int luaVec_asin (lua_State *L) {
-  int variant;
-  lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
-    case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(asin)(cast_num(v.x))); return 1;
-    case LUA_VVECTOR2: OP2(l_vecop(asin), v, v); break;
-    case LUA_VVECTOR3: OP3(l_vecop(asin), v, v); break;
-    case LUA_VVECTOR4: OP4(l_vecop(asin), v, v); break;
-    default: return luaL_typeerror(L, 1, LABEL_ALL);
-  }
-  lua_pushvector(L, v, variant);
-  return 1;
-}
-
-
-int luaVec_acos (lua_State *L) {
-  int variant;
-  lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
-    case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(acos)(cast_num(v.x))); return 1;
-    case LUA_VVECTOR2: OP2(l_vecop(acos), v, v); break;
-    case LUA_VVECTOR3: OP3(l_vecop(acos), v, v); break;
-    case LUA_VVECTOR4: OP4(l_vecop(acos), v, v); break;
-    default: return luaL_typeerror(L, 1, LABEL_ALL);
-  }
-  lua_pushvector(L, v, variant);
-  return 1;
-}
-
+int luaVec_abs (lua_State *L) { LUA_VEC_OP1(L, fabs); }
+int luaVec_sin (lua_State *L) { LUA_VEC_OP1(L, sin); }
+int luaVec_cos (lua_State *L) { LUA_VEC_OP1(L, cos); }
+int luaVec_tan (lua_State *L) { LUA_VEC_OP1(L, tan); }
+int luaVec_asin (lua_State *L) { LUA_VEC_OP1(L, asin); }
+int luaVec_acos (lua_State *L) { LUA_VEC_OP1(L, acos); }
+int luaVec_floor (lua_State *L) { LUA_VEC_OP1(L, floor); }
+int luaVec_ceil (lua_State *L) { LUA_VEC_OP1(L, ceil); }
+int luaVec_sqrt (lua_State *L) { LUA_VEC_OP1(L, sqrt); }
+int luaVec_exp (lua_State *L) { LUA_VEC_OP1(L, exp); }
+int luaVec_deg (lua_State *L) { LUA_VEC_OP1(L, todeg); }
+int luaVec_rad (lua_State *L) { LUA_VEC_OP1(L, torad); }
+int luaVec_fmod (lua_State *L) { LUA_VEC_OP2(L, fmod); }
 
 int luaVec_atan (lua_State *L) {
   int variant;
@@ -806,104 +816,6 @@ int luaVec_atan (lua_State *L) {
 }
 
 
-int luaVec_floor (lua_State *L) {
-  int variant;
-  lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
-    case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(floor)(cast_num(v.x))); return 1;
-    case LUA_VVECTOR2: OP2(l_vecop(floor), v, v); break;
-    case LUA_VVECTOR3: OP3(l_vecop(floor), v, v); break;
-    case LUA_VVECTOR4: OP4(l_vecop(floor), v, v); break;
-    default: return luaL_typeerror(L, 1, LABEL_ALL);
-  }
-  lua_pushvector(L, v, variant);
-  return 1;
-}
-
-
-int luaVec_ceil (lua_State *L) {
-  int variant;
-  lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
-    case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(ceil)(cast_num(v.x))); return 1;
-    case LUA_VVECTOR2: OP2(l_vecop(ceil), v, v); break;
-    case LUA_VVECTOR3: OP3(l_vecop(ceil), v, v); break;
-    case LUA_VVECTOR4: OP4(l_vecop(ceil), v, v); break;
-    default: return luaL_typeerror(L, 1, LABEL_ALL);
-  }
-  lua_pushvector(L, v, variant);
-  return 1;
-}
-
-
-int luaVec_fmod (lua_State *L) {
-  int variant;
-  lua_Float4 v, v2;
-  lua_VecF x;
-  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
-    case LUA_VNUMFLT:
-      x = cast_vec(luaL_checknumber(L, 2));
-      lua_pushnumber(L, l_mathop(fmod)(v.x, x));
-      return 1;
-    case LUA_VVECTOR2:
-      if (lua_type(L, 2) == LUA_TNUMBER) {
-        x = cast_vec(luaL_checknumber(L, 2));
-        SCALAR2(l_vecop(fmod), v, x, v);
-      }
-      else if (lua_type(L, 2) == LUA_TVECTOR) {
-        lua_checkv2(L, 2, V_PARSETABLE, &v2);
-        PW2(l_vecop(fmod), v, v2, v);
-      }
-      else
-        return luaL_typeerror(L, 2, LABEL_NUMBER " or " LABEL_VECTOR2);
-      break;
-    case LUA_VVECTOR3:
-      if (lua_type(L, 2) == LUA_TNUMBER) {
-        x = cast_vec(luaL_checknumber(L, 2));
-        SCALAR3(l_vecop(fmod), v, x, v);
-      }
-      else if (lua_type(L, 2) == LUA_TVECTOR) {
-        lua_checkv3(L, 2, V_PARSETABLE, &v2);
-        PW3(l_vecop(fmod), v, v2, v);
-      }
-      else
-        return luaL_typeerror(L, 2, LABEL_NUMBER " or " LABEL_VECTOR3);
-      break;
-    case LUA_VVECTOR4:
-      if (lua_type(L, 2) == LUA_TNUMBER) {
-        x = cast_vec(luaL_checknumber(L, 2));
-        SCALAR3(l_vecop(fmod), v, x, v);
-      }
-      else if (lua_type(L, 2) == LUA_TVECTOR) {
-        lua_checkv4(L, 2, V_PARSETABLE, &v2);
-        PW4(l_vecop(fmod), v, v2, v);
-      }
-      else
-        return luaL_typeerror(L, 2, LABEL_NUMBER " or " LABEL_VECTOR2);
-      break;
-    default:
-      return luaL_typeerror(L, 1, LABEL_ALL);
-  }
-  lua_pushvector(L, v, variant);
-  return 1;
-}
-
-
-int luaVec_sqrt (lua_State *L) {
-  int variant;
-  lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
-    case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(sqrt)(cast_num(v.x))); return 1;
-    case LUA_VVECTOR2: OP2(l_vecop(sqrt), v, v); break;
-    case LUA_VVECTOR3: OP3(l_vecop(sqrt), v, v); break;
-    case LUA_VVECTOR4: OP4(l_vecop(sqrt), v, v); break;
-    default: return luaL_typeerror(L, 1, LABEL_ALL);
-  }
-  lua_pushvector(L, v, variant);
-  return 1;
-}
-
-
 /* from lmathlib.c */
 static lua_VecF log_helper (lua_State *L, lua_VecF x) {
   lua_VecF res;
@@ -939,55 +851,6 @@ int luaVec_log (lua_State *L) {
       break;
     default:
       return luaL_typeerror(L, 1, LABEL_ALL);
-  }
-  lua_pushvector(L, v, variant);
-  return 1;
-}
-
-
-int luaVec_exp (lua_State *L) {
-  int variant;
-  lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
-    case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(exp)(cast_num(v.x))); return 1;
-    case LUA_VVECTOR2: OP2(l_vecop(exp), v, v); break;
-    case LUA_VVECTOR3: OP3(l_vecop(exp), v, v); break;
-    case LUA_VVECTOR4: OP4(l_vecop(exp), v, v); break;
-    default: return luaL_typeerror(L, 1, LABEL_ALL);
-  }
-  lua_pushvector(L, v, variant);
-  return 1;
-}
-
-
-int luaVec_deg (lua_State *L) {
-  int variant;
-  lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
-    case LUA_VNUMFLT:
-      lua_pushnumber(L, cast_num(v.x) * (l_mathop(3.141592653589793238462643383279502884) / l_mathop(180.0)));
-      return 1;
-    case LUA_VVECTOR2: OP2(l_vecop(todeg), v, v); break;
-    case LUA_VVECTOR3: OP3(l_vecop(todeg), v, v); break;
-    case LUA_VVECTOR4: OP4(l_vecop(todeg), v, v); break;
-    default: return luaL_typeerror(L, 1, LABEL_ALL);
-  }
-  lua_pushvector(L, v, variant);
-  return 1;
-}
-
-
-int luaVec_rad (lua_State *L) {
-  int variant;
-  lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
-    case LUA_VNUMFLT:
-      lua_pushnumber(L, cast_num(v.x) * (l_mathop(180.0) / l_mathop(3.141592653589793238462643383279502884)));
-      return 1;
-    case LUA_VVECTOR2: OP2(l_vecop(torad), v, v); break;
-    case LUA_VVECTOR3: OP3(l_vecop(torad), v, v); break;
-    case LUA_VVECTOR4: OP4(l_vecop(torad), v, v); break;
-    default: return luaL_typeerror(L, 1, LABEL_ALL);
   }
   lua_pushvector(L, v, variant);
   return 1;
@@ -1113,140 +976,97 @@ int luaVec_clamp (lua_State *L) {
 */
 #if defined(LUA_COMPAT_MATHLIB)
 
-int luaV_sinh (lua_State *L) {
-  int variant;
-  lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
-    case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(sinh)(cast_num(v.x))); return 1;
-    case LUA_VVECTOR2: OP2(l_vecop(sinh), v, v); break;
-    case LUA_VVECTOR3: OP3(l_vecop(sinh), v, v); break;
-    case LUA_VVECTOR4: OP4(l_vecop(sinh), v, v); break;
-    default: return luaL_typeerror(L, 1, LABEL_ALL);
-  }
-  lua_pushvector(L, v, variant);
-  return 1;
-}
-
-
-int luaV_cosh (lua_State *L) {
-  int variant;
-  lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
-    case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(cosh)(cast_num(v.x))); return 1;
-    case LUA_VVECTOR2: OP2(l_vecop(cosh), v, v); break;
-    case LUA_VVECTOR3: OP3(l_vecop(cosh), v, v); break;
-    case LUA_VVECTOR4: OP4(l_vecop(cosh), v, v); break;
-    default: return luaL_typeerror(L, 1, LABEL_ALL);
-  }
-  lua_pushvector(L, v, variant);
-  return 1;
-}
-
-
-int luaV_tanh (lua_State *L) {
-  int variant;
-  lua_Float4 v;
-  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
-    case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(tanh)(cast_num(v.x))); return 1;
-    case LUA_VVECTOR2: OP2(l_vecop(tanh), v, v); break;
-    case LUA_VVECTOR3: OP3(l_vecop(tanh), v, v); break;
-    case LUA_VVECTOR4: OP4(l_vecop(tanh), v, v); break;
-    default: return luaL_typeerror(L, 1, LABEL_ALL);
-  }
-  lua_pushvector(L, v, variant);
-  return 1;
-}
-
+int luaV_sinh (lua_State *L) { LUA_VEC_OP1(L, sinh); }
+int luaV_cosh (lua_State *L) { LUA_VEC_OP1(L, cosh); }
+int luaV_tanh (lua_State *L) { LUA_VEC_OP1(L, tanh); }
+int luaV_log10 (lua_State *L) { LUA_VEC_OP1(L, log10); }
 
 int luaV_pow (lua_State *L) {
-  int variant;
-  lua_Float4 v, v2;
-  lua_VecF x;
-  switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
-    case LUA_VNUMFLT:
-      x = cast_vec(luaL_checknumber(L, 2));
-      lua_pushnumber(L, l_mathop(pow)(v.x, x));
-      return 1;
-    case LUA_VVECTOR2:
-      if (lua_type(L, 2) == LUA_TNUMBER) {
-        x = cast_vec(luaL_checknumber(L, 2));
-        SCALAR2(l_vecop(pow), v, x, v);
-      }
-      else if (lua_type(L, 2) == LUA_TVECTOR) {
-        lua_checkv2(L, 2, V_PARSETABLE, &v2);
-        PW2(l_vecop(pow), v, v2, v);
-      }
-      else
-        return luaL_typeerror(L, 2, LABEL_VECTOR2);
-      break;
-    case LUA_VVECTOR3:
-      if (lua_type(L, 2) == LUA_TNUMBER) {
-        x = cast_vec(luaL_checknumber(L, 2));
-        SCALAR3(l_vecop(pow), v, x, v);
-      }
-      else if (lua_type(L, 2) == LUA_TVECTOR) {
-        lua_checkv3(L, 2, V_PARSETABLE, &v2);
-        PW3(l_vecop(pow), v, v2, v);
-      }
-      else
-        return luaL_typeerror(L, 2, LABEL_VECTOR3);
-      break;
-    case LUA_VVECTOR4:
-      if (lua_type(L, 2) == LUA_TNUMBER) {
-        x = cast_vec(luaL_checknumber(L, 2));
-        SCALAR3(l_vecop(pow), v, x, v);
-      }
-      else if (lua_type(L, 2) == LUA_TVECTOR) {
-        lua_checkv4(L, 2, V_PARSETABLE, &v2);
-        PW4(l_vecop(pow), v, v2, v);
-      }
-      else
-        return luaL_typeerror(L, 2, LABEL_VECTOR4);
-      break;
-    case LUA_VQUAT: {
-      lua_VecF l;
-      if (lua_type(L, 2) != LUA_TNUMBER)
-        return luaL_typeerror(L, 2, LABEL_NUMBER);
+  if (lua_isquat(L, 1, V_PARSETABLE)) {
+    lua_Float4 v;
+    lua_VecF x, d, l;
 
-      x = cast_vec(luaL_checknumber(L, 2));
-      if ((l = l_vecop(sqrt)(DOT3(cast_vec, v, v))) <= LUA_VEC_NUMBER_EPS) {
-        v.w = V_ONE;
-        v.x = v.y = v.z = V_ZERO;
-      }
-      else {
-        lua_VecF angle = x * l_vecop(acos)(v.w); /* without the factor of 2 */
-        lua_VecF sangle = l_vecop(sin)(angle);
+    int variant = lua_tovector(L, 1, V_PARSETABLE, &v);
+    if (lua_type(L, 2) != LUA_TNUMBER)
+      return luaL_typeerror(L, 2, LABEL_NUMBER);
 
-        v.w = l_vecop(cos)(angle);
-        v.x = sangle * v.x / l;
-        v.y = sangle * v.y / l;
-        v.z = sangle * v.z / l;
-      }
-      break;
+    x = cast_vec(luaL_checknumber(L, 2));
+    d = DOT3(cast_vec, v, v);
+    if ((l = l_vecop(sqrt)(d)) <= LUA_VEC_NUMBER_EPS) {
+      v.w = V_ONE;
+      v.x = v.y = v.z = V_ZERO;
     }
-    default:
-      return luaL_error(L, "use math.pow(number, number) or math.pow(quat, number) or math.pow(vec, vec) or math.pow(vec, number)");
+    else {
+      lua_VecF angle = x * l_vecop(acos)(v.w); /* without the factor of 2 */
+      lua_VecF sangle = l_vecop(sin)(angle);
+
+      v.w = l_vecop(cos)(angle);
+      v.x = sangle * v.x / l;
+      v.y = sangle * v.y / l;
+      v.z = sangle * v.z / l;
+    }
+    lua_pushvector(L, v, variant);
+    return 1;
   }
-  lua_pushvector(L, v, variant);
-  return 1;
+  else {
+    LUA_VEC_OP2(L, pow);
+  }
 }
 
 
-int luaV_log10 (lua_State *L) {
+#if defined(LUA_C99_MATHLIB)
+int luaV_asinh (lua_State *L) { LUA_VEC_OP1(L, asinh) }
+int luaV_acosh (lua_State *L) { LUA_VEC_OP1(L, acosh); }
+int luaV_atanh (lua_State *L) { LUA_VEC_OP1(L, atanh); }
+int luaV_cbrt (lua_State *L) { LUA_VEC_OP1(L, cbrt); }
+int luaV_erf (lua_State *L) { LUA_VEC_OP1(L, erf); }
+int luaV_erfc (lua_State *L) { LUA_VEC_OP1(L, erfc); }
+int luaV_exp2 (lua_State *L) { LUA_VEC_OP1(L, exp2); }
+int luaV_expm1 (lua_State *L) { LUA_VEC_OP1(L, expm1); }
+int luaV_gamma (lua_State *L) { LUA_VEC_OP1(L, tgamma); }
+int luaV_lgamma (lua_State *L) { LUA_VEC_OP1(L, lgamma); }
+int luaV_log1p (lua_State *L) { LUA_VEC_OP1(L, log1p); }
+int luaV_logb (lua_State *L) { LUA_VEC_OP1(L, logb); }
+int luaV_nearbyint (lua_State *L) { LUA_VEC_OP1(L, nearbyint); }
+int luaV_round (lua_State *L) { LUA_VEC_OP1(L, round); }
+int luaV_trunc (lua_State *L) { LUA_VEC_OP1(L, trunc); }
+
+int luaV_isfinite (lua_State *L) { LUA_VEC_CHECK1(L, isfinite); }
+int luaV_isinf (lua_State *L) { LUA_VEC_CHECK1(L, isinf); }
+int luaV_isnan (lua_State *L) { LUA_VEC_CHECK1(L, isnan); }
+int luaV_isnormal (lua_State *L) { LUA_VEC_CHECK1(L, isnormal); }
+
+int luaV_fdim (lua_State *L) { LUA_VEC_OP2(L, fdim); }
+int luaV_hypot (lua_State *L) { LUA_VEC_OP2(L, hypot); }
+int luaV_copysign (lua_State *L) { LUA_VEC_OP2(L, copysign); }
+int luaV_nextafter (lua_State *L) { LUA_VEC_OP2(L, nextafter); }
+int luaV_remainder (lua_State *L) { LUA_VEC_OP2(L, remainder); }
+
+/* Second argument unsafely casted to an int... */
+int luaV_scalbn (lua_State *L) {
   int variant;
   lua_Float4 v;
+
+  int n = (int)luaL_checkinteger(L, 2);
   switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
-    case LUA_VNUMFLT: lua_pushnumber(L, l_mathop(log10)(cast_num(v.x))); return 1;
-    case LUA_VVECTOR2: OP2(l_vecop(log10), v, v); break;
-    case LUA_VVECTOR3: OP3(l_vecop(log10), v, v); break;
-    case LUA_VVECTOR4: OP4(l_vecop(log10), v, v); break;
-    default: return luaL_typeerror(L, 1, LABEL_ALL);
+    case LUA_VNUMFLT:
+      lua_pushnumber(L, l_vecop(scalbn)(v.x, n));
+      return 1;
+    case LUA_VVECTOR4: v.w = l_vecop(scalbn)(v.w, n); /* FALLTHROUGH */
+    case LUA_VVECTOR3: v.z = l_vecop(scalbn)(v.z, n); /* FALLTHROUGH */
+    case LUA_VVECTOR2:
+      v.y = l_vecop(scalbn)(v.y, n);
+      v.x = l_vecop(scalbn)(v.x, n);
+      break;
+    default:
+      return luaL_typeerror(L, 1, LABEL_ALL);
   }
   lua_pushvector(L, v, variant);
   return 1;
 }
 
 
+#endif  /* LUA_C99_MATHLIB */
 #endif
 
 

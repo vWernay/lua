@@ -59,6 +59,8 @@ ELSE ()
   OPTION ( LUA_USE_POSIX "Use POSIX functionality." ON )
   OPTION ( LUA_USE_DLOPEN "Use dynamic linker to load modules." ON )
   OPTION ( LUA_INCLUDE_TEST "Include ltests.h")
+
+  ADD_DEFINITIONS (-DLUA_C99_MATHLIB)
 ENDIF ()
 
 IF ( LUA_USE_POSIX )
