@@ -165,6 +165,8 @@ SET (   SRC_LIB
         lutf8lib.c
         lvm.c
         lzio.c
+        lgrit.c
+        lgrit_math.c
 )
 
 SET ( SRC_LUA  lua.c )

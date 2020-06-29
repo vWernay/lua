@@ -516,6 +516,10 @@ static int llex (LexState *ls, SemInfo *seminfo) {
         read_string(ls, ls->current, seminfo);
         return TK_STRING;
       }
+      case '`': {  /* relative paths */
+        read_string(ls, ls->current, seminfo);
+        return TK_PATH;
+      }
       case '.': {  /* '.', '..', '...', or number */
         save_and_next(ls);
         if (check_next1(ls, '.')) {

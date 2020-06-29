@@ -168,6 +168,13 @@ static void codename (LexState *ls, expdesc *e) {
 }
 
 
+static void codepath (expdesc *e, TString *s) {
+  e->f = e->t = NO_JUMP;
+  e->k = VKPATH;
+  e->u.strval = s;
+}
+
+
 /*
 ** Register a new local variable in the active 'Proto' (for debug
 ** information).
@@ -1038,6 +1045,11 @@ static void funcargs (LexState *ls, expdesc *f, int line) {
       luaX_next(ls);  /* must use 'seminfo' before 'next' */
       break;
     }
+    case TK_PATH: {  /* funcargs -> STRING */
+      codepath(&args, ls->t.seminfo.ts);
+      luaX_next(ls);  /* must use `seminfo' before `next' */
+      break;
+    }
     default: {
       luaX_syntaxerror(ls, "function arguments expected");
     }
@@ -1116,7 +1128,7 @@ static void suffixedexp (LexState *ls, expdesc *v) {
         funcargs(ls, v, line);
         break;
       }
-      case '(': case TK_STRING: case '{': {  /* funcargs */
+      case '(': case TK_STRING: case TK_PATH: case '{': {  /* funcargs */
         luaK_exp2nextreg(fs, v);
         funcargs(ls, v, line);
         break;
@@ -1172,6 +1184,10 @@ static void simpleexp (LexState *ls, expdesc *v) {
       luaX_next(ls);
       body(ls, v, 0, ls->linenumber);
       return;
+    }
+    case TK_PATH: {
+      codepath(v, ls->t.seminfo.ts);
+      break;
     }
     default: {
       suffixedexp(ls, v);

@@ -80,6 +80,8 @@
 
 /* auxiliary library -- used by all */
 #include "lauxlib.c"
+#include "lgrit.c"
+#include "lgrit_math.c"
 
 /* standard library  -- not used by luac */
 #ifndef MAKE_LUAC

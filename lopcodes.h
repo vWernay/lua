@@ -201,6 +201,7 @@ OP_MOVE,/*	A B	R[A] := R[B]					*/
 OP_LOADI,/*	A sBx	R[A] := sBx					*/
 OP_LOADF,/*	A sBx	R[A] := (lua_Number)sBx				*/
 OP_LOADK,/*	A Bx	R[A] := K[Bx]					*/
+OP_LOADKPATH,/*	A Bx	R[A] := Kst(Bx)					*/
 OP_LOADKX,/*	A	R[A] := K[extra arg]				*/
 OP_LOADFALSE,/*	A	R[A] := false					*/
 OP_LFALSESKIP,/*A	R[A] := false; pc++				*/

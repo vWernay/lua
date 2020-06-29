@@ -29,6 +29,7 @@ static const void *const disptab[NUM_OPCODES] = {
 &&L_OP_LOADI,
 &&L_OP_LOADF,
 &&L_OP_LOADK,
+&&L_OP_LOADKPATH,
 &&L_OP_LOADKX,
 &&L_OP_LOADFALSE,
 &&L_OP_LFALSESKIP,

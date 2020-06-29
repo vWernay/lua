@@ -9,6 +9,7 @@
 #define luaconf_h
 
 #include <limits.h>
+#include <float.h>
 #include <stddef.h>
 
 
@@ -436,6 +437,7 @@
 #if LUA_FLOAT_TYPE == LUA_FLOAT_FLOAT		/* { single float */
 
 #define LUA_NUMBER	float
+#define LUA_NUMBER_EPS FLT_EPSILON
 
 #define l_floatatt(n)		(FLT_##n)
 
@@ -452,6 +454,7 @@
 #elif LUA_FLOAT_TYPE == LUA_FLOAT_LONGDOUBLE	/* }{ long double */
 
 #define LUA_NUMBER	long double
+#define LUA_NUMBER_EPS LDBL_EPSILON
 
 #define l_floatatt(n)		(LDBL_##n)
 
@@ -467,6 +470,7 @@
 #elif LUA_FLOAT_TYPE == LUA_FLOAT_DOUBLE	/* }{ double */
 
 #define LUA_NUMBER	double
+#define LUA_NUMBER_EPS DBL_EPSILON
 
 #define l_floatatt(n)		(DBL_##n)
 
@@ -598,6 +602,8 @@
 */
 #if !defined(LUA_USE_C89)
 #define l_sprintf(s,sz,f,i)	snprintf(s,sz,f,i)
+#elif defined(LUA_USE_WINDOWS) && defined(__STDC_WANT_SECURE_LIB__)
+#define l_sprintf(s,sz,f,i)	sprintf_s(s,sz,f,i)
 #else
 #define l_sprintf(s,sz,f,i)	((void)(sz), sprintf(s,f,i))
 #endif
@@ -753,7 +759,7 @@
 @@ LUAI_MAXALIGN defines fields that, when used in a union, ensure
 ** maximum alignment for the other items in that union.
 */
-#define LUAI_MAXALIGN  lua_Number n; double u; void *s; lua_Integer i; long l
+#define LUAI_MAXALIGN  lua_Number n; lua_Float4 v; double u; void *s; lua_Integer i; long l
 
 /* }================================================================== */
 
@@ -768,9 +774,83 @@
 ** without modifying the main part of the file.
 */
 
+#if !defined(LUA_INLINE)
+  #if defined(__GNUC__)
+    #define LUA_INLINE inline __attribute__((__always_inline__))
+  #elif defined(__CLANG__)
+    #if defined(__has_attribute(__always_inline__))
+      #define LUA_INLINE inline __attribute__((__always_inline__))
+    #else
+      #define LUA_INLINE inline
+    #endif
+  #elif defined(LUA_USE_WINDOWS)
+    #define LUA_INLINE __forceinline
+  #else
+    #define LUA_INLINE inline
+  #endif
+#endif
 
+/*
+** {==================================================================
+** Vector API
+** ===================================================================
+*/
 
+#define LUA_GRIT_API
+#define ORIG_MAXNUMBER2STR 50  /* from lobject.c */
 
+/*
+** Value changed from:
+**   #define LUAI_MAXFLOAT2STR 16
+**   #define LUAI_MAXVECTOR42STR (7 + 4*(1+LUAI_MAXFLOAT2STR+1))
+** To something a bit more robust.
+*/
+#define LUAI_MAXVECTORSTR (7 + 4 * (1 + ORIG_MAXNUMBER2STR + 1))
+
+#if defined(GRIT_LONG_FLOAT)
+  #define LUA_VEC_TYPE LUA_FLOAT_TYPE
+
+  #define LUA_VEC_NUMBER LUA_NUMBER
+  #define LUA_VEC_NUMBER_EPS LUA_NUMBER_EPS
+  #define LUA_VEC_UACNUMBER LUAI_UACNUMBER
+  #define LUA_VEC_NUMBER_FMT LUA_NUMBER_FMT
+
+  #define l_vecop(op) l_mathop(op)
+  #define l_vecfatt(n) l_floatatt(n)
+#else
+  #define LUA_VEC_TYPE LUA_FLOAT_FLOAT
+
+  #define LUA_VEC_NUMBER float
+  #define LUA_VEC_NUMBER_EPS FLT_EPSILON
+  #define LUA_VEC_UACNUMBER LUAI_UACNUMBER
+
+  #if LUA_FLOAT_TYPE == LUA_FLOAT_LONGDOUBLE
+    #define LUA_VEC_NUMBER_FMT "%.7Lg"
+  #else
+    #define LUA_VEC_NUMBER_FMT "%.7g"
+  #endif
+
+  #if LUA_FLOAT_TYPE == LUA_FLOAT_FLOAT
+    #define l_vecop(op) l_mathop(op)
+    #define l_vecfatt(n) l_floatatt(n)
+  #else
+    #define l_vecop(op) op##f
+    #define l_vecfatt(n) (FLT_##n)
+  #endif
+#endif
+
+#if (defined(LUA_USE_C89) && !defined(LUA_USE_WINDOWS)) || (defined(HUGE_VAL) && !defined(HUGE_VALF))
+  #undef l_vecop      /* variants not available */
+  #define l_vecop(op) (LUA_VEC_NUMBER)op
+#endif
+
+/* type of numbers in Lua */
+typedef LUA_VEC_NUMBER lua_VecF;
+
+/* vector and quat extension by Spark */
+typedef struct lua_Float4 { lua_VecF x, y, z, w; } lua_Float4;
+
+/* }================================================================== */
 
 #endif
 

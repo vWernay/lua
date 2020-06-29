@@ -23,6 +23,7 @@
 #include "lfunc.h"
 #include "lgc.h"
 #include "lobject.h"
+#include "lgrit.h"
 #include "lopcodes.h"
 #include "lstate.h"
 #include "lstring.h"
@@ -348,6 +349,10 @@ void luaV_finishset (lua_State *L, const TValue *t, TValue *key,
       /* else will try the metamethod */
     }
     else {  /* not a table; check metamethod */
+      /*
+       * mutable fields of vectors/quats does not work very well in lua since
+       * o.f is not an lvalue, o.f.x = 10 is a no-op
+       */
       tm = luaT_gettmbyobj(L, t, TM_NEWINDEX);
       if (unlikely(notm(tm)))
         luaG_typeerror(L, t, "index");
@@ -581,6 +586,9 @@ int luaV_equalobj (lua_State *L, const TValue *t1, const TValue *t2) {
     case LUA_VNUMINT: return (ivalue(t1) == ivalue(t2));
     case LUA_VNUMFLT: return luai_numeq(fltvalue(t1), fltvalue(t2));
     case LUA_VLIGHTUSERDATA: return pvalue(t1) == pvalue(t2);
+    case LUA_VVECTOR2: return V2_EQ(vvalue(t1), vvalue(t2));
+    case LUA_VVECTOR3: return V3_EQ(vvalue(t1), vvalue(t2));
+    case LUA_VQUAT: case LUA_VVECTOR4: return V4_EQ(vvalue(t1), vvalue(t2));
     case LUA_VLCF: return fvalue(t1) == fvalue(t2);
     case LUA_VSHRSTR: return eqshrstr(tsvalue(t1), tsvalue(t2));
     case LUA_VLNGSTR: return luaS_eqlngstr(tsvalue(t1), tsvalue(t2));
@@ -680,6 +688,12 @@ void luaV_concat (lua_State *L, int total) {
 void luaV_objlen (lua_State *L, StkId ra, const TValue *rb) {
   const TValue *tm;
   switch (ttypetag(rb)) {
+    case LUA_VVECTOR2:
+    case LUA_VVECTOR3:
+    case LUA_VVECTOR4:
+    case LUA_VQUAT:
+      luaVec_objlen(L, ra, rb);
+      return;
     case LUA_VTABLE: {
       Table *h = hvalue(rb);
       tm = fasttm(L, h->metatable, TM_LEN);
@@ -1175,6 +1189,45 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
         setobj2s(L, ra, rb);
         vmbreak;
       }
+      vmcase(OP_LOADKPATH) {
+        TString *str;
+        TValue *rb;
+        const char *rel;
+
+        rb = k + GETARG_Bx(i);
+        lua_assert(ttisstring(rb));
+        rel = getstr(tsvalue(rb));
+        if (rel[0] == '/') {
+          str = resolve_absolute_path(L, "/", rel);
+        } else {
+          const char *src = "/";
+          CallInfo *frame;
+          for (frame=ci ; frame!=&L->base_ci ; frame=frame->previous) {
+            const char *file;
+            Proto *p;
+            Closure *luaClosure;
+            TValue * func = s2v(frame->func);
+
+            lua_assert(ttisfunction(func));
+            if (!ttisclosure(func))
+              continue;
+            if (!(luaClosure = clvalue(func)) || luaClosure->c.tt == LUA_VCCL)
+              continue;
+            if (!(p = luaClosure->l.p) || !p->source)
+              continue;
+
+            file = getstr(p->source);
+            if (file[0] == '@') {
+              src = &file[1];
+              break;
+            }
+          }
+          str = resolve_absolute_path(L, src, rel);
+        }
+        setsvalue2s(L, ra, str);
+        checkGC(L, ra + 1);
+        vmbreak;
+      }
       vmcase(OP_LOADKX) {
         TValue *rb;
         rb = k + GETARG_Ax(*pc); pc++;
@@ -1216,52 +1269,87 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
         const TValue *slot;
         TValue *upval = cl->upvals[GETARG_B(i)]->v;
         TValue *rc = KC(i);
-        TString *key = tsvalue(rc);  /* key must be a string */
-        if (luaV_fastget(L, upval, key, slot, luaH_getshortstr)) {
-          setobj2s(L, ra, slot);
+        if (ttisgrit(upval))  /* key must be a string */
+          Protect(luaVec_getstring(L, upval, svalue(rc), rc, ra));
+        else {
+          TString *key = tsvalue(rc);  /* key must be a string */
+          if (luaV_fastget(L, upval, key, slot, luaH_getshortstr)) {
+            setobj2s(L, ra, slot);
+          }
+          else
+            Protect(luaV_finishget(L, upval, rc, ra, slot));
         }
-        else
-          Protect(luaV_finishget(L, upval, rc, ra, slot));
         vmbreak;
       }
       vmcase(OP_GETTABLE) {
-        const TValue *slot;
         TValue *rb = vRB(i);
         TValue *rc = vRC(i);
-        lua_Unsigned n;
-        if (ttisinteger(rc)  /* fast track for integers? */
-            ? (cast_void(n = ivalue(rc)), luaV_fastgeti(L, rb, n, slot))
-            : luaV_fastget(L, rb, rc, slot, luaH_get)) {
-          setobj2s(L, ra, slot);
+        if (ttisgrit(rb)) {
+          if (ttisinteger(rc))
+            Protect(luaVec_getint(L, rb, ivalue(rc), rc, ra));
+          /* Following ltable.c: TValue *luaH_get() */
+          else if (ttisfloat(rc)) {
+            lua_Integer fInd;
+            if (luaV_flttointeger(fltvalue(rc), &fInd, F2Ieq)) /* index is an integral? */
+              Protect(luaVec_getint(L, rb, fInd, rc, ra));
+            else
+              luaG_runerror(L, "Attempting to index unknown value");
+          }
+          else if (ttisstring(rc))
+            Protect(luaVec_getstring(L, rb, svalue(rc), rc, ra));
+          else {
+            luaG_runerror(L, "Attempting to index unknown value");
+          }
         }
-        else
-          Protect(luaV_finishget(L, rb, rc, ra, slot));
+        else {
+          const TValue *slot;
+          lua_Unsigned n;
+          if (ttisinteger(rc)  /* fast track for integers? */
+              ? (cast_void(n = ivalue(rc)), luaV_fastgeti(L, rb, n, slot))
+              : luaV_fastget(L, rb, rc, slot, luaH_get)) {
+            setobj2s(L, ra, slot);
+          }
+          else
+            Protect(luaV_finishget(L, rb, rc, ra, slot));
+        }
         vmbreak;
       }
       vmcase(OP_GETI) {
-        const TValue *slot;
         TValue *rb = vRB(i);
         int c = GETARG_C(i);
-        if (luaV_fastgeti(L, rb, c, slot)) {
-          setobj2s(L, ra, slot);
-        }
-        else {
+        if (ttisgrit(rb)) {
           TValue key;
           setivalue(&key, c);
-          Protect(luaV_finishget(L, rb, &key, ra, slot));
+          Protect(luaVec_getint(L, rb, c, &key, ra));
+        }
+        else {
+          const TValue *slot;
+          if (luaV_fastgeti(L, rb, c, slot)) {
+            setobj2s(L, ra, slot);
+          }
+          else {
+            TValue key;
+            setivalue(&key, c);
+            Protect(luaV_finishget(L, rb, &key, ra, slot));
+          }
         }
         vmbreak;
       }
       vmcase(OP_GETFIELD) {
-        const TValue *slot;
         TValue *rb = vRB(i);
         TValue *rc = KC(i);
-        TString *key = tsvalue(rc);  /* key must be a string */
-        if (luaV_fastget(L, rb, key, slot, luaH_getshortstr)) {
-          setobj2s(L, ra, slot);
+        if (ttisgrit(rb)) {
+          Protect(luaVec_getstring(L, rb, svalue(rc), rc, ra));
         }
-        else
-          Protect(luaV_finishget(L, rb, rc, ra, slot));
+        else {
+          const TValue *slot;
+          TString *key = tsvalue(rc);  /* key must be a string */
+          if (luaV_fastget(L, rb, key, slot, luaH_getshortstr)) {
+            setobj2s(L, ra, slot);
+          }
+          else
+            Protect(luaV_finishget(L, rb, rc, ra, slot));
+        }
         vmbreak;
       }
       vmcase(OP_SETTABUP) {
@@ -1336,16 +1424,20 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
         vmbreak;
       }
       vmcase(OP_SELF) {
-        const TValue *slot;
         TValue *rb = vRB(i);
         TValue *rc = RKC(i);
-        TString *key = tsvalue(rc);  /* key must be a string */
         setobj2s(L, ra + 1, rb);
-        if (luaV_fastget(L, rb, key, slot, luaH_getstr)) {
-          setobj2s(L, ra, slot);
+        if (ttisgrit(rb))  /* key must be a string */
+          Protect(luaVec_getstring(L, rb, svalue(rc), rc, ra));
+        else {
+          const TValue *slot;
+          TString *key = tsvalue(rc);  /* key must be a string */
+          if (luaV_fastget(L, rb, key, slot, luaH_getstr)) {
+            setobj2s(L, ra, slot);
+          }
+          else
+            Protect(luaV_finishget(L, rb, rc, ra, slot));
         }
-        else
-          Protect(luaV_finishget(L, rb, rc, ra, slot));
         vmbreak;
       }
       vmcase(OP_ADDI) {

@@ -572,6 +572,7 @@ static const char *getobjname (const Proto *p, int lastpc, int reg,
         return "upvalue";
       }
       case OP_LOADK:
+      case OP_LOADKPATH:
       case OP_LOADKX: {
         int b = (op == OP_LOADK) ? GETARG_Bx(i)
                                  : GETARG_Ax(p->code[pc + 1]);

@@ -29,6 +29,7 @@ typedef enum {
   VTRUE,  /* constant true */
   VFALSE,  /* constant false */
   VK,  /* constant in 'k'; info = index of constant in 'k' */
+  VKPATH,	/* info = index of constant in `k' */
   VKFLT,  /* floating constant; nval = numerical float value */
   VKINT,  /* integer constant; ival = numerical integer value */
   VKSTR,  /* string constant; strval = TString address;

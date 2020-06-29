@@ -108,7 +108,7 @@ checkmessage("a = #3", "length of a number value")
 
 aaa = nil
 checkmessage("aaa.bbb:ddd(9)", "global 'aaa'")
-checkmessage("local aaa={bbb=1}; aaa.bbb:ddd(9)", "field 'bbb'")
+checkmessage("local aaa={bbb=1}; aaa.bbb:ddd(9)", "invalid vector field: 'ddd'") -- Vector indexing
 checkmessage("local aaa={bbb={}}; aaa.bbb:ddd(9)", "method 'ddd'")
 checkmessage("local a,b,c; (function () a = b+1.1 end)()", "upvalue 'b'")
 assert(not doit"local aaa={bbb={ddd=next}}; aaa.bbb:ddd(nil)")
@@ -178,7 +178,7 @@ checkmessage([[
 _G.D = nil
 
 do   -- named objects (field '__name')
-  checkmessage("math.sin(io.input())", "(number expected, got FILE*)")
+  checkmessage("math.sin(io.input())", "(number or vector type expected, got FILE*)")
   _G.XX = setmetatable({}, {__name = "My Type"})
   assert(string.find(tostring(XX), "^My Type"))
   checkmessage("io.input(XX)", "(FILE* expected, got My Type)")
@@ -231,7 +231,7 @@ local a,b = 1, {
   {1,2,3,4,5} or 3+3<=3+3,
   3+1>3+1,
   {d = x and aaa[x or y]}}
-]], "global 'aaa'")
+]], "Attempting to index unknown value") -- Fast pathing integer indexing, "currentline (CallInfo)" technically incorrect.
 
 checkmessage([[
 local x,y = {},1

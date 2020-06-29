@@ -20,7 +20,7 @@
 
 #include "lauxlib.h"
 #include "lualib.h"
-
+#include "lgrit_lib.h"
 
 #undef PI
 #define PI	(l_mathop(3.141592653589793238462643383279502884))
@@ -32,41 +32,61 @@ static int math_abs (lua_State *L) {
     if (n < 0) n = (lua_Integer)(0u - (lua_Unsigned)n);
     lua_pushinteger(L, n);
   }
-  else
+  else if (lua_isnumber(L, 1))
     lua_pushnumber(L, l_mathop(fabs)(luaL_checknumber(L, 1)));
+  else
+    return luaVec_abs(L);
   return 1;
 }
 
 static int math_sin (lua_State *L) {
-  lua_pushnumber(L, l_mathop(sin)(luaL_checknumber(L, 1)));
-  return 1;
+  if (lua_isnumber(L, 1)) {
+    lua_pushnumber(L, l_mathop(sin)(luaL_checknumber(L, 1)));
+    return 1;
+  }
+  return luaVec_sin(L);
 }
 
 static int math_cos (lua_State *L) {
-  lua_pushnumber(L, l_mathop(cos)(luaL_checknumber(L, 1)));
-  return 1;
+  if (lua_isnumber(L, 1)) {
+    lua_pushnumber(L, l_mathop(cos)(luaL_checknumber(L, 1)));
+    return 1;
+  }
+  return luaVec_cos(L);
 }
 
 static int math_tan (lua_State *L) {
-  lua_pushnumber(L, l_mathop(tan)(luaL_checknumber(L, 1)));
-  return 1;
+  if (lua_isnumber(L, 1)) {
+    lua_pushnumber(L, l_mathop(tan)(luaL_checknumber(L, 1)));
+    return 1;
+  }
+  return luaVec_tan(L);
 }
 
 static int math_asin (lua_State *L) {
-  lua_pushnumber(L, l_mathop(asin)(luaL_checknumber(L, 1)));
-  return 1;
+  if (lua_isnumber(L, 1)) {
+    lua_pushnumber(L, l_mathop(asin)(luaL_checknumber(L, 1)));
+    return 1;
+  }
+  return luaVec_asin(L);
 }
 
 static int math_acos (lua_State *L) {
-  lua_pushnumber(L, l_mathop(acos)(luaL_checknumber(L, 1)));
-  return 1;
+  if (lua_isnumber(L, 1)) {
+    lua_pushnumber(L, l_mathop(acos)(luaL_checknumber(L, 1)));
+    return 1;
+  }
+  return luaVec_acos(L);
 }
 
 static int math_atan (lua_State *L) {
-  lua_Number y = luaL_checknumber(L, 1);
-  lua_Number x = luaL_optnumber(L, 2, 1);
-  lua_pushnumber(L, l_mathop(atan2)(y, x));
-  return 1;
+  if (lua_isnumber(L, 1)) {
+    lua_Number y = luaL_checknumber(L, 1);
+    lua_Number x = luaL_optnumber(L, 2, 1);
+    lua_pushnumber(L, l_mathop(atan2)(y, x));
+    return 1;
+  }
+  return luaVec_atan(L);
 }
 
 
@@ -95,21 +115,25 @@ static void pushnumint (lua_State *L, lua_Number d) {
 static int math_floor (lua_State *L) {
   if (lua_isinteger(L, 1))
     lua_settop(L, 1);  /* integer is its own floor */
-  else {
+  else if (lua_isnumber(L, 1)) {
     lua_Number d = l_mathop(floor)(luaL_checknumber(L, 1));
     pushnumint(L, d);
   }
+  else
+    return luaVec_floor(L);
   return 1;
 }
 
 
 static int math_ceil (lua_State *L) {
   if (lua_isinteger(L, 1))
-    lua_settop(L, 1);  /* integer is its own ceil */
-  else {
+    lua_settop(L, 1);  /* integer is its own floor */
+  else if (lua_isnumber(L, 1)) {
     lua_Number d = l_mathop(ceil)(luaL_checknumber(L, 1));
     pushnumint(L, d);
   }
+  else
+    return luaVec_ceil(L);
   return 1;
 }
 
@@ -124,9 +148,12 @@ static int math_fmod (lua_State *L) {
     else
       lua_pushinteger(L, lua_tointeger(L, 1) % d);
   }
-  else
+  else if (lua_isnumber(L, 1)) {
     lua_pushnumber(L, l_mathop(fmod)(luaL_checknumber(L, 1),
                                      luaL_checknumber(L, 2)));
+  }
+  else
+    return luaVec_fmod(L);
   return 1;
 }
 
@@ -154,8 +181,11 @@ static int math_modf (lua_State *L) {
 
 
 static int math_sqrt (lua_State *L) {
-  lua_pushnumber(L, l_mathop(sqrt)(luaL_checknumber(L, 1)));
-  return 1;
+  if (lua_isnumber(L, 1)) {
+    lua_pushnumber(L, l_mathop(sqrt)(luaL_checknumber(L, 1)));
+    return 1;
+  }
+  return luaVec_sqrt(L);
 }
 
 
@@ -167,66 +197,84 @@ static int math_ult (lua_State *L) {
 }
 
 static int math_log (lua_State *L) {
-  lua_Number x = luaL_checknumber(L, 1);
-  lua_Number res;
-  if (lua_isnoneornil(L, 2))
-    res = l_mathop(log)(x);
-  else {
-    lua_Number base = luaL_checknumber(L, 2);
-#if !defined(LUA_USE_C89)
-    if (base == l_mathop(2.0))
-      res = l_mathop(log2)(x); else
-#endif
-    if (base == l_mathop(10.0))
-      res = l_mathop(log10)(x);
-    else
-      res = l_mathop(log)(x)/l_mathop(log)(base);
+  if (lua_isnumber(L, 1)) {
+    lua_Number x = luaL_checknumber(L, 1);
+    lua_Number res;
+    if (lua_isnoneornil(L, 2))
+      res = l_mathop(log)(x);
+    else {
+      lua_Number base = luaL_checknumber(L, 2);
+  #if !defined(LUA_USE_C89)
+      if (base == l_mathop(2.0))
+        res = l_mathop(log2)(x); else
+  #endif
+      if (base == l_mathop(10.0))
+        res = l_mathop(log10)(x);
+      else
+        res = l_mathop(log)(x)/l_mathop(log)(base);
+    }
+    lua_pushnumber(L, res);
+    return 1;
   }
-  lua_pushnumber(L, res);
-  return 1;
+  return luaVec_log(L);
 }
 
 static int math_exp (lua_State *L) {
-  lua_pushnumber(L, l_mathop(exp)(luaL_checknumber(L, 1)));
-  return 1;
+  if (lua_isnumber(L, 1)) {
+    lua_pushnumber(L, l_mathop(exp)(luaL_checknumber(L, 1)));
+    return 1;
+  }
+  return luaVec_exp(L);
 }
 
 static int math_deg (lua_State *L) {
-  lua_pushnumber(L, luaL_checknumber(L, 1) * (l_mathop(180.0) / PI));
-  return 1;
+  if (lua_isnumber(L, 1)) {
+    lua_pushnumber(L, luaL_checknumber(L, 1) * (l_mathop(180.0) / PI));
+    return 1;
+  }
+  return luaVec_deg(L);
 }
 
 static int math_rad (lua_State *L) {
-  lua_pushnumber(L, luaL_checknumber(L, 1) * (PI / l_mathop(180.0)));
-  return 1;
+  if (lua_isnumber(L, 1)) {
+    lua_pushnumber(L, luaL_checknumber(L, 1) * (PI / l_mathop(180.0)));
+    return 1;
+  }
+  return luaVec_rad(L);
 }
 
 
 static int math_min (lua_State *L) {
-  int n = lua_gettop(L);  /* number of arguments */
-  int imin = 1;  /* index of current minimum value */
-  int i;
-  luaL_argcheck(L, n >= 1, 1, "value expected");
-  for (i = 2; i <= n; i++) {
-    if (lua_compare(L, i, imin, LUA_OPLT))
-      imin = i;
+  if (lua_isnumber(L, 1)) {
+    int n = lua_gettop(L);  /* number of arguments */
+    int imin = 1;  /* index of current minimum value */
+    int i;
+    luaL_argcheck(L, n >= 1, 1, "value expected");
+    for (i = 2; i <= n; i++) {
+      if (lua_compare(L, i, imin, LUA_OPLT))
+        imin = i;
+    }
+    lua_pushvalue(L, imin);
+    return 1;
   }
-  lua_pushvalue(L, imin);
-  return 1;
+  return luaVec_min(L);
 }
 
 
 static int math_max (lua_State *L) {
-  int n = lua_gettop(L);  /* number of arguments */
-  int imax = 1;  /* index of current maximum value */
-  int i;
-  luaL_argcheck(L, n >= 1, 1, "value expected");
-  for (i = 2; i <= n; i++) {
-    if (lua_compare(L, imax, i, LUA_OPLT))
-      imax = i;
+  if (lua_isnumber(L, 1)) {
+    int n = lua_gettop(L);  /* number of arguments */
+    int imax = 1;  /* index of current maximum value */
+    int i;
+    luaL_argcheck(L, n >= 1, 1, "value expected");
+    for (i = 2; i <= n; i++) {
+      if (lua_compare(L, imax, i, LUA_OPLT))
+        imax = i;
+    }
+    lua_pushvalue(L, imax);
+    return 1;
   }
-  lua_pushvalue(L, imax);
-  return 1;
+  return luaVec_max(L);
 }
 
 
@@ -656,25 +704,37 @@ static void setrandfunc (lua_State *L) {
 #if defined(LUA_COMPAT_MATHLIB)
 
 static int math_cosh (lua_State *L) {
-  lua_pushnumber(L, l_mathop(cosh)(luaL_checknumber(L, 1)));
-  return 1;
+  if (lua_isnumber(L, 1)) {
+    lua_pushnumber(L, l_mathop(cosh)(luaL_checknumber(L, 1)));
+    return 1;
+  }
+  return luaV_cosh(L);
 }
 
 static int math_sinh (lua_State *L) {
-  lua_pushnumber(L, l_mathop(sinh)(luaL_checknumber(L, 1)));
-  return 1;
+  if (lua_isnumber(L, 1)) {
+    lua_pushnumber(L, l_mathop(sinh)(luaL_checknumber(L, 1)));
+    return 1;
+  }
+  return luaV_sinh(L);
 }
 
 static int math_tanh (lua_State *L) {
-  lua_pushnumber(L, l_mathop(tanh)(luaL_checknumber(L, 1)));
-  return 1;
+  if (lua_isnumber(L, 1)) {
+    lua_pushnumber(L, l_mathop(tanh)(luaL_checknumber(L, 1)));
+    return 1;
+  }
+  return luaV_tanh(L);
 }
 
 static int math_pow (lua_State *L) {
-  lua_Number x = luaL_checknumber(L, 1);
-  lua_Number y = luaL_checknumber(L, 2);
-  lua_pushnumber(L, l_mathop(pow)(x, y));
-  return 1;
+  if (lua_isnumber(L, 1)) {
+    lua_Number x = luaL_checknumber(L, 1);
+    lua_Number y = luaL_checknumber(L, 2);
+    lua_pushnumber(L, l_mathop(pow)(x, y));
+    return 1;
+  }
+  return luaV_pow(L);
 }
 
 static int math_frexp (lua_State *L) {
@@ -692,14 +752,32 @@ static int math_ldexp (lua_State *L) {
 }
 
 static int math_log10 (lua_State *L) {
-  lua_pushnumber(L, l_mathop(log10)(luaL_checknumber(L, 1)));
-  return 1;
+  if (lua_isnumber(L, 1)) {
+    lua_pushnumber(L, l_mathop(log10)(luaL_checknumber(L, 1)));
+    return 1;
+  }
+  return luaV_log10(L);
 }
 
 #endif
 /* }================================================================== */
 
 
+static int math_clamp (lua_State *L) {
+  if (lua_gettop(L) != 3)
+    return luaL_error(L, "clamp: incorrect number of arguments");
+  else if (lua_isnumber(L, 1)) {
+    lua_Number a = luaL_checknumber(L, 1);  /* value */
+    lua_Number b = luaL_checknumber(L, 2);  /* min */
+    lua_Number c = luaL_checknumber(L, 3);  /* max */
+    if (c < b)
+      return luaL_error(L, "clamp: incorrect clamp boundaries, max > min.");
+    lua_pushnumber(L, ((a < b) ? b : (a > c ? c : a)));
+    return 1;
+  }
+  else
+    return luaVec_clamp(L);
+}
 
 static const luaL_Reg mathlib[] = {
   {"abs",   math_abs},
@@ -723,6 +801,9 @@ static const luaL_Reg mathlib[] = {
   {"sqrt",  math_sqrt},
   {"tan",   math_tan},
   {"type", math_type},
+
+  { "clamp", math_clamp },
+
 #if defined(LUA_COMPAT_MATHLIB)
   {"atan2", math_atan},
   {"cosh",   math_cosh},

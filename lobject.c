@@ -27,7 +27,7 @@
 #include "lstate.h"
 #include "lstring.h"
 #include "lvm.h"
-
+#include "lgrit.h"
 
 /*
 ** Computes ceil(log2(x))
@@ -334,7 +334,7 @@ int luaO_utf8esc (char *buff, unsigned long x) {
 
 
 /* maximum length of the conversion of a number to a string */
-#define MAXNUMBER2STR	50
+#define MAXNUMBER2STR	LUAI_MAXVECTORSTR
 
 
 /*
@@ -345,6 +345,8 @@ static int tostringbuff (TValue *obj, char *buff) {
   lua_assert(ttisnumber(obj));
   if (ttisinteger(obj))
     len = lua_integer2str(buff, MAXNUMBER2STR, ivalue(obj));
+  else if (ttisvector(obj))
+    len = luaVec_tostr(buff, MAXNUMBER2STR, vvalue(obj), ttypetag(obj));
   else {
     len = lua_number2str(buff, MAXNUMBER2STR, fltvalue(obj));
     if (buff[strspn(buff, "-0123456789")] == '\0') {  /* looks like an int? */

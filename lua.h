@@ -23,9 +23,9 @@
 #define LUA_VERSION_NUM			504
 #define LUA_VERSION_RELEASE_NUM		(LUA_VERSION_NUM * 100 + 0)
 
-#define LUA_VERSION	"Lua " LUA_VERSION_MAJOR "." LUA_VERSION_MINOR
+#define LUA_VERSION	"CfxLua " LUA_VERSION_MAJOR "." LUA_VERSION_MINOR
 #define LUA_RELEASE	LUA_VERSION "." LUA_VERSION_RELEASE
-#define LUA_COPYRIGHT	LUA_RELEASE "  Copyright (C) 1994-2020 Lua.org, PUC-Rio"
+#define LUA_COPYRIGHT	LUA_RELEASE "  Copyright (C) 1994-2020 Lua.org, PUC-Rio, the Grit Game Engine project, and the CitizenFX project"
 #define LUA_AUTHORS	"R. Ierusalimschy, L. H. de Figueiredo, W. Celes"
 
 
@@ -66,13 +66,14 @@ typedef struct lua_State lua_State;
 #define LUA_TBOOLEAN		1
 #define LUA_TLIGHTUSERDATA	2
 #define LUA_TNUMBER		3
-#define LUA_TSTRING		4
-#define LUA_TTABLE		5
-#define LUA_TFUNCTION		6
-#define LUA_TUSERDATA		7
-#define LUA_TTHREAD		8
+#define LUA_TVECTOR		4
+#define LUA_TSTRING		5
+#define LUA_TTABLE		6
+#define LUA_TFUNCTION		7
+#define LUA_TUSERDATA		8
+#define LUA_TTHREAD		9
 
-#define LUA_NUMTYPES		9
+#define LUA_NUMTYPES		10
 
 
 
@@ -199,6 +200,19 @@ LUA_API const void     *(lua_topointer) (lua_State *L, int idx);
 
 
 /*
+** vector variants exposed in lua.h to make the internal/external translation
+** between vector-types mo
+*/
+#define LUA_VVECTOR2 (LUA_TVECTOR | (0 << 4))
+#define LUA_VVECTOR3 (LUA_TVECTOR | (1 << 4))
+#define LUA_VVECTOR4 (LUA_TVECTOR | (2 << 4))
+#define LUA_VQUAT    (LUA_TVECTOR | (3 << 4))
+
+/* Returns the variant of the vector if it is indeed a vector, zero otherwise */
+LUA_API int (lua_isvector) (lua_State *L, int idx);
+LUA_API int (lua_tovector) (lua_State *L, int idx, lua_Float4 *vector);
+
+/*
 ** Comparison and arithmetic functions
 */
 
@@ -233,6 +247,7 @@ LUA_API int   (lua_compare) (lua_State *L, int idx1, int idx2, int op);
 LUA_API void        (lua_pushnil) (lua_State *L);
 LUA_API void        (lua_pushnumber) (lua_State *L, lua_Number n);
 LUA_API void        (lua_pushinteger) (lua_State *L, lua_Integer n);
+LUA_API void        (lua_pushvector) (lua_State *L, lua_Float4 f4, int variant);
 LUA_API const char *(lua_pushlstring) (lua_State *L, const char *s, size_t len);
 LUA_API const char *(lua_pushstring) (lua_State *L, const char *s);
 LUA_API const char *(lua_pushvfstring) (lua_State *L, const char *fmt,
@@ -443,6 +458,7 @@ LUA_API void  (lua_toclose) (lua_State *L, int idx);
 
 typedef struct lua_Debug lua_Debug;  /* activation record */
 
+LUA_API void lua_extmemburden (lua_State *L, int sz);
 
 /* Functions to be called by the debugger in specific events */
 typedef void (*lua_Hook) (lua_State *L, lua_Debug *ar);

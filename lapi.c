@@ -29,7 +29,7 @@
 #include "ltm.h"
 #include "lundump.h"
 #include "lvm.h"
-
+#include "lgrit_lib.h"
 
 
 const char lua_ident[] =
@@ -286,6 +286,12 @@ LUA_API int lua_isnumber (lua_State *L, int idx) {
 }
 
 
+LUA_API int lua_isvector (lua_State *L, int idx) {
+  const TValue *o = index2value(L, idx);
+  return ttisvector(o) ? ttypetag(o) : 0;
+}
+
+
 LUA_API int lua_isstring (lua_State *L, int idx) {
   const TValue *o = index2value(L, idx);
   return (ttisstring(o) || cvt2str(o));
@@ -375,6 +381,30 @@ LUA_API int lua_toboolean (lua_State *L, int idx) {
 }
 
 
+LUA_API int lua_tovector (lua_State *L, int idx, lua_Float4 *vector) {
+  lua_Number n = 0;
+  const TValue *o = index2value(L, idx);
+
+  /*
+   * Most library functions should explicitly handle numbers (lua_isnumber)
+   * rather than potentially downcasting the lua_VecF types.
+   */
+  if (ttisnumber(o) && tonumberns(o, n)) {
+    vector->x = cast_vec(n);
+    return LUA_VNUMFLT;
+  }
+  else if (ttisvector(o)) {
+    const lua_Float4 *value = &(val_(o).f4);
+    vector->x = value->x;
+    vector->y = value->y;
+    vector->z = value->z;
+    vector->w = value->w;
+    return ttypetag(o);
+  }
+  return LUA_TNIL;
+}
+
+
 LUA_API const char *lua_tolstring (lua_State *L, int idx, size_t *len) {
   TValue *o = index2value(L, idx);
   if (!ttisstring(o)) {
@@ -397,6 +427,9 @@ LUA_API const char *lua_tolstring (lua_State *L, int idx, size_t *len) {
 LUA_API lua_Unsigned lua_rawlen (lua_State *L, int idx) {
   const TValue *o = index2value(L, idx);
   switch (ttypetag(o)) {
+    case LUA_VVECTOR2: return 2;
+    case LUA_VVECTOR3: return 3;
+    case LUA_VVECTOR4: case LUA_VQUAT: return 4;
     case LUA_VSHRSTR: return tsvalue(o)->shrlen;
     case LUA_VLNGSTR: return tsvalue(o)->u.lnglen;
     case LUA_VUSERDATA: return uvalue(o)->len;
@@ -484,6 +517,15 @@ LUA_API void lua_pushnumber (lua_State *L, lua_Number n) {
 LUA_API void lua_pushinteger (lua_State *L, lua_Integer n) {
   lua_lock(L);
   setivalue(s2v(L->top), n);
+  api_incr_top(L);
+  lua_unlock(L);
+}
+
+
+/* Does not sanitize variant... */
+LUA_API void lua_pushvector (lua_State *L, lua_Float4 f4, int variant) {
+  lua_lock(L);
+  setvvalue(s2v(L->top), f4, (lu_byte)variant);
   api_incr_top(L);
   lua_unlock(L);
 }
@@ -1191,6 +1233,12 @@ LUA_API int lua_gc (lua_State *L, int what, ...) {
 /*
 ** miscellaneous functions
 */
+
+
+LUA_API void lua_extmemburden (lua_State *L, int sz) {
+    G(L)->totalbytes += sz;
+    G(L)->GCestimate += sz;
+}
 
 
 LUA_API int lua_error (lua_State *L) {

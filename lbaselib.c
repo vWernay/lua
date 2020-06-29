@@ -19,6 +19,7 @@
 
 #include "lauxlib.h"
 #include "lualib.h"
+#include "lgrit_lib.h"
 
 
 static int luaB_print (lua_State *L) {
@@ -243,7 +244,10 @@ static int luaB_collectgarbage (lua_State *L) {
 static int luaB_type (lua_State *L) {
   int t = lua_type(L, 1);
   luaL_argcheck(L, t != LUA_TNONE, 1, "value expected");
-  lua_pushstring(L, lua_typename(L, t));
+  if (t == LUA_TVECTOR)  /* isvector returns the variant */
+    lua_pushstring(L, lua_vectypename(L, lua_isvector(L, 1)));
+  else
+    lua_pushstring(L, lua_typename(L, t));
   return 1;
 }
 
@@ -416,7 +420,7 @@ static int luaB_assert (lua_State *L) {
 static int luaB_select (lua_State *L) {
   int n = lua_gettop(L);
   if (lua_type(L, 1) == LUA_TSTRING && *lua_tostring(L, 1) == '#') {
-    lua_pushinteger(L, n-1);
+    lua_pushinteger(L, (lua_Integer)n - 1l);
     return 1;
   }
   else {
@@ -506,6 +510,18 @@ static const luaL_Reg base_funcs[] = {
   {"type", luaB_type},
   {"xpcall", luaB_xpcall},
   /* placeholders */
+
+  {"vec", lua_vectorN}, {"vector", lua_vectorN},
+  {"vec4", lua_vector4}, {"vector4", lua_vector4},
+  {"vec3", lua_vector3}, {"vector3", lua_vector3},
+  {"vec2", lua_vector2}, {"vector2", lua_vector2},
+  {"quat", lua_quat},
+  {"dot", luaVec_dot},
+  {"cross", luaVec_cross},
+  {"inv", luaVec_inv},
+  {"norm", luaVec_norm},
+  {"slerp", luaVec_slerp},
+
   {LUA_GNAME, NULL},
   {"_VERSION", NULL},
   {NULL, NULL}

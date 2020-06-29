@@ -18,6 +18,7 @@
 #include "ldo.h"
 #include "lgc.h"
 #include "lobject.h"
+#include "lgrit.h"
 #include "lstate.h"
 #include "lstring.h"
 #include "ltable.h"
@@ -29,7 +30,7 @@ static const char udatatypename[] = "userdata";
 
 LUAI_DDEF const char *const luaT_typenames_[LUA_TOTALTYPES] = {
   "no value",
-  "nil", "boolean", udatatypename, "number",
+  "nil", "boolean", udatatypename, "number", "vector",
   "string", "table", "function", udatatypename, "thread",
   "upvalue", "proto" /* these last cases are used for tests only */
 };
@@ -147,7 +148,9 @@ static int callbinTM (lua_State *L, const TValue *p1, const TValue *p2,
 
 void luaT_trybinTM (lua_State *L, const TValue *p1, const TValue *p2,
                     StkId res, TMS event) {
-  if (!callbinTM(L, p1, p2, res, event)) {
+  if (luaVec_trybinTM(L, p1, p2, res, event))
+    return; /* Resolved in Grit API. */
+  else if (!callbinTM(L, p1, p2, res, event)) {
     switch (event) {
       case TM_BAND: case TM_BOR: case TM_BXOR:
       case TM_SHL: case TM_SHR: case TM_BNOT: {

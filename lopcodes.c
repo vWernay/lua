@@ -21,6 +21,7 @@ LUAI_DDEF const lu_byte luaP_opmodes[NUM_OPCODES] = {
  ,opmode(0, 0, 0, 0, 1, iAsBx)		/* OP_LOADI */
  ,opmode(0, 0, 0, 0, 1, iAsBx)		/* OP_LOADF */
  ,opmode(0, 0, 0, 0, 1, iABx)		/* OP_LOADK */
+ ,opmode(0, 0, 0, 0, 1, iABx)		/* OP_LOADKPATH */
  ,opmode(0, 0, 0, 0, 1, iABx)		/* OP_LOADKX */
  ,opmode(0, 0, 0, 0, 1, iABC)		/* OP_LOADFALSE */
  ,opmode(0, 0, 0, 0, 1, iABC)		/* OP_LFALSESKIP */

@@ -467,6 +467,11 @@ static int luaK_codek (FuncState *fs, int reg, int k) {
 }
 
 
+static int luaK_codekpath (FuncState *fs, int reg, int k) {
+    return luaK_codeABx(fs, OP_LOADKPATH, reg, k);
+}
+
+
 /*
 ** Check register-stack level, keeping track of its maximum size
 ** in field 'maxstacksize'
@@ -829,6 +834,11 @@ static void discharge2reg (FuncState *fs, expdesc *e, int reg) {
     }  /* FALLTHROUGH */
     case VK: {
       luaK_codek(fs, reg, e->u.info);
+      break;
+    }
+    case VKPATH: {
+      e->u.info = stringK(fs, e->u.strval);
+      luaK_codekpath(fs, reg, e->u.info);
       break;
     }
     case VKFLT: {

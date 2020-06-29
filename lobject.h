@@ -47,6 +47,7 @@
 typedef union Value {
   struct GCObject *gc;    /* collectable objects */
   void *p;         /* light userdata */
+  lua_Float4 f4;   /* vectors and quat extension by Spark */
   lua_CFunction f; /* light C functions */
   lua_Integer i;   /* integer numbers */
   lua_Number n;    /* float numbers */
@@ -321,6 +322,35 @@ typedef struct GCObject {
 
 #define chgivalue(obj,x) \
   { TValue *io=(obj); lua_assert(ttisinteger(io)); val_(io).i=(x); }
+
+/* }================================================================== */
+
+/*
+** {==================================================================
+** Vectors
+** ===================================================================
+*/
+
+/* Variant tags for vectors */
+#if LUA_VVECTOR2 != makevariant(LUA_TVECTOR, 0)
+  #error "Invalid vector2 variant"
+#elif LUA_VVECTOR3 != makevariant(LUA_TVECTOR, 1)
+  #error "Invalid vector3 variant"
+#elif LUA_VVECTOR4 != makevariant(LUA_TVECTOR, 2)
+  #error "Invalid vector4 variant"
+#elif LUA_VQUAT != makevariant(LUA_TVECTOR, 3)
+  #error "Invalid quaternion variant"
+#endif
+
+#define ttisvector(o)         checktype((o), LUA_TVECTOR)
+#define vvalue(o)             check_exp(ttisvector(o),  val_(o).f4)
+#define setvvalue(obj, x, v)  { TValue *io=(obj); val_(io).f4=(x); settt_(io, (v)); }
+
+#define ttisvector2(o)  checktag((o), LUA_VVECTOR2)
+#define ttisvector3(o)  checktag((o), LUA_VVECTOR3)
+#define ttisvector4(o)  checktag((o), LUA_VVECTOR4)
+#define ttisquat(o)     checktag((o), LUA_VQUAT)
+#define ttisgrit(o)     (LUA_TNUMBER == ttype((o)) || ttype((o)) == LUA_TVECTOR)
 
 /* }================================================================== */
 

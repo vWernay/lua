@@ -18,7 +18,7 @@
 
 #include "lauxlib.h"
 #include "lualib.h"
-
+#include "lgrit_lib.h"
 
 /*
 ** Operations that an object must define to mimic a table
@@ -192,8 +192,12 @@ static int tpack (lua_State *L) {
 
 static int tunpack (lua_State *L) {
   lua_Unsigned n;
-  lua_Integer i = luaL_optinteger(L, 2, 1);
-  lua_Integer e = luaL_opt(L, luaL_checkinteger, 3, luaL_len(L, 1));
+  lua_Integer i, e;
+  if (lua_isnumber(L, 1) || lua_isvector(L, 1))
+    return lua_unpackvec(L);
+
+  i = luaL_optinteger(L, 2, 1);
+  e = luaL_opt(L, luaL_checkinteger, 3, luaL_len(L, 1));
   if (i > e) return 0;  /* empty range */
   n = (lua_Unsigned)e - i;  /* number of elements minus 1 (avoid overflows) */
   if (n >= (unsigned int)INT_MAX  || !lua_checkstack(L, (int)(++n)))
