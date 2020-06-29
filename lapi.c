@@ -254,6 +254,63 @@ LUA_API void lua_pushvalue (lua_State *L, int idx) {
 ** access functions (stack -> C)
 */
 
+LUA_API TValue lua_getvalue (lua_State *L, int idx) {
+  return *index2value(L, idx);
+}
+
+LUA_API int lua_valuetype (lua_State* L, TValue o) {
+  return (isvalid(L, &o) ? ttype(&o) : LUA_TNONE);
+}
+
+LUA_API int lua_valueisinteger (lua_State* L, TValue o) {
+  UNUSED(L);
+  return ttisinteger(&o);
+}
+
+LUA_API int lua_valueisfloat (lua_State* L, TValue o) {
+  UNUSED(L);
+  return ttisfloat(&o);
+}
+
+LUA_API lua_Integer lua_valuetointeger (lua_State* L, TValue o) {
+  lua_Integer res;
+  UNUSED(L);  /* call to 'tointeger' may change 'n' even if it fails */
+  return tointeger(&o, &res) ? res : 0;
+}
+
+LUA_API lua_Number lua_valuetonumber (lua_State* L, TValue o) {
+  lua_Number res;
+  UNUSED(L);  /* call to 'tonumber' may change 'n' even if it fails */
+  return tonumber(&o, &res) ? res : 0;
+}
+
+LUA_API int lua_valuetoboolean (lua_State* L, TValue o) {
+  UNUSED(L);
+  return !l_isfalse(&o);
+}
+
+LUA_API const char *lua_valuetostring (lua_State *L, TValue o) {
+  UNUSED(L);
+  return ttisstring(&o) ? svalue(&o) : NULL;
+}
+
+LUA_API lua_Float4 lua_valuetofloat4 (lua_State* L, TValue o) {
+  UNUSED(L);
+  if (!ttisvector(&o)) {
+    lua_Float4 r = {.x = V_ZERO, .y = V_ZERO, .z = V_ZERO, .w = V_ZERO };
+    return r;
+  }
+  return vvalue(&o);
+}
+
+LUA_API void *lua_valuetouserdata (lua_State *L, TValue o) {
+  UNUSED(L);
+  switch (ttype(&o)) {
+    case LUA_TUSERDATA: return getudatamem(uvalue(&o));
+    case LUA_TLIGHTUSERDATA: return pvalue(&o);
+    default: return NULL;
+  }
+}
 
 LUA_API int lua_type (lua_State *L, int idx) {
   const TValue *o = index2value(L, idx);
