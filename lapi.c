@@ -312,6 +312,22 @@ LUA_API void *lua_valuetouserdata (lua_State *L, TValue o) {
   }
 }
 
+LUA_API lua_Integer lua_utointeger (lua_State* L, int idx) {
+  const TValue* val = s2v(L->ci->func + idx);
+  return val->value_.i;
+}
+
+LUA_API lua_Number lua_utonumber (lua_State* L, int idx) {
+  const TValue* val = s2v(L->ci->func + idx);
+  return val->value_.n;
+}
+
+LUA_API int lua_asserttop (const lua_State* L, int idx) {
+  const TValue* o = s2v(L->ci->func + idx);
+  if (o >= s2v(L->top)) return 0;
+  return 1;
+}
+
 LUA_API int lua_type (lua_State *L, int idx) {
   const TValue *o = index2value(L, idx);
   return (isvalid(L, o) ? ttype(o) : LUA_TNONE);
