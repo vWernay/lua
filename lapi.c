@@ -280,6 +280,7 @@ LUA_API int lua_toprotos (lua_State* L, int idx) {
 ** access functions (stack -> C)
 */
 
+#if defined(FIVE_LUA_COMPAT)
 LUA_API TValue lua_getvalue (lua_State *L, int idx) {
   return *index2value(L, idx);
 }
@@ -353,6 +354,12 @@ LUA_API int lua_asserttop (const lua_State* L, int idx) {
   if (o >= s2v(L->top)) return 0;
   return 1;
 }
+#else
+LUA_API const TValue *lua_getvalue (lua_State *L, int idx) {
+  return index2value(L, idx);
+}
+#endif
+
 
 LUA_API int lua_type (lua_State *L, int idx) {
   const TValue *o = index2value(L, idx);

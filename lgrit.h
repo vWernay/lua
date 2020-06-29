@@ -74,6 +74,9 @@ LUAI_FUNC void (luaVec_objlen) (lua_State *L, StkId ra, const TValue *o);
 LUAI_FUNC int (luaVec_tostr) (char *buff, size_t len, const lua_Float4 v,
                                                                    int variant);
 
+/* redefinition of lua_tolstring, but for TValues */
+LUAI_FUNC const char *(luaVec_tolstring) (lua_State *L, TValue *o, size_t *len);
+
 /* Parse the string object and return the number of dimensions to the vector. */
 LUAI_FUNC int (luaVec_pullstring) (lua_State *L, const TValue *o,
                                                               lua_Float4 *sink);

@@ -819,6 +819,14 @@ LUAI_FUNC void luaO_chunkid (char *out, const char *source, size_t srclen);
 **
 ** Note: tointerger/tonumber include forced string coercion
 */
+
+#if defined(FIVE_LUA_COMPAT)
+
+#define LUA_TVECTOR2 LUA_VVECTOR2
+#define LUA_TVECTOR3 LUA_VVECTOR3
+#define LUA_TVECTOR4 LUA_VVECTOR4
+#define LUA_TQUAT LUA_VQUAT
+
 LUA_API TValue lua_getvalue (lua_State *L, int idx);
 LUA_API int lua_valuetype (lua_State* L, TValue o);
 LUA_API int lua_valueisinteger (lua_State* L, TValue o);
@@ -832,6 +840,15 @@ LUA_API void *lua_valuetouserdata (lua_State *L, TValue o);
 LUA_API int lua_asserttop (const lua_State* L, int count);
 LUA_API lua_Integer lua_utointeger (lua_State* L, int idx);
 LUA_API lua_Number lua_utonumber (lua_State* L, int idx);
+
+#else
+
+#define lua_asserttop(L, n)    ((n) < (L->top - L->ci->func))
+#define lua_utointeger(L, idx) (val_(s2v((L)->ci->func + (idx))).i)
+#define lua_utonumber(L, idx)  (val_(s2v((L)->ci->func + (idx))).n)
+LUA_API const TValue *lua_getvalue (lua_State *L, int idx);
+
+#endif
 
 #if !defined(GRIT_USE_PATH)
 /* TODO: Change API to use lua_Unsigned */
