@@ -5,8 +5,6 @@
 #define lgrit_c
 #define LUA_LIB
 
-#include <stdlib.h>
-#include <limits.h>
 #include <math.h>
 #include <string.h>
 #include <locale.h>
@@ -710,6 +708,9 @@ void luaVec_getint (lua_State *L, const TValue *t, const lua_Integer key, TValue
     luaV_finishget(L, t, pkey, val, NULL);
 }
 
+#if defined(GRIT_USE_PATH)
+#include <stdlib.h>
+
 /* This function is hot garbage */
 TString *resolve_absolute_path (lua_State *L, const char *file, const char *rel) {
   size_t i;
@@ -840,6 +841,7 @@ TString *resolve_absolute_path (lua_State *L, const char *file, const char *rel)
   free(rel2);
   return r;
 }
+#endif
 
 /* }================================================================== */
 

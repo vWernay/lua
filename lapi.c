@@ -1563,3 +1563,46 @@ LUA_API void lua_upvaluejoin (lua_State *L, int fidx1, int n1,
 }
 
 
+/* Hashing */
+#if !defined(GRIT_USE_PATH)
+static LUA_INLINE char ToLower (const char c) {
+  return (c >= 'A' && c <= 'Z') ? (c - 'A' + 'a') : c;
+}
+
+LUA_API lua_Integer lua_ToHash (lua_State *L, int idx) {
+  const TValue * o = index2value(L, idx);
+  if (ttisstring(o))
+    return luaO_HashString(svalue(o));
+  else if (ttisinteger(o))
+    return ivalue(o);
+  return 0;
+}
+
+lua_Integer luaO_HashString (const char* string) {
+  unsigned int hash = 0;
+  for (; *string; ++string) {
+    hash += ToLower(*string);
+    hash += (hash << 10);
+    hash ^= (hash >> 6);
+  }
+
+  hash += (hash << 3);
+  hash ^= (hash >> 11);
+  hash += (hash << 15);
+  return (lua_Integer)(int)hash;
+}
+
+lua_Integer luaO_HashRageString (const char* string) {
+  unsigned int hash = 0;
+  for (; *string; ++string) {
+    hash += *string;
+    hash += (hash << 10);
+    hash ^= (hash >> 6);
+  }
+
+  hash += (hash << 3);
+  hash ^= (hash >> 11);
+  hash += (hash << 15);
+  return (lua_Integer)(int)hash;
+}
+#endif

@@ -168,11 +168,18 @@ static void codename (LexState *ls, expdesc *e) {
 }
 
 
+#if defined(GRIT_USE_PATH)
 static void codepath (expdesc *e, TString *s) {
   e->f = e->t = NO_JUMP;
   e->k = VKPATH;
   e->u.strval = s;
 }
+#else
+static void codehash (expdesc *e, TString *s) {
+  init_exp(e, VKINT, 0);
+  e->u.ival = luaO_HashString(getstr(s));
+}
+#endif
 
 
 /*
@@ -1045,11 +1052,19 @@ static void funcargs (LexState *ls, expdesc *f, int line) {
       luaX_next(ls);  /* must use 'seminfo' before 'next' */
       break;
     }
+#if defined(GRIT_USE_PATH)
     case TK_PATH: {  /* funcargs -> STRING */
       codepath(&args, ls->t.seminfo.ts);
       luaX_next(ls);  /* must use `seminfo' before `next' */
       break;
     }
+#else
+    case TK_HASH: {  /* funcargs -> STRING */
+      codehash(&args, ls->t.seminfo.ts);
+      luaX_next(ls);  /* must use `seminfo' before `next' */
+      break;
+    }
+#endif
     default: {
       luaX_syntaxerror(ls, "function arguments expected");
     }
@@ -1128,7 +1143,12 @@ static void suffixedexp (LexState *ls, expdesc *v) {
         funcargs(ls, v, line);
         break;
       }
-      case '(': case TK_STRING: case TK_PATH: case '{': {  /* funcargs */
+#if !defined(GRIT_USE_PATH)
+      case TK_HASH:
+#endif
+      case '(':
+      case TK_STRING:
+      case '{': {  /* funcargs */
         luaK_exp2nextreg(fs, v);
         funcargs(ls, v, line);
         break;
@@ -1185,10 +1205,17 @@ static void simpleexp (LexState *ls, expdesc *v) {
       body(ls, v, 0, ls->linenumber);
       return;
     }
+#if defined(GRIT_USE_PATH)
     case TK_PATH: {
       codepath(v, ls->t.seminfo.ts);
       break;
     }
+#else
+    case TK_HASH: {
+      codehash(v, ls->t.seminfo.ts);
+      break;
+    }
+#endif
     default: {
       suffixedexp(ls, v);
       return;

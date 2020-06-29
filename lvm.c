@@ -1189,6 +1189,7 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
         setobj2s(L, ra, rb);
         vmbreak;
       }
+#if defined(GRIT_USE_PATH)
       vmcase(OP_LOADKPATH) {
         TString *str;
         TValue *rb;
@@ -1228,6 +1229,7 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
         checkGC(L, ra + 1);
         vmbreak;
       }
+#endif
       vmcase(OP_LOADKX) {
         TValue *rb;
         rb = k + GETARG_Ax(*pc); pc++;

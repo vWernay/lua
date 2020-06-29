@@ -120,6 +120,7 @@ LUAI_FUNC void (luaVec_getstring) (lua_State *L, const TValue* t,
 LUAI_FUNC void (luaVec_getint) (lua_State *L, const TValue *t, const
                                       lua_Integer key, TValue* pkey, StkId val);
 
+#if defined(GRIT_USE_PATH)
 /*
 ** Resolves and canonicalizes rel (in the context of the dir part of file).
 **
@@ -131,6 +132,7 @@ LUAI_FUNC void (luaVec_getint) (lua_State *L, const TValue *t, const
 */
 LUAI_FUNC TString *(resolve_absolute_path) (lua_State *L, const char *file,
                                                                const char *rel);
+#endif
 
 /* }================================================================== */
 

@@ -467,9 +467,11 @@ static int luaK_codek (FuncState *fs, int reg, int k) {
 }
 
 
+#if defined(GRIT_USE_PATH)
 static int luaK_codekpath (FuncState *fs, int reg, int k) {
     return luaK_codeABx(fs, OP_LOADKPATH, reg, k);
 }
+#endif
 
 
 /*
@@ -836,11 +838,13 @@ static void discharge2reg (FuncState *fs, expdesc *e, int reg) {
       luaK_codek(fs, reg, e->u.info);
       break;
     }
+#if defined(GRIT_USE_PATH)
     case VKPATH: {
       e->u.info = stringK(fs, e->u.strval);
       luaK_codekpath(fs, reg, e->u.info);
       break;
     }
+#endif
     case VKFLT: {
       luaK_float(fs, reg, e->u.nval);
       break;

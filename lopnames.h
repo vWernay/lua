@@ -17,7 +17,9 @@ static const char *const opnames[] = {
   "LOADI",
   "LOADF",
   "LOADK",
+#if defined(GRIT_USE_PATH)
   "LOADKPATH",
+#endif
   "LOADKX",
   "LOADFALSE",
   "LFALSESKIP",

@@ -833,5 +833,17 @@ LUA_API int lua_asserttop (const lua_State* L, int count);
 LUA_API lua_Integer lua_utointeger (lua_State* L, int idx);
 LUA_API lua_Number lua_utonumber (lua_State* L, int idx);
 
+#if !defined(GRIT_USE_PATH)
+/* TODO: Change API to use lua_Unsigned */
+
+LUA_API lua_Integer lua_ToHash (lua_State* L, int idx);
+
+/* hash string, don't lowercase */
+LUAI_FUNC lua_Integer luaO_HashString (const char* string);
+
+/* hash string as lowercase */
+LUAI_FUNC lua_Integer luaO_HashRageString (const char* string);
+#endif
+
 #endif
 
