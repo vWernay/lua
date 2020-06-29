@@ -148,21 +148,16 @@ static int callbinTM (lua_State *L, const TValue *p1, const TValue *p2,
 
 void luaT_trybinTM (lua_State *L, const TValue *p1, const TValue *p2,
                     StkId res, TMS event) {
-  if (luaVec_trybinTM(L, p1, p2, res, event))
-    return; /* Resolved in Grit API. */
-  else if (!callbinTM(L, p1, p2, res, event)) {
-    switch (event) {
-      case TM_BAND: case TM_BOR: case TM_BXOR:
-      case TM_SHL: case TM_SHR: case TM_BNOT: {
-        if (ttisnumber(p1) && ttisnumber(p2))
-          luaG_tointerror(L, p1, p2);
-        else
-          luaG_opinterror(L, p1, p2, "perform bitwise operation on");
-      }
-      /* calls never return, but to avoid warnings: *//* FALLTHROUGH */
-      default:
-        luaG_opinterror(L, p1, p2, "perform arithmetic on");
-    }
+  if (callbinTM(L, p1, p2, res, event)) { /* FALLTHROUGH */ }
+  else if (tmbitop(event)) {
+    if (ttisnumber(p1) && ttisnumber(p2))
+      luaG_tointerror(L, p1, p2);
+    else
+      luaG_opinterror(L, p1, p2, "perform bitwise operation on");
+  }
+  else if (luaVec_trybinTM(L, p1, p2, res, event)) { /* FALLTHROUGH */ }
+  else {
+    luaG_opinterror(L, p1, p2, "perform arithmetic on");
   }
 }
 

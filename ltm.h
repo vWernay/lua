@@ -44,6 +44,8 @@ typedef enum {
   TM_N		/* number of elements in the enum */
 } TMS;
 
+/* ORDER TM: Used to simplify logic in ltm.c: luaT_trybinTM */
+#define tmbitop(o)  ((TM_BAND <= (o) && (o) <= TM_SHR) || (o) == TM_BNOT)
 
 /*
 ** Test whether there is no tagmethod.
