@@ -243,6 +243,16 @@ TString *luaS_newlstr (lua_State *L, const char *str, size_t l) {
   }
 }
 
+LUAI_FUNC TString *luaS_newblob (lua_State *L, size_t l) {
+  TString *ts;
+  l = (l <= LUAI_MAXSHORTLEN) ? (LUAI_MAXSHORTLEN + 1) : l;
+  if (unlikely(l >= (MAX_SIZE - sizeof(TString))/sizeof(char)))
+    luaM_toobig(L);
+
+  ts = luaS_createlngstrobj(L, l);
+  memset(getstr(ts), 0, l * sizeof(char));
+  return ts;
+}
 
 /*
 ** Create or reuse a zero-terminated string, first checking in the

@@ -173,6 +173,16 @@ static int str_rep (lua_State *L) {
 }
 
 
+static int str_blob (lua_State *L) {
+  lua_Integer n = luaL_checkinteger(L, 1);
+  if (n <= 0)
+    return luaL_error(L, "blob length is negative");
+  else {
+    lua_pushblob(L, (size_t)n);
+    return 1;
+  }
+}
+
 static int str_byte (lua_State *L) {
   size_t l;
   const char *s = luaL_checklstring(L, 1, &l);
@@ -1770,6 +1780,7 @@ static const luaL_Reg strlib[] = {
   {"lower", str_lower},
   {"match", str_match},
   {"rep", str_rep},
+  {"blob", str_blob},
   {"reverse", str_reverse},
   {"sub", str_sub},
   {"upper", str_upper},

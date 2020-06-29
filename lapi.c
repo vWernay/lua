@@ -689,6 +689,18 @@ LUA_API const char *lua_pushstring (lua_State *L, const char *s) {
 }
 
 
+LUA_API const char *lua_pushblob (lua_State *L, size_t len) {
+  TString *ts;
+  lua_lock(L);
+  ts = luaS_newblob(L, len);
+  setsvalue2s(L, L->top, ts);
+  api_incr_top(L);
+  luaC_checkGC(L);
+  lua_unlock(L);
+  return getstr(ts);
+}
+
+
 LUA_API const char *lua_pushvfstring (lua_State *L, const char *fmt,
                                       va_list argp) {
   const char *ret;

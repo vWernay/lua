@@ -54,5 +54,10 @@ LUAI_FUNC TString *luaS_newlstr (lua_State *L, const char *str, size_t l);
 LUAI_FUNC TString *luaS_new (lua_State *L, const char *str);
 LUAI_FUNC TString *luaS_createlngstrobj (lua_State *L, size_t l);
 
+/*
+** Create a non-internalized string of "L" bytes, where L is clamped from below
+** to least (LUAI_MAXSHORTLEN + 1) bytes.
+*/
+LUAI_FUNC TString *luaS_newblob (lua_State *L, size_t l);
 
 #endif
