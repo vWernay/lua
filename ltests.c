@@ -121,7 +121,8 @@ static void warnf (void *ud, const char *msg, int tocont) {
   strcat(buff, msg);  /* add new message to current warning */
   if (!tocont) {  /* message finished? */
     lua_unlock(L);
-    if (lua_getglobal(L, "_WARN") == LUA_TNIL)
+    lua_getglobal(L, "_WARN");
+    if (!lua_toboolean(L, -1))
       lua_pop(L, 1);  /* ok, no previous unexpected warning */
     else {
       badexit("Unhandled warning in store mode: %s\naborting...\n",
@@ -144,7 +145,6 @@ static void warnf (void *ud, const char *msg, int tocont) {
         lua_pushstring(L, buff);
         lua_setglobal(L, "_WARN");  /* assign message to global '_WARN' */
         lua_lock(L);
-        buff[0] = '\0';  /* prepare buffer for next warning */
         break;
       }
     }
@@ -748,11 +748,12 @@ static int listlocals (lua_State *L) {
 static void printstack (lua_State *L) {
   int i;
   int n = lua_gettop(L);
+  printf("stack: >>\n");
   for (i = 1; i <= n; i++) {
     printf("%3d: %s\n", i, luaL_tolstring(L, i, NULL));
     lua_pop(L, 1);
   }
-  printf("\n");
+  printf("<<\n");
 }
 
 
@@ -1282,10 +1283,19 @@ static int getindex_aux (lua_State *L, lua_State *L1, const char **pc) {
 }
 
 
-static void pushcode (lua_State *L, int code) {
-  static const char *const codes[] = {"OK", "YIELD", "ERRRUN",
-                   "ERRSYNTAX", MEMERRMSG, "ERRGCMM", "ERRERR"};
-  lua_pushstring(L, codes[code]);
+static const char *const statcodes[] = {"OK", "YIELD", "ERRRUN",
+    "ERRSYNTAX", MEMERRMSG, "ERRGCMM", "ERRERR"};
+
+/*
+** Avoid these stat codes from being collected, to avoid possible
+** memory error when pushing them.
+*/
+static void regcodes (lua_State *L) {
+  unsigned int i;
+  for (i = 0; i < sizeof(statcodes) / sizeof(statcodes[0]); i++) {
+    lua_pushboolean(L, 1);
+    lua_setfield(L, LUA_REGISTRYINDEX, statcodes[i]);
+  }
 }
 
 
@@ -1508,7 +1518,7 @@ static int runC (lua_State *L, lua_State *L1, const char *pc) {
       lua_pushnumber(L1, (lua_Number)getnum);
     }
     else if EQ("pushstatus") {
-      pushcode(L1, status);
+      lua_pushstring(L1, statcodes[status]);
     }
     else if EQ("pushstring") {
       lua_pushstring(L1, getstring);
@@ -1668,6 +1678,9 @@ static struct X { int x; } x;
       if (n == 0) n = lua_gettop(fs);
       lua_xmove(fs, ts, n);
     }
+    else if EQ("isyieldable") {
+      lua_pushboolean(L1, lua_isyieldable(lua_tothread(L1, getindex)));
+    }
     else if EQ("yield") {
       return lua_yield(L1, getnum);
     }
@@ -1710,7 +1723,7 @@ static int Cfunc (lua_State *L) {
 
 
 static int Cfunck (lua_State *L, int status, lua_KContext ctx) {
-  pushcode(L, status);
+  lua_pushstring(L, statcodes[status]);
   lua_setglobal(L, "status");
   lua_pushinteger(L, ctx);
   lua_setglobal(L, "ctx");
@@ -1865,6 +1878,9 @@ int luaB_opentests (lua_State *L) {
   void *ud;
   lua_atpanic(L, &tpanic);
   lua_setwarnf(L, &warnf, L);
+  lua_pushboolean(L, 0);
+  lua_setglobal(L, "_WARN");  /* _WARN = false */
+  regcodes(L);
   atexit(checkfinalmem);
   lua_assert(lua_getallocf(L, &ud) == debug_realloc);
   lua_assert(ud == cast_voidp(&l_memcontrol));

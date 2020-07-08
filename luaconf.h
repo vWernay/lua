@@ -797,7 +797,17 @@
 */
 
 #define LUA_GRIT_API
-#define ORIG_MAXNUMBER2STR 50  /* from lobject.c */
+
+/*
+** lobject.c:
+** Maximum length of the conversion of a number to a string. Must be
+** enough to accommodate both LUA_INTEGER_FMT and LUA_NUMBER_FMT.
+** (For a long long int, this is 19 digits plus a sign and a final '\0',
+** adding to 21. For a long double, it can go to a sign, 33 digits,
+** the dot, an exponent letter, an exponent sign, 5 exponent digits,
+** and a final '\0', adding to 43.)
+*/
+#define ORIG_MAXNUMBER2STR 44
 
 /*
 ** Value changed from:

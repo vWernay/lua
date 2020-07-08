@@ -37,10 +37,15 @@ CWARNSC= -Wdeclaration-after-statement \
 
 CWARNS= $(CWARNSCPP) $(CWARNSC)
 
+# Some useful compiler options for internal tests:
+# -DHARDSTACKTESTS forces a reallocation of the stack at every point where
+# the stack can be reallocated.
+# -DHARDMEMTESTS forces an emergency collection at every single allocation.
+# -DEXTERNMEMCHECK removes internal consistency checking of blocks being
+# deallocated (useful when an external tool like valgrind does the check).
+# -DMAXINDEXRK=k limits range of constants in RK instruction operands.
+# -DLUA_COMPAT_5_3
 
-# -DEXTERNMEMCHECK -DHARDSTACKTESTS -DHARDMEMTESTS -DTRACEMEM='"tempmem"'
-# -DMAXINDEXRK=1 -DLUA_COMPAT_5_3
-# -g -DLUA_USER_H='"ltests.h"'
 # -pg -malign-double
 # -DLUA_USE_CTYPE -DLUA_USE_APICHECK
 # ('-ftrapv' for runtime checks of integer overflows)
