@@ -668,7 +668,12 @@ LUA_API void lua_pushinteger (lua_State *L, lua_Integer n) {
 /* Does not sanitize variant... */
 LUA_API void lua_pushvector (lua_State *L, lua_Float4 f4, int variant) {
   lua_lock(L);
-  setvvalue(s2v(L->top), f4, (lu_byte)variant);
+  if (variant == LUA_VNUMFLT) {  /* Implicit vector1 */
+    setfltvalue(s2v(L->top), cast_num(f4.x));
+  }
+  else {
+    setvvalue(s2v(L->top), f4, (lu_byte)variant);
+  }
   api_incr_top(L);
   lua_unlock(L);
 }
