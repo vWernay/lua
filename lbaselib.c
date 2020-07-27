@@ -572,11 +572,11 @@ static const luaL_Reg base_funcs[] = {
 #endif
   /* placeholders */
 
-  {"vec", lua_vectorN}, {"vector", lua_vectorN},
-  {"vec4", lua_vector4}, {"vector4", lua_vector4},
-  {"vec3", lua_vector3}, {"vector3", lua_vector3},
-  {"vec2", lua_vector2}, {"vector2", lua_vector2},
-  {"quat", lua_quat},
+  {"vec", lua_vectorN}, {LABEL_VECTOR, lua_vectorN},
+  {"vec4", lua_vector4}, {LABEL_VECTOR4, lua_vector4},
+  {"vec3", lua_vector3}, {LABEL_VECTOR3, lua_vector3},
+  {"vec2", lua_vector2}, {LABEL_VECTOR2, lua_vector2},
+  {LABEL_QUATERN, lua_quat},
   {"dot", luaVec_dot},
   {"cross", luaVec_cross},
   {"inv", luaVec_inv},

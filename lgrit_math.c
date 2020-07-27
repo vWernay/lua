@@ -14,13 +14,6 @@
 #include "lgrit.h"
 #include "lgrit_lib.h"
 
-#define LABEL_NUMBER   "number"
-#define LABEL_VECTOR2  "vector2"
-#define LABEL_VECTOR3  "vector3"
-#define LABEL_VECTOR4  "vector4"
-#define LABEL_QUATERN  "quaternion"
-#define LABEL_ALL      "number or vector type"
-
 #define luai_numlt_c(a,b) luai_numlt(a, b) ? (a) : (b)
 #define luai_numle_c(a,b) luai_numle(a, b) ? (a) : (b)
 #define luai_numgt_c(a,b) luai_numgt(a, b) ? (a) : (b)
@@ -65,7 +58,7 @@
   int variant;                                                                 \
   lua_Float4 v;                                                                \
   switch ((variant = lua_tovector((L), 1, V_PARSETABLE, &v))) {                \
-    case LUA_VNUMFLT: OP1(l_vecop(op), v, v); break;                           \
+    case LUA_VVECTOR1: OP1(l_vecop(op), v, v); break;                          \
     case LUA_VVECTOR2: OP2(l_vecop(op), v, v); break;                          \
     case LUA_VVECTOR3: OP3(l_vecop(op), v, v); break;                          \
     case LUA_VVECTOR4: OP4(l_vecop(op), v, v); break;                          \
@@ -80,7 +73,7 @@
   lua_VecF x;                                                                  \
   lua_Float4 v, v2;                                                            \
   switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {                  \
-    case LUA_VNUMFLT:                                                          \
+    case LUA_VVECTOR1:                                                         \
       x = cast_vec(luaL_checknumber(L, 2));                                    \
       SCALAR1(l_vecop(op), v, x, v);                                           \
       break;                                                                   \
@@ -131,7 +124,7 @@
   lua_Float4 v;                                                                \
   int variant, result = 0;                                                     \
   switch ((variant = lua_tovector((L), 1, V_PARSETABLE, &v))) {                \
-    case LUA_VNUMFLT: result = IS1(op, v); break;                              \
+    case LUA_VVECTOR1: result = IS1(op, v); break;                             \
     case LUA_VVECTOR2: result = IS2(op, v); break;                             \
     case LUA_VVECTOR3: result = IS3(op, v); break;                             \
     case LUA_VVECTOR4: result = IS4(op, v); break;                             \
@@ -142,12 +135,17 @@
 }
 
 static LUA_INLINE float todegf(float x) { return x * (180.f / 3.141592653589793238462643383279502884f); }
-static LUA_INLINE double todeg(double x) { return x * (180.0 / 3.141592653589793238462643383279502884); }
-static LUA_INLINE long double todegl(long double x) { return x * (180.0 / 3.141592653589793238462643383279502884); }
-
 static LUA_INLINE float toradf(float x) { return x * (3.141592653589793238462643383279502884f / 180.f); }
+
+static LUA_INLINE double todeg(double x) { return x * (180.0 / 3.141592653589793238462643383279502884); }
+#if LUA_VEC_TYPE == LUA_FLOAT_DOUBLE
 static LUA_INLINE double torad(double x) { return x * (3.141592653589793238462643383279502884 / 180.0); }
-static LUA_INLINE long double toradl(long double x) { return x * (3.141592653589793238462643383279502884 / 180.0); }
+#endif
+
+#if LUA_VEC_TYPE == LUA_FLOAT_LONGDOUBLE
+static LUA_INLINE long double todegl(long double x) { return x * (180.0L / 3.141592653589793238462643383279502884L); }
+static LUA_INLINE long double toradl(long double x) { return x * (3.141592653589793238462643383279502884L / 180.0L); }
+#endif
 
 /*
 ** {==================================================================
@@ -299,7 +297,7 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
         SCALAR3(l_vecop(pow), nb, nc, r);
         break;
       default:
-        luaG_runerror(L, "Cannot use that op with vector3 and number");
+        luaG_runerror(L, "Cannot use that op with " LABEL_VECTOR3 " and " LABEL_NUMBER);
     }
     setvvalue(s2v(res), r, LUA_VVECTOR3);
   }
@@ -332,7 +330,7 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
         SCALAR2(l_vecop(pow), nb, nc, r);
         break;
       default:
-        luaG_runerror(L, "Cannot use that op with vector2 and number");
+        luaG_runerror(L, "Cannot use that op with " LABEL_VECTOR2 " and " LABEL_NUMBER);
     }
     setvvalue(s2v(res), r, LUA_VVECTOR2);
   }
@@ -365,7 +363,7 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
         SCALAR4(l_vecop(pow), nb, nc, r);
         break;
       default:
-        luaG_runerror(L, "Cannot use that op with vector4 and number");
+        luaG_runerror(L, "Cannot use that op with " LABEL_VECTOR4 " and " LABEL_NUMBER);
     }
     setvvalue(s2v(res), r, LUA_VVECTOR4);
   }
@@ -390,7 +388,7 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
         SCALAR3B(l_vecop(pow), nb, nc, r);
         break;
       default:
-        luaG_runerror(L, "Cannot use that op with number and vector3");
+        luaG_runerror(L, "Cannot use that op with " LABEL_NUMBER " and " LABEL_VECTOR3);
     }
     setvvalue(s2v(res), r, LUA_VVECTOR3);
   }
@@ -415,7 +413,7 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
         SCALAR2B(l_vecop(pow), nb, nc, r);
         break;
       default:
-        luaG_runerror(L, "Cannot use that op with number and vector2");
+        luaG_runerror(L, "Cannot use that op with " LABEL_NUMBER " and " LABEL_VECTOR2);
     }
     setvvalue(s2v(res), r, LUA_VVECTOR2);
   }
@@ -442,7 +440,7 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
         SCALAR4B(l_vecop(pow), nb, nc, r);
         break;
       default:
-        luaG_runerror(L, "Cannot use that op with number and vector4");
+        luaG_runerror(L, "Cannot use that op with " LABEL_NUMBER " and " LABEL_VECTOR4);
     }
     setvvalue(s2v(res), r, LUA_VVECTOR4);
   }
@@ -456,7 +454,7 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
         r.z = nb.w * nc.z + nb.z * nc.w + nb.x * nc.y - nb.y * nc.x;
         break;
       default:
-        luaG_runerror(L, "Cannot use that op with quat and quat");
+        luaG_runerror(L, "Cannot use that op with " LABEL_QUATERN " and " LABEL_QUATERN);
     }
     setvvalue(s2v(res), r, LUA_VQUAT);
   }
@@ -477,7 +475,7 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
         break;
       }
       default:
-        luaG_runerror(L, "Cannot use that op with quat and vector3");
+        luaG_runerror(L, "Cannot use that op with " LABEL_QUATERN " and " LABEL_VECTOR3);
     }
     setvvalue(s2v(res), r, LUA_VVECTOR3);
   }
@@ -569,7 +567,7 @@ int luaVec_angle (const lua_Float4 a, const lua_Float4 b, lua_Float4 *q) {
 }
 
 lua_Number luaVec_axisangle (const lua_Float4 v) {
-  lua_Number angle = 2.0 * l_mathop(acos)(v.w);
+  lua_Number angle = 2.0 * l_mathop(acos)(cast_num(v.w));
   return l_mathop(todeg)(angle);
 }
 
@@ -607,7 +605,7 @@ int luaVec_dot (lua_State *L) {
   else {
     lua_Float4 v, v2;
     switch (lua_tovector(L, 1, V_PARSETABLE, &v)) {
-      case LUA_VNUMFLT:
+      case LUA_VVECTOR1:
         lua_checkv1(L, 2, V_NOTABLE, &v2);
         lua_pushnumber(L, cast_num(v.x) * cast_num(v2.x));
         break;
@@ -677,27 +675,27 @@ int luaVec_norm (lua_State *L) {
   }
 
   switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
-    case LUA_VNUMFLT:  /* Technically should never be reached. */
+    case LUA_VVECTOR1:  /* Technically should never be reached. */
       lua_pushnumber(L, l_mathop(1.0));
       return 1;
     case LUA_VVECTOR2:
       if ((len = l_vecop(sqrt)(DOT2(cast_vec, v, v))) == V_ZERO)
-        return luaL_typeerror(L, 1, "Cannot normalize vector2");
+        return luaL_typeerror(L, 1, "Cannot normalize " LABEL_VECTOR2);
       SCALAR2(DIVF, v, len, v);
       break;
     case LUA_VVECTOR3:
       if ((len = l_vecop(sqrt)(DOT3(cast_vec, v, v))) == V_ZERO)
-        return luaL_typeerror(L, 1, "Cannot normalize vector3");
+        return luaL_typeerror(L, 1, "Cannot normalize " LABEL_VECTOR3);
       SCALAR3(DIVF, v, len, v);
       break;
     case LUA_VVECTOR4:
       if ((len = l_vecop(sqrt)(DOT4(cast_vec, v, v))) == V_ZERO)
-        return luaL_typeerror(L, 1, "Cannot normalize vector4");
+        return luaL_typeerror(L, 1, "Cannot normalize " LABEL_VECTOR4);
       SCALAR4(DIVF, v, len, v);
       break;
     case LUA_VQUAT:
       if ((len = l_vecop(sqrt)(DOT4(cast_vec, v, v))) == V_ZERO)
-        return luaL_typeerror(L, 1, "Cannot normalize quat");
+        return luaL_typeerror(L, 1, "Cannot normalize " LABEL_QUATERN);
       SCALAR4(DIVF, v, len, v);
       break;
     default:
@@ -766,7 +764,7 @@ int luaVec_atan (lua_State *L) {
   int variant;
   lua_Float4 v, v2;
   switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
-    case LUA_VNUMFLT: {
+    case LUA_VVECTOR1: {
       v2.x = V_ONE;
       if (lua_type(L, 2) != LUA_TNONE)
         v2.x = cast_vec(luaL_checknumber(L, 2));
@@ -841,7 +839,7 @@ int luaVec_log (lua_State *L) {
     case LUA_VVECTOR4: v.w = log_helper(L, v.w); /* FALLTHROUGH */
     case LUA_VVECTOR3: v.z = log_helper(L, v.z); /* FALLTHROUGH */
     case LUA_VVECTOR2: v.y = log_helper(L, v.y); /* FALLTHROUGH */
-    case LUA_VNUMFLT: v.x = log_helper(L, v.x); break;
+    case LUA_VVECTOR1: v.x = log_helper(L, v.x); break;
     default:
       return luaL_typeerror(L, 1, LABEL_ALL);
   }
@@ -856,7 +854,7 @@ int luaVec_min (lua_State *L) {
 
   lua_Float4 v, v2;
   switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
-    case LUA_VNUMFLT:
+    case LUA_VVECTOR1:
       for (i = 2; i <= n; i++) {
         lua_checkv1(L, i, V_NOTABLE, &v2);
         PW1(luai_numlt_c, v, v2, v);
@@ -894,7 +892,7 @@ int luaVec_max (lua_State *L) {
 
   lua_Float4 v, v2;
   switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
-    case LUA_VNUMFLT:
+    case LUA_VVECTOR1:
       for (i = 2; i <= n; i++) {
         lua_checkv1(L, i, V_NOTABLE, &v2);
         PW1(luai_numgt_c, v, v2, v);
@@ -930,7 +928,7 @@ int luaVec_clamp (lua_State *L) {
   int variant;
   lua_Float4 min, v, max;
   switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
-    case LUA_VNUMFLT:
+    case LUA_VVECTOR1:
       lua_checkv1(L, 2, V_NOTABLE, &min); lua_checkv1(L, 3, V_NOTABLE, &max);
       PW1(luai_numgt_c, v, min, v);
       PW1(luai_numlt_c, v, max, v);
@@ -1042,7 +1040,7 @@ int luaV_scalbn (lua_State *L) {
     case LUA_VVECTOR4: v.w = l_vecop(scalbn)(v.w, n); /* FALLTHROUGH */
     case LUA_VVECTOR3: v.z = l_vecop(scalbn)(v.z, n); /* FALLTHROUGH */
     case LUA_VVECTOR2: v.y = l_vecop(scalbn)(v.y, n); /* FALLTHROUGH */
-    case LUA_VNUMFLT: v.x = l_vecop(scalbn)(v.x, n); break;
+    case LUA_VVECTOR1: v.x = l_vecop(scalbn)(v.x, n); break;
     default:
       return luaL_typeerror(L, 1, LABEL_ALL);
   }

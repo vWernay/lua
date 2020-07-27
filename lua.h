@@ -216,9 +216,14 @@ LUA_API const void     *(lua_topointer) (lua_State *L, int idx);
 
 
 /*
-** vector variants exposed in lua.h to make the internal/external translation
-** between vector-types mo
+** vector variants exposed in lua.h to simplify the internal/external
+** translation between vector-types.
+**
+** NOTE: LUA_VVECTOR1 is the implicit vector-type (not enough variant bits) that
+** is functionally equivalent to a LUA_TNUMBER. Therefore, ensure LUA_VVECTOR1
+** is be equivalent to LUA_VNUMFLT internally.
 */
+#define LUA_VVECTOR1 (LUA_TNUMBER | (1 << 4))
 #define LUA_VVECTOR2 (LUA_TVECTOR | (0 << 4))
 #define LUA_VVECTOR3 (LUA_TVECTOR | (1 << 4))
 #define LUA_VVECTOR4 (LUA_TVECTOR | (2 << 4))

@@ -823,7 +823,7 @@
   #define LUA_VEC_NUMBER LUA_NUMBER
   #define LUA_VEC_NUMBER_EPS LUA_NUMBER_EPS
   #define LUA_VEC_UACNUMBER LUAI_UACNUMBER
-  #define LUA_VEC_NUMBER_FMT LUA_NUMBER_FMT
+  #define LUA_VEC_FMT LUA_NUMBER_FMT
 
   #define l_vecop(op) l_mathop(op)
   #define l_vecfatt(n) l_floatatt(n)
@@ -835,9 +835,9 @@
   #define LUA_VEC_UACNUMBER LUAI_UACNUMBER
 
   #if LUA_FLOAT_TYPE == LUA_FLOAT_LONGDOUBLE
-    #define LUA_VEC_NUMBER_FMT "%.7Lg"
+    #define LUA_VEC_FMT "%.7Lg"
   #else
-    #define LUA_VEC_NUMBER_FMT "%.7g"
+    #define LUA_VEC_FMT "%.7g"
   #endif
 
   #if LUA_FLOAT_TYPE == LUA_FLOAT_FLOAT

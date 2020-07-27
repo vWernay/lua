@@ -1068,7 +1068,7 @@ LUAMOD_API int luaopen_math (lua_State *L) {
   lua_setfield(L, -2, "mininteger");
 #if defined(LUA_C99_MATHLIB)
   lua_pushnumber(L, LUA_NUMBER_EPS); lua_setfield(L, -2, "eps");
-  lua_pushnumber(L, FLT_EPSILON); lua_setfield(L, -2, "feps");
+  lua_pushnumber(L, (lua_Number)FLT_EPSILON); lua_setfield(L, -2, "feps");
 #endif
   setrandfunc(L);
   return 1;

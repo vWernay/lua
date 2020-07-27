@@ -28,6 +28,16 @@
 ** ===================================================================
 */
 
+#define LABEL_INTEGER "integer"
+#define LABEL_NUMBER "number"
+#define LABEL_VECTOR "vector"
+#define LABEL_VECTOR1 "vector1"
+#define LABEL_VECTOR2 "vector2"
+#define LABEL_VECTOR3 "vector3"
+#define LABEL_VECTOR4 "vector4"
+#define LABEL_QUATERN "quat"
+#define LABEL_ALL "number or vector type"
+
 LUA_API int (lua_isvector1) (lua_State *L, int idx, int flags);  /* lua_isnumber casted to lua_VecF */
 LUA_API int (lua_isvector2) (lua_State* L, int idx, int flags);
 LUA_API int (lua_isvector3) (lua_State* L, int idx, int flags);
@@ -45,7 +55,7 @@ LUA_API void (lua_checkquat) (lua_State *L, int idx, int flags, lua_Float4 *v);
 LUA_API void (lua_pushvector2) (lua_State *L, lua_VecF x, lua_VecF y);
 LUA_API void (lua_pushvector3) (lua_State *L, lua_VecF x, lua_VecF y, lua_VecF z);
 LUA_API void (lua_pushvector4) (lua_State *L, lua_VecF x, lua_VecF y, lua_VecF z, lua_VecF w);
-LUA_API void (lua_pushquat) (lua_State *L, lua_VecF x, lua_VecF y, lua_VecF z, lua_VecF w);
+LUA_API void (lua_pushquat) (lua_State *L, lua_VecF w, lua_VecF x, lua_VecF y, lua_VecF z);
 
 /* }================================================================== */
 

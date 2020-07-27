@@ -420,7 +420,7 @@ LUA_API int lua_isvector (lua_State *L, int idx, int flags) {
       default: return 0;
     }
   }
-  return ttisvector(o) ? ttypetag(o) : 0;
+  return ttisvector(o) ? ttypetag(o) : (ttisnumber(o) ? LUA_VVECTOR1 : 0);
 }
 
 
@@ -523,7 +523,7 @@ LUA_API int lua_tovector (lua_State *L, int idx, int flags, lua_Float4 *vector) 
    */
   if (ttisnumber(o) && tonumberns(o, n)) {
     vector->x = cast_vec(n);
-    return LUA_VNUMFLT;
+    return LUA_VVECTOR1;
   }
   else if (ttisvector(o)) {
     const lua_Float4 *value = &(val_(o).f4);
@@ -535,7 +535,7 @@ LUA_API int lua_tovector (lua_State *L, int idx, int flags, lua_Float4 *vector) 
   }
   else if (flags && ttistable(o)) {
     switch (luaVec_parse(L, o, vector)) {
-      case 1: return LUA_VNUMFLT;
+      case 1: return LUA_VVECTOR1;
       case 2: return LUA_VVECTOR2;
       case 3: return LUA_VVECTOR3;
       case 4: return LUA_VVECTOR4;
@@ -668,7 +668,7 @@ LUA_API void lua_pushinteger (lua_State *L, lua_Integer n) {
 /* Does not sanitize variant... */
 LUA_API void lua_pushvector (lua_State *L, lua_Float4 f4, int variant) {
   lua_lock(L);
-  if (variant == LUA_VNUMFLT) {  /* Implicit vector1 */
+  if (variant == LUA_VVECTOR1) {  /* Implicit vector1 */
     setfltvalue(s2v(L->top), cast_num(f4.x));
   }
   else {

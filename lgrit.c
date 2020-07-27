@@ -19,11 +19,9 @@
 #include "lvm.h"
 #include "lgrit.h"
 #include "lgrit_lib.h"
-
-#define NAME_VECTOR2 "vector2"
-#define NAME_VECTOR3 "vector3"
-#define NAME_VECTOR4 "vector4"
-#define NAME_QUAT    "quat"
+#if LUA_VVECTOR1 != LUA_VNUMFLT
+  #error "Invalid implicit vector variant"
+#endif
 
 /* Dimension strings: c_dims + \0, must be consistent with luaVec_swizzle */
 static const char* const dims[] = { "x", "y", "z", "w" };
@@ -83,7 +81,7 @@ static int luaVec_swizzle (const char *key, const lua_Float4 *from, int from_sz,
 */
 
 #define LUAV_TYPE(T) return lua_isvector(L, idx, flags) == (T);
-LUA_API int lua_isvector1 (lua_State *L, int idx, int flags) { LUAV_TYPE(LUA_VNUMFLT); }
+LUA_API int lua_isvector1 (lua_State *L, int idx, int flags) { LUAV_TYPE(LUA_VVECTOR1); }
 LUA_API int lua_isvector2 (lua_State *L, int idx, int flags) { LUAV_TYPE(LUA_VVECTOR2); }
 LUA_API int lua_isvector3 (lua_State *L, int idx, int flags) { LUAV_TYPE(LUA_VVECTOR3); }
 LUA_API int lua_isvector4 (lua_State *L, int idx, int flags) { LUAV_TYPE(LUA_VVECTOR4); }
@@ -93,11 +91,11 @@ LUA_API int lua_isquat (lua_State *L, int idx, int flags) {
 }
 
 #define LUAV_CHECK(T, ERR) if (lua_tovector(L, idx, flags, v) != (T)) luaL_typeerror(L, idx, (ERR));
-void lua_checkv1 (lua_State *L, int idx, int flags, lua_Float4 *v) { LUAV_CHECK(LUA_VNUMFLT, "vector1") }
-void lua_checkv2 (lua_State *L, int idx, int flags, lua_Float4 *v) { LUAV_CHECK(LUA_VVECTOR2, "vector2") }
-void lua_checkv3 (lua_State *L, int idx, int flags, lua_Float4 *v) { LUAV_CHECK(LUA_VVECTOR3, "vector3") }
-void lua_checkv4 (lua_State *L, int idx, int flags, lua_Float4 *v) { LUAV_CHECK(LUA_VVECTOR4, "vector4") }
-void lua_checkquat (lua_State *L, int idx, int flags, lua_Float4 *v) { LUAV_CHECK(LUA_VQUAT, "quat") }
+void lua_checkv1 (lua_State *L, int idx, int flags, lua_Float4 *v) { LUAV_CHECK(LUA_VVECTOR1, LABEL_VECTOR1) }
+void lua_checkv2 (lua_State *L, int idx, int flags, lua_Float4 *v) { LUAV_CHECK(LUA_VVECTOR2, LABEL_VECTOR2) }
+void lua_checkv3 (lua_State *L, int idx, int flags, lua_Float4 *v) { LUAV_CHECK(LUA_VVECTOR3, LABEL_VECTOR3) }
+void lua_checkv4 (lua_State *L, int idx, int flags, lua_Float4 *v) { LUAV_CHECK(LUA_VVECTOR4, LABEL_VECTOR4) }
+void lua_checkquat (lua_State *L, int idx, int flags, lua_Float4 *v) { LUAV_CHECK(LUA_VQUAT, LABEL_QUATERN) }
 
 /* API Compatibility */
 
@@ -190,50 +188,48 @@ lua_Float4 luaVec_value (lua_State* L, const TValue* o) {
 ** ===================================================================
 */
 
-static int luaB_vectorn (lua_State *L, int sz, lua_Float4 *input) {
-  int counter = 0, i, isnum;
+static int luaB_vectorn (lua_State *L, int max_size, lua_Float4 *input) {
+  int counter = 0, i;
   for (i = 1; i <= lua_gettop(L); ++i) {
     if (lua_isnumber(L, i)) {
-      if (counter + 1 <= sz)
-        luaV_assignf4(input, counter++, cast_vec(lua_tonumberx(L, i, &isnum)));
-      else
-        return 0;
+      if (counter + 1 > max_size) return 0;
+      luaV_assignf4(input, counter++, cast_vec(lua_tonumber(L, i)));
     }
     else if (lua_isvector(L, i, V_PARSETABLE)) {
       lua_Float4 f4;
       switch (lua_tovector(L, i, V_PARSETABLE, &f4)) {
-        case LUA_VNUMFLT:
-          if (counter + 1 > sz) return 0;
+        case LUA_VVECTOR1:
+          if (counter + 1 > max_size) return 0;
           luaV_assignf4(input, counter++, f4.x);
           break;
         case LUA_VVECTOR2:
-          if (counter + 2 > sz) return 0;
+          if (counter + 2 > max_size) return 0;
           luaV_assignf4(input, counter++, f4.x);
           luaV_assignf4(input, counter++, f4.y);
           break;
         case LUA_VVECTOR3:
-          if (counter + 3 > sz) return 0;
+          if (counter + 3 > max_size) return 0;
           luaV_assignf4(input, counter++, f4.x);
           luaV_assignf4(input, counter++, f4.y);
           luaV_assignf4(input, counter++, f4.z);
           break;
         case LUA_VVECTOR4:
         case LUA_VQUAT:
-          if (counter + 4 > sz) return 0;
+          if (counter + 4 > max_size) return 0;
           luaV_assignf4(input, counter++, f4.x);
           luaV_assignf4(input, counter++, f4.y);
           luaV_assignf4(input, counter++, f4.z);
           luaV_assignf4(input, counter++, f4.w);
           break;
         default:
-          return luaL_error(L, "unexpected vector type.");
+          return luaL_error(L, "unexpected " LABEL_VECTOR " type");
       }
     }
     else {
-      return luaL_error(L, "vector%d(...) argument %d had type %s", sz, i, lua_typename(L, lua_type(L, i)));
+      return luaL_error(L, LABEL_VECTOR "%d(...) argument %d had type %s", max_size, i, lua_typename(L, lua_type(L, i)));
     }
   }
-  return counter == sz;
+  return counter;
 }
 
 LUA_API const char *lua_dimension_label (lua_State *L, int idx) {
@@ -243,7 +239,7 @@ LUA_API const char *lua_dimension_label (lua_State *L, int idx) {
 
 LUA_API int lua_dimensions_count (lua_State *L, int tp) {
   switch (tp) {
-    case LUA_VNUMFLT: return 1;
+    case LUA_VVECTOR1: return 1;
     case LUA_VVECTOR2: return 2;
     case LUA_VVECTOR3: return 3;
     case LUA_VQUAT: case LUA_VVECTOR4: return 4;
@@ -255,10 +251,11 @@ LUA_API int lua_dimensions_count (lua_State *L, int tp) {
 
 LUA_API const char *lua_vectypename (lua_State *L, int t) {
   switch (t) {
-    case LUA_VVECTOR2: return NAME_VECTOR2;
-    case LUA_VVECTOR3: return NAME_VECTOR3;
-    case LUA_VVECTOR4: return NAME_VECTOR4;
-    case LUA_VQUAT: return NAME_QUAT;
+    case LUA_VVECTOR1: return LABEL_VECTOR1;
+    case LUA_VVECTOR2: return LABEL_VECTOR2;
+    case LUA_VVECTOR3: return LABEL_VECTOR3;
+    case LUA_VVECTOR4: return LABEL_VECTOR4;
+    case LUA_VQUAT: return LABEL_QUATERN;
     default:
       luaL_typeerror(L, t, "vectortype");
       return "";
@@ -267,63 +264,46 @@ LUA_API const char *lua_vectypename (lua_State *L, int t) {
 
 LUA_API int lua_vectorN (lua_State *L) {
   lua_Float4 v = V_ZEROVEC;
-  switch (lua_gettop(L)) {
-    case 4:
-      v.x = cast_vec(luaL_checknumber(L, 1));
-      v.y = cast_vec(luaL_checknumber(L, 2));
-      v.z = cast_vec(luaL_checknumber(L, 3));
-      v.w = cast_vec(luaL_checknumber(L, 4));
-      lua_pushvector(L, v, LUA_VVECTOR4);
-      break;
-    case 3:
-      v.x = cast_vec(luaL_checknumber(L, 1));
-      v.y = cast_vec(luaL_checknumber(L, 2));
-      v.z = cast_vec(luaL_checknumber(L, 3));
-      lua_pushvector(L, v, LUA_VVECTOR3);
-      break;
-    case 2:
-      v.x = cast_vec(luaL_checknumber(L, 1));
-      v.y = cast_vec(luaL_checknumber(L, 2));
-      lua_pushvector(L, v, LUA_VVECTOR2);
-      break;
-    case 1:
-      lua_pushnumber(L, luaL_checknumber(L, 1));
-      break;
+  switch (luaB_vectorn(L, 4, &v)) {
+    case 4: lua_pushvector(L, v, LUA_VVECTOR4); break;
+    case 3: lua_pushvector(L, v, LUA_VVECTOR3); break;
+    case 2: lua_pushvector(L, v, LUA_VVECTOR2); break;
+    case 1: lua_pushnumber(L, (lua_Number)v.x); break;
     default:
-      return luaL_error(L, "vec(...) takes 1 to 4 number arguments only");
+      return luaL_error(L, "vec(...) takes 1 to 4 number arguments");
   }
   return 1;
 }
 
 LUA_API int lua_vector2 (lua_State *L) {
   lua_Float4 v;
-  if (luaB_vectorn(L, 2, &v)) {
+  if (luaB_vectorn(L, 2, &v) == 2) {
     lua_pushvector(L, v, LUA_VVECTOR2);
     return 1;
   }
-  return luaL_error(L, "vector2(...) requires exactly 2 numbers");
+  return luaL_error(L, LABEL_VECTOR2 "(...) requires exactly 2 numbers");
 }
 
 LUA_API int lua_vector3 (lua_State *L) {
   lua_Float4 v;
-  if (luaB_vectorn(L, 3, &v)) {
+  if (luaB_vectorn(L, 3, &v) == 3) {
     lua_pushvector(L, v, LUA_VVECTOR3);
     return 1;
   }
-  return luaL_error(L, "vector3(...) requires exactly 3 numbers");
+  return luaL_error(L, LABEL_VECTOR3 "(...) requires exactly 3 numbers");
 }
 
 LUA_API int lua_vector4 (lua_State *L) {
   lua_Float4 v;
-  if (luaB_vectorn(L, 4, &v)) {
+  if (luaB_vectorn(L, 4, &v) == 4) {
     lua_pushvector(L, v, LUA_VVECTOR4);
     return 1;
   }
-  return luaL_error(L, "vector4(...) requires exactly 4 numbers");
+  return luaL_error(L, LABEL_VECTOR4"(...) requires exactly 4 numbers");
 }
 
 LUA_API int lua_quat (lua_State *L) {
-  lua_Float4 q = { .w = V_ONE, .x = V_ZERO, .y = V_ZERO, .z = V_ZERO };
+  lua_Float4 q = { .x = V_ZERO, .y = V_ZERO, .z = V_ZERO, .w = V_ONE };
   if (lua_gettop(L) == 4 && lua_isnumber(L, 1) && lua_isnumber(L, 2) &&
                             lua_isnumber(L, 3) && lua_isnumber(L, 4)) {
     q.w = cast_vec(lua_tonumber(L, 1));
@@ -348,7 +328,8 @@ LUA_API int lua_quat (lua_State *L) {
     }
   }
   else {
-    return luaL_error(L, "Invalid params, try quat(n,n,n,n) quat(n,v3) quat(v3,v3)");
+    return luaL_error(L, "Invalid params, try " LABEL_QUATERN "(n,n,n,n) " \
+                               LABEL_QUATERN "(n,v3) " LABEL_QUATERN "(v3,v3)");
   }
 
   lua_pushvector(L, q, LUA_VQUAT);
@@ -364,7 +345,7 @@ LUA_API int lua_unpackvec (lua_State *L) {
   else {
     lua_Float4 v;
     switch (lua_tovector(L, 1, V_NOTABLE, &v)) {
-      case LUA_VNUMFLT:
+      case LUA_VVECTOR1:
         lua_pushnumber(L, cast_num(v.x));
         return 1;
       case LUA_VVECTOR2:
@@ -389,7 +370,8 @@ LUA_API int lua_unpackvec (lua_State *L) {
         lua_pushnumber(L, cast_num(v.z));
         return 4;
       default:
-        return luaL_error(L, "vunpack takes a number, integer, vector2, vector3, or vector4");
+        return luaL_error(L, "vunpack takes a " LABEL_NUMBER ", " LABEL_VECTOR2 ", " \
+                        LABEL_VECTOR3 ", " LABEL_VECTOR4 ", or " LABEL_QUATERN);
     }
   }
   return 1;
@@ -511,7 +493,7 @@ int luaVec_tostr (char *buff, size_t len, const lua_Float4 v, int variant) {
 
   switch (variant) {
     /* Taken from lobject.c: tostringbuff */
-    case LUA_VNUMFLT: {
+    case LUA_VVECTOR1: {
       int nb = lua_number2str(buff, len, v.x);
       if (buff[strspn(buff, "-0123456789")] == '\0') {  /* looks like an int? */
         buff[nb++] = lua_getlocaledecpoint();
@@ -520,20 +502,13 @@ int luaVec_tostr (char *buff, size_t len, const lua_Float4 v, int variant) {
       return nb;
     }
     case LUA_VVECTOR2:
-      return l_vprintf(buff, len, "vector2("LUA_VEC_NUMBER_FMT", "
-                                   ""LUA_VEC_NUMBER_FMT")", l_vfx(v), l_vfy(v));
+      return l_vprintf(buff, len, "" LABEL_VECTOR2 "(" LUA_VEC_FMT ", " LUA_VEC_FMT ")", l_vfx(v), l_vfy(v));
     case LUA_VVECTOR3:
-      return l_vprintf(buff, len, "vector3("LUA_VEC_NUMBER_FMT", "
-                                  ""LUA_VEC_NUMBER_FMT", "LUA_VEC_NUMBER_FMT")",
-                                                  l_vfx(v), l_vfy(v), l_vfz(v));
+      return l_vprintf(buff, len, "" LABEL_VECTOR3 "(" LUA_VEC_FMT ", " LUA_VEC_FMT ", " LUA_VEC_FMT ")", l_vfx(v), l_vfy(v), l_vfz(v));
     case LUA_VVECTOR4:
-      return l_vprintf(buff, len, "vector4("LUA_VEC_NUMBER_FMT", "
-            ""LUA_VEC_NUMBER_FMT", "LUA_VEC_NUMBER_FMT", "LUA_VEC_NUMBER_FMT")",
-                                        l_vfx(v), l_vfy(v), l_vfz(v), l_vfw(v));
+      return l_vprintf(buff, len, "" LABEL_VECTOR4 "(" LUA_VEC_FMT ", " LUA_VEC_FMT ", " LUA_VEC_FMT ", " LUA_VEC_FMT ")", l_vfx(v), l_vfy(v), l_vfz(v), l_vfw(v));
     case LUA_VQUAT:
-      return l_vprintf(buff, len, "quat("LUA_VEC_NUMBER_FMT", "
-            ""LUA_VEC_NUMBER_FMT", "LUA_VEC_NUMBER_FMT", "LUA_VEC_NUMBER_FMT")",
-                                        l_vfw(v), l_vfx(v), l_vfy(v), l_vfz(v));
+      return l_vprintf(buff, len, "" LABEL_QUATERN "(" LUA_VEC_FMT ", " LUA_VEC_FMT ", " LUA_VEC_FMT ", " LUA_VEC_FMT ")", l_vfw(v), l_vfx(v), l_vfy(v), l_vfz(v));
     default:
       return 0;
   }
@@ -557,23 +532,11 @@ LUA_API const char *lua_pushvecstring (lua_State *L, int idx) {
   else if (lua_isvector(L, idx, V_NOTABLE)) {
     lua_Float4 v;
     int variant = lua_tovector(L, idx, V_NOTABLE, &v);
-#if defined(GRIT_LONG_STRING)
-    switch (variant) {
-      case LUA_VNUMFLT: return lua_pushfstring(L, "%f", v.x);
-      case LUA_VVECTOR2: return lua_pushfstring(L, "vector2(%f, %f)", v.x, v.y);
-      case LUA_VVECTOR3: return lua_pushfstring(L, "vector3(%f, %f, %f)", v.x, v.y, v.z);
-      case LUA_VVECTOR4: return lua_pushfstring(L, "vector4(%f, %f, %f, %f)", v.x, v.y, v.z, v.w);
-      case LUA_VQUAT: return lua_pushfstring(L, "quat(%f, %f, %f, %f)", v.w, v.x, v.y, v.z);
-      default:
-        luaG_runerror(L, "invalid vectorstring option");
-    }
-#else
     char buff[LUAI_MAXVECTORSTR] = { 0 };
     if (luaVec_tostr(buff, LUAI_MAXVECTORSTR, v, variant) > 0)
       return lua_pushfstring(L, "%s", buff);
     else
       return NULL;
-#endif
   }
   else
     luaG_runerror(L, "invalid vectorstring option");
@@ -676,7 +639,7 @@ void luaVec_getstring (lua_State *L, const TValue* t, const char* skey, TValue* 
   }
 
   if (ttisnil(tm)) {
-    luaG_runerror(L, "invalid vector field: '%s'", skey);
+    luaG_runerror(L, "invalid " LABEL_VECTOR " field: '%s'", skey);
   } else {
     luaV_finishget(L, t, key, val, NULL);
   }
