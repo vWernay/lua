@@ -126,6 +126,11 @@ static int l_hashfloat (lua_Number n) {
 }
 #endif
 
+/** Helper function for combining hashes */
+static LUA_INLINE size_t hash_combine(size_t seed, size_t hash) {
+  hash += 0x9e3779b9 + (seed << 6) + (seed >> 2);
+  return (seed ^= hash);
+}
 
 /*
 ** returns the 'main' position of an element in a table (that is,
@@ -139,24 +144,27 @@ static Node *mainposition (const Table *t, int ktt, const Value *kvl) {
       return hashint(t, ivalueraw(*kvl));
     case LUA_VNUMFLT:
       return hashmod(t, l_hashfloat(fltvalueraw(*kvl)));
-    case LUA_VVECTOR2:
-      return hashmod(t,
-        l_hashfloat(cast_num(vvalueraw(*kvl).x)) ^
-        l_hashfloat(cast_num(vvalueraw(*kvl).y))
-      );
-    case LUA_VVECTOR3:
-      return hashmod(t,
-        l_hashfloat(cast_num(vvalueraw(*kvl).x)) ^
-        l_hashfloat(cast_num(vvalueraw(*kvl).y)) ^
-        l_hashfloat(cast_num(vvalueraw(*kvl).z))
-    );
-    case LUA_VVECTOR4: case LUA_VQUAT:
-      return hashmod(t,
-        l_hashfloat(cast_num(vvalueraw(*kvl).x)) ^
-        l_hashfloat(cast_num(vvalueraw(*kvl).y)) ^
-        l_hashfloat(cast_num(vvalueraw(*kvl).z)) ^
-        l_hashfloat(cast_num(vvalueraw(*kvl).w))
-      );
+    case LUA_VVECTOR2: {
+      size_t seed = 0;
+      seed = hash_combine(seed, l_hashfloat(cast_num(vvalueraw(*kvl).x)));
+      seed = hash_combine(seed, l_hashfloat(cast_num(vvalueraw(*kvl).y)));
+      return hashmod(t, seed);
+    }
+    case LUA_VVECTOR3: {
+      size_t seed = 0;
+      seed = hash_combine(seed, l_hashfloat(cast_num(vvalueraw(*kvl).x)));
+      seed = hash_combine(seed, l_hashfloat(cast_num(vvalueraw(*kvl).y)));
+      seed = hash_combine(seed, l_hashfloat(cast_num(vvalueraw(*kvl).z)));
+      return hashmod(t, seed);
+    }
+    case LUA_VVECTOR4: {
+      size_t seed = (withvariant(ktt) == LUA_VQUAT) ? 0x9e3779b1 : 0;
+      seed = hash_combine(seed, l_hashfloat(cast_num(vvalueraw(*kvl).x)));
+      seed = hash_combine(seed, l_hashfloat(cast_num(vvalueraw(*kvl).y)));
+      seed = hash_combine(seed, l_hashfloat(cast_num(vvalueraw(*kvl).z)));
+      seed = hash_combine(seed, l_hashfloat(cast_num(vvalueraw(*kvl).w)));
+      return hashmod(t, seed);
+    }
     case LUA_VSHRSTR:
       return hashstr(t, tsvalueraw(*kvl));
     case LUA_VLNGSTR:
