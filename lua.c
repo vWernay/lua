@@ -66,11 +66,7 @@ static void lstop (lua_State *L, lua_Debug *ar) {
 */
 static void laction (int i) {
   int flag = LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE | LUA_MASKCOUNT;
-#if !defined(GRIT_POWER_SIGACTION) || !defined(LUA_USE_POSIX)
   signal(i, SIG_DFL); /* if another SIGINT happens, terminate process */
-#else
-  ((void)(i)); /* UNUSED(i); */
-#endif
   lua_sethook(globalL, lstop, flag, 1);
 }
 
