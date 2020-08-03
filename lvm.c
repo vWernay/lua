@@ -354,8 +354,12 @@ void luaV_finishset (lua_State *L, const TValue *t, TValue *key,
        * o.f is not an lvalue, o.f.x = 10 is a no-op
        */
       tm = luaT_gettmbyobj(L, t, TM_NEWINDEX);
-      if (unlikely(notm(tm)))
-        luaG_typeerror(L, t, "index");
+      if (unlikely(notm(tm))) {
+        if (ttisgrit(t))
+          luaG_runerror(L, "attempting to mutate a vector value");
+        else
+          luaG_typeerror(L, t, "index");
+      }
     }
     /* try the metamethod */
     if (ttisfunction(tm)) {
