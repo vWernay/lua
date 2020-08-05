@@ -363,7 +363,7 @@ int luaO_utf8esc (char *buff, unsigned long x) {
 */
 static int tostringbuff (TValue *obj, char *buff) {
   int len;
-  lua_assert(ttisnumber(obj));
+  lua_assert(ttisgrit(obj));
   if (ttisinteger(obj))
     len = lua_integer2str(buff, MAXNUMBER2STR, ivalue(obj));
   else if (ttisvector(obj))
