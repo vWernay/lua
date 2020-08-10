@@ -229,8 +229,9 @@ LUA_API const void     *(lua_topointer) (lua_State *L, int idx);
 #define LUA_VVECTOR4 (LUA_TVECTOR | (2 << 4))
 #define LUA_VQUAT    (LUA_TVECTOR | (3 << 4))
 
-#define V_NOTABLE 0  /* Only explicit vectors can be tovector'd */
-#define V_PARSETABLE 1  /* Attempt to parse a table object as a vector. */
+#define V_NOTABLE 0x0  /* Only explicit vectors can be tovector'd */
+#define V_PARSETABLE 0x1  /* Attempt to parse a table object as a vector. */
+#define V_NONUMBER 0x2 /* Ignore lua_Number == LUA_VVECTOR1 */
 
 /* Returns the variant of the vector if it is indeed a vector, zero otherwise */
 LUA_API int (lua_isvector) (lua_State *L, int idx, int flags);

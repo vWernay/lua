@@ -210,7 +210,7 @@ static int tpack (lua_State *L) {
 static int tunpack (lua_State *L) {
   lua_Unsigned n;
   lua_Integer i, e;
-  if (lua_isnumber(L, 1) || lua_isvector(L, 1, V_NOTABLE))
+  if (lua_isvector(L, 1, V_NOTABLE | V_NONUMBER))
     return lua_unpackvec(L);
 
   i = luaL_optinteger(L, 2, 1);

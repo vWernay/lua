@@ -329,7 +329,7 @@ static int luaB_ipairs (lua_State *L) {
 */
 static int luaB_ipairs (lua_State *L) {
   luaL_checkany(L, 1);
-  if (lua_isvector(L, 1, V_NOTABLE)) {
+  if (lua_isvector(L, 1, V_NOTABLE | V_NONUMBER)) {
     lua_pushcfunction(L, luaB_next);  /* will return generator, */
     lua_pushvalue(L, 1);  /* state, */
     lua_pushinteger(L, 0);

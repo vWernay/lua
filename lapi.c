@@ -412,7 +412,7 @@ LUA_API int lua_isnumber (lua_State *L, int idx) {
 
 LUA_API int lua_isvector (lua_State *L, int idx, int flags) {
   const TValue *o = index2value(L, idx);
-  if (ttistable(o) && flags) {
+  if (ttistable(o) && (flags & V_PARSETABLE) != 0) {
     switch (luaVec_parse(L, o, NULL)) {
       case 4: return LUA_VVECTOR4;
       case 3: return LUA_VVECTOR3;
@@ -420,7 +420,11 @@ LUA_API int lua_isvector (lua_State *L, int idx, int flags) {
       default: return 0;
     }
   }
-  return ttisvector(o) ? ttypetag(o) : (ttisnumber(o) ? LUA_VVECTOR1 : 0);
+  else if (ttisvector(o))
+    return ttypetag(o);
+  else if (ttisnumber(o) && (flags & V_NONUMBER) == 0)
+    return LUA_VVECTOR1;
+  return 0;
 }
 
 
@@ -516,24 +520,11 @@ LUA_API int lua_toboolean (lua_State *L, int idx) {
 LUA_API int lua_tovector (lua_State *L, int idx, int flags, lua_Float4 *vector) {
   lua_Number n = 0;
   const TValue *o = index2value(L, idx);
-
-  /*
-   * Most library functions should explicitly handle numbers (lua_isnumber)
-   * rather than potentially downcasting the lua_VecF types.
-   */
-  if (ttisnumber(o) && tonumberns(o, n)) {
-    vector->x = cast_vec(n);
-    return LUA_VVECTOR1;
-  }
-  else if (ttisvector(o)) {
-    const lua_Float4 *value = &(val_(o).f4);
-    vector->x = value->x;
-    vector->y = value->y;
-    vector->z = value->z;
-    vector->w = value->w;
+  if (ttisvector(o)) {
+    *vector = val_(o).f4;
     return ttypetag(o);
   }
-  else if (flags && ttistable(o)) {
+  else if ((flags & V_PARSETABLE) != 0 && ttistable(o)) {
     switch (luaVec_parse(L, o, vector)) {
       case 1: return LUA_VVECTOR1;
       case 2: return LUA_VVECTOR2;
@@ -541,6 +532,14 @@ LUA_API int lua_tovector (lua_State *L, int idx, int flags, lua_Float4 *vector) 
       case 4: return LUA_VVECTOR4;
       default: return LUA_TNIL;
     }
+  }
+  /*
+  ** Most library functions should beware of potential downcasting w/
+  ** using LUA_VVECTOR1's.
+  **/
+  else if ((flags & V_NONUMBER) == 0 && ttisnumber(o) && tonumberns(o, n)) {
+    vector->x = cast_vec(n);
+    return LUA_VVECTOR1;
   }
   return LUA_TNIL;
 }
@@ -896,7 +895,7 @@ LUA_API int lua_rawget (lua_State *L, int idx) {
   int vt;
   lua_lock(L);
   api_checknelems(L, 1);
-  if ((vt = lua_isvector(L, idx, V_NOTABLE)) != 0) {
+  if ((vt = lua_isvector(L, idx, V_NOTABLE | V_NONUMBER)) != 0) {
     const TValue *v = index2value(L, idx);
     vt = luaVec_rawget(L, &(val_(v).f4), lua_dimensions_count(L, vt), L->top - 1);
     api_incr_top(L);
@@ -1433,7 +1432,7 @@ LUA_API int lua_next (lua_State *L, int idx) {
   int more;
   lua_lock(L);
   api_checknelems(L, 1);
-  if ((vt = lua_isvector(L, idx, V_NOTABLE)) != 0) {
+  if ((vt = lua_isvector(L, idx, V_NOTABLE | V_NONUMBER)) != 0) {
     const TValue *v = index2value(L, idx);
     api_check(L, ttisvector(v), "vector expected");
     more = luaVec_next(L, &(val_(v).f4), lua_dimensions_count(L, vt), L->top - 1);

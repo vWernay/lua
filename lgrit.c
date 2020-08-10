@@ -87,7 +87,7 @@ LUA_API int lua_isvector3 (lua_State *L, int idx, int flags) { LUAV_TYPE(LUA_VVE
 LUA_API int lua_isvector4 (lua_State *L, int idx, int flags) { LUAV_TYPE(LUA_VVECTOR4); }
 LUA_API int lua_isquat (lua_State *L, int idx, int flags) {
   return lua_isvector(L, idx, V_NOTABLE) == LUA_VQUAT ||
-    (flags && lua_isvector(L, idx, flags) == LUA_VVECTOR4);
+    ((flags & V_PARSETABLE) != 0 && lua_isvector(L, idx, flags) == LUA_VVECTOR4);
 }
 
 #define LUAV_CHECK(T, ERR) if (lua_tovector(L, idx, flags, v) != (T)) luaL_typeerror(L, idx, (ERR));
@@ -676,6 +676,7 @@ void luaVec_getint (lua_State *L, const TValue *t, const lua_Integer key, TValue
       }
       break;
     }
+    case LUA_VVECTOR1: /* Attempting to index a number, ignore */
     default:
       break;
   }
