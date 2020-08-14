@@ -13,6 +13,11 @@ testes/time-debug.txt
 testes/libs/all
 manual/manual.html
 
+# MSYS
+lua.exe
+luac.exe
+lua54.dll
+
 # User-specific files
 *.swp
 *.suo
