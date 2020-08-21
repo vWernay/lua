@@ -1654,7 +1654,7 @@ LUA_API lua_Integer lua_ToHash (lua_State *L, int idx) {
   return 0;
 }
 
-lua_Integer luaO_HashString (const char* string) {
+LUAI_FUNC lua_Integer luaO_HashString (const char* string) {
   unsigned int hash = 0;
   for (; *string; ++string) {
     hash += ToLower(*string);
@@ -1668,17 +1668,4 @@ lua_Integer luaO_HashString (const char* string) {
   return (lua_Integer)(int)hash;
 }
 
-lua_Integer luaO_HashRageString (const char* string) {
-  unsigned int hash = 0;
-  for (; *string; ++string) {
-    hash += *string;
-    hash += (hash << 10);
-    hash ^= (hash >> 6);
-  }
-
-  hash += (hash << 3);
-  hash ^= (hash >> 11);
-  hash += (hash << 15);
-  return (lua_Integer)(int)hash;
-}
 #endif

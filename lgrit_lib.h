@@ -92,6 +92,12 @@ LUA_API int (lua_vector3) (lua_State *L);
 LUA_API int (lua_vector4) (lua_State *L);
 LUA_API int (lua_quat) (lua_State *L);
 
+#if !defined(GRIT_USE_PATH)
+/* TODO: Change API to use lua_Unsigned */
+/* one_at_a_time: http://www.burtleburtle.net/bob/hash/doobs.html */
+LUA_API lua_Integer lua_ToHash (lua_State* L, int idx);
+#endif
+
 /* }================================================================== */
 
 /*

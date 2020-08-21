@@ -853,14 +853,8 @@ LUA_API const TValue *lua_getvalue (lua_State *L, int idx);
 
 #if !defined(GRIT_USE_PATH)
 /* TODO: Change API to use lua_Unsigned */
-
-LUA_API lua_Integer lua_ToHash (lua_State* L, int idx);
-
-/* hash string, don't lowercase */
+/* one_at_a_time: http://www.burtleburtle.net/bob/hash/doobs.html */
 LUAI_FUNC lua_Integer luaO_HashString (const char* string);
-
-/* hash string as lowercase */
-LUAI_FUNC lua_Integer luaO_HashRageString (const char* string);
 #endif
 
 /*

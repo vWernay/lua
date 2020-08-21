@@ -471,22 +471,6 @@ int luaVec_next (lua_State *L, const lua_Float4 *v, int vdims, StkId key) {
   return more;
 }
 
-const char *luaVec_tolstring (lua_State *L, TValue *o, size_t *len) {
-  if (!ttisstring(o)) {
-    if (!cvt2str(o)) {  /* not convertible? */
-      if (len != NULL) *len = 0;
-      return NULL;
-    }
-    lua_lock(L);  /* 'luaO_tostring' may create a new string */
-    luaC_checkGC(L);
-    luaO_tostring(L, o);
-    lua_unlock(L);
-  }
-  if (len != NULL)
-    *len = vslen(o);
-  return svalue(o);
-}
-
 int luaVec_tostr (char *buff, size_t len, const lua_Float4 v, int variant) {
   if (len < LUAI_MAXVECTORSTR)
     return 0;

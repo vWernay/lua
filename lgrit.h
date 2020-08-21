@@ -54,8 +54,7 @@ LUAI_FUNC int luaVec_axis (const lua_Float4 v, lua_Float4 *r);
 #define op_quat(L, o) (ttisquat((o)) ? vvalue((o)) : luaVec_value((L), (o)))
 
 /* */
-LUAI_FUNC int (luaVec_rawget) (lua_State *L, const lua_Float4 *v, int vdims,
-                                                                     StkId key);
+LUAI_FUNC int (luaVec_rawget) (lua_State *L, const lua_Float4 *v, int vdims, StkId key);
 
 /*
 ** Pops a key from the stack and pushes a <key, value> pair from the vector at
@@ -64,26 +63,19 @@ LUAI_FUNC int (luaVec_rawget) (lua_State *L, const lua_Float4 *v, int vdims,
 ** If there are no more elements in the vector, then returns 0 and pushes
 ** nothing.
 */
-LUAI_FUNC int (luaVec_next) (lua_State *L, const lua_Float4 *v, int vdims,
-                                                                     StkId key);
+LUAI_FUNC int (luaVec_next) (lua_State *L, const lua_Float4 *v, int vdims, StkId key);
 
 /* Place the magnitude of the vector (o) at the specified stack index (ra) */
 LUAI_FUNC void (luaVec_objlen) (lua_State *L, StkId ra, const TValue *o);
 
 /* converts a vector to a string. */
-LUAI_FUNC int (luaVec_tostr) (char *buff, size_t len, const lua_Float4 v,
-                                                                   int variant);
-
-/* redefinition of lua_tolstring, but for TValues */
-LUAI_FUNC const char *(luaVec_tolstring) (lua_State *L, TValue *o, size_t *len);
+LUAI_FUNC int (luaVec_tostr) (char *buff, size_t len, const lua_Float4 v, int variant);
 
 /* Parse the string object and return the number of dimensions to the vector. */
-LUAI_FUNC int (luaVec_pullstring) (lua_State *L, const TValue *o,
-                                                              lua_Float4 *sink);
+LUAI_FUNC int (luaVec_pullstring) (lua_State *L, const TValue *o, lua_Float4 *sink);
 
 /* */
-LUAI_FUNC int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2,
-                                                          StkId res, TMS event);
+LUAI_FUNC int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res, TMS event);
 
 /*
 ** Attempt to parse the provided table as a vector, i.e., check if the table has
