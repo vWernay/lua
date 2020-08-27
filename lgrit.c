@@ -1,6 +1,10 @@
 /*
-** TODO: Both core & library functions reside in this file. As this codebase
-**       develops, it'll eventually need to be split.
+** $Id: lgrit.c $
+**
+** Core & library lua vector functions. Note as this codebase develops, it will
+** eventually need to be split.
+**
+** See Copyright Notice in lua.h
 */
 #define lgrit_c
 #define LUA_LIB
@@ -127,17 +131,19 @@ LUA_API void lua_pushquat (lua_State *L, lua_VecF w, lua_VecF x, lua_VecF y, lua
 ** ===================================================================
 */
 
-static int vectable_getstr (lua_State *L, const TValue *t, const char *k) {
-  const TValue *slot;
-  TString *str = luaS_new(L, k);
-  lua_assert(str->tt == LUA_VSHRSTR);
-  if (luaV_fastget(L, t, str, slot, luaH_getshortstr)) {
-    setobj2s(L, L->top++, slot);
-  }
-  else {
-    setsvalue2s(L, L->top++, str);
-    luaV_finishget(L, t, s2v(L->top - 1), L->top - 1, slot);
-  }
+/* Note: luaVec_parse ensures stack-space */
+static LUA_INLINE int vectable_getstr (lua_State *L, const TValue *t, const char *k) {
+  const TValue *val = NULL;
+  TString *ts = luaS_newlstr(L, k, 1);
+  lua_assert(ts->tt == LUA_VSHRSTR);
+
+  /* TODO: temporarily anchor on stack? */
+  val = ttistable(t) ? luaH_getshortstr(hvalue(t), ts) : &G(L)->nilvalue;
+  if (isempty(val))
+    setnilvalue(s2v(L->top));
+  else
+    setobj2s(L, L->top, val);
+  L->top++;
   return ttype(s2v(L->top - 1));
 }
 
@@ -146,7 +152,12 @@ int luaVec_parse (lua_State* L, const TValue* o, lua_Float4 *v) {
     v->x = v->y = v->z = v->w = V_ZERO;
   }
 
-  if (ttistable(o)) {
+  if (ttisvector(o)) {
+    if (v != NULL)
+      *v = vvalue(o);
+    return lua_dimensions_count(L, ttypetag(o));
+  }
+  else if (ttistable(o)) {
     int i, count = 0;
     luaL_checkstack(L, 4, NULL);  /* ensure table space */
     for (i = 0; i < 4; ++i) {
@@ -161,23 +172,7 @@ int luaVec_parse (lua_State* L, const TValue* o, lua_Float4 *v) {
     }
     return count;
   }
-  else if (ttisvector(o)) {
-    if (v != NULL)
-      *v = vvalue(o);
-    return lua_dimensions_count(L, ttypetag(o));
-  }
   return 0;
-}
-
-lua_Float4 luaVec_value (lua_State* L, const TValue* o) {
-  if (ttisvector(o))
-    return vvalue(o);
-  else {
-    lua_Float4 v = V_ZEROVEC;
-    if (ttistable(o))
-      luaVec_parse(L, o, &v);
-    return v;
-  }
 }
 
 /* }================================================================== */
@@ -242,10 +237,10 @@ LUA_API int lua_dimensions_count (lua_State *L, int tp) {
     case LUA_VVECTOR1: return 1;
     case LUA_VVECTOR2: return 2;
     case LUA_VVECTOR3: return 3;
-    case LUA_VQUAT: case LUA_VVECTOR4: return 4;
+    case LUA_VVECTOR4: return 4;
+    case LUA_VQUAT: return 4;
     default:
-      luaL_typeerror(L, tp, "vectortype");
-      return 0;
+      return luaL_typeerror(L, tp, "vectortype");
   }
 }
 
@@ -304,8 +299,8 @@ LUA_API int lua_vector4 (lua_State *L) {
 
 LUA_API int lua_quat (lua_State *L) {
   lua_Float4 q = { .x = V_ZERO, .y = V_ZERO, .z = V_ZERO, .w = V_ONE };
-  if (lua_gettop(L) == 4 && lua_isnumber(L, 1) && lua_isnumber(L, 2) &&
-                            lua_isnumber(L, 3) && lua_isnumber(L, 4)) {
+  if (lua_gettop(L) == 4 && lua_isnumber(L, 1) && lua_isnumber(L, 2)
+                         && lua_isnumber(L, 3) && lua_isnumber(L, 4)) {
     q.w = cast_vec(lua_tonumber(L, 1));
     q.x = cast_vec(lua_tonumber(L, 2));
     q.y = cast_vec(lua_tonumber(L, 3));
@@ -513,9 +508,9 @@ LUA_API const char *lua_pushvecstring (lua_State *L, int idx) {
     return lua_pushfstring(L, LUA_INTEGER_FMT, lua_tointeger(L, idx));
   else if (lua_isnumber(L, idx))
     return lua_pushfstring(L, LUA_NUMBER_FMT, (LUAI_UACNUMBER) lua_tonumber(L, idx));
-  else if (lua_isvector(L, idx, V_NOTABLE)) {
+  else if (lua_isvector(L, idx, V_PARSETABLE)) {
     lua_Float4 v;
-    int variant = lua_tovector(L, idx, V_NOTABLE, &v);
+    int variant = lua_tovector(L, idx, V_PARSETABLE, &v);
     char buff[LUAI_MAXVECTORSTR] = { 0 };
     if (luaVec_tostr(buff, LUAI_MAXVECTORSTR, v, variant) > 0)
       return lua_pushfstring(L, "%s", buff);

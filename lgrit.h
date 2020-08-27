@@ -44,15 +44,6 @@ LUAI_FUNC int luaVec_axis (const lua_Float4 v, lua_Float4 *r);
 ** ===================================================================
 */
 
-#define op_isvector2(L, o) (ttisvector2((o)) || luaVec_parse((L), (o), NULL) == 2)
-#define op_isvector3(L, o) (ttisvector3((o)) || luaVec_parse((L), (o), NULL) == 3)
-#define op_isvector4(L, o) (ttisvector4((o)) || luaVec_parse((L), (o), NULL) == 4)
-#define op_isquat(L, o) (ttisquat((o)) || luaVec_parse((L), (o), NULL) == 4)
-#define op_vector2(L, o) (ttisvector2((o)) ? vvalue((o)) : luaVec_value((L), (o)))
-#define op_vector3(L, o) (ttisvector3((o)) ? vvalue((o)) : luaVec_value((L), (o)))
-#define op_vector4(L, o) (ttisvector4((o)) ? vvalue((o)) : luaVec_value((L), (o)))
-#define op_quat(L, o) (ttisquat((o)) ? vvalue((o)) : luaVec_value((L), (o)))
-
 /* */
 LUAI_FUNC int (luaVec_rawget) (lua_State *L, const lua_Float4 *v, int vdims, StkId key);
 
@@ -86,9 +77,6 @@ LUAI_FUNC int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2,
 ** dimension that is nil or not-numeric) the table has.
 */
 LUAI_FUNC int (luaVec_parse) (lua_State* L, const TValue* o, lua_Float4 *v);
-
-/* Create a lua_Float4 from the given table Value. */
-LUAI_FUNC lua_Float4 (luaVec_value) (lua_State* L, const TValue* o);
 
 /* }================================================================== */
 
