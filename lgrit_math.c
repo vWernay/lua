@@ -2,7 +2,7 @@
 ** $Id: lgrit_math.c $
 **
 ** Vector math operations for lua vectors. Note, much of this API has been
-** supplanted by the glm binding library.
+** DEPRECATED by the glm binding library.
 **
 ** See Copyright Notice in lua.h
 */
@@ -29,37 +29,30 @@
 #define MULF(x, y) ((x) * (y))
 #define DIVF(x, y) ((x) / (y))
 
-#define IS1(f, lhs) f(lhs.x)
-#define IS2(f, lhs) f(lhs.x) && f(lhs.y)
-#define IS3(f, lhs) f(lhs.x) && f(lhs.y) && f(lhs.z)
-#define IS4(f, lhs) f(lhs.x) && f(lhs.y) && f(lhs.z) && f(lhs.w)
+#define OP1(f, lhs, r) LUA_MLM_BEGIN r.x = f(lhs.x); LUA_MLM_END
+#define OP2(f, lhs, r) LUA_MLM_BEGIN r.x = f(lhs.x); r.y = f(lhs.y); LUA_MLM_END
+#define OP3(f, lhs, r) LUA_MLM_BEGIN r.x = f(lhs.x); r.y = f(lhs.y); r.z = f(lhs.z); LUA_MLM_END
+#define OP4(f, lhs, r) LUA_MLM_BEGIN r.x = f(lhs.x); r.y = f(lhs.y); r.z = f(lhs.z);  r.w = f(lhs.w); LUA_MLM_END
 
-#define OP1(f, lhs, r) { r.x = f(lhs.x); }
-#define OP2(f, lhs, r) { r.x = f(lhs.x); r.y = f(lhs.y); }
-#define OP3(f, lhs, r) { r.x = f(lhs.x); r.y = f(lhs.y); r.z = f(lhs.z); }
-#define OP4(f, lhs, r) { r.x = f(lhs.x); r.y = f(lhs.y); r.z = f(lhs.z);  r.w = f(lhs.w); }
-#define PW1(f, lhs, rhs, r) { r.x = f(lhs.x, rhs.x); }
-#define PW2(f, lhs, rhs, r) { r.x = f(lhs.x, rhs.x); r.y = f(lhs.y, rhs.y); }
-#define PW3(f, lhs, rhs, r) { r.x = f(lhs.x, rhs.x); r.y = f(lhs.y, rhs.y); r.z = f(lhs.z, rhs.z); }
-#define PW4(f, lhs, rhs, r) { r.x = f(lhs.x, rhs.x); r.y = f(lhs.y, rhs.y); r.z = f(lhs.z, rhs.z);  r.w = f(lhs.w, rhs.w); }
-#define SCALAR1(f, lhs, rhs, r) { r.x = f(lhs.x, rhs); }
-#define SCALAR2(f, lhs, rhs, r) { r.x = f(lhs.x, rhs); r.y = f(lhs.y, rhs); }
-#define SCALAR3(f, lhs, rhs, r) { r.x = f(lhs.x, rhs); r.y = f(lhs.y, rhs); r.z = f(lhs.z, rhs); }
-#define SCALAR4(f, lhs, rhs, r) { r.x = f(lhs.x, rhs); r.y = f(lhs.y, rhs); r.z = f(lhs.z, rhs);  r.w = f(lhs.w, rhs); }
-#define SCALAR21(f, lhs, rhs, r) { r.x = f(rhs, lhs.x); }
-#define SCALAR2B(f, lhs, rhs, r) { r.x = f(rhs, lhs.x); r.y = f(rhs, lhs.y); }
-#define SCALAR3B(f, lhs, rhs, r) { r.x = f(rhs, lhs.x); r.y = f(rhs, lhs.y); r.z = f(rhs, lhs.z); }
-#define SCALAR4B(f, lhs, rhs, r) { r.x = f(rhs, lhs.x); r.y = f(rhs, lhs.y); r.z = f(rhs, lhs.z);  r.w = f(rhs, lhs.w); }
+#define PW1(f, lhs, rhs, r) LUA_MLM_BEGIN r.x = f(lhs.x, rhs.x); LUA_MLM_END
+#define PW2(f, lhs, rhs, r) LUA_MLM_BEGIN r.x = f(lhs.x, rhs.x); r.y = f(lhs.y, rhs.y); LUA_MLM_END
+#define PW3(f, lhs, rhs, r) LUA_MLM_BEGIN r.x = f(lhs.x, rhs.x); r.y = f(lhs.y, rhs.y); r.z = f(lhs.z, rhs.z); LUA_MLM_END
+#define PW4(f, lhs, rhs, r) LUA_MLM_BEGIN r.x = f(lhs.x, rhs.x); r.y = f(lhs.y, rhs.y); r.z = f(lhs.z, rhs.z);  r.w = f(lhs.w, rhs.w); LUA_MLM_END
 
-#define DOT2(c, lhs, rhs) ((c(lhs.x) * c(rhs.x)) + (c(lhs.y) * c(rhs.y)))
-#define DOT3(c, lhs, rhs) ((c(lhs.x) * c(rhs.x)) + (c(lhs.y) * c(rhs.y)) + (c(lhs.z) * c(rhs.z)))
-#define DOT4(c, lhs, rhs) ((c(lhs.x) * c(rhs.x)) + (c(lhs.y) * c(rhs.y)) + (c(lhs.z) * c(rhs.z)) + (c(lhs.w) * c(rhs.w)))
+#define SCALAR1(f, lhs, rhs, r) LUA_MLM_BEGIN r.x = f(lhs.x, rhs); LUA_MLM_END
+#define SCALAR2(f, lhs, rhs, r) LUA_MLM_BEGIN r.x = f(lhs.x, rhs); r.y = f(lhs.y, rhs); LUA_MLM_END
+#define SCALAR3(f, lhs, rhs, r) LUA_MLM_BEGIN r.x = f(lhs.x, rhs); r.y = f(lhs.y, rhs); r.z = f(lhs.z, rhs); LUA_MLM_END
+#define SCALAR4(f, lhs, rhs, r) LUA_MLM_BEGIN r.x = f(lhs.x, rhs); r.y = f(lhs.y, rhs); r.z = f(lhs.z, rhs);  r.w = f(lhs.w, rhs); LUA_MLM_END
+#define SCALAR2B(f, lhs, rhs, r) LUA_MLM_BEGIN r.x = f(rhs, lhs.x); r.y = f(rhs, lhs.y); LUA_MLM_END
+#define SCALAR3B(f, lhs, rhs, r) LUA_MLM_BEGIN r.x = f(rhs, lhs.x); r.y = f(rhs, lhs.y); r.z = f(rhs, lhs.z); LUA_MLM_END
+#define SCALAR4B(f, lhs, rhs, r) LUA_MLM_BEGIN r.x = f(rhs, lhs.x); r.y = f(rhs, lhs.y); r.z = f(rhs, lhs.z);  r.w = f(rhs, lhs.w); LUA_MLM_END
 
-#define ISNORM2(lhs) (l_vecop(fabs)(DOT2(cast_vec, v, v) - V_ONE) <= LUA_VEC_NUMBER_EPS)
-#define ISNORM3(lhs) (l_vecop(fabs)(DOT3(cast_vec, v, v) - V_ONE) <= LUA_VEC_NUMBER_EPS)
-#define ISNORM4(lhs) (l_vecop(fabs)(DOT4(cast_vec, v, v) - V_ONE) <= LUA_VEC_NUMBER_EPS)
+#define DOT2(c, lhs, rhs) c((lhs.x * rhs.x) + (lhs.y * rhs.y))
+#define DOT3(c, lhs, rhs) c((lhs.x * rhs.x) + (lhs.y * rhs.y) + (lhs.z * rhs.z))
+#define DOT4(c, lhs, rhs) c((lhs.x * rhs.x) + (lhs.y * rhs.y) + (lhs.z * rhs.z) + (lhs.w * rhs.w))
 
-#define LUA_VEC_OP1(L, op) {                                    \
+#define LUA_VEC_OP_UNARY(L, op)                                 \
+  LUA_MLM_BEGIN                                                 \
   int variant;                                                  \
   lua_Float4 v;                                                 \
   switch ((variant = lua_tovector((L), 1, V_PARSETABLE, &v))) { \
@@ -71,9 +64,10 @@
   }                                                             \
   lua_pushvector((L), v, variant);                              \
   return 1;                                                     \
-}
+  LUA_MLM_END
 
-#define LUA_VEC_OP2(L, op) {                                  \
+#define LUA_VEC_OP_BINARY(L, op)                              \
+  LUA_MLM_BEGIN                                               \
   int variant;                                                \
   lua_VecF x;                                                 \
   lua_Float4 v, v2;                                           \
@@ -123,21 +117,37 @@
   }                                                           \
   lua_pushvector(L, v, variant);                              \
   return 1;                                                   \
-}
+  LUA_MLM_END
 
-#define LUA_VEC_CHECK1(L, op) {                                 \
+#define LUA_VEC_CAND(L, op)                                     \
+  LUA_MLM_BEGIN                                                 \
   lua_Float4 v;                                                 \
-  int variant, result = 0;                                      \
+  int variant, result = 1;                                      \
   switch ((variant = lua_tovector((L), 1, V_PARSETABLE, &v))) { \
-    case LUA_VVECTOR1: result = IS1(op, v); break;              \
-    case LUA_VVECTOR2: result = IS2(op, v); break;              \
-    case LUA_VVECTOR3: result = IS3(op, v); break;              \
-    case LUA_VVECTOR4: result = IS4(op, v); break;              \
+    case LUA_VVECTOR4: result &= op(v.w); LUA_FALLTHROUGH;      \
+    case LUA_VVECTOR3: result &= op(v.z); LUA_FALLTHROUGH;      \
+    case LUA_VVECTOR2: result &= op(v.y); LUA_FALLTHROUGH;      \
+    case LUA_VVECTOR1: result &= op(v.x); break;                \
     default: return luaL_typeerror(L, 1, LABEL_ALL);            \
   }                                                             \
   lua_pushboolean((L), result);                                 \
   return 1;                                                     \
-}
+  LUA_MLM_END
+
+#define LUA_VEC_COR(L, op)                                      \
+  LUA_MLM_BEGIN                                                 \
+  lua_Float4 v;                                                 \
+  int variant, result = 0;                                      \
+  switch ((variant = lua_tovector((L), 1, V_PARSETABLE, &v))) { \
+    case LUA_VVECTOR4: result |= op(v.w); LUA_FALLTHROUGH;      \
+    case LUA_VVECTOR3: result |= op(v.z); LUA_FALLTHROUGH;      \
+    case LUA_VVECTOR2: result |= op(v.y); LUA_FALLTHROUGH;      \
+    case LUA_VVECTOR1: result |= op(v.x); break;                \
+    default: return luaL_typeerror(L, 1, LABEL_ALL);            \
+  }                                                             \
+  lua_pushboolean((L), result);                                 \
+  return 1;                                                     \
+  LUA_MLM_END
 
 static LUA_INLINE float todegf(float x) { return x * (180.f / 3.141592653589793238462643383279502884f); }
 static LUA_INLINE float toradf(float x) { return x * (3.141592653589793238462643383279502884f / 180.f); }
@@ -152,6 +162,11 @@ static LUA_INLINE long double todegl(long double x) { return x * (180.0L / 3.141
 static LUA_INLINE long double toradl(long double x) { return x * (3.141592653589793238462643383279502884L / 180.0L); }
 #endif
 
+#ifdef _MSC_VER
+__pragma(warning(push))
+__pragma(warning(disable : 26451))
+#endif
+
 /*
 ** {==================================================================
 ** Tag Methods
@@ -159,7 +174,7 @@ static LUA_INLINE long double toradl(long double x) { return x * (3.141592653589
 */
 
 /* Handle l_noret & unreachable code warnings */
-#define ERR_DIVZERO(L) luaG_runerror(L, "division by zero");
+#define ERR_DIVZERO(L) luaG_runerror(L, "division by zero")
 #define ERR_INVALID_OP "Cannot use that op with %s and %s"
 
 int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res, TMS event) {
@@ -178,14 +193,14 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
       case TM_POW: PW3(l_vecop(pow), nb, nc, r); break;
       case TM_UNM: r.x = -nb.x; r.y = -nb.y; r.z = -nb.z; break;
       case TM_DIV:
-        if (nc.x == V_ZERO || nc.y == V_ZERO || nc.z == V_ZERO) {
+        if (V_ISZERO(nc.x) || V_ISZERO(nc.y) || V_ISZERO(nc.z)) {
           ERR_DIVZERO(L);
         }
 
         PW3(DIVF, nb, nc, r);
         break;
       case TM_IDIV:
-        if (nc.x == V_ZERO || nc.y == V_ZERO || nc.z == V_ZERO) {
+        if (V_ISZERO(nc.x) || V_ISZERO(nc.y) || V_ISZERO(nc.z)) {
           ERR_DIVZERO(L);
         }
 
@@ -239,14 +254,14 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
       case TM_POW: PW2(l_vecop(pow), nb, nc, r); break;
       case TM_UNM: r.x = -nb.x; r.y = -nb.y; break;
       case TM_DIV:
-        if (nc.x == V_ZERO || nc.y == V_ZERO) {
+        if (V_ISZERO(nc.x) || V_ISZERO(nc.y)) {
           ERR_DIVZERO(L);
         }
 
         PW2(DIVF, nb, nc, r);
         break;
       case TM_IDIV:
-        if (nc.x == V_ZERO || nc.y == V_ZERO) {
+        if (V_ISZERO(nc.x) || V_ISZERO(nc.y)) {
           ERR_DIVZERO(L);
         }
 
@@ -267,14 +282,14 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
       case TM_POW: PW4(l_vecop(pow), nb, nc, r); break;
       case TM_UNM: r.x = -nb.x; r.y = -nb.y; r.z = -nb.z; r.w = -nb.w; break;
       case TM_DIV:
-        if (nc.x == V_ZERO || nc.y == V_ZERO || nc.z == V_ZERO || nc.w == V_ZERO) {
+        if (V_ISZERO(nc.x) || V_ISZERO(nc.y) || V_ISZERO(nc.z) || V_ISZERO(nc.w)) {
           ERR_DIVZERO(L);
         }
 
         PW4(DIVF, nb, nc, r);
         break;
       case TM_IDIV:
-        if (nc.x == V_ZERO || nc.y == V_ZERO || nc.z == V_ZERO) {
+        if (V_ISZERO(nc.x) || V_ISZERO(nc.y) || V_ISZERO(nc.z)) {
           ERR_DIVZERO(L);
         }
 
@@ -295,14 +310,14 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
       case TM_MOD: SCALAR3(l_vecop(fmod), nb, nc_v, r); break;
       case TM_POW: SCALAR3(l_vecop(pow), nb, nc_v, r); break;
       case TM_DIV:
-        if (nc_v == V_ZERO) {
+        if (V_ISZERO(nc_v)) {
           ERR_DIVZERO(L);
         }
 
         SCALAR3(DIVF, nb, nc_v, r);
         break;
       case TM_IDIV:
-        if (nc_v == V_ZERO) {
+        if (V_ISZERO(nc_v)) {
           ERR_DIVZERO(L);
         }
 
@@ -323,14 +338,14 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
       case TM_MOD: SCALAR2(l_vecop(fmod), nb, nc_v, r); break;
       case TM_POW: SCALAR2(l_vecop(pow), nb, nc_v, r); break;
       case TM_DIV:
-        if (nc_v == V_ZERO) {
+        if (V_ISZERO(nc_v)) {
           ERR_DIVZERO(L);
         }
 
         SCALAR2(DIVF, nb, nc_v, r);
         break;
       case TM_IDIV:
-        if (nc_v == V_ZERO) {
+        if (V_ISZERO(nc_v)) {
           ERR_DIVZERO(L);
         }
 
@@ -351,14 +366,14 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
       case TM_MOD: SCALAR4(l_vecop(fmod), nb, nc_v, r); break;
       case TM_POW: SCALAR4(l_vecop(pow), nb, nc_v, r); break;
       case TM_DIV:
-        if (nc_v == V_ZERO) {
+        if (V_ISZERO(nc_v)) {
           ERR_DIVZERO(L);
         }
 
         SCALAR4(DIVF, nb, nc_v, r);
         break;
       case TM_IDIV:
-        if (nc_v == V_ZERO) {
+        if (V_ISZERO(nc_v)) {
           ERR_DIVZERO(L);
         }
 
@@ -378,7 +393,7 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
       case TM_MUL: SCALAR3B(MULF, nc, nb_v, r); break;
       case TM_POW: SCALAR3B(l_vecop(pow), nc, nb_v, r); break;
       case TM_DIV:
-        if (nc.x == V_ZERO || nc.y == V_ZERO || nc.z == V_ZERO) {
+        if (V_ISZERO(nc.x) || V_ISZERO(nc.y) || V_ISZERO(nc.z)) {
           ERR_DIVZERO(L);
         }
 
@@ -397,7 +412,7 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
       case TM_MUL: SCALAR2B(MULF, nc, nb_v, r); break;
       case TM_POW: SCALAR2B(l_vecop(pow), nc, nb_v, r); break;
       case TM_DIV:
-        if (nc.x == V_ZERO || nc.y == V_ZERO) {
+        if (V_ISZERO(nc.x) || V_ISZERO(nc.y)) {
           ERR_DIVZERO(L);
         }
 
@@ -416,7 +431,7 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
       case TM_MUL: SCALAR4B(MULF, nc, nb_v, r); break;
       case TM_POW: SCALAR4B(l_vecop(pow), nc, nb_v, r); break;
       case TM_DIV:
-        if (nc.x == V_ZERO || nc.y == V_ZERO || nc.z == V_ZERO || nc.w == V_ZERO) {
+        if (V_ISZERO(nc.x) || V_ISZERO(nc.y) || V_ISZERO(nc.z) || V_ISZERO(nc.w)) {
           ERR_DIVZERO(L);
         }
 
@@ -519,7 +534,7 @@ lua_Number luaVec_axisangle (const lua_Float4 v) {
 }
 
 int luaVec_axis (const lua_Float4 v, lua_Float4 *r) {
-  if (ISNORM4(v)) {
+  if (l_vecop(fabs)(DOT4(cast_vec, v, v) - V_ONE) <= LUA_VEC_NUMBER_EPS) {
     lua_VecF rcpSin = V_ONE / l_vecop(sqrt)(V_ONE - v.w * v.w);
     r->w = V_ZERO;
     r->x = rcpSin * v.x;
@@ -626,23 +641,27 @@ int luaVec_norm (lua_State *L) {
       lua_pushnumber(L, l_mathop(1.0));
       return 1;
     case LUA_VVECTOR2:
-      if ((len = l_vecop(sqrt)(DOT2(cast_vec, v, v))) == V_ZERO)
-        return luaL_typeerror(L, 1, "Cannot normalize " LABEL_VECTOR2);
+      len = l_vecop(sqrt)(DOT2(cast_vec, v, v));
+      if (V_ISZERO(len))
+        return luaL_error(L, "Cannot normalize " LABEL_VECTOR2);
       SCALAR2(DIVF, v, len, v);
       break;
     case LUA_VVECTOR3:
-      if ((len = l_vecop(sqrt)(DOT3(cast_vec, v, v))) == V_ZERO)
-        return luaL_typeerror(L, 1, "Cannot normalize " LABEL_VECTOR3);
+      len = l_vecop(sqrt)(DOT3(cast_vec, v, v));
+      if (V_ISZERO(len))
+        return luaL_error(L, "Cannot normalize " LABEL_VECTOR3);
       SCALAR3(DIVF, v, len, v);
       break;
     case LUA_VVECTOR4:
-      if ((len = l_vecop(sqrt)(DOT4(cast_vec, v, v))) == V_ZERO)
-        return luaL_typeerror(L, 1, "Cannot normalize " LABEL_VECTOR4);
+      len = l_vecop(sqrt)(DOT4(cast_vec, v, v));
+      if (V_ISZERO(len))
+        return luaL_error(L, "Cannot normalize " LABEL_VECTOR4);
       SCALAR4(DIVF, v, len, v);
       break;
     case LUA_VQUAT:
-      if ((len = l_vecop(sqrt)(DOT4(cast_vec, v, v))) == V_ZERO)
-        return luaL_typeerror(L, 1, "Cannot normalize " LABEL_QUATERN);
+      len = l_vecop(sqrt)(DOT4(cast_vec, v, v));
+      if (V_ISZERO(len))
+        return luaL_error(L, "Cannot normalize " LABEL_QUATERN);
       SCALAR4(DIVF, v, len, v);
       break;
     default:
@@ -693,19 +712,19 @@ int luaVec_slerp (lua_State *L) {
   return 1;
 }
 
-int luaVec_abs (lua_State *L) { LUA_VEC_OP1(L, fabs); }
-int luaVec_sin (lua_State *L) { LUA_VEC_OP1(L, sin); }
-int luaVec_cos (lua_State *L) { LUA_VEC_OP1(L, cos); }
-int luaVec_tan (lua_State *L) { LUA_VEC_OP1(L, tan); }
-int luaVec_asin (lua_State *L) { LUA_VEC_OP1(L, asin); }
-int luaVec_acos (lua_State *L) { LUA_VEC_OP1(L, acos); }
-int luaVec_floor (lua_State *L) { LUA_VEC_OP1(L, floor); }
-int luaVec_ceil (lua_State *L) { LUA_VEC_OP1(L, ceil); }
-int luaVec_sqrt (lua_State *L) { LUA_VEC_OP1(L, sqrt); }
-int luaVec_exp (lua_State *L) { LUA_VEC_OP1(L, exp); }
-int luaVec_deg (lua_State *L) { LUA_VEC_OP1(L, todeg); }
-int luaVec_rad (lua_State *L) { LUA_VEC_OP1(L, torad); }
-int luaVec_fmod (lua_State *L) { LUA_VEC_OP2(L, fmod); }
+int luaVec_abs (lua_State *L) { LUA_VEC_OP_UNARY(L, fabs); }
+int luaVec_sin (lua_State *L) { LUA_VEC_OP_UNARY(L, sin); }
+int luaVec_cos (lua_State *L) { LUA_VEC_OP_UNARY(L, cos); }
+int luaVec_tan (lua_State *L) { LUA_VEC_OP_UNARY(L, tan); }
+int luaVec_asin (lua_State *L) { LUA_VEC_OP_UNARY(L, asin); }
+int luaVec_acos (lua_State *L) { LUA_VEC_OP_UNARY(L, acos); }
+int luaVec_floor (lua_State *L) { LUA_VEC_OP_UNARY(L, floor); }
+int luaVec_ceil (lua_State *L) { LUA_VEC_OP_UNARY(L, ceil); }
+int luaVec_sqrt (lua_State *L) { LUA_VEC_OP_UNARY(L, sqrt); }
+int luaVec_exp (lua_State *L) { LUA_VEC_OP_UNARY(L, exp); }
+int luaVec_deg (lua_State *L) { LUA_VEC_OP_UNARY(L, todeg); }
+int luaVec_rad (lua_State *L) { LUA_VEC_OP_UNARY(L, torad); }
+int luaVec_fmod (lua_State *L) { LUA_VEC_OP_BINARY(L, fmod); }
 
 int luaVec_atan (lua_State *L) {
   int variant;
@@ -786,9 +805,9 @@ int luaVec_log (lua_State *L) {
   int variant;
   lua_Float4 v;
   switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
-    case LUA_VVECTOR4: v.w = log_helper(L, v.w); /* FALLTHROUGH */
-    case LUA_VVECTOR3: v.z = log_helper(L, v.z); /* FALLTHROUGH */
-    case LUA_VVECTOR2: v.y = log_helper(L, v.y); /* FALLTHROUGH */
+    case LUA_VVECTOR4: v.w = log_helper(L, v.w); LUA_FALLTHROUGH;
+    case LUA_VVECTOR3: v.z = log_helper(L, v.z); LUA_FALLTHROUGH;
+    case LUA_VVECTOR2: v.y = log_helper(L, v.y); LUA_FALLTHROUGH;
     case LUA_VVECTOR1: v.x = log_helper(L, v.x); break;
     default:
       return luaL_typeerror(L, 1, LABEL_ALL);
@@ -918,10 +937,10 @@ int luaVec_clamp (lua_State *L) {
 */
 #if defined(LUA_COMPAT_MATHLIB)
 
-int luaV_sinh (lua_State *L) { LUA_VEC_OP1(L, sinh); }
-int luaV_cosh (lua_State *L) { LUA_VEC_OP1(L, cosh); }
-int luaV_tanh (lua_State *L) { LUA_VEC_OP1(L, tanh); }
-int luaV_log10 (lua_State *L) { LUA_VEC_OP1(L, log10); }
+int luaV_sinh (lua_State *L) { LUA_VEC_OP_UNARY(L, sinh); }
+int luaV_cosh (lua_State *L) { LUA_VEC_OP_UNARY(L, cosh); }
+int luaV_tanh (lua_State *L) { LUA_VEC_OP_UNARY(L, tanh); }
+int luaV_log10 (lua_State *L) { LUA_VEC_OP_UNARY(L, log10); }
 
 int luaV_pow (lua_State *L) {
   if (lua_isquat(L, 1, V_PARSETABLE)) {
@@ -951,38 +970,38 @@ int luaV_pow (lua_State *L) {
     return 1;
   }
   else {
-    LUA_VEC_OP2(L, pow);
+    LUA_VEC_OP_BINARY(L, pow);
   }
 }
 
 
 #if defined(LUA_C99_MATHLIB)
-int luaV_asinh (lua_State *L) { LUA_VEC_OP1(L, asinh) }
-int luaV_acosh (lua_State *L) { LUA_VEC_OP1(L, acosh); }
-int luaV_atanh (lua_State *L) { LUA_VEC_OP1(L, atanh); }
-int luaV_cbrt (lua_State *L) { LUA_VEC_OP1(L, cbrt); }
-int luaV_erf (lua_State *L) { LUA_VEC_OP1(L, erf); }
-int luaV_erfc (lua_State *L) { LUA_VEC_OP1(L, erfc); }
-int luaV_exp2 (lua_State *L) { LUA_VEC_OP1(L, exp2); }
-int luaV_expm1 (lua_State *L) { LUA_VEC_OP1(L, expm1); }
-int luaV_gamma (lua_State *L) { LUA_VEC_OP1(L, tgamma); }
-int luaV_lgamma (lua_State *L) { LUA_VEC_OP1(L, lgamma); }
-int luaV_log1p (lua_State *L) { LUA_VEC_OP1(L, log1p); }
-int luaV_logb (lua_State *L) { LUA_VEC_OP1(L, logb); }
-int luaV_nearbyint (lua_State *L) { LUA_VEC_OP1(L, nearbyint); }
-int luaV_round (lua_State *L) { LUA_VEC_OP1(L, round); }
-int luaV_trunc (lua_State *L) { LUA_VEC_OP1(L, trunc); }
+int luaV_asinh (lua_State *L) { LUA_VEC_OP_UNARY(L, asinh); }
+int luaV_acosh (lua_State *L) { LUA_VEC_OP_UNARY(L, acosh); }
+int luaV_atanh (lua_State *L) { LUA_VEC_OP_UNARY(L, atanh); }
+int luaV_cbrt (lua_State *L) { LUA_VEC_OP_UNARY(L, cbrt); }
+int luaV_erf (lua_State *L) { LUA_VEC_OP_UNARY(L, erf); }
+int luaV_erfc (lua_State *L) { LUA_VEC_OP_UNARY(L, erfc); }
+int luaV_exp2 (lua_State *L) { LUA_VEC_OP_UNARY(L, exp2); }
+int luaV_expm1 (lua_State *L) { LUA_VEC_OP_UNARY(L, expm1); }
+int luaV_gamma (lua_State *L) { LUA_VEC_OP_UNARY(L, tgamma); }
+int luaV_lgamma (lua_State *L) { LUA_VEC_OP_UNARY(L, lgamma); }
+int luaV_log1p (lua_State *L) { LUA_VEC_OP_UNARY(L, log1p); }
+int luaV_logb (lua_State *L) { LUA_VEC_OP_UNARY(L, logb); }
+int luaV_nearbyint (lua_State *L) { LUA_VEC_OP_UNARY(L, nearbyint); }
+int luaV_round (lua_State *L) { LUA_VEC_OP_UNARY(L, round); }
+int luaV_trunc (lua_State *L) { LUA_VEC_OP_UNARY(L, trunc); }
 
-int luaV_isfinite (lua_State *L) { LUA_VEC_CHECK1(L, isfinite); }
-int luaV_isinf (lua_State *L) { LUA_VEC_CHECK1(L, isinf); }
-int luaV_isnan (lua_State *L) { LUA_VEC_CHECK1(L, isnan); }
-int luaV_isnormal (lua_State *L) { LUA_VEC_CHECK1(L, isnormal); }
+int luaV_isfinite (lua_State *L) { LUA_VEC_CAND(L, isfinite); }
+int luaV_isinf (lua_State *L) { LUA_VEC_COR(L, isinf); }
+int luaV_isnan (lua_State *L) { LUA_VEC_COR(L, isnan); }
+int luaV_isnormal (lua_State *L) { LUA_VEC_CAND(L, isnormal); }
 
-int luaV_fdim (lua_State *L) { LUA_VEC_OP2(L, fdim); }
-int luaV_hypot (lua_State *L) { LUA_VEC_OP2(L, hypot); }
-int luaV_copysign (lua_State *L) { LUA_VEC_OP2(L, copysign); }
-int luaV_nextafter (lua_State *L) { LUA_VEC_OP2(L, nextafter); }
-int luaV_remainder (lua_State *L) { LUA_VEC_OP2(L, remainder); }
+int luaV_fdim (lua_State *L) { LUA_VEC_OP_BINARY(L, fdim); }
+int luaV_hypot (lua_State *L) { LUA_VEC_OP_BINARY(L, hypot); }
+int luaV_copysign (lua_State *L) { LUA_VEC_OP_BINARY(L, copysign); }
+int luaV_nextafter (lua_State *L) { LUA_VEC_OP_BINARY(L, nextafter); }
+int luaV_remainder (lua_State *L) { LUA_VEC_OP_BINARY(L, remainder); }
 
 /* Second argument unsafely casted to an int... */
 int luaV_scalbn (lua_State *L) {
@@ -991,9 +1010,9 @@ int luaV_scalbn (lua_State *L) {
 
   int n = (int)luaL_checkinteger(L, 2);
   switch ((variant = lua_tovector(L, 1, V_PARSETABLE, &v))) {
-    case LUA_VVECTOR4: v.w = l_vecop(scalbn)(v.w, n); /* FALLTHROUGH */
-    case LUA_VVECTOR3: v.z = l_vecop(scalbn)(v.z, n); /* FALLTHROUGH */
-    case LUA_VVECTOR2: v.y = l_vecop(scalbn)(v.y, n); /* FALLTHROUGH */
+    case LUA_VVECTOR4: v.w = l_vecop(scalbn)(v.w, n); LUA_FALLTHROUGH;
+    case LUA_VVECTOR3: v.z = l_vecop(scalbn)(v.z, n); LUA_FALLTHROUGH;
+    case LUA_VVECTOR2: v.y = l_vecop(scalbn)(v.y, n); LUA_FALLTHROUGH;
     case LUA_VVECTOR1: v.x = l_vecop(scalbn)(v.x, n); break;
     default:
       return luaL_typeerror(L, 1, LABEL_ALL);
@@ -1006,6 +1025,9 @@ int luaV_scalbn (lua_State *L) {
 #endif  /* LUA_C99_MATHLIB */
 #endif
 
+#ifdef _MSC_VER
+__pragma(warning(pop))
+#endif
 
 /* }================================================================== */
 

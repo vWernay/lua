@@ -19,7 +19,7 @@
 
 #include "lauxlib.h"
 #include "lualib.h"
-#include "lgrit_lib.h"
+#include "lgrit.h"
 
 
 static int luaB_print (lua_State *L) {

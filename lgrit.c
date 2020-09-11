@@ -80,53 +80,6 @@ static int luaVec_swizzle (const char *key, const lua_Float4 *from, int from_sz,
 
 /*
 ** {==================================================================
-** API
-** ===================================================================
-*/
-
-#define LUAV_TYPE(T) return lua_isvector(L, idx, flags) == (T);
-LUA_API int lua_isvector1 (lua_State *L, int idx, int flags) { LUAV_TYPE(LUA_VVECTOR1); }
-LUA_API int lua_isvector2 (lua_State *L, int idx, int flags) { LUAV_TYPE(LUA_VVECTOR2); }
-LUA_API int lua_isvector3 (lua_State *L, int idx, int flags) { LUAV_TYPE(LUA_VVECTOR3); }
-LUA_API int lua_isvector4 (lua_State *L, int idx, int flags) { LUAV_TYPE(LUA_VVECTOR4); }
-LUA_API int lua_isquat (lua_State *L, int idx, int flags) {
-  return lua_isvector(L, idx, V_NOTABLE) == LUA_VQUAT ||
-    ((flags & V_PARSETABLE) != 0 && lua_isvector(L, idx, flags) == LUA_VVECTOR4);
-}
-
-#define LUAV_CHECK(T, ERR) if (lua_tovector(L, idx, flags, v) != (T)) luaL_typeerror(L, idx, (ERR));
-void lua_checkv1 (lua_State *L, int idx, int flags, lua_Float4 *v) { LUAV_CHECK(LUA_VVECTOR1, LABEL_VECTOR1) }
-void lua_checkv2 (lua_State *L, int idx, int flags, lua_Float4 *v) { LUAV_CHECK(LUA_VVECTOR2, LABEL_VECTOR2) }
-void lua_checkv3 (lua_State *L, int idx, int flags, lua_Float4 *v) { LUAV_CHECK(LUA_VVECTOR3, LABEL_VECTOR3) }
-void lua_checkv4 (lua_State *L, int idx, int flags, lua_Float4 *v) { LUAV_CHECK(LUA_VVECTOR4, LABEL_VECTOR4) }
-void lua_checkquat (lua_State *L, int idx, int flags, lua_Float4 *v) { LUAV_CHECK(LUA_VQUAT, LABEL_QUATERN) }
-
-/* API Compatibility */
-
-LUA_API void lua_pushvector2 (lua_State *L, lua_VecF x, lua_VecF y) {
-  lua_Float4 f4 = { .x = x, .y = y, .z = V_ZERO, .w = V_ZERO };
-  lua_pushvector(L, f4, LUA_VVECTOR2);
-}
-
-LUA_API void lua_pushvector3 (lua_State *L, lua_VecF x, lua_VecF y, lua_VecF z) {
-  lua_Float4 f4 = { .x = x, .y = y, .z = z, .w = V_ZERO };
-  lua_pushvector(L, f4, LUA_VVECTOR3);
-}
-
-LUA_API void lua_pushvector4 (lua_State *L, lua_VecF x, lua_VecF y, lua_VecF z, lua_VecF w) {
-  lua_Float4 f4 = { .x = x, .y = y, .z = z, .w = w };
-  lua_pushvector(L, f4, LUA_VVECTOR4);
-}
-
-LUA_API void lua_pushquat (lua_State *L, lua_VecF w, lua_VecF x, lua_VecF y, lua_VecF z) {
-  lua_Float4 f4 = { .x = x, .y = y, .z = z, .w = w };
-  lua_pushvector(L, f4, LUA_VQUAT);
-}
-
-/* }================================================================== */
-
-/*
-** {==================================================================
 ** Table API
 ** ===================================================================
 */
@@ -257,7 +210,7 @@ LUA_API const char *lua_vectypename (lua_State *L, int t) {
   }
 }
 
-LUA_API int lua_vectorN (lua_State *L) {
+int lua_vectorN (lua_State *L) {
   lua_Float4 v = V_ZEROVEC;
   switch (luaB_vectorn(L, 4, &v)) {
     case 4: lua_pushvector(L, v, LUA_VVECTOR4); break;
@@ -270,7 +223,7 @@ LUA_API int lua_vectorN (lua_State *L) {
   return 1;
 }
 
-LUA_API int lua_vector2 (lua_State *L) {
+int lua_vector2 (lua_State *L) {
   lua_Float4 v;
   if (luaB_vectorn(L, 2, &v) == 2) {
     lua_pushvector(L, v, LUA_VVECTOR2);
@@ -279,7 +232,7 @@ LUA_API int lua_vector2 (lua_State *L) {
   return luaL_error(L, LABEL_VECTOR2 "(...) requires exactly 2 numbers");
 }
 
-LUA_API int lua_vector3 (lua_State *L) {
+int lua_vector3 (lua_State *L) {
   lua_Float4 v;
   if (luaB_vectorn(L, 3, &v) == 3) {
     lua_pushvector(L, v, LUA_VVECTOR3);
@@ -288,7 +241,7 @@ LUA_API int lua_vector3 (lua_State *L) {
   return luaL_error(L, LABEL_VECTOR3 "(...) requires exactly 3 numbers");
 }
 
-LUA_API int lua_vector4 (lua_State *L) {
+int lua_vector4 (lua_State *L) {
   lua_Float4 v;
   if (luaB_vectorn(L, 4, &v) == 4) {
     lua_pushvector(L, v, LUA_VVECTOR4);
@@ -297,7 +250,7 @@ LUA_API int lua_vector4 (lua_State *L) {
   return luaL_error(L, LABEL_VECTOR4"(...) requires exactly 4 numbers");
 }
 
-LUA_API int lua_quat (lua_State *L) {
+int lua_quat (lua_State *L) {
   lua_Float4 q = { .x = V_ZERO, .y = V_ZERO, .z = V_ZERO, .w = V_ONE };
   if (lua_gettop(L) == 4 && lua_isnumber(L, 1) && lua_isnumber(L, 2)
                          && lua_isnumber(L, 3) && lua_isnumber(L, 4)) {
@@ -331,7 +284,7 @@ LUA_API int lua_quat (lua_State *L) {
   return 1;
 }
 
-LUA_API int lua_unpackvec (lua_State *L) {
+int lua_unpackvec (lua_State *L) {
   luaL_checkstack(L, 4, "vector fields");  /* Ensure stack-space */
   if (lua_isinteger(L, 1))
     lua_pushinteger(L, luaL_checkinteger(L, 1));

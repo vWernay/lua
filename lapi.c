@@ -30,7 +30,6 @@
 #include "lundump.h"
 #include "lvm.h"
 #include "lgrit.h"
-#include "lgrit_lib.h"
 
 
 const char lua_ident[] =

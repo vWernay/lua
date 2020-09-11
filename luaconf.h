@@ -774,20 +774,44 @@
 ** without modifying the main part of the file.
 */
 
-#if !defined(LUA_INLINE)
-  #if defined(__GNUC__)
+#ifdef _MSC_VER
+  #define LUA_INLINE __forceinline
+#elif defined(__has_attribute)
+  #if __has_attribute(__always_inline__)
     #define LUA_INLINE inline __attribute__((__always_inline__))
-  #elif defined(__CLANG__)
-    #if defined(__has_attribute(__always_inline__))
-      #define LUA_INLINE inline __attribute__((__always_inline__))
-    #else
-      #define LUA_INLINE inline
-    #endif
-  #elif defined(LUA_USE_WINDOWS)
-    #define LUA_INLINE __forceinline
   #else
     #define LUA_INLINE inline
   #endif
+#else
+  #define LUA_INLINE inline
+#endif
+
+#if defined(__cplusplus) && __cplusplus >= 201703
+  #define LUA_FALLTHROUGH [[fallthrough]]
+#elif defined(__has_attribute)
+  #if __has_attribute(__fallthrough__)
+    #define LUA_FALLTHROUGH __attribute__((__fallthrough__))
+  #else
+    #define LUA_FALLTHROUGH do {} while (0)  /* FALLTHROUGH */
+  #endif
+#else /* Pulled from: linux/compiler_attributes.h */
+  #define LUA_FALLTHROUGH do {} while (0)  /* FALLTHROUGH */
+#endif
+
+/* Compiler-specific multi-line macro definitions */
+#ifdef _MSC_VER
+  #define LUA_MLM_BEGIN     \
+    do {                    \
+    __pragma(warning(push)) \
+    __pragma(warning(disable : 4127))
+
+  #define LUA_MLM_END \
+    }                 \
+    while (0)         \
+    __pragma(warning(pop))
+#else
+  #define LUA_MLM_BEGIN do {
+  #define LUA_MLM_END } while (0)
 #endif
 
 /*

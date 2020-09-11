@@ -20,7 +20,7 @@
 
 #include "lauxlib.h"
 #include "lualib.h"
-#include "lgrit_lib.h"
+#include "lgrit.h"
 
 #undef PI
 #define PI	(l_mathop(3.141592653589793238462643383279502884))

@@ -8,6 +8,9 @@
 SET (CMAKE_LEGACY_CYGWIN_WIN32 0) # Remove when CMake >= 2.8.4 is required
 PROJECT ( lua C )
 CMAKE_MINIMUM_REQUIRED ( VERSION 2.8.7 )
+if (CMAKE_C_COMPILER MATCHES ".*clang")
+    SET (CMAKE_COMPILER_IS_CLANGCC 1)
+endif()
 
 IF (CMAKE_SIZEOF_VOID_P EQUAL 8)
     SET (LIB_SUFFIX "64" CACHE STRING "Suffix of the directory name, e.g. 64 for lib64")
@@ -99,26 +102,53 @@ ENDIF ()
 
 # Compiler options taken from Lua: lua/blob/master/makefile
 ADD_COMPILE_OPTIONS (-fPIC
-    -fmax-errors=5
-    -Wall
-    -Wextra
-    -Wshadow
-    -Wsign-compare
-    -Wundef
-    -Wwrite-strings
-    -Wredundant-decls
-    -Wdisabled-optimization
-    -Wdouble-promotion
-    -Wlogical-op
-    -Wno-aggressive-loop-optimizations
-    # the next warnings might be useful sometimes, but usually they generate too much noise
-    # -Werror
-    -Wconversion
-    -Wno-sign-conversion
-    -Wstrict-overflow=2
-    -Wformat=2
-    -Wcast-qual
+  -Wall
+  -Wextra
+  -Wshadow
+  -Wsign-compare
+  -Wundef
+  -Wwrite-strings
+  -Wredundant-decls
+  -Wdouble-promotion
+  -Wunused-parameter
+  -Wno-comment
+  -Wno-unused-function
+  -Wno-array-bounds
+  #-Wconversion
+  -Wno-sign-conversion
+  -Wstrict-overflow=2
+  -Wformat=2
+  -Wno-format-nonliteral
+  #-Wcast-qual
+  #-Wdisabled-optimization
+  #-Wlogical-op
+  #-Wno-aggressive-loop-optimizations
+  # the next warnings might be useful sometimes, but usually they generate too much noise
+  #-Werror
 )
+
+IF (CMAKE_COMPILER_IS_CLANGCC)
+  ADD_COMPILE_OPTIONS (
+    -ferror-limit=5
+    -fno-common
+    -Weverything
+    -Wno-gnu-zero-variadic-macro-arguments
+    -Wno-covered-switch-default
+    -Wno-reserved-id-macro
+    -Wno-unused-macros
+    -Wno-padded
+    -Wno-extra-semi-stmt
+  )
+ELSEIF (CMAKE_COMPILER_IS_GNUCC)
+  ADD_COMPILE_OPTIONS (
+    -fmax-errors=5
+    -Wduplicated-cond
+    -Wduplicated-branches
+    -Wrestrict
+    -Wnull-dereference
+    -Wlogical-op
+  )
+ENDIF ()
 
 # The next warnings are neither valid nor needed for C++
 SET (CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "\
@@ -130,7 +160,7 @@ SET (CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "\
     -Wold-style-definition"
 )
 
-if ( LUA_INCLUDE_TEST )
+IF ( LUA_INCLUDE_TEST )
     ADD_DEFINITIONS (-DLUA_USER_H="ltests.h" -O0 -g)
 ENDIF ()
 

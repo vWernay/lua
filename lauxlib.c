@@ -25,7 +25,7 @@
 #include "lua.h"
 
 #include "lauxlib.h"
-#include "lgrit_lib.h"
+#include "lgrit.h"
 
 
 #if !defined(MAX_SIZET)
