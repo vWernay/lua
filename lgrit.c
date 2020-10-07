@@ -100,7 +100,7 @@ static LUA_INLINE int vectable_getstr (lua_State *L, const TValue *t, const char
   return ttype(s2v(L->top - 1));
 }
 
-int luaVec_parse (lua_State* L, const TValue* o, lua_Float4 *v) {
+int luaVec_parse (lua_State* L, const TValue *o, lua_Float4 *v) {
   if (v != NULL) {  /* Ensure vector data is cleared */
     v->x = v->y = v->z = v->w = V_ZERO;
   }
@@ -108,7 +108,7 @@ int luaVec_parse (lua_State* L, const TValue* o, lua_Float4 *v) {
   if (ttisvector(o)) {
     if (v != NULL)
       *v = vvalue(o);
-    return lua_dimensions_count(L, ttypetag(o));
+    return luaVec_dimensions(o);
   }
   else if (ttistable(o)) {
     int i, count = 0;
@@ -339,6 +339,7 @@ void luaVec_objlen (lua_State *L, StkId ra, const TValue *o) {
 #endif
 
   switch (ttypetag(o)) {
+    case LUA_VVECTOR1: setfltvalue(s2v(ra), val_(o).n); break;
     case LUA_VVECTOR2: setfltvalue(s2v(ra), luaVec_length2(val_(o).f4)); break;
     case LUA_VVECTOR3: setfltvalue(s2v(ra), luaVec_length3(val_(o).f4)); break;
     case LUA_VVECTOR4: setfltvalue(s2v(ra), luaVec_length4(val_(o).f4)); break;
@@ -370,26 +371,48 @@ void luaVec_objlen (lua_State *L, StkId ra, const TValue *o) {
   #define l_vprintf(s,sz,f,...) ((void)(sz), sprintf(s,f,__VA_ARGS__))
 #endif
 
-int luaVec_rawget (lua_State *L, const lua_Float4 *v, int vdims, StkId key) {
+int luaVec_rawget (lua_State *L, const lua_Float4 *v, int vdims, TValue *key) {
   lua_Integer dim = 0;
-  const TValue *k = s2v(key);
-  if (ttisinteger(k) && (dim = ivalue(k)) >= 1 && dim <= vdims) {
-    setfltvalue(s2v(L->top), cast_num(luaV_getf4(v, (int)(dim - 1))));  /* Accessing is 0-based */
+  UNUSED(L);
+  if (ttisinteger(key) && (dim = ivalue(key)) >= 1 && dim <= vdims) {
+    setfltvalue(key, cast_num(luaV_getf4(v, (int)(dim - 1))));  /* Accessing is 0-based */
     return LUA_TNUMBER;
   }
-  else if (ttisstring(k)) {
+  else if (ttisstring(key)) {
     lua_Float4 out;
-    switch (luaVec_swizzle(svalue(k), v, vdims, &out)) {
-      case 1: setfltvalue(s2v(L->top), cast_num(out.x)); return LUA_TNUMBER;
-      case 2: setvvalue(s2v(L->top), out, LUA_VVECTOR2); return LUA_TVECTOR;
-      case 3: setvvalue(s2v(L->top), out, LUA_VVECTOR3); return LUA_TVECTOR;
-      case 4: setvvalue(s2v(L->top), out, LUA_VVECTOR4); return LUA_TVECTOR;
+    switch (luaVec_swizzle(svalue(key), v, vdims, &out)) {
+      case 1: setfltvalue(key, cast_num(out.x)); return LUA_TNUMBER;
+      case 2: setvvalue(key, out, LUA_VVECTOR2); return LUA_TVECTOR;
+      case 3: setvvalue(key, out, LUA_VVECTOR3); return LUA_TVECTOR;
+      case 4: setvvalue(key, out, LUA_VVECTOR4); return LUA_TVECTOR;
       default:
         break;
     }
   }
+  setnilvalue(key);
+  return LUA_TNIL;
+}
+
+int luaVec_rawgeti (lua_State* L, const lua_Float4* v, int vdims, lua_Integer n) {
+  if (n >= 1 && n <= vdims) {  /* Accessing is 0-based */
+    setfltvalue(s2v(L->top), cast_num(luaV_getf4(v, (int)(n - 1))));
+    return LUA_TNUMBER;
+  }
   setnilvalue(s2v(L->top));
   return LUA_TNIL;
+}
+
+int luavec_getstr (lua_State *L, const lua_Float4 *v, int vdims, const char *k) {
+  lua_Float4 out;
+  switch (luaVec_swizzle(k, v, vdims, &out)) {
+    case 1: setfltvalue(s2v(L->top), cast_num(out.x)); return LUA_TNUMBER;
+    case 2: setvvalue(s2v(L->top), out, LUA_VVECTOR2); return LUA_TVECTOR;
+    case 3: setvvalue(s2v(L->top), out, LUA_VVECTOR3); return LUA_TVECTOR;
+    case 4: setvvalue(s2v(L->top), out, LUA_VVECTOR4); return LUA_TVECTOR;
+    default:
+      setnilvalue(s2v(L->top));
+      return LUA_TNIL;
+  }
 }
 
 int luaVec_next (lua_State *L, const lua_Float4 *v, int vdims, StkId key) {
@@ -486,7 +509,7 @@ LUA_API const char *lua_pushvecstring (lua_State *L, int idx) {
 #define K_QUATERNION_ANGLE "angle"
 #define K_QUATERNION_AXIS "axis"
 
-void luaVec_getstring (lua_State *L, const TValue* t, const char* skey, TValue* key, StkId val) {
+void luaVec_getstring (lua_State *L, const TValue *t, const char *skey, TValue *key, StkId val) {
   lua_Float4 out;
   const TValue *tm = luaT_gettmbyobj(L, t, TM_INDEX);  /* table's metamethod */
   switch (ttypetag(t)) {
@@ -577,7 +600,7 @@ void luaVec_getstring (lua_State *L, const TValue* t, const char* skey, TValue* 
   }
 }
 
-void luaVec_getint (lua_State *L, const TValue *t, const lua_Integer key, TValue* pkey, StkId val) {
+void luaVec_getint (lua_State *L, const TValue *t, const lua_Integer key, TValue *pkey, StkId val) {
   const TValue *tm;
   switch (ttypetag(t)) {
     case LUA_VVECTOR3: {

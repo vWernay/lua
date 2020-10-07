@@ -23,7 +23,8 @@
 #define V_ONE (cast_vec(1.0))
 #define V_TWO (cast_vec(2.0))
 #define V_PI cast_vec(3.141592653589793238462643383279502884)
-#define V_ISZERO(a) (l_vecop(fabs)(a) <= LUA_VEC_NUMBER_EPS)
+#define V_ISZERO(a) (l_vecop(fabs)((a)) <= LUA_VEC_NUMBER_EPS)
+#define V_ISEQUAL(a, b) (V_ISZERO((a) - (b)) || ((a) == (b)))
 
 /* Default initializer for the zero vector */
 #define V_ZEROVEC { .x = V_ZERO, .y = V_ZERO, .z = V_ZERO, .w = V_ZERO }

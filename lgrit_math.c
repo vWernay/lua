@@ -173,9 +173,13 @@ __pragma(warning(disable : 26451))
 ** ===================================================================
 */
 
-/* Handle l_noret & unreachable code warnings */
-#define ERR_DIVZERO(L) luaG_runerror(L, "division by zero")
 #define ERR_INVALID_OP "Cannot use that op with %s and %s"
+
+/* TODO: Handle l_noret & unreachable code warnings */
+#define ERR_DIVZERO(L)                  \
+  LUA_MLM_BEGIN                         \
+  luaG_runerror(L, "division by zero"); \
+  LUA_MLM_END
 
 int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res, TMS event) {
   lua_Float4 nb, nc;
@@ -193,17 +197,13 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
       case TM_POW: PW3(l_vecop(pow), nb, nc, r); break;
       case TM_UNM: r.x = -nb.x; r.y = -nb.y; r.z = -nb.z; break;
       case TM_DIV:
-        if (V_ISZERO(nc.x) || V_ISZERO(nc.y) || V_ISZERO(nc.z)) {
+        if (V_ISZERO(nc.x) || V_ISZERO(nc.y) || V_ISZERO(nc.z))
           ERR_DIVZERO(L);
-        }
-
         PW3(DIVF, nb, nc, r);
         break;
       case TM_IDIV:
-        if (V_ISZERO(nc.x) || V_ISZERO(nc.y) || V_ISZERO(nc.z)) {
+        if (V_ISZERO(nc.x) || V_ISZERO(nc.y) || V_ISZERO(nc.z))
           ERR_DIVZERO(L);
-        }
-
         PW3(DIVF, nb, nc, r);
         OP3(l_vecop(floor), r, r);
         break;
@@ -254,17 +254,13 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
       case TM_POW: PW2(l_vecop(pow), nb, nc, r); break;
       case TM_UNM: r.x = -nb.x; r.y = -nb.y; break;
       case TM_DIV:
-        if (V_ISZERO(nc.x) || V_ISZERO(nc.y)) {
+        if (V_ISZERO(nc.x) || V_ISZERO(nc.y))
           ERR_DIVZERO(L);
-        }
-
         PW2(DIVF, nb, nc, r);
         break;
       case TM_IDIV:
-        if (V_ISZERO(nc.x) || V_ISZERO(nc.y)) {
+        if (V_ISZERO(nc.x) || V_ISZERO(nc.y))
           ERR_DIVZERO(L);
-        }
-
         PW2(DIVF, nb, nc, r);
         OP2(l_vecop(floor), r, r);
         break;
@@ -282,17 +278,13 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
       case TM_POW: PW4(l_vecop(pow), nb, nc, r); break;
       case TM_UNM: r.x = -nb.x; r.y = -nb.y; r.z = -nb.z; r.w = -nb.w; break;
       case TM_DIV:
-        if (V_ISZERO(nc.x) || V_ISZERO(nc.y) || V_ISZERO(nc.z) || V_ISZERO(nc.w)) {
+        if (V_ISZERO(nc.x) || V_ISZERO(nc.y) || V_ISZERO(nc.z) || V_ISZERO(nc.w))
           ERR_DIVZERO(L);
-        }
-
         PW4(DIVF, nb, nc, r);
         break;
       case TM_IDIV:
-        if (V_ISZERO(nc.x) || V_ISZERO(nc.y) || V_ISZERO(nc.z)) {
+        if (V_ISZERO(nc.x) || V_ISZERO(nc.y) || V_ISZERO(nc.z))
           ERR_DIVZERO(L);
-        }
-
         PW4(DIVF, nb, nc, r);
         OP4(l_vecop(floor), r, r);
         break;
@@ -310,17 +302,13 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
       case TM_MOD: SCALAR3(l_vecop(fmod), nb, nc_v, r); break;
       case TM_POW: SCALAR3(l_vecop(pow), nb, nc_v, r); break;
       case TM_DIV:
-        if (V_ISZERO(nc_v)) {
+        if (V_ISZERO(nc_v))
           ERR_DIVZERO(L);
-        }
-
         SCALAR3(DIVF, nb, nc_v, r);
         break;
       case TM_IDIV:
-        if (V_ISZERO(nc_v)) {
+        if (V_ISZERO(nc_v))
           ERR_DIVZERO(L);
-        }
-
         SCALAR3(DIVF, nb, nc_v, r);
         OP3(l_vecop(floor), r, r);
         break;
@@ -338,17 +326,13 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
       case TM_MOD: SCALAR2(l_vecop(fmod), nb, nc_v, r); break;
       case TM_POW: SCALAR2(l_vecop(pow), nb, nc_v, r); break;
       case TM_DIV:
-        if (V_ISZERO(nc_v)) {
+        if (V_ISZERO(nc_v))
           ERR_DIVZERO(L);
-        }
-
         SCALAR2(DIVF, nb, nc_v, r);
         break;
       case TM_IDIV:
-        if (V_ISZERO(nc_v)) {
+        if (V_ISZERO(nc_v))
           ERR_DIVZERO(L);
-        }
-
         SCALAR2(DIVF, nb, nc_v, r);
         OP2(l_vecop(floor), r, r);
         break;
@@ -366,17 +350,13 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
       case TM_MOD: SCALAR4(l_vecop(fmod), nb, nc_v, r); break;
       case TM_POW: SCALAR4(l_vecop(pow), nb, nc_v, r); break;
       case TM_DIV:
-        if (V_ISZERO(nc_v)) {
+        if (V_ISZERO(nc_v))
           ERR_DIVZERO(L);
-        }
-
         SCALAR4(DIVF, nb, nc_v, r);
         break;
       case TM_IDIV:
-        if (V_ISZERO(nc_v)) {
+        if (V_ISZERO(nc_v))
           ERR_DIVZERO(L);
-        }
-
         SCALAR4(DIVF, nb, nc_v, r);
         OP4(l_vecop(floor), r, r);
         break;
@@ -393,10 +373,8 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
       case TM_MUL: SCALAR3B(MULF, nc, nb_v, r); break;
       case TM_POW: SCALAR3B(l_vecop(pow), nc, nb_v, r); break;
       case TM_DIV:
-        if (V_ISZERO(nc.x) || V_ISZERO(nc.y) || V_ISZERO(nc.z)) {
+        if (V_ISZERO(nc.x) || V_ISZERO(nc.y) || V_ISZERO(nc.z))
           ERR_DIVZERO(L);
-        }
-
         SCALAR3B(DIVF, nc, nb_v, r);
         break;
       default:
@@ -412,10 +390,8 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
       case TM_MUL: SCALAR2B(MULF, nc, nb_v, r); break;
       case TM_POW: SCALAR2B(l_vecop(pow), nc, nb_v, r); break;
       case TM_DIV:
-        if (V_ISZERO(nc.x) || V_ISZERO(nc.y)) {
+        if (V_ISZERO(nc.x) || V_ISZERO(nc.y))
           ERR_DIVZERO(L);
-        }
-
         SCALAR2B(DIVF, nc, nb_v, r);
         break;
       default:
@@ -431,10 +407,8 @@ int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res
       case TM_MUL: SCALAR4B(MULF, nc, nb_v, r); break;
       case TM_POW: SCALAR4B(l_vecop(pow), nc, nb_v, r); break;
       case TM_DIV:
-        if (V_ISZERO(nc.x) || V_ISZERO(nc.y) || V_ISZERO(nc.z) || V_ISZERO(nc.w)) {
+        if (V_ISZERO(nc.x) || V_ISZERO(nc.y) || V_ISZERO(nc.z) || V_ISZERO(nc.w))
           ERR_DIVZERO(L);
-        }
-
         SCALAR4B(DIVF, nc, nb_v, r);
         break;
       default:

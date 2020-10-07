@@ -14,9 +14,9 @@
 #include "ltm.h"
 #include "lgrit_lib.h"
 
-#define V2_EQ(V, V2) luai_numeq((V).x, (V2).x) && luai_numeq((V).y, (V2).y)
-#define V3_EQ(V, V2) luai_numeq((V).z, (V2).z) && V2_EQ(V, V2)
-#define V4_EQ(V, V2) luai_numeq((V).w, (V2).w) && V3_EQ(V, V2)
+#define V2_EQ(V, V2) (V_ISEQUAL((V).x, (V2).x) && V_ISEQUAL((V).y, (V2).y))
+#define V3_EQ(V, V2) (V_ISEQUAL((V).z, (V2).z) && V2_EQ(V, V2))
+#define V4_EQ(V, V2) (V_ISEQUAL((V).w, (V2).w) && V3_EQ(V, V2))
 
 /*
 ** {==================================================================
@@ -122,7 +122,13 @@ LUAI_FUNC int lua_vector4 (lua_State *L);
 LUAI_FUNC int lua_quat (lua_State *L);
 
 /* rawget variant for vector types */
-LUAI_FUNC int luaVec_rawget (lua_State *L, const lua_Float4 *v, int vdims, StkId key);
+LUAI_FUNC int luaVec_rawget (lua_State *L, const lua_Float4 *v, int vdims, TValue *key);
+
+/* rawgeti variant for vector types */
+LUAI_FUNC int luaVec_rawgeti (lua_State *L, const lua_Float4 *v, int vdims, lua_Integer n);
+
+/* getfield/auxgetstr variant for vector types */
+LUAI_FUNC int luavec_getstr (lua_State *L, const lua_Float4 *v, int vdims, const char *k);
 
 /*
 ** Pops a key from the stack and pushes a <key, value> pair from the vector at
@@ -133,17 +139,11 @@ LUAI_FUNC int luaVec_rawget (lua_State *L, const lua_Float4 *v, int vdims, StkId
 */
 LUAI_FUNC int luaVec_next (lua_State *L, const lua_Float4 *v, int vdims, StkId key);
 
-/* Place the magnitude of the vector (o) at the specified stack index (ra) */
-LUAI_FUNC void luaVec_objlen (lua_State *L, StkId ra, const TValue *o);
-
 /* converts a vector to a string. */
 LUAI_FUNC int luaVec_tostr (char *buff, size_t len, const lua_Float4 v, int variant);
 
 /* Parse the string object and return the number of dimensions to the vector. */
 LUAI_FUNC int luaVec_pullstring (lua_State *L, const TValue *o, lua_Float4 *sink);
-
-/* */
-LUAI_FUNC int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res, TMS event);
 
 /*
 ** Attempt to parse the provided table as a vector, i.e., check if the table has
@@ -153,7 +153,7 @@ LUAI_FUNC int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2,
 ** Returning the number of valid vector dimensions (bounded by the first
 ** dimension that is nil or not-numeric) the table has.
 */
-LUAI_FUNC int luaVec_parse (lua_State* L, const TValue* o, lua_Float4 *v);
+LUAI_FUNC int luaVec_parse (lua_State* L, const TValue *o, lua_Float4 *v);
 
 /*
 ** Unpack an individual vector and place its contents to onto the Lua stack,
@@ -161,20 +161,40 @@ LUAI_FUNC int luaVec_parse (lua_State* L, const TValue* o, lua_Float4 *v);
 */
 LUAI_FUNC int lua_unpackvec (lua_State *L);
 
+/* Number of dimensions associated with the vector object */
+static LUA_INLINE int luaVec_dimensions (const TValue *o) {
+  switch (rawtt(o)) {
+    case LUA_VNUMINT:
+    case LUA_VVECTOR1: return 1;
+    case LUA_VVECTOR2: return 2;
+    case LUA_VVECTOR3: return 3;
+    case LUA_VVECTOR4: return 4;
+    case LUA_VQUAT: return 4;
+    default:
+      return 0;
+  }
+}
+
 /* }================================================================== */
 
 /*
 ** {==================================================================
-** LVM
+** LVM & LTM
 ** ===================================================================
 */
+
+/* */
+LUAI_FUNC int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res, TMS event);
+
+/* Place the magnitude of the vector (o) at the specified stack index (ra) */
+LUAI_FUNC void luaVec_objlen (lua_State *L, StkId ra, const TValue *o);
 
 /*
 ** Access the contents of a vector type through string-indexing. Returning 1 if
 ** the TValue has been parsed & the StkId has been set.
 */
-LUAI_FUNC void luaVec_getstring (lua_State *L, const TValue* t,
-                                      const char* skey, TValue* key, StkId val);
+LUAI_FUNC void luaVec_getstring (lua_State *L, const TValue *t,
+                                      const char *skey, TValue *key, StkId val);
 
 /*
 ** Access the contents of a vector type through int-indexing, x = 1, y = 2,
@@ -184,7 +204,7 @@ LUAI_FUNC void luaVec_getstring (lua_State *L, const TValue* t,
 ** Returning 1 if the TValue has been parsed & the StkId has been set.
 */
 LUAI_FUNC void luaVec_getint (lua_State *L, const TValue *t, const
-                                      lua_Integer key, TValue* pkey, StkId val);
+                                      lua_Integer key, TValue *pkey, StkId val);
 
 #if defined(GRIT_USE_PATH)
 /*

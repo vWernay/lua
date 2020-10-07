@@ -342,17 +342,17 @@ LUA_API void *lua_valuetouserdata (lua_State *L, TValue o) {
 }
 
 LUA_API lua_Integer lua_utointeger (lua_State* L, int idx) {
-  const TValue* val = s2v(L->ci->func + idx);
+  const TValue *val = s2v(L->ci->func + idx);
   return val->value_.i;
 }
 
 LUA_API lua_Number lua_utonumber (lua_State* L, int idx) {
-  const TValue* val = s2v(L->ci->func + idx);
+  const TValue *val = s2v(L->ci->func + idx);
   return val->value_.n;
 }
 
 LUA_API int lua_asserttop (const lua_State* L, int idx) {
-  const TValue* o = s2v(L->ci->func + idx);
+  const TValue *o = s2v(L->ci->func + idx);
   if (o >= s2v(L->top)) return 0;
   return 1;
 }
@@ -410,20 +410,22 @@ LUA_API int lua_isnumber (lua_State *L, int idx) {
 
 
 LUA_API int lua_isvector (lua_State *L, int idx, int flags) {
+  int result = 0;
   const TValue *o = index2value(L, idx);
   if (ttistable(o) && (flags & V_PARSETABLE) != 0) {
     switch (luaVec_parse(L, o, NULL)) {
-      case 4: return LUA_VVECTOR4;
-      case 3: return LUA_VVECTOR3;
-      case 2: return LUA_VVECTOR2;
-      default: return 0;
+      case 4: result = LUA_VVECTOR4; break;
+      case 3: result = LUA_VVECTOR3; break;
+      case 2: result = LUA_VVECTOR2; break;
+      default:
+        break;
     }
   }
   else if (ttisvector(o))
-    return ttypetag(o);
+    result = ttypetag(o);
   else if (ttisnumber(o) && (flags & V_NONUMBER) == 0)
-    return LUA_VVECTOR1;
-  return 0;
+    result = LUA_VVECTOR1;
+  return result;
 }
 
 
@@ -848,8 +850,16 @@ LUA_API int lua_gettable (lua_State *L, int idx) {
 
 
 LUA_API int lua_getfield (lua_State *L, int idx, const char *k) {
+  TValue *t;
   lua_lock(L);
-  return auxgetstr(L, index2value(L, idx), k);
+  t = index2value(L, idx);
+  if (ttisvector(t)) {
+    int vt = luavec_getstr(L, &(val_(t).f4), luaVec_dimensions(t), k);
+    api_incr_top(L);
+    lua_unlock(L);
+    return vt;
+  }
+  return auxgetstr(L, t, k);
 }
 
 
@@ -858,7 +868,9 @@ LUA_API int lua_geti (lua_State *L, int idx, lua_Integer n) {
   const TValue *slot;
   lua_lock(L);
   t = index2value(L, idx);
-  if (luaV_fastgeti(L, t, n, slot)) {
+  if (ttisvector(t))
+    luaVec_rawgeti(L, &(val_(t).f4), luaVec_dimensions(t), n);
+  else if (luaV_fastgeti(L, t, n, slot)) {
     setobj2s(L, L->top, slot);
   }
   else {
@@ -890,19 +902,25 @@ static Table *gettable (lua_State *L, int idx) {
 }
 
 
+static Table *ensuretable (lua_State *L, const TValue *t) {
+  api_check(L, ttistable(t), "table expected");
+  return hvalue(t);
+}
+
+
 LUA_API int lua_rawget (lua_State *L, int idx) {
-  int vt;
+  const TValue *v;
   lua_lock(L);
   api_checknelems(L, 1);
-  if ((vt = lua_isvector(L, idx, V_NOTABLE | V_NONUMBER)) != 0) {
-    const TValue *v = index2value(L, idx);
-    vt = luaVec_rawget(L, &(val_(v).f4), lua_dimensions_count(L, vt), L->top - 1);
-    api_incr_top(L);
+  v = index2value(L, idx);
+  if (ttisvector(v)) {
+    const int dims = luaVec_dimensions(v);
+    const int vt = luaVec_rawget(L, &(val_(v).f4), dims, s2v(L->top - 1));
     lua_unlock(L);
     return vt;
   }
   else {
-    Table *t = gettable(L, idx);
+    Table *t = ensuretable(L, v);
     const TValue *val = luaH_get(t, s2v(L->top - 1));
     L->top--;  /* remove key */
     return finishrawget(L, val);
@@ -911,10 +929,19 @@ LUA_API int lua_rawget (lua_State *L, int idx) {
 
 
 LUA_API int lua_rawgeti (lua_State *L, int idx, lua_Integer n) {
-  Table *t;
+  const TValue *v;
   lua_lock(L);
-  t = gettable(L, idx);
-  return finishrawget(L, luaH_getint(t, n));
+  v = index2value(L, idx);
+  if (ttisvector(v)) {
+    const int vt = luaVec_rawgeti(L, &(val_(v).f4), luaVec_dimensions(v), n);
+    api_incr_top(L);
+    lua_unlock(L);
+    return vt;
+  }
+  else {
+    Table *t = ensuretable(L, v);
+    return finishrawget(L, luaH_getint(t, n));
+  }
 }
 
 
@@ -1427,17 +1454,16 @@ LUA_API int lua_error (lua_State *L) {
 
 
 LUA_API int lua_next (lua_State *L, int idx) {
-  int vt;
   int more;
+  const TValue *v;
   lua_lock(L);
   api_checknelems(L, 1);
-  if ((vt = lua_isvector(L, idx, V_NOTABLE | V_NONUMBER)) != 0) {
-    const TValue *v = index2value(L, idx);
-    api_check(L, ttisvector(v), "vector expected");
-    more = luaVec_next(L, &(val_(v).f4), lua_dimensions_count(L, vt), L->top - 1);
+  v = index2value(L, idx);
+  if (ttisvector(v)) {
+    more = luaVec_next(L, &(val_(v).f4), luaVec_dimensions(v), L->top - 1);
   }
   else {
-    Table *t = gettable(L, idx);
+    Table *t = ensuretable(L, v);
     more = luaH_next(L, t, L->top - 1);
   }
   if (more) {

@@ -131,13 +131,13 @@ IF (CMAKE_COMPILER_IS_CLANGCC)
   ADD_COMPILE_OPTIONS (
     -ferror-limit=5
     -fno-common
-    -Weverything
-    -Wno-gnu-zero-variadic-macro-arguments
-    -Wno-covered-switch-default
-    -Wno-reserved-id-macro
-    -Wno-unused-macros
-    -Wno-padded
-    -Wno-extra-semi-stmt
+    #-Weverything
+    #-Wno-gnu-zero-variadic-macro-arguments
+    #-Wno-covered-switch-default
+    #-Wno-reserved-id-macro
+    #-Wno-unused-macros
+    #-Wno-padded
+    #-Wno-extra-semi-stmt
   )
 ELSEIF (CMAKE_COMPILER_IS_GNUCC)
   ADD_COMPILE_OPTIONS (

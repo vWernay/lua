@@ -108,7 +108,6 @@ checkmessage("a = #3", "length of a number value")
 
 aaa = nil
 checkmessage("aaa.bbb:ddd(9)", "global 'aaa'")
-checkmessage("local aaa={bbb=1}; aaa.bbb:ddd(9)", "invalid vector field: 'ddd'") -- Vector indexing
 checkmessage("local aaa={bbb={}}; aaa.bbb:ddd(9)", "method 'ddd'")
 checkmessage("local a,b,c; (function () a = b+1.1 end)()", "upvalue 'b'")
 assert(not doit"local aaa={bbb={ddd=next}}; aaa.bbb:ddd(nil)")
