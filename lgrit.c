@@ -31,7 +31,7 @@
 static const char* const dims[] = { "x", "y", "z", "w" };
 
 /* If you lie to the compiler, it will get its revenge. */
-static void luaV_assignf4 (lua_Float4 *to, int index, lua_VecF n) {
+static LUA_INLINE void luaV_assignf4 (lua_Float4 *to, int index, lua_VecF n) {
   switch (index) {
     case 0: to->x = n; break;
     case 1: to->y = n; break;
@@ -41,7 +41,7 @@ static void luaV_assignf4 (lua_Float4 *to, int index, lua_VecF n) {
   }
 }
 
-static lua_VecF luaV_getf4 (const lua_Float4 *to, int index) {
+static LUA_INLINE lua_VecF luaV_getf4 (const lua_Float4 *to, int index) {
   switch (index) {
     case 0: return to->x;
     case 1: return to->y;
@@ -52,28 +52,20 @@ static lua_VecF luaV_getf4 (const lua_Float4 *to, int index) {
   }
 }
 
-static int luaV_checkdimension (const char *v) {
-  int i;
-  for (i = 0; i < 4; i++) {
-    if (strcmp(dims[i], v) == 0)
-      return i;
-  }
-  return -1;
-}
-
-static int luaVec_swizzle (const char *key, const lua_Float4 *from, int from_sz,
-                                                               lua_Float4 *to) {
+static int luaVec_swizzle (const char *key, size_t key_len,
+                          const lua_Float4 *from, int from_sz, lua_Float4 *to) {
   int counter = 0;
-  while (key[counter] != '\0') {
+  if (key_len == 0 || key_len > 4)
+    return 0;
+
+  for (; counter < (int)key_len; ++counter) {
     switch (key[counter]) {
-      case 'x': if (from_sz < 1) { return 0; } luaV_assignf4(to, counter, from->x); break;
-      case 'y': if (from_sz < 2) { return 0; } luaV_assignf4(to, counter, from->y); break;
-      case 'z': if (from_sz < 3) { return 0; } luaV_assignf4(to, counter, from->z); break;
-      case 'w': if (from_sz < 4) { return 0; } luaV_assignf4(to, counter, from->w); break;
+      case 'x': if (from_sz < 1) return 0; luaV_assignf4(to, counter, from->x); break;
+      case 'y': if (from_sz < 2) return 0; luaV_assignf4(to, counter, from->y); break;
+      case 'z': if (from_sz < 3) return 0; luaV_assignf4(to, counter, from->z); break;
+      case 'w': if (from_sz < 4) return 0; luaV_assignf4(to, counter, from->w); break;
       default: return 0;
     }
-    if ((++counter) > 4)
-      return 0;
   }
   return counter;
 }
@@ -84,43 +76,23 @@ static int luaVec_swizzle (const char *key, const lua_Float4 *from, int from_sz,
 ** ===================================================================
 */
 
-/* Note: luaVec_parse ensures stack-space */
-static LUA_INLINE int vectable_getstr (lua_State *L, const TValue *t, const char *k) {
-  const TValue *val = NULL;
-  TString *ts = luaS_newlstr(L, k, 1);
-  lua_assert(ts->tt == LUA_VSHRSTR);
-
-  /* TODO: temporarily anchor on stack? */
-  val = ttistable(t) ? luaH_getshortstr(hvalue(t), ts) : &G(L)->nilvalue;
-  if (isempty(val))
-    setnilvalue(s2v(L->top));
-  else
-    setobj2s(L, L->top, val);
-  L->top++;
-  return ttype(s2v(L->top - 1));
-}
-
 int luaVec_parse (lua_State* L, const TValue *o, lua_Float4 *v) {
-  if (v != NULL) {  /* Ensure vector data is cleared */
-    v->x = v->y = v->z = v->w = V_ZERO;
-  }
-
   if (ttisvector(o)) {
-    if (v != NULL)
-      *v = vvalue(o);
+    if (v != NULL) *v = vvalue(o);
     return luaVec_dimensions(o);
   }
   else if (ttistable(o)) {
-    int i, count = 0;
-    luaL_checkstack(L, 4, NULL);  /* ensure table space */
-    for (i = 0; i < 4; ++i) {
-      if (vectable_getstr(L, o, dims[i]) == LUA_TNUMBER) {
+    int count = 0;
+    if (v != NULL)  /* Ensure vector data is cleared */
+      v->x = v->y = v->z = v->w = V_ZERO;
+
+    for (int i = 0; i < 4; ++i) {
+      const TValue *slot = NULL;
+      TString *str = luaS_new(L, dims[i]);
+      if (luaV_fastget(L, o, str, slot, luaH_getstr) && ttisnumber(slot)) {
+        count++;
         if (v != NULL)
-          luaV_assignf4(v, i, cast_vec(nvalue(s2v(L->top - 1))));
-        L->top--; count++;
-      }
-      else {
-        L->top--; break;
+          luaV_assignf4(v, i, cast_vec(nvalue(slot)));
       }
     }
     return count;
@@ -380,7 +352,7 @@ int luaVec_rawget (lua_State *L, const lua_Float4 *v, int vdims, TValue *key) {
   }
   else if (ttisstring(key)) {
     lua_Float4 out;
-    switch (luaVec_swizzle(svalue(key), v, vdims, &out)) {
+    switch (luaVec_swizzle(svalue(key), vslen(key), v, vdims, &out)) {
       case 1: setfltvalue(key, cast_num(out.x)); return LUA_TNUMBER;
       case 2: setvvalue(key, out, LUA_VVECTOR2); return LUA_TVECTOR;
       case 3: setvvalue(key, out, LUA_VVECTOR3); return LUA_TVECTOR;
@@ -404,7 +376,7 @@ int luaVec_rawgeti (lua_State* L, const lua_Float4* v, int vdims, lua_Integer n)
 
 int luavec_getstr (lua_State *L, const lua_Float4 *v, int vdims, const char *k) {
   lua_Float4 out;
-  switch (luaVec_swizzle(k, v, vdims, &out)) {
+  switch (luaVec_swizzle(k, strlen(k), v, vdims, &out)) {
     case 1: setfltvalue(s2v(L->top), cast_num(out.x)); return LUA_TNUMBER;
     case 2: setvvalue(s2v(L->top), out, LUA_VVECTOR2); return LUA_TVECTOR;
     case 3: setvvalue(s2v(L->top), out, LUA_VVECTOR3); return LUA_TVECTOR;
@@ -424,15 +396,24 @@ int luaVec_next (lua_State *L, const lua_Float4 *v, int vdims, StkId key) {
     more = 1;
   }
   else if (ttisinteger(k)) {
-    lua_Integer dim = ivalue(k);
+    const lua_Integer dim = ivalue(k);
     if (dim >= 0 && dim < vdims) {  /* Allow 0 as an initial value (although invalid) */
       setivalue(s2v(key), dim + 1);  /* Iterator values are 1-based */
       setfltvalue(s2v(key + 1), cast_num(luaV_getf4(v, (int)dim)));  /* Accessing is 0-based */
       more = 1;
     }
   }
-  else if (ttisstring(k)) {
-    int dim = luaV_checkdimension(svalue(k));
+  else if (ttisstring(k) && vslen(k) == 1) {
+    int dim = 0;
+    switch (svalue(k)[0]) {
+      case 'x': dim = 0; break;
+      case 'y': dim = 1; break;
+      case 'z': dim = 2; break;
+      case 'w': dim = 3; break;
+      default:
+        return more;
+    }
+
     if (dim >= 0 && dim < (vdims - 1)) {
       setsvalue(L, s2v(key), luaS_new(L, dims[dim + 1]));
       setfltvalue(s2v(key + 1), cast_num(luaV_getf4(v, dim + 1)));
@@ -505,135 +486,61 @@ LUA_API const char *lua_pushvecstring (lua_State *L, int idx) {
 ** ===================================================================
 */
 
-#define K_VECTOR_DIMENSIONS "dim"
-#define K_QUATERNION_ANGLE "angle"
-#define K_QUATERNION_AXIS "axis"
-
 void luaVec_getstring (lua_State *L, const TValue *t, const char *skey, TValue *key, StkId val) {
+  int out_s;
   lua_Float4 out;
-  const TValue *tm = luaT_gettmbyobj(L, t, TM_INDEX);  /* table's metamethod */
-  switch (ttypetag(t)) {
-    case LUA_VVECTOR3: {
-      switch (luaVec_swizzle(skey, &val_(t).f4, 3, &out)) {
-        case 1: setfltvalue(s2v(val), cast_num(out.x)); return;
-        case 2: setvvalue(s2v(val), out, LUA_VVECTOR2); return;
-        case 3: setvvalue(s2v(val), out, LUA_VVECTOR3); return;
-        case 4: setvvalue(s2v(val), out, LUA_VVECTOR4); return;
-        default: {
-          if (ttisnil(tm) && strcmp(skey, K_VECTOR_DIMENSIONS) == 0) {
-            setfltvalue(s2v(val), 3);
-            return;
-          }
-          break;
-        }
-      }
-      break;
+  const TValue *tm;
+  if (ttisnumber(t))  /* Ignore swizzling numbers/implicit vec1. */
+    luaV_finishget(L, t, key, val, NULL);
+  else if ((out_s = luaVec_swizzle(skey, vslen(key), &val_(t).f4, luaVec_dimensions(t), &out)) > 0) {
+    switch (out_s) {
+      case 1: setfltvalue(s2v(val), cast_num(out.x)); break;
+      case 2: setvvalue(s2v(val), out, LUA_VVECTOR2); break;
+      case 3: setvvalue(s2v(val), out, LUA_VVECTOR3); break;
+      case 4: setvvalue(s2v(val), out, LUA_VVECTOR4); break;
+      default:
+        setfltvalue(s2v(val), cast_num(0));
+        break;
     }
-    case LUA_VQUAT: {
-      switch (luaVec_swizzle(skey, &val_(t).f4, 4, &out)) {
-        case 1: setfltvalue(s2v(val), cast_num(out.x)); return;
-        case 2: setvvalue(s2v(val), out, LUA_VVECTOR2); return;
-        case 3: setvvalue(s2v(val), out, LUA_VVECTOR3); return;
-        case 4: setvvalue(s2v(val), out, LUA_VVECTOR4); return;
-        default: {
-          if (ttisnil(tm)) {  /* axis & angle can be overridden by a metatable */
-            lua_Float4 v = val_(t).f4;
-            if (strcmp(skey, K_QUATERNION_ANGLE) == 0) {
-              setfltvalue(s2v(val), luaVec_axisangle(v));
-              return;
-            }
-            else if (strcmp(skey, K_QUATERNION_AXIS) == 0) {
-              lua_Float4 r;
-              if (luaVec_axis(v, &r)) {
-                setvvalue(s2v(val), r, LUA_VVECTOR3);
-              }
-              else
-                luaG_runerror(L, "Identity quaternion has no axis");
-              return;
-            }
-          }
-          break;
-        }
-      }
-      break;
-    }
-    case LUA_VVECTOR2: {
-      switch (luaVec_swizzle(skey, &val_(t).f4, 2, &out)) {
-        case 1: setfltvalue(s2v(val), cast_num(out.x)); return;
-        case 2: setvvalue(s2v(val), out, LUA_VVECTOR2); return;
-        case 3: setvvalue(s2v(val), out, LUA_VVECTOR3); return;
-        case 4: setvvalue(s2v(val), out, LUA_VVECTOR4); return;
-        default: {
-          if (ttisnil(tm) && strcmp(skey, K_VECTOR_DIMENSIONS) == 0) {
-            setfltvalue(s2v(val), 2);
-            return;
-          }
-          break;
-        }
-      }
-      break;
-    }
-    case LUA_VVECTOR4: {
-      switch (luaVec_swizzle(skey, &val_(t).f4, 4, &out)) {
-        case 1: setfltvalue(s2v(val), cast_num(out.x)); return;
-        case 2: setvvalue(s2v(val), out, LUA_VVECTOR2); return;
-        case 3: setvvalue(s2v(val), out, LUA_VVECTOR3); return;
-        case 4: setvvalue(s2v(val), out, LUA_VVECTOR4); return;
-        default: {
-          if (ttisnil(tm) && strcmp(skey, K_VECTOR_DIMENSIONS) == 0) {
-            setfltvalue(s2v(val), 4);
-            return;
-          }
-          break;
-        }
-      }
-      break;
-    }
-    default:
-      break;
   }
-
-  if (ttisnil(tm)) {
-    luaG_runerror(L, "invalid " LABEL_VECTOR " field: '%s'", skey);
-  } else {
+  /* Dimension fields takes priority over metamethods */
+  else if (strcmp(skey, "dim") == 0 || strcmp(skey, "n") == 0) {
+    setivalue(s2v(val), luaVec_dimensions(t));
+  }
+  /* Default functions when the LUA_TVECTOR does not have a debug metatable. */
+  else if (tm = luaT_gettmbyobj(L, t, TM_INDEX), ttisnil(tm)) {
+    if (ttisquat(t)) {
+      if (strcmp(skey, "angle") == 0) {
+        setfltvalue(s2v(val), luaVec_axisangle(val_(t).f4));
+      }
+      else if (strcmp(skey, "axis") == 0) {
+        lua_Float4 r;
+        luaVec_axis(val_(t).f4, &r);
+        setvvalue(s2v(val), r, LUA_VVECTOR3);
+      }
+      else
+        luaG_runerror(L, "invalid " LABEL_QUATERN " field: '%s'", skey);
+    }
+    else
+      luaG_runerror(L, "invalid " LABEL_VECTOR " field: '%s'", skey);
+  }
+  else {
     luaV_finishget(L, t, key, val, NULL);
   }
 }
 
 void luaVec_getint (lua_State *L, const TValue *t, const lua_Integer key, TValue *pkey, StkId val) {
   const TValue *tm;
-  switch (ttypetag(t)) {
-    case LUA_VVECTOR3: {
-      switch(key) {
-        case 1: setfltvalue(s2v(val), cast_num(val_(t).f4.x)); return;
-        case 2: setfltvalue(s2v(val), cast_num(val_(t).f4.y)); return;
-        case 3: setfltvalue(s2v(val), cast_num(val_(t).f4.z)); return;
-        default: break;
-      }
-      break;
+  const int dimensions = luaVec_dimensions(t);
+  if (dimensions > 1 && key >= 1 && key <= dimensions) {
+    switch(key) {
+      case 1: setfltvalue(s2v(val), cast_num(val_(t).f4.x)); return;
+      case 2: setfltvalue(s2v(val), cast_num(val_(t).f4.y)); return;
+      case 3: setfltvalue(s2v(val), cast_num(val_(t).f4.z)); return;
+      case 4: setfltvalue(s2v(val), cast_num(val_(t).f4.w)); return;
+      default:
+        break;
     }
-    case LUA_VQUAT:
-    case LUA_VVECTOR4: {
-      switch(key) {
-        case 1: setfltvalue(s2v(val), cast_num(val_(t).f4.x)); return;
-        case 2: setfltvalue(s2v(val), cast_num(val_(t).f4.y)); return;
-        case 3: setfltvalue(s2v(val), cast_num(val_(t).f4.z)); return;
-        case 4: setfltvalue(s2v(val), cast_num(val_(t).f4.w)); return;
-        default: break;
-      }
-      break;
-    }
-    case LUA_VVECTOR2: {
-      switch(key) {
-        case 1: setfltvalue(s2v(val), cast_num(val_(t).f4.x)); return;
-        case 2: setfltvalue(s2v(val), cast_num(val_(t).f4.y)); return;
-        default: break;
-      }
-      break;
-    }
-    case LUA_VVECTOR1: /* Attempting to index a number, ignore */
-    default:
-      break;
   }
 
   tm = luaT_gettmbyobj(L, t, TM_INDEX);  /* table's metamethod */

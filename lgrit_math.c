@@ -508,19 +508,17 @@ lua_Number luaVec_axisangle (const lua_Float4 v) {
 }
 
 int luaVec_axis (const lua_Float4 v, lua_Float4 *r) {
-  if (l_vecop(fabs)(DOT4(cast_vec, v, v) - V_ONE) <= LUA_VEC_NUMBER_EPS) {
-    lua_VecF rcpSin = V_ONE / l_vecop(sqrt)(V_ONE - v.w * v.w);
+  const lua_VecF rcp = V_ONE - (v.w * v.w);
+  if (rcp >= LUA_VEC_NUMBER_EPS) {
+    lua_VecF rcpSin = V_ONE / l_vecop(sqrt)(rcp);
     r->w = V_ZERO;
     r->x = rcpSin * v.x;
     r->y = rcpSin * v.y;
     r->z = rcpSin * v.z;
   }
   else {
-#if defined(GRIT_IDENTITY_ERROR)
-    return 0;
-#else
-    r->x = r->y = r->z = r->w = V_ZERO;
-#endif
+    r->z = V_ONE;
+    r->x = r->y = r->w = V_ZERO;
   }
   return 1;
 }
