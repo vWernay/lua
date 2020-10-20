@@ -14,6 +14,7 @@
 #include <string.h>
 
 #include "lua.h"
+#include "lgrit_lib.h"
 
 #include "ldebug.h"
 #include "ldo.h"
@@ -104,8 +105,8 @@ static lua_Integer loadInteger (LoadState *S) {
 }
 
 
-static lua_Float4 loadFloat4 (LoadState *S) {
-  lua_Float4 x;
+static lua_VecF loadVecF (LoadState *S) {
+  lua_VecF x;
   loadVar(S, x);
   return x;
 }
@@ -184,11 +185,33 @@ static void loadConstants (LoadState *S, Proto *f) {
       case LUA_VNUMINT:
         setivalue(o, loadInteger(S));
         break;
-      case LUA_VVECTOR2:
-      case LUA_VVECTOR3:
-      case LUA_VVECTOR4: case LUA_VQUAT:
-        setvvalue(o, loadFloat4(S), t);
+      case LUA_VVECTOR2: {
+        lua_Float4 f4;
+        f4.x = loadVecF(S);
+        f4.y = loadVecF(S);
+        f4.z = V_ZERO;
+        f4.w = V_ZERO;
+        setvvalue(o, f4, t);
         break;
+      }
+      case LUA_VVECTOR3: {
+        lua_Float4 f4;
+        f4.x = loadVecF(S);
+        f4.y = loadVecF(S);
+        f4.z = loadVecF(S);
+        f4.w = V_ZERO;
+        setvvalue(o, f4, t);
+        break;
+      }
+      case LUA_VVECTOR4: case LUA_VQUAT: {
+        lua_Float4 f4;
+        f4.x = loadVecF(S);
+        f4.y = loadVecF(S);
+        f4.z = loadVecF(S);
+        f4.w = loadVecF(S);
+        setvvalue(o, f4, t);
+        break;
+      }
       case LUA_VSHRSTR:
       case LUA_VLNGSTR:
         setsvalue2n(S->L, o, loadString(S, f));
