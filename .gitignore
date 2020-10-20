@@ -12,6 +12,7 @@ testes/time.txt
 testes/time-debug.txt
 testes/libs/all
 manual/manual.html
+temp
 
 # MSYS
 lua.exe
