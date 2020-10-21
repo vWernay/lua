@@ -492,6 +492,24 @@ void luaVec_getstring (lua_State *L, const TValue *t, const char *skey, TValue *
   const TValue *tm;
   if (ttisnumber(t))  /* Ignore swizzling numbers/implicit vec1. */
     luaV_finishget(L, t, key, val, NULL);
+  else if (vslen(key) == 1) {
+    int index = -1;
+    lua_VecF v = V_ZERO;
+    switch (*skey) {
+      case 'x': index = 0; v = val_(t).f4.x; break;
+      case 'y': index = 1; v = val_(t).f4.y; break;
+      case 'z': index = 2; v = val_(t).f4.z; break;
+      case 'w': index = 3; v = val_(t).f4.w; break;
+      default:
+        break;
+    }
+
+    if (index >= 0 && index < luaVec_dimensions(t)) {
+      setfltvalue(s2v(val), cast_num(v));
+    }
+    else
+      luaV_finishget(L, t, key, val, NULL);
+  }
   else if ((out_s = luaVec_swizzle(skey, vslen(key), &val_(t).f4, luaVec_dimensions(t), &out)) > 0) {
     switch (out_s) {
       case 1: setfltvalue(s2v(val), cast_num(out.x)); break;
