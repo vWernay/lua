@@ -1026,7 +1026,7 @@ static void setvararg (FuncState *fs, int nparams) {
 
 
 static void parlist (LexState *ls) {
-  /* parlist -> [ param { ',' param } ] */
+  /* parlist -> [ {NAME ','} (NAME | '...') ] */
   FuncState *fs = ls->fs;
   Proto *f = fs->f;
   int nparams = 0;
@@ -1034,12 +1034,12 @@ static void parlist (LexState *ls) {
   if (ls->t.token != ')') {  /* is 'parlist' not empty? */
     do {
       switch (ls->t.token) {
-        case TK_NAME: {  /* param -> NAME */
+        case TK_NAME: {
           new_localvar(ls, str_checkname(ls));
           nparams++;
           break;
         }
-        case TK_DOTS: {  /* param -> '...' */
+        case TK_DOTS: {
           luaX_next(ls);
           isvararg = 1;
           break;
@@ -2093,7 +2093,7 @@ static void checktoclose (LexState *ls, int level) {
 
 
 static void localstat (LexState *ls) {
-  /* stat -> LOCAL ATTRIB NAME {',' ATTRIB NAME} [IN primaryexp | '=' explist] */
+  /* stat -> LOCAL NAME ATTRIB {',' NAME ATTRIB} [IN primaryexp | '=' explist] */
   FuncState *fs = ls->fs;
   int toclose = -1;  /* index of to-be-closed variable (if any) */
   Vardesc *var;  /* last variable */
