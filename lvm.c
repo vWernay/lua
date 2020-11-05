@@ -355,7 +355,7 @@ void luaV_finishset (lua_State *L, const TValue *t, TValue *key,
        */
       tm = luaT_gettmbyobj(L, t, TM_NEWINDEX);
       if (unlikely(notm(tm))) {
-        if (ttisgrit(t))
+        if (ttype(t) == LUA_TVECTOR)
           luaG_runerror(L, "attempting to mutate a vector value");
         else
           luaG_typeerror(L, t, "index");
@@ -1342,7 +1342,7 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
         const TValue *slot;
         TValue *upval = cl->upvals[GETARG_B(i)]->v;
         TValue *rc = KC(i);
-        if (ttisgrit(upval))  /* key must be a string */
+        if (ttype(upval) == LUA_TVECTOR)  /* key must be a string */
           Protect(luaVec_getstring(L, upval, svalue(rc), rc, ra));
         else {
           TString *key = tsvalue(rc);  /* key must be a string */
@@ -1357,9 +1357,11 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
       vmcase(OP_GETTABLE) {
         TValue *rb = vRB(i);
         TValue *rc = vRC(i);
-        if (ttisgrit(rb)) {
+        if (ttype(rb) == LUA_TVECTOR) {
           if (ttisinteger(rc))
             Protect(luaVec_getint(L, rb, ivalue(rc), rc, ra));
+          else if (ttisstring(rc))
+            Protect(luaVec_getstring(L, rb, svalue(rc), rc, ra));
           /* Following ltable.c: TValue *luaH_get() */
           else if (ttisfloat(rc)) {
             lua_Integer fInd;
@@ -1368,8 +1370,6 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
             else
               luaG_runerror(L, "Attempting to index unknown value");
           }
-          else if (ttisstring(rc))
-            Protect(luaVec_getstring(L, rb, svalue(rc), rc, ra));
           else {
             luaG_runerror(L, "Attempting to index unknown value");
           }
@@ -1390,10 +1390,15 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
       vmcase(OP_GETI) {
         TValue *rb = vRB(i);
         int c = GETARG_C(i);
-        if (ttisgrit(rb)) {
-          TValue key;
-          setivalue(&key, c);
-          Protect(luaVec_getint(L, rb, c, &key, ra));
+        if (ttype(rb) == LUA_TVECTOR) {
+          if (c >= 1 && c <= luaVec_dimensions(rb)) {
+            setfltvalue(s2v(ra), cast_num((&(val_(rb).f4.x))[c - 1]));
+          }
+          else {
+            TValue key;
+            setivalue(&key, c);
+            luaVec_getint(L, rb, c, &key, ra);
+          }
         }
         else {
           const TValue *slot;
@@ -1411,7 +1416,7 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
       vmcase(OP_GETFIELD) {
         TValue *rb = vRB(i);
         TValue *rc = KC(i);
-        if (ttisgrit(rb)) {
+        if (ttype(rb) == LUA_TVECTOR) {
           Protect(luaVec_getstring(L, rb, svalue(rc), rc, ra));
         }
         else {
@@ -1500,7 +1505,7 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
         TValue *rb = vRB(i);
         TValue *rc = RKC(i);
         setobj2s(L, ra + 1, rb);
-        if (ttisgrit(rb))  /* key must be a string */
+        if (ttype(rb) == LUA_TVECTOR)  /* key must be a string */
           Protect(luaVec_getstring(L, rb, svalue(rc), rc, ra));
         else {
           const TValue *slot;

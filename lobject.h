@@ -354,7 +354,6 @@ typedef struct GCObject {
 #define ttisvector3(o)  checktag((o), LUA_VVECTOR3)
 #define ttisvector4(o)  checktag((o), LUA_VVECTOR4)
 #define ttisquat(o)     checktag((o), LUA_VQUAT)
-#define ttisgrit(o)     (LUA_TNUMBER == ttype((o)) || ttype((o)) == LUA_TVECTOR)
 
 /* }================================================================== */
 

@@ -163,16 +163,8 @@ LUAI_FUNC int lua_unpackvec (lua_State *L);
 
 /* Number of dimensions associated with the vector object */
 static LUA_INLINE int luaVec_dimensions (const TValue *o) {
-  switch (rawtt(o)) {
-    case LUA_VNUMINT:
-    case LUA_VVECTOR1: return 1;
-    case LUA_VVECTOR2: return 2;
-    case LUA_VVECTOR3: return 3;
-    case LUA_VVECTOR4: return 4;
-    case LUA_VQUAT: return 4;
-    default:
-      return 0;
-  }
+  const int dims = (rawtt(o) & 0x30) >> 4;  /* variant bits 4-5 */
+  return (dims < 3) ? (2 + dims) : 4;  /* quat uses 3rd bit. */
 }
 
 /* }================================================================== */

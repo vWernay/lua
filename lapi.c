@@ -412,7 +412,11 @@ LUA_API int lua_isnumber (lua_State *L, int idx) {
 LUA_API int lua_isvector (lua_State *L, int idx, int flags) {
   int result = 0;
   const TValue *o = index2value(L, idx);
-  if (ttistable(o) && (flags & V_PARSETABLE) != 0) {
+  if (ttisvector(o))
+    result = ttypetag(o);
+  else if (ttisnumber(o) && (flags & V_NONUMBER) == 0)
+    result = LUA_VVECTOR1;
+  else if (ttistable(o) && (flags & V_PARSETABLE) != 0) {
     switch (luaVec_parse(L, o, NULL)) {
       case 4: result = LUA_VVECTOR4; break;
       case 3: result = LUA_VVECTOR3; break;
@@ -421,10 +425,6 @@ LUA_API int lua_isvector (lua_State *L, int idx, int flags) {
         break;
     }
   }
-  else if (ttisvector(o))
-    result = ttypetag(o);
-  else if (ttisnumber(o) && (flags & V_NONUMBER) == 0)
-    result = LUA_VVECTOR1;
   return result;
 }
 
