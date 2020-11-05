@@ -1260,47 +1260,6 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
         setobj2s(L, ra, rb);
         vmbreak;
       }
-#if defined(GRIT_USE_PATH)
-      vmcase(OP_LOADKPATH) {
-        TString *str;
-        TValue *rb;
-        const char *rel;
-
-        rb = k + GETARG_Bx(i);
-        lua_assert(ttisstring(rb));
-        rel = getstr(tsvalue(rb));
-        if (rel[0] == '/') {
-          str = resolve_absolute_path(L, "/", rel);
-        } else {
-          const char *src = "/";
-          CallInfo *frame;
-          for (frame=ci ; frame!=&L->base_ci ; frame=frame->previous) {
-            const char *file;
-            Proto *p;
-            Closure *luaClosure;
-            TValue * func = s2v(frame->func);
-
-            lua_assert(ttisfunction(func));
-            if (!ttisclosure(func))
-              continue;
-            if (!(luaClosure = clvalue(func)) || luaClosure->c.tt == LUA_VCCL)
-              continue;
-            if (!(p = luaClosure->l.p) || !p->source)
-              continue;
-
-            file = getstr(p->source);
-            if (file[0] == '@') {
-              src = &file[1];
-              break;
-            }
-          }
-          str = resolve_absolute_path(L, src, rel);
-        }
-        setsvalue2s(L, ra, str);
-        checkGC(L, ra + 1);
-        vmbreak;
-      }
-#endif
       vmcase(OP_LOADKX) {
         TValue *rb;
         rb = k + GETARG_Ax(*pc); pc++;

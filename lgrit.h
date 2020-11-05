@@ -185,8 +185,7 @@ LUAI_FUNC void luaVec_objlen (lua_State *L, StkId ra, const TValue *o);
 ** Access the contents of a vector type through string-indexing. Returning 1 if
 ** the TValue has been parsed & the StkId has been set.
 */
-LUAI_FUNC void luaVec_getstring (lua_State *L, const TValue *t,
-                                      const char *skey, TValue *key, StkId val);
+LUAI_FUNC void luaVec_getstring (lua_State *L, const TValue *t, const char *skey, TValue *key, StkId val);
 
 /*
 ** Access the contents of a vector type through int-indexing, x = 1, y = 2,
@@ -195,21 +194,7 @@ LUAI_FUNC void luaVec_getstring (lua_State *L, const TValue *t,
 **
 ** Returning 1 if the TValue has been parsed & the StkId has been set.
 */
-LUAI_FUNC void luaVec_getint (lua_State *L, const TValue *t, const
-                                      lua_Integer key, TValue *pkey, StkId val);
-
-#if defined(GRIT_USE_PATH)
-/*
-** Resolves and canonicalizes rel (in the context of the dir part of file).
-**
-** (1) Handles .. and .
-** (2) Breaks up both file and rel into a list of dirs.
-** (3) Chops the filename from file.
-** (4) Compresses this to handle .. and .
-** (5) Reconstitutes into an absolute path.
-*/
-LUAI_FUNC TString *(resolve_absolute_path) (lua_State *L, const char *file, const char *rel);
-#endif
+LUAI_FUNC void luaVec_getint (lua_State *L, const TValue *t, const lua_Integer key, TValue *pkey, StkId val);
 
 /* }================================================================== */
 

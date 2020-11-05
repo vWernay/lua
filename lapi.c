@@ -1672,7 +1672,6 @@ LUA_API void lua_upvaluejoin (lua_State *L, int fidx1, int n1,
 
 
 /* Hashing */
-#if !defined(GRIT_USE_PATH)
 static LUA_INLINE char ToLower (const char c) {
   return (c >= 'A' && c <= 'Z') ? (c - 'A' + 'a') : c;
 }
@@ -1699,5 +1698,3 @@ LUAI_FUNC lua_Integer luaO_HashString (const char* string) {
   hash += (hash << 15);
   return (lua_Integer)(int)hash;
 }
-
-#endif

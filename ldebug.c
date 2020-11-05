@@ -568,9 +568,6 @@ static const char *getobjname (const Proto *p, int lastpc, int reg,
         return "upvalue";
       }
       case OP_LOADK:
-#if defined(GRIT_USE_PATH)
-      case OP_LOADKPATH:
-#endif
       case OP_LOADKX: {
         int b = (op == OP_LOADK) ? GETARG_Bx(i)
                                  : GETARG_Ax(p->code[pc + 1]);

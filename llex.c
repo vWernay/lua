@@ -45,9 +45,7 @@ static const char *const luaX_tokens [] = {
     "//", "..", "...", "==", ">=", "<=", "~=",
     "<<", ">>", "::", "<eof>",
     "<number>", "<integer>", "<name>", "<string>"
-#if !defined(GRIT_USE_PATH)
     , "<hash>"
-#endif
 #if defined(GRIT_POWER_COMPOUND)
     , "+=", "-=", "*=", "/=", "<<=", ">>=", "&=", "|=", "^="
 #endif
@@ -104,9 +102,7 @@ const char *luaX_token2str (LexState *ls, int token) {
 
 static const char *txtToken (LexState *ls, int token) {
   switch (token) {
-#if !defined(GRIT_USE_PATH)
     case TK_HASH:
-#endif
     case TK_NAME: case TK_STRING:
     case TK_FLT: case TK_INT:
       save(ls, '\0');
@@ -601,18 +597,10 @@ static int llex (LexState *ls, SemInfo *seminfo) {
         read_string(ls, ls->current, seminfo);
         return TK_STRING;
       }
-#if defined(GRIT_USE_PATH)
-      /* relative paths */
-      case '`': {
-        read_string(ls, ls->current, seminfo);
-        return TK_PATH;
-      }
-#else
       case '`': {  /* compiled hash */
         read_string(ls, ls->current, seminfo);
         return TK_HASH;
       }
-#endif
       case '.': {  /* '.', '..', '...', or number */
         save_and_next(ls);
         if (check_next1(ls, '.')) {
