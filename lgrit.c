@@ -71,15 +71,15 @@ int luaVec_parse (lua_State* L, const TValue *o, lua_Float4 *v) {
     return luaVec_dimensions(o);
   }
   else if (ttistable(o)) {
-    int count = 0;
+    int i, count = 0;
     if (v != NULL)  /* Ensure vector data is cleared */
       v->x = v->y = v->z = v->w = V_ZERO;
 
-    for (int i = 0; i < 4; ++i) {
-      const TValue *slot = NULL;
-      TString *str = luaS_new(L, dims[i]);
-      if (luaV_fastget(L, o, str, slot, luaH_getstr) && ttisnumber(slot)) {
+    for (i = 0; i < 4; ++i) {
+      const TValue *slot = luaH_getstr(hvalue(o), luaS_new(L, dims[i]));
+      if (slot != NULL && ttisnumber(slot)) {
         count++;
+
         if (v != NULL)
           luaV_assignf4(v, i, cast_vec(nvalue(slot)));
       }
@@ -172,12 +172,12 @@ LUA_API const char *lua_vectypename (lua_State *L, int t) {
 }
 
 int lua_vectorN (lua_State *L) {
-  lua_Float4 v = V_ZEROVEC;
+  lua_Float4 v = { 0 };
   switch (luaB_vectorn(L, 4, &v)) {
     case 4: lua_pushvector(L, v, LUA_VVECTOR4); break;
     case 3: lua_pushvector(L, v, LUA_VVECTOR3); break;
     case 2: lua_pushvector(L, v, LUA_VVECTOR2); break;
-    case 1: lua_pushnumber(L, (lua_Number)v.x); break;
+    case 1: lua_pushnumber(L, cast_num(v.x)); break;
     default:
       return luaL_error(L, "vec(...) takes 1 to 4 number arguments");
   }
@@ -212,7 +212,8 @@ int lua_vector4 (lua_State *L) {
 }
 
 int lua_quat (lua_State *L) {
-  lua_Float4 q = { .x = V_ZERO, .y = V_ZERO, .z = V_ZERO, .w = V_ONE };
+  lua_Float4 q = { 0 };
+  q.w = V_ONE;
   if (lua_gettop(L) == 4 && lua_isnumber(L, 1) && lua_isnumber(L, 2)
                          && lua_isnumber(L, 3) && lua_isnumber(L, 4)) {
     q.w = cast_vec(lua_tonumber(L, 1));
@@ -333,11 +334,22 @@ void luaVec_objlen (lua_State *L, StkId ra, const TValue *o) {
 #endif
 
 int luaVec_rawget (lua_State *L, const lua_Float4 *v, int vdims, TValue *key) {
-  lua_Integer dim = 0;
   UNUSED(L);
-  if (ttisinteger(key) && (dim = ivalue(key)) >= 1 && dim <= vdims) {
-    setfltvalue(key, cast_num((&v->x)[dim - 1]));  /* Accessing is 0-based */
-    return LUA_TNUMBER;
+  if (ttisinteger(key)) {
+    const lua_Integer dim = ivalue(key);
+    if (dim >= 1 && dim <= vdims) {
+      setfltvalue(key, cast_num((&v->x)[dim - 1]));  /* Accessing is 0-based */
+      return LUA_TNUMBER;
+    }
+  }
+  else if (ttisfloat(key)) {
+    lua_Integer dim = 0;
+    if (luaV_flttointeger(fltvalue(key), &dim, F2Ieq)) { /* integral index? */
+      if (dim >= 1 && dim <= vdims) {
+        setfltvalue(key, cast_num((&v->x)[dim - 1]));  /* Accessing is 0-based */
+        return LUA_TNUMBER;
+      }
+    }
   }
   else if (ttisstring(key)) {
     lua_Float4 out;

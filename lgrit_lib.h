@@ -26,9 +26,6 @@
 #define V_ISZERO(a) (l_vecop(fabs)((a)) <= LUA_VEC_NUMBER_EPS)
 #define V_ISEQUAL(a, b) (V_ISZERO((a) - (b)) || ((a) == (b)))
 
-/* Default initializer for the zero vector */
-#define V_ZEROVEC { .x = V_ZERO, .y = V_ZERO, .z = V_ZERO, .w = V_ZERO }
-
 /*
 ** {==================================================================
 ** API

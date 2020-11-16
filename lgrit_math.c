@@ -149,17 +149,15 @@
   return 1;                                                     \
   LUA_MLM_END
 
-static LUA_INLINE float todegf(float x) { return x * (180.f / 3.141592653589793238462643383279502884f); }
-static LUA_INLINE float toradf(float x) { return x * (3.141592653589793238462643383279502884f / 180.f); }
-
 static LUA_INLINE double todeg(double x) { return x * (180.0 / 3.141592653589793238462643383279502884); }
-#if LUA_VEC_TYPE == LUA_FLOAT_DOUBLE
 static LUA_INLINE double torad(double x) { return x * (3.141592653589793238462643383279502884 / 180.0); }
-#endif
 
 #if LUA_VEC_TYPE == LUA_FLOAT_LONGDOUBLE
 static LUA_INLINE long double todegl(long double x) { return x * (180.0L / 3.141592653589793238462643383279502884L); }
 static LUA_INLINE long double toradl(long double x) { return x * (3.141592653589793238462643383279502884L / 180.0L); }
+#else
+static LUA_INLINE float todegf(float x) { return x * (180.f / 3.141592653589793238462643383279502884f); }
+static LUA_INLINE float toradf(float x) { return x * (3.141592653589793238462643383279502884f / 180.f); }
 #endif
 
 #ifdef _MSC_VER
@@ -183,7 +181,8 @@ __pragma(warning(disable : 26451))
 
 int luaVec_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res, TMS event) {
   lua_Float4 nb, nc;
-  lua_Float4 r = V_ZEROVEC;
+  lua_Float4 r = { 0 };
+
   const int nb_count = luaVec_parse(L, p1, &nb);
   const int nc_count = luaVec_parse(L, p2, &nc);
 

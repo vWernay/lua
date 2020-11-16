@@ -230,7 +230,7 @@ local a,b = 1, {
   {1,2,3,4,5} or 3+3<=3+3,
   3+1>3+1,
   {d = x and aaa[x or y]}}
-]], "Attempting to index unknown value") -- Fast pathing integer indexing, "currentline (CallInfo)" technically incorrect.
+]], "global 'aaa'")
 
 checkmessage([[
 local x,y = {},1

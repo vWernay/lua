@@ -158,18 +158,8 @@ void luaT_trybinTM (lua_State *L, const TValue *p1, const TValue *p2,
     else
       luaG_opinterror(L, p1, p2, "perform bitwise operation on");
   }
-  else {
-    int result = 0;
-
-    /*
-    ** @TODO: The unlock/lock is a temporary hack, as parsing tables as a vector
-    ** temporarily requires leaving the core.
-    */
-    lua_unlock(L);
-    result = luaVec_trybinTM(L, p1, p2, res, event);
-    lua_lock(L);
-    if (!result)
-      luaG_opinterror(L, p1, p2, "perform arithmetic on");
+  else if (!luaVec_trybinTM(L, p1, p2, res, event)) {
+    luaG_opinterror(L, p1, p2, "perform arithmetic on");
   }
 }
 
