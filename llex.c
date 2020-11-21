@@ -464,9 +464,6 @@ static int llex (LexState *ls, SemInfo *seminfo) {
         if (ls->current != '-') return '-';
         /* else is a comment */
         next(ls);
-#if defined(GRIT_POWER_COMPOUND)
-        if (check_next1(ls, '=')) return TK_MINUSEQ;
-#endif
         if (ls->current == '[') {  /* long comment? */
           size_t sep = skip_sep(ls);
           luaZ_resetbuffer(ls->buff);  /* 'skip_sep' may dirty the buffer */
