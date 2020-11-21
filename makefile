@@ -91,9 +91,6 @@ MYLDFLAGS= $(TESTS)
 MYLIBS=
 MYOBJS=
 
-# Special flags for compiler modules; -Os reduces code size.
-CMCFLAGS= -Os
-
 # == END OF USER SETTINGS -- NO NEED TO CHANGE ANYTHING BELOW THIS LINE =======
 
 PLATS= guess aix bsd c89 freebsd generic linux linux-readline macosx mingw posix solaris
@@ -131,9 +128,6 @@ $(LUA_T): $(LUA_O) $(LUA_A)
 
 $(LUAC_T): $(LUAC_O) $(LUA_A)
 	$(CC) -o $@ $(LDFLAGS) $(LUAC_O) $(LUA_A) $(LIBS)
-
-test:
-	./lua -v
 
 clean:
 	$(RM) $(ALL_T) $(ALL_O) onelua.o
@@ -211,16 +205,6 @@ SunOS solaris:
 
 # Targets that do not create files (not all makes understand .PHONY).
 .PHONY: all $(PLATS) help test clean default o a depend echo
-
-# Compiler modules may use special flags.
-llex.o:
-	$(CC) $(CFLAGS) $(CMCFLAGS) -c llex.c
-
-lparser.o:
-	$(CC) $(CFLAGS) $(CMCFLAGS) -c lparser.c
-
-lcode.o:
-	$(CC) $(CFLAGS) $(CMCFLAGS) -c lcode.c
 
 # DO NOT EDIT
 # automatically made with 'gcc -MM l*.c'
