@@ -1586,7 +1586,11 @@ static void compound_assignment (LexState *ls, expdesc* v) {
 
 
 #if defined(GRIT_POWER_INTABLE)
-static int get_table_unpack(LexState *ls, struct LHS_assign *lh, expdesc * e) {
+#define RET_ASSIGN_RESULT int
+#define RET_ASSIGN_RETURN 0
+#define RET_ASSIGN_SKIP_ASSIGNMENTS 1
+
+static int get_table_unpack(LexState *ls, struct LHS_assign *lh, expdesc *e) {
   lu_byte from_var;
   luaX_next(ls);
   new_localvarliteral(ls, "(in)");
@@ -1596,10 +1600,10 @@ static int get_table_unpack(LexState *ls, struct LHS_assign *lh, expdesc * e) {
   from_var = ls->fs->nactvar;
   adjustlocalvars(ls, 1);
   luaK_setoneret(ls->fs, e);  /* close last expression */
-  while(lh) {
+  while (lh) {
     expdesc key;
-    expdesc * v = &lh->v;
-    switch(v->k) {
+    expdesc *v = &lh->v;
+    switch (v->k) {
       case VLOCAL:
         codestring(&key, getlocalvardesc(ls->fs, v->u.info)->vd.name);
         break;
@@ -1611,29 +1615,24 @@ static int get_table_unpack(LexState *ls, struct LHS_assign *lh, expdesc * e) {
         init_exp(&key, VK, GETARG_k(v->u.ind.idx));
         break;
       case VINDEXUP:
-        init_exp(&key, VK, v->u.ind.idx);
+        init_exp(&key, VK, v->u.info);
         break;
       default:
-        luaX_syntaxerror( ls, "syntax error in \"in\" vars" );
+        luaX_syntaxerror(ls, "syntax error in \"in\" vars");
     }
     luaK_indexed(ls->fs, e, &key);
     luaK_storevar(ls->fs, v, e);
-    lh=lh->prev;
-    if(lh) init_exp(e, VNONRELOC, ls->fs->freereg-1);
+    lh = lh->prev;
+    if (lh)
+      init_exp(e, VNONRELOC, ls->fs->freereg - 1);
   }
   removevars(ls->fs, from_var);
-  return 1;
+  return RET_ASSIGN_SKIP_ASSIGNMENTS;
 }
-#endif
-
-#if defined(GRIT_POWER_INTABLE)
-  #define RET_ASSIGN_RESULT int
-  #define RET_ASSIGN_FAIL 0
-  #define RET_ASSIGN_SUCCESS 1
 #else
-  #define RET_ASSIGN_RESULT void
-  #define RET_ASSIGN_FAIL
-  #define RET_ASSIGN_SUCCESS
+#define RET_ASSIGN_RESULT void
+#define RET_ASSIGN_RETURN
+#define RET_ASSIGN_SKIP_ASSIGNMENTS
 #endif
 
 /*
@@ -1649,9 +1648,6 @@ static RET_ASSIGN_RESULT restassign (LexState *ls, struct LHS_assign *lh, int nv
   check_condition(ls, vkisvar(lh->v.k), "syntax error");
   check_readonly(ls, &lh->v);
   if (testnext(ls, ',')) {  /* restassign -> ',' suffixedexp restassign */
-#if defined(GRIT_POWER_INTABLE)
-    int assignment_type;
-#endif
     struct LHS_assign nv;
     nv.prev = lh;
     suffixedexp(ls, &nv.v);
@@ -1659,9 +1655,9 @@ static RET_ASSIGN_RESULT restassign (LexState *ls, struct LHS_assign *lh, int nv
       check_conflict(ls, lh, &nv.v);
     enterlevel(ls);  /* control recursion depth */
 #if defined(GRIT_POWER_INTABLE)
-    if((assignment_type = restassign(ls, &nv, nvars + 1)) && (ls->t.token == TK_IN)) {
+    if (restassign(ls, &nv, nvars + 1)) {  /* skip_assignments */
       leavelevel(ls);
-      return assignment_type;
+      return RET_ASSIGN_SKIP_ASSIGNMENTS;
     }
 #else
     restassign(ls, &nv, nvars+1);
@@ -1670,7 +1666,7 @@ static RET_ASSIGN_RESULT restassign (LexState *ls, struct LHS_assign *lh, int nv
   }
 #if defined(GRIT_POWER_INTABLE)
   else if (ls->t.token == TK_IN) { /* hook for table unpack */
-    return get_table_unpack(ls,lh,&e);
+    return get_table_unpack(ls, lh, &e);
   }
 #endif
 #if defined(GRIT_POWER_COMPOUND)
@@ -1687,23 +1683,23 @@ static RET_ASSIGN_RESULT restassign (LexState *ls, struct LHS_assign *lh, int nv
     else {
       luaK_setoneret(ls->fs, &e);  /* close last expression */
       luaK_storevar(ls->fs, &lh->v, &e);
-      return RET_ASSIGN_FAIL;  /* avoid default */
+      return RET_ASSIGN_RETURN;  /* avoid default */
     }
   }
 #if defined(GRIT_POWER_COMPOUND)
   else if (opeqexpr(ls->t.token)) { /* restassign -> opeq expr */
     check_condition(ls, nvars == 1, "compound assignment not allowed on tuples");
     compound_assignment(ls,&lh->v);
-    return RET_ASSIGN_SUCCESS;
+    return RET_ASSIGN_RETURN;
   }
   else {
     error_expected(ls, '=');
-    return RET_ASSIGN_FAIL;
+    return RET_ASSIGN_RETURN;
   }
 #endif
   init_exp(&e, VNONRELOC, ls->fs->freereg-1);  /* default assignment */
   luaK_storevar(ls->fs, &lh->v, &e);
-  return RET_ASSIGN_SUCCESS;
+  return RET_ASSIGN_RETURN;
 }
 
 
@@ -2050,7 +2046,7 @@ static void localstat (LexState *ls) {
     nvars++;
   } while (testnext(ls, ','));
 #if defined(GRIT_POWER_INTABLE)
-  if(testnext(ls, TK_IN)) {
+  if (testnext(ls, TK_IN)) {
     lu_byte from_var;
     int regs = ls->fs->freereg;
     int vars = ls->fs->nactvar;
@@ -2063,13 +2059,13 @@ static void localstat (LexState *ls) {
     from_var = ls->fs->nactvar;
     adjustlocalvars(ls, 1);
     luaK_setoneret(ls->fs, &e);  /* close last expression */
-    for (nexps=0; nexps<nvars; nexps++) {
+    for (nexps = 0; nexps < nvars; nexps++) {
       expdesc v, key;
-      TString * key_str = getlocalvardesc(ls->fs, vars+nexps)->vd.name;
-      init_exp(&e, VNONRELOC, ls->fs->freereg-1);
+      TString *key_str = getlocalvardesc(ls->fs, vars + nexps)->vd.name;
+      init_exp(&e, VNONRELOC, ls->fs->freereg - 1);
       codestring(&key, key_str);
       luaK_indexed(ls->fs, &e, &key);
-      init_exp(&v, VLOCAL, regs+nexps);
+      init_exp(&v, VLOCAL, regs + nexps);
       luaK_storevar(ls->fs, &v, &e);
     }
     removevars(ls->fs, from_var);
