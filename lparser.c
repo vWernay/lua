@@ -12,9 +12,6 @@
 
 #include <limits.h>
 #include <string.h>
-#if defined(GRIT_POWER_PWARNINGS)
-#include <stdio.h>
-#endif
 
 #include "lua.h"
 
@@ -66,15 +63,6 @@ typedef struct BlockCnt {
 */
 static void statement (LexState *ls);
 static void expr (LexState *ls, expdesc *v);
-
-#if defined(GRIT_POWER_PWARNINGS)
-  static void parser_warning (LexState *ls, const char *msg) {
-    msg = luaO_pushfstring(ls->L, "warning %s", msg);
-    msg = luaG_addinfo(ls->L, msg, ls->source, ls->linenumber);
-    fprintf(stderr, "%s\n", msg);
-    fflush(stderr);
-  }
-#endif
 
 
 static l_noret error_expected (LexState *ls, int token) {
@@ -204,35 +192,6 @@ static int registerlocalvar (LexState *ls, FuncState *fs, TString *varname) {
 }
 
 
-#if defined(GRIT_POWER_PWARNINGS)
-static LocVar *localdebuginfo (FuncState *fs, int i);
-static void var_check_unique_or_shadow (LexState *ls, FuncState *fs, TString *name, int shadowOnly) {
-  Dyndata *dyd = ls->dyd;
-
-  /* allow '_' and '(for...' duplicates */
-  const char *str_name = getstr(name);
-  if(!(str_name[0] == '(' || (tsslen(name) == 1 && str_name[0] == '_'))) {
-    int vidx, nactvar_n, first_block_local;
-    vidx = fs->firstlocal;
-    nactvar_n = dyd->actvar.n - fs->firstlocal;
-    first_block_local = fs->bl ? fs->bl->nactvar+fs->firstlocal : 0;
-    for (; vidx < nactvar_n; ++vidx) {
-      LocVar *lv = &fs->f->locvars[dyd->actvar.arr[vidx].vd.pidx];
-      if (lv && name == lv->varname) {
-        if(vidx <= first_block_local) {
-          int saved_top = lua_gettop(ls->L);
-          parser_warning(ls, luaO_pushfstring(ls->L, "Name [%s] already declared will be shadowed", str_name));
-          lua_settop(ls->L, saved_top);
-        }
-        else if(!shadowOnly) {
-          luaX_syntaxerror(ls, luaO_pushfstring(ls->L, "Name [%s] already declared", str_name));
-        }
-      }
-    }
-  }
-}
-#endif
-
 /*
 ** Create a new local variable with the given 'name'. Return its index
 ** in the function.
@@ -242,11 +201,6 @@ static int new_localvar (LexState *ls, TString *name) {
   FuncState *fs = ls->fs;
   Dyndata *dyd = ls->dyd;
   Vardesc *var;
-
-#if defined(GRIT_POWER_PWARNINGS)
-  var_check_unique_or_shadow(ls, fs, name, 0);
-#endif
-
   checklimit(fs, dyd->actvar.n + 1 - fs->firstlocal,
                  MAXVARS, "local variables");
   luaM_growvector(L, dyd->actvar.arr, dyd->actvar.n + 1,
