@@ -9,10 +9,6 @@
 #ifndef lua_h
 #define lua_h
 
-#ifndef CFX_SD
-#define CFX_SD
-#endif
-
 #include <stdarg.h>
 #include <stddef.h>
 

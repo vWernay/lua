@@ -147,7 +147,7 @@ struct lua_longjmp;  /* defined in ldo.c */
 #define KGC_GEN		1	/* generational gc */
 
 
-typedef struct CFX_SD stringtable {
+typedef struct stringtable {
   TString **hash;
   int nuse;  /* number of elements */
   int size;
@@ -169,7 +169,7 @@ typedef struct CFX_SD stringtable {
 ** - field 'transferinfo' is used only during call/returnhooks,
 ** before the function starts or after it ends.
 */
-typedef struct CFX_SD CallInfo {
+typedef struct CallInfo {
   StkId func;  /* function index in the stack */
   StkId	top;  /* top for this function */
   struct CallInfo *previous, *next;  /* dynamic call link */
@@ -246,7 +246,7 @@ typedef struct CFX_SD CallInfo {
 /*
 ** 'global state', shared by all threads of this state
 */
-typedef struct CFX_SD global_State {
+typedef struct global_State {
   lua_Alloc frealloc;  /* function to reallocate memory */
   void *ud;         /* auxiliary data to 'frealloc' */
   l_mem totalbytes;  /* number of bytes currently allocated - GCdebt */
