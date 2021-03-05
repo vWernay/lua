@@ -105,9 +105,17 @@ LUA_API const char *lua_dimension_label (lua_State *L, int idx);
 /* Push a string representing the vector object on top of the stack. */
 LUA_API const char *lua_pushvecstring (lua_State *L, int idx);
 
-/* TODO: Change API to use lua_Unsigned */
-/* one_at_a_time: http://www.burtleburtle.net/bob/hash/doobs.html */
-LUA_API lua_Integer lua_ToHash (lua_State *L, int idx);
+/*
+** Jenkins-hash the object at the provided index. String values are hashed,
+** boolean and numeric values are casted to lua_Integer; otherwise, zero is
+** returned.
+**
+** @PARAM ignore_case: A string value is hashed as-is. Otherwise, the lowercase
+**  of each string character is computed then hashed.
+**
+** @TODO: Possibly consider allow the (potentially destructive) lua_tolstring.
+*/
+LUA_API lua_Integer lua_ToHash (lua_State *L, int idx, int ignore_case);
 
 /* }================================================================== */
 

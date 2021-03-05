@@ -168,10 +168,12 @@ static void codename (LexState *ls, expdesc *e) {
 }
 
 
+#if defined(GRIT_POWER_JOAAT)
 static void codehash (expdesc *e, TString *s) {
   init_exp(e, VKINT, 0);
-  e->u.ival = luaO_HashString(getstr(s));
+  e->u.ival = luaO_HashString(getstr(s), tsslen(s), 0);
 }
+#endif
 
 
 /*
@@ -1091,11 +1093,13 @@ static void funcargs (LexState *ls, expdesc *f, int line) {
       luaX_next(ls);  /* must use 'seminfo' before 'next' */
       break;
     }
+#if defined(GRIT_POWER_JOAAT)
     case TK_HASH: {  /* funcargs -> STRING */
       codehash(&args, ls->t.seminfo.ts);
       luaX_next(ls);  /* must use `seminfo' before `next' */
       break;
     }
+#endif
     default: {
       luaX_syntaxerror(ls, "function arguments expected");
     }
@@ -1223,7 +1227,9 @@ static void suffixedexp (LexState *ls, expdesc *v) {
         funcargs(ls, v, line);
         break;
       }
+#if defined(GRIT_POWER_JOAAT)
       case TK_HASH:
+#endif
       case '(':
       case TK_STRING:
       case '{': {  /* funcargs */
@@ -1290,10 +1296,12 @@ static void simpleexp (LexState *ls, expdesc *v) {
       body(ls, v, 0, ls->linenumber);
       return;
     }
+#if defined(GRIT_POWER_JOAAT)
     case TK_HASH: {
       codehash(v, ls->t.seminfo.ts);
       break;
     }
+#endif
     default: {
       suffixedexp(ls, v);
       return;

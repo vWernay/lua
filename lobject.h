@@ -825,9 +825,15 @@ LUAI_FUNC const char *luaO_pushfstring (lua_State *L, const char *fmt, ...);
 LUAI_FUNC void luaO_chunkid (char *out, const char *source, size_t srclen);
 
 
-/* TODO: Change API to use lua_Unsigned */
-/* one_at_a_time: http://www.burtleburtle.net/bob/hash/doobs.html */
-LUAI_FUNC lua_Integer luaO_HashString (const char* string);
+/*
+** Jenkins' one-at-a-time hash.
+**
+** It is the assume the string is properly delimited.
+**
+** @TODO: Change API to use lua_Unsigned
+** @TODO: Compile-time option to allow 32-bit or 64-bit hashing.
+*/
+LUAI_FUNC lua_Integer luaO_HashString (const char* string, size_t length, int ignore_case);
 
 #endif
 

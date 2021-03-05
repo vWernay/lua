@@ -544,6 +544,19 @@ static int luaB_defer (lua_State *L) {
 #endif
 
 
+#if defined(GRIT_POWER_JOAAT)
+static int luaB_joaat (lua_State *L) {
+  /* Handling numbers/booleans is an undocumented hand-holding feature */
+  const int type = lua_type(L, 1);
+  if (type != LUA_TNUMBER && type != LUA_TBOOLEAN && type != LUA_TSTRING)
+    return luaL_typeerror(L, 1, lua_typename(L, LUA_TSTRING));
+
+  lua_pushinteger(L, lua_ToHash(L, 1, lua_toboolean(L, 2)));
+  return 1;
+}
+#endif
+
+
 static const luaL_Reg base_funcs[] = {
   {"assert", luaB_assert},
   {"collectgarbage", luaB_collectgarbage},
@@ -570,6 +583,9 @@ static const luaL_Reg base_funcs[] = {
   {"xpcall", luaB_xpcall},
 #if defined(GRIT_DEFER)
   {"defer", luaB_defer},
+#endif
+#if defined(GRIT_POWER_JOAAT)
+  {"joaat", luaB_joaat},
 #endif
   /* placeholders */
 

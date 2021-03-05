@@ -1598,19 +1598,23 @@ static LUA_INLINE char ToLower (const char c) {
   return (c >= 'A' && c <= 'Z') ? (c - 'A' + 'a') : c;
 }
 
-LUA_API lua_Integer lua_ToHash (lua_State *L, int idx) {
-  const TValue * o = index2value(L, idx);
+LUA_API lua_Integer lua_ToHash (lua_State *L, int idx, int ignore_case) {
+  const TValue *o = index2value(L, idx);
   if (ttisstring(o))
-    return luaO_HashString(svalue(o));
-  else if (ttisinteger(o))
-    return ivalue(o);
+    return luaO_HashString(svalue(o), vslen(o), ignore_case);
+  else if (ttisboolean(o))
+    return ttistrue(o) ? 1 : 0;
+  else if (ttisnumber(o)) {
+    lua_Integer res = 0;
+    return tointeger(o, &res) ? res : 0;
+  }
   return 0;
 }
 
-LUAI_FUNC lua_Integer luaO_HashString (const char* string) {
+lua_Integer luaO_HashString (const char* string, size_t length, int ignore_case) {
   unsigned int hash = 0;
-  for (; *string; ++string) {
-    hash += ToLower(*string);
+  for (size_t i = 0; i < length; ++i) {
+    hash += (ignore_case ? string[i] : ToLower(string[i]));
     hash += (hash << 10);
     hash ^= (hash >> 6);
   }
@@ -1618,5 +1622,7 @@ LUAI_FUNC lua_Integer luaO_HashString (const char* string) {
   hash += (hash << 3);
   hash ^= (hash >> 11);
   hash += (hash << 15);
+
+  /* @TODO: Eventually avoid sign-extension issues. If ever... */
   return (lua_Integer)(int)hash;
 }
