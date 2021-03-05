@@ -298,20 +298,6 @@ LUA_API int lua_isinteger (lua_State *L, int idx) {
   return ttisinteger(o);
 }
 
-#if defined(GRIT_POWER_TTYPE)
-LUA_API int lua_tabletype (lua_State *L, int idx) {
-  const TValue *o;
-  int tt;
-
-  lua_lock(L);
-  o = index2value(L, idx);
-  api_check(L, ttistable(o), "invalid table");
-  tt = luaH_type(hvalue(o));
-  lua_unlock(L);
-
-  return tt;
-}
-#endif
 
 LUA_API int lua_isnumber (lua_State *L, int idx) {
   lua_Number n;
@@ -922,6 +908,35 @@ LUA_API void lua_createtable (lua_State *L, int narray, int nrec) {
   luaC_checkGC(L);
   lua_unlock(L);
 }
+
+
+#if defined(GRIT_POWER_WOW)
+LUA_API int lua_tabletype (lua_State *L, int idx) {
+  const TValue *o = index2value(L, idx);
+  api_check(L, ttistable(o), "table expected");
+  return luaH_type(hvalue(o));
+}
+
+LUA_API void lua_wipetable (lua_State *L, int idx) {
+  const TValue *o;
+  lua_lock(L);
+  o = index2value(L, idx);
+  api_check(L, ttistable(o), "table expected");
+  luaH_wipetable(hvalue(o));
+  lua_unlock(L);
+}
+
+LUA_API void lua_clonetable (lua_State *L, int fromidx, int toidx) {
+  const TValue *from, *to;
+  lua_lock(L);
+  from = index2value(L, fromidx);
+  to = index2value(L, toidx);
+  api_check(L, ttistable(from), "table expected");
+  api_check(L, ttistable(to), "table expected");
+  luaH_clonetable(L, hvalue(from), hvalue(to));
+  lua_unlock(L);
+}
+#endif
 
 
 LUA_API int lua_getmetatable (lua_State *L, int objindex) {

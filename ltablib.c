@@ -58,23 +58,6 @@ static void checktab (lua_State *L, int arg, int what) {
 }
 
 
-#if defined(GRIT_POWER_TCREATE)
-static int tcreate (lua_State *L) {
-  lua_Integer narray = luaL_checkinteger(L, 1);
-  lua_Integer nhash = luaL_checkinteger(L, 2);
-  if (narray < 0 || narray >= INT_MAX)
-    luaL_argerror(L, 1, "array: 0 <= count < INT_MAX");
-  if (nhash < 0 || nhash > INT_MAX)
-    luaL_argerror(L, 1, "record: 0 <= count < INT_MAX");
-
-  lua_createtable(L,
-    narray >= 0 && narray < INT_MAX ? (int)narray : 0,  /* Sanitize arguments */
-    nhash >= 0 && nhash < INT_MAX ? (int)nhash : 0
-  );
-  return 1;
-}
-#endif
-
 static int tinsert (lua_State *L) {
   lua_Integer e = aux_getn(L, 1, TAB_RW) + 1;  /* first empty element */
   lua_Integer pos;  /* where to insert new element */
@@ -428,7 +411,7 @@ static int sort (lua_State *L) {
   return 0;
 }
 
-#if defined(GRIT_POWER_TTYPE)
+#if defined(GRIT_POWER_WOW)
 static int type (lua_State *L) {
   if (lua_type(L, 1) == LUA_TTABLE) {
     switch (lua_tabletype(L, 1)) {
@@ -445,15 +428,38 @@ static int type (lua_State *L) {
   }
   return 1;
 }
+
+static int tcreate (lua_State *L) {
+  lua_Integer narray = luaL_checkinteger(L, 1);
+  lua_Integer nhash = luaL_checkinteger(L, 2);
+  luaL_argcheck(L, 0 <= narray && narray < INT_MAX, 1, "invalid narray size");
+  luaL_argcheck(L, 0 <= nhash && nhash < INT_MAX, 2, "invalid nrec size");
+  lua_createtable(L, (int)narray, (int)nhash);
+  return 1;
+}
+
+static int treset (lua_State *L) {
+  luaL_checktype(L, 1, LUA_TTABLE);
+  lua_wipetable(L, 1);
+
+  lua_pushvalue(L, 1);
+  return 1;
+}
+
+static int tclone (lua_State *L) {
+  luaL_checktype(L, 1, LUA_TTABLE);
+  luaL_checktype(L, 2, LUA_TTABLE);
+  lua_clonetable(L, 1, 2);
+
+  lua_pushvalue(L, 2);
+  return 1;
+}
 #endif
 
 /* }====================================================== */
 
 
 static const luaL_Reg tab_funcs[] = {
-#if defined(GRIT_POWER_TCREATE)
-  {"create", tcreate},
-#endif
   {"concat", tconcat},
   {"insert", tinsert},
   {"pack", tpack},
@@ -461,8 +467,11 @@ static const luaL_Reg tab_funcs[] = {
   {"remove", tremove},
   {"move", tmove},
   {"sort", sort},
-#if defined(GRIT_POWER_TTYPE)
+#if defined(GRIT_POWER_WOW)
   {"type", type},
+  {"create", tcreate},
+  {"wipe", treset},
+  {"clone", tclone},
 #endif
   {NULL, NULL}
 };

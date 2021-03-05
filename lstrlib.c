@@ -174,6 +174,106 @@ static int str_rep (lua_State *L) {
 }
 
 
+#if defined(GRIT_POWER_WOW)
+static int str_trim (lua_State *L) {
+  size_t len = 0;
+  const char *str = luaL_checklstring(L, 1, &len);
+  const char *delimiter = luaL_optstring(L, 2, "\t\n\v\f\r "); /* isspace */
+
+  const char *back = str + len - 1;
+  while (str <= back && strchr(delimiter, *str))
+    str++;
+  while (back > str && strchr(delimiter, *back))
+    back--;
+
+  lua_pushlstring(L, str, back - str + 1);
+  return 1;
+}
+
+static int str_split (lua_State *L) {
+  const char *delimiter = luaL_checkstring(L, 1);
+  const char *str = luaL_checkstring(L, 2);
+  int limit = luaL_optint(L, 3, 0);
+  int count = 0;
+
+  lua_settop(L, 0); /* clear new slots */
+  if (limit == 0 || limit > 1) {
+    const char *end;
+    for (end = str; *end; ++end) {
+      const char *s;
+      int split = 0;
+      for (s = delimiter; *s; ++s) {
+        if (*s == *end) {
+          split = 1;
+          break;
+        }
+      }
+
+      if (split) {
+        luaL_checkstack(L, count + 1, "too many results");
+        lua_pushlstring(L, str, (end - str));
+
+        ++count;
+        str = end + 1;
+        if (count == (limit - 1)) {
+          break;
+        }
+      }
+    }
+  }
+
+  /* Trailing characters */
+  luaL_checkstack(L, count + 1, "too many results");
+  lua_pushstring(L, str);
+  return count + 1;
+}
+
+static int str_join (lua_State *L) {
+  size_t delimiter_length = 0;
+  const char *delimiter = luaL_checklstring(L, 1, &delimiter_length);
+  const int top = lua_gettop(L);
+
+  if (top == 1) /* No arguments to join */
+    lua_pushstring(L, "");
+  else if (top == 2) /* A single argument, tostring it */
+    lua_tostring(L, 2);
+  else if (delimiter_length == 0) /* invalid delimiter, just concatenate */
+    lua_concat(L, top - 1);
+  else {
+    int i;
+
+    luaL_Buffer b;
+    luaL_buffinit(L, &b);
+    for (i = 2; i <= top; ++i) {
+      if (!lua_isstring(L, i)) {
+        return luaL_error(L, "invalid value (%s) at argument %d for 'join'", luaL_typename(L, i), i);
+      }
+
+      lua_pushvalue(L, i);
+      luaL_addvalue(&b);
+      if (i < top)
+        luaL_addlstring(&b, delimiter, delimiter_length);
+    }
+    luaL_pushresult(&b);
+  }
+  return 1;
+}
+
+static int str_concat (lua_State *L) {
+  lua_concat(L, lua_gettop(L));
+  return 1;
+}
+
+static int str_tostringall (lua_State *L) {
+  int i;
+  const int top = lua_gettop(L);
+  for (i = 1; i <= top; i++)
+    luaL_tolstring(L, i, NULL);
+  return top;
+}
+#endif
+
+
 #if defined(GRIT_POWER_BLOB)
 static int str_blob (lua_State *L) {
   const int type = lua_type(L, 1);
@@ -1853,6 +1953,13 @@ static const luaL_Reg strlib[] = {
   {"lower", str_lower},
   {"match", str_match},
   {"rep", str_rep},
+#if defined(GRIT_POWER_WOW)
+  {"strtrim", str_trim},
+  {"strsplit", str_split},
+  {"strjoin", str_join},
+  {"strconcat", str_concat},
+  {"tostringall", str_tostringall},
+#endif
   {"reverse", str_reverse},
   {"sub", str_sub},
   {"upper", str_upper},

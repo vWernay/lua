@@ -75,15 +75,6 @@ typedef struct lua_State lua_State;
 
 #define LUA_NUMTYPES		10
 
-/*
-** table types
-*/
-#if defined(GRIT_POWER_TTYPE)
-  #define LUA_TTEMPTY 0
-  #define LUA_TTARRAY 1
-  #define LUA_TTHASH  2
-  #define LUA_TTMIXED 3
-#endif
 
 
 /* minimum Lua stack available to a C function */
@@ -189,9 +180,6 @@ LUA_API void  (lua_xmove) (lua_State *from, lua_State *to, int n);
 ** access functions (stack -> C)
 */
 
-#if defined(GRIT_POWER_TTYPE)
-LUA_API int             (lua_tabletype) (lua_State *L, int idx);
-#endif
 LUA_API int             (lua_isnumber) (lua_State *L, int idx);
 LUA_API int             (lua_isstring) (lua_State *L, int idx);
 LUA_API int             (lua_iscfunction) (lua_State *L, int idx);
@@ -309,6 +297,20 @@ LUA_API void  (lua_rawseti) (lua_State *L, int idx, lua_Integer n);
 LUA_API void  (lua_rawsetp) (lua_State *L, int idx, const void *p);
 LUA_API int   (lua_setmetatable) (lua_State *L, int objindex);
 LUA_API int   (lua_setiuservalue) (lua_State *L, int idx, int n);
+
+/*
+** extended API
+*/
+#if defined(GRIT_POWER_WOW)
+#define LUA_TTEMPTY 0
+#define LUA_TTARRAY 1
+#define LUA_TTHASH  2
+#define LUA_TTMIXED 3
+
+LUA_API void  (lua_wipetable) (lua_State *L, int idx);
+LUA_API void  (lua_clonetable) (lua_State *L, int fromidx, int toidx);
+LUA_API int   (lua_tabletype) (lua_State *L, int idx);
+#endif
 
 /*
 ** string blob API

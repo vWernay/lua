@@ -576,6 +576,22 @@ static int luaB_joaat (lua_State *L) {
 #endif
 
 
+#if defined(GRIT_POWER_WOW)
+static int luaB_scrub (lua_State *L) {
+  int i;
+  const int top = lua_gettop(L);
+  for (i = 1; i <= top; i++) {
+    const int type = lua_type(L, i);
+    if (type >= LUA_TTABLE || type == LUA_TLIGHTUSERDATA) {
+      lua_pushnil(L);
+      lua_replace(L, i);
+    }
+  }
+  return top;
+}
+#endif
+
+
 static const luaL_Reg base_funcs[] = {
   {"assert", luaB_assert},
   {"collectgarbage", luaB_collectgarbage},
@@ -608,6 +624,9 @@ static const luaL_Reg base_funcs[] = {
 #endif
 #if defined(GRIT_POWER_JOAAT)
   {"joaat", luaB_joaat},
+#endif
+#if defined(GRIT_POWER_WOW)
+  {"scrub", luaB_scrub},
 #endif
   /* placeholders */
 

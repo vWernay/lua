@@ -983,13 +983,83 @@ lua_Unsigned luaH_getn (Table *t) {
 }
 
 
-#if defined(GRIT_POWER_TTYPE)
+#if defined(GRIT_POWER_WOW)
+#include <string.h>
+
 int luaH_type (const Table *t) {
   if (luaH_realasize(t) == 0)
     return t->node == dummynode ? LUA_TTEMPTY : LUA_TTHASH;
   return t->node == dummynode ? LUA_TTARRAY : LUA_TTMIXED;
 }
+
+void luaH_wipetable (Table *t) {
+  unsigned int asize = luaH_realasize(t);
+  unsigned int i = 0;
+  for (; i < asize; i++)  /* array part */
+    setnilvalue(&t->array[i]);
+
+  if (!isdummy(t)) {  /* traverse hash part */
+    Node *n, *limit = gnode(t, cast_sizet(sizenode(t)));
+    for (n = gnode(t, 0); n < limit; n++)
+      setnilvalue(gval(n));
+  }
+
+  /* luaC_barrierback_ not required: all added values are nil/not-collectible */
+}
+
+void luaH_clonetable (lua_State *L, const Table *from, Table *to) {
+  const int from_realasize = luaH_realasize(from);
+  const int to_realasize = luaH_realasize(to);
+
+  Table newt;  /* to keep the new hash part */
+  newt.alimit = 0;
+  newt.array = NULL;
+  setnodevector(L, &newt, 0);  /* ensure no elements to hash part */
+
+  if (!isdummy(from)) {  /* create new hash part */
+    const size_t size_from = cast_sizet(sizenode(from));
+
+    newt.lsizenode = from->lsizenode;
+    newt.node = luaM_newvector(L, size_from, Node);
+    if (l_unlikely(newt.node == NULL))  /* allocation failed? */
+      luaM_error(L);  /* raise error */
+
+    memcpy(newt.node, from->node, size_from * sizeof(Node));
+    if (from->lastfree)
+      newt.lastfree = newt.node + (from->lastfree - from->node);
+  }
+
+  if (from_realasize > 0) {  /* create/reallocate new array part */
+    TValue *array = (to_realasize == 0) ? newt.array : to->array;
+
+    newt.alimit = from->alimit;
+    newt.array = luaM_reallocvector(L, array, to_realasize, from_realasize, TValue);
+    if (l_unlikely(newt.array == NULL)) {  /* allocation failed? */
+      freehash(L, &newt);  /* release new hash part */
+      luaM_error(L);  /* raise error */
+    }
+
+    memcpy(newt.array, from->array, from_realasize * sizeof(TValue));
+  }
+  else {  /* delete current array */
+    if (to->array != NULL) {
+      luaM_freearray(L, to->array, to_realasize);
+      to->array = NULL;
+    }
+  }
+
+  freehash(L, to);  /* delete previous hash part */
+  to->array = newt.array;
+  to->alimit = newt.alimit;
+  to->node = newt.node;
+  to->lastfree = newt.lastfree;
+  to->lsizenode = newt.lsizenode;
+  to->flags = ((to->flags & ~BITRAS) | (from->flags & BITRAS));
+  if (isblack(obj2gco(to)))
+    luaC_barrierback_(L, obj2gco(to));
+}
 #endif
+
 
 #if defined(LUA_DEBUG)
 
