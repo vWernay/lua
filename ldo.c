@@ -929,13 +929,12 @@ static void f_parser (lua_State *L, void *ud) {
   struct SParser *p = cast(struct SParser *, ud);
   int c = zgetc(p->z);  /* read first character */
   if (c == LUA_SIGNATURE[0]) {
-#if defined(LUA_BYTECODE)
+#if defined(LUA_NO_BYTECODE)
+    luaO_pushfstring(L, "attempting to load a binary chunk (disabled by this interpreter)");
+    luaD_throw(L, LUA_ERRSYNTAX);
+#else
     checkmode(L, p->mode, "binary");
     cl = luaU_undump(L, p->z, p->name);
-#else
-    luaO_pushfstring(L,
-      "attempt to load a binary chunk (which are disabled)");
-    luaD_throw(L, LUA_ERRSYNTAX);
 #endif
   }
   else {

@@ -25,6 +25,14 @@
 #include "lundump.h"
 #include "lzio.h"
 
+#if defined(LUA_NO_BYTECODE)
+LClosure *luaU_undump(lua_State *L, ZIO *Z, const char *name) {
+  UNUSED(L);
+  UNUSED(Z);
+  UNUSED(name);
+  return NULL;
+}
+#else
 
 #if !defined(luai_verifycode)
 #define luai_verifycode(L,f)  /* empty */
@@ -304,7 +312,6 @@ static void loadFunction (LoadState *S, Proto *f, TString *psource) {
 }
 
 
-#if defined(LUA_BYTECODE)
 static void checkliteral (LoadState *S, const char *s, const char *msg) {
   char buff[sizeof(LUA_SIGNATURE) + sizeof(LUAC_DATA)]; /* larger than both */
   size_t len = strlen(s);

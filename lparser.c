@@ -2208,6 +2208,19 @@ static void statement (LexState *ls) {
 
 /* }====================================================================== */
 
+#if defined(LUA_NO_PARSER)
+LClosure *luaY_parser (lua_State *L, ZIO *z, Mbuffer *buff,
+                       Dyndata *dyd, const char *name, int firstchar) {
+  UNUSED(z);
+  UNUSED(buff);
+  UNUSED(dyd);
+  UNUSED(name);
+  UNUSED(firstchar);
+  lua_pushliteral(L, "parsing module not loaded; compiled code only");
+  lua_error(L);
+  return NULL;
+}
+#else
 
 /*
 ** compiles the main function, which is a regular vararg function with an
@@ -2257,3 +2270,4 @@ LClosure *luaY_parser (lua_State *L, ZIO *z, Mbuffer *buff,
   return cl;  /* closure is on the stack, too */
 }
 
+#endif

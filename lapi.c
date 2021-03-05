@@ -1229,8 +1229,13 @@ LUA_API int lua_dump (lua_State *L, lua_Writer writer, void *data, int strip) {
   lua_lock(L);
   api_checknelems(L, 1);
   o = s2v(L->top - 1);
-  if (isLfunction(o))
+  if (isLfunction(o)) {
+#if defined(LUA_NO_DUMP)
+    status = 0;
+#else
     status = luaU_dump(L, getproto(o), writer, data, strip);
+#endif
+  }
   else
     status = 1;
   lua_unlock(L);

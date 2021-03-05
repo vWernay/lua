@@ -19,6 +19,17 @@
 #include "lundump.h"
 
 
+#if defined(LUA_NO_DUMP)
+int luaU_dump(lua_State *L, const Proto *f, lua_Writer w, void *data, int strip) {
+  UNUSED(L);
+  UNUSED(f);
+  UNUSED(w);
+  UNUSED(data);
+  UNUSED(strip);
+  return 0;
+}
+#else
+
 typedef struct {
   lua_State *L;
   lua_Writer writer;
@@ -243,3 +254,4 @@ int luaU_dump(lua_State *L, const Proto *f, lua_Writer w, void *data,
   return D.status;
 }
 
+#endif

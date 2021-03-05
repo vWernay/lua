@@ -72,6 +72,9 @@ static void save (LexState *ls, int c) {
 
 
 void luaX_init (lua_State *L) {
+#if defined(LUA_NO_PARSER)
+  UNUSED(L);
+#else
   int i;
   TString *e = luaS_newliteral(L, LUA_ENV);  /* create env name */
   luaC_fix(L, obj2gco(e));  /* never collect this name */
@@ -80,6 +83,7 @@ void luaX_init (lua_State *L) {
     luaC_fix(L, obj2gco(ts));  /* reserved words are never collected */
     ts->extra = cast_byte(i+1);  /* reserved word */
   }
+#endif
 }
 
 
