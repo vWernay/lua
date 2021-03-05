@@ -209,6 +209,18 @@ struct gLuaBase {
   }
 
   /// <summary>
+  /// Return true if the current iteration pointer references a valid, and
+  /// recyclable, data structure.
+  /// </summary>
+  GLM_INLINE bool can_recycle() {
+#if defined(LUA_GLM_RECYCLE)
+    return (idx < 0 || idx <= top());
+#else
+    return false;
+#endif
+  }
+
+  /// <summary>
   /// Push(gLuaBase) wrapper
   /// </summary>
   template<typename T>
@@ -543,8 +555,30 @@ struct gLuaBase {
   }
 
   template<glm::length_t C, glm::length_t R>
-  LUA_TRAIT_QUALIFIER int Push(const gLuaBase &LB, const glm::mat<C, R, glm_Float> &m) {
+  static int Push(gLuaBase &LB, const glm::mat<C, R, glm_Float> &m) {
+    if (LB.can_recycle()) {
+      lua_State *L = LB.L;
+
+      lua_lock(L);
+      const TValue *o = glm_i2v(L, LB.idx);
+      if (ttismatrix(o)) {
+        LB.idx++;
+
+        glm_mat_boundary(mvalue_ref(o)) = m;
+        setobj2s(L, L->top, o); // lua_pushvalue
+        api_incr_top(L);
+        lua_unlock(L);
+        return 1;
+      }
+      lua_unlock(L);
+    }
+
+#if defined(LUA_GLM_FORCED_RECYCLE)
+    /* This library allocating memory is verboten! */
+    return luaL_error(LB.L, "library configured to not allocate additional memory; use recycling mechanisms")
+#else
     return glm_pushmat(LB.L, glmMatrix(m));
+#endif
   }
 
 #if defined(LUA_GLM_GEOM_EXTENSIONS)

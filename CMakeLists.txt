@@ -541,6 +541,11 @@ OPTION(LUA_GLM_INCLUDE_ALL "Include all GLM modules, glm/gtc/gtx" ON)
 OPTION(LUA_GLM_ALIASES "Include all function aliases" ON)
 OPTION(LUA_GLM_REPLACE_MATH "Replace the global math library on library initialization" OFF)
 OPTION(LUA_GLM_GEOM_EXTENSIONS "Extend geometry API" ON)
+OPTION(LUA_GLM_RECYCLE "Recycle trailing (unused) function parameters" ON)
+OPTION(LUA_GLM_FORCED_RECYCLE
+  "All function results must be preallocated, i.e., functions that return \
+  matrices must have preallocated matrix trailing function arguments." OFF
+)
 
 IF( GLM_FORCE_MESSAGES )
   ADD_COMPILE_DEFINITIONS(GLM_FORCE_MESSAGES)
@@ -611,6 +616,13 @@ ENDIF()
 
 IF ( LUA_GLM_GEOM_EXTENSIONS )
   ADD_COMPILE_DEFINITIONS(LUA_GLM_GEOM_EXTENSIONS)
+ENDIF()
+
+IF ( LUA_GLM_RECYCLE )
+  ADD_COMPILE_DEFINITIONS(LUA_GLM_RECYCLE)
+  IF ( LUA_GLM_FORCED_RECYCLE )
+    ADD_COMPILE_DEFINITIONS(LUA_GLM_FORCED_RECYCLE)
+  ENDIF()
 ENDIF()
 
 ################################################################################

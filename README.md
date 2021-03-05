@@ -541,6 +541,18 @@ For all GLM preprocessor flags, reference the [GLM manual](https://github.com/g-
 - **GLM\_GEOM\_EXTENSIONS**: Include support for geometric structures;
 - **LUA\_GLM\_ALIASES**: Create aliases for common (alternate) names when registering the library;
 - **LUA\_GLM\_REPLACE\_MATH**: Replace the global math table with the glm binding library on loading;
+- **LUA\_GLM\_RECYCLE**: Treat all trailing and unused values on the Lua stack (but passed as parameters to the `CClosure`) as a 'cache' of recyclable structures.
+    ```lua
+    -- Some shared matrix
+    > t = mat(vec(1,1), vec(2,2))
+
+    -- When enabled, all arguments after "angle" are recycled.
+    > m = glm.axisAngleMatrix(vector3(1.0, 0.0, 0.0), math.rad(35.0), t)
+
+    -- "t" and "m" reference the same matrix collectible.
+    > t == m
+    true
+    ```
 
 ## Developer Notes:
 
