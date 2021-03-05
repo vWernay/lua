@@ -24,10 +24,11 @@
 #include "ldo.h"
 #include "lmem.h"
 #include "lobject.h"
+#include "lgrit.h"
 #include "lstate.h"
 #include "lstring.h"
 #include "lvm.h"
-#include "lgrit.h"
+
 
 /*
 ** Computes ceil(log2(x))
@@ -354,7 +355,7 @@ int luaO_utf8esc (char *buff, unsigned long x) {
 */
 static int tostringbuff (TValue *obj, char *buff) {
   int len;
-  lua_assert(LUA_TNUMBER == ttype(obj) || ttype(obj) == LUA_TVECTOR);
+  lua_assert(ttisnumber(obj) || ttisvector(obj));
   if (ttisinteger(obj))
     len = lua_integer2str(buff, MAXNUMBER2STR, ivalue(obj));
   else if (ttisvector(obj))

@@ -160,11 +160,6 @@ static LUA_INLINE float todegf(float x) { return x * (180.f / 3.1415926535897932
 static LUA_INLINE float toradf(float x) { return x * (3.141592653589793238462643383279502884f / 180.f); }
 #endif
 
-#ifdef _MSC_VER
-__pragma(warning(push))
-__pragma(warning(disable : 26451))
-#endif
-
 /*
 ** {==================================================================
 ** Tag Methods
@@ -994,10 +989,6 @@ int luaV_scalbn (lua_State *L) {
 
 
 #endif  /* LUA_C99_MATHLIB */
-#endif
-
-#ifdef _MSC_VER
-__pragma(warning(pop))
 #endif
 
 /* }================================================================== */

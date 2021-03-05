@@ -217,13 +217,13 @@ static int dolibrary (lua_State *L, const char *name) {
   const char *eq = strchr(name,'=');
   if (eq) {
     global = eq + 1;
-    if ((eq = (eq == name ? NULL : eq))) /* ensure name != eq */
+    if ((eq = (eq == name ? NULL : eq)))  /* ensure name != eq */
       lua_pushlstring(L, name, eq - name);
   }
 
   lua_getglobal(L, "require");
   lua_pushstring(L, global);
-  if ((status = docall(L, 1, 1)) == LUA_OK) { /* call 'require(name)' */
+  if ((status = docall(L, 1, 1)) == LUA_OK) {  /* call 'require(name)' */
     if (eq) {
       lua_setglobal(L, lua_tostring(L, -2));
       lua_pop(L, 1);
@@ -480,6 +480,7 @@ static int handle_luainit (lua_State *L) {
   #define lua_readlinehistory(L,f) { (void)L; (void)f; }
   #define lua_writelinehistory(L,f) { (void)L; (void)f; }
 #endif
+
 #endif				/* } */
 
 #endif				/* } */

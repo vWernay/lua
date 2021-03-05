@@ -20,6 +20,7 @@
 #include "lualib.h"
 #include "lgrit.h"
 
+
 /*
 ** Operations that an object must define to mimic a table
 ** (some functions only need some of them)

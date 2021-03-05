@@ -22,6 +22,7 @@
 #include "lualib.h"
 #include "lgrit.h"
 
+
 #undef PI
 #define PI	(l_mathop(3.141592653589793238462643383279502884))
 
@@ -981,6 +982,8 @@ static int math_clamp (lua_State *L) {
     return luaVec_clamp(L);
 }
 
+
+
 static const luaL_Reg mathlib[] = {
   {"abs",   math_abs},
   {"acos",  math_acos},
@@ -1003,9 +1006,7 @@ static const luaL_Reg mathlib[] = {
   {"sqrt",  math_sqrt},
   {"tan",   math_tan},
   {"type", math_type},
-
-  { "clamp", math_clamp },
-
+  {"clamp", math_clamp},
 #if defined(LUA_COMPAT_MATHLIB)
   {"atan2", math_atan},
   {"cosh",   math_cosh},

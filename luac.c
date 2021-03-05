@@ -368,12 +368,6 @@ static void PrintCode(const Proto* f)
 	printf("%d %d",a,bx);
 	printf(COMMENT); PrintConstant(f,bx);
 	break;
-#if defined(GRIT_USE_PATH)
-   case OP_LOADKPATH:
-	printf("%d %d", a, bx);
-	printf(COMMENT " path: "); PrintConstant(f, bx);
-	break;
-#endif
    case OP_LOADKX:
 	printf("%d",a);
 	printf(COMMENT); PrintConstant(f,EXTRAARG);

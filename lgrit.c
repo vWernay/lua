@@ -17,11 +17,11 @@
 #include "luaconf.h"
 #include "ldebug.h"
 #include "lobject.h"
+#include "lgrit.h"
 #include "lauxlib.h"
 #include "lstring.h"
 #include "ltable.h"
 #include "lvm.h"
-#include "lgrit.h"
 #include "lgrit_lib.h"
 #if LUA_VVECTOR1 != LUA_VNUMFLT
   #error "Invalid implicit vector variant"
@@ -68,7 +68,7 @@ static int luaVec_swizzle (const char *key, size_t key_len,
 int luaVec_parse (lua_State* L, const TValue *o, lua_Float4 *v) {
   if (ttisvector(o)) {
     if (v != NULL) *v = vvalue(o);
-    return luaVec_dimensions(o);
+    return luaVec_dimensions(rawtt(o));
   }
   else if (ttistable(o)) {
     int i, count = 0;
@@ -144,18 +144,6 @@ static int luaB_vectorn (lua_State *L, int max_size, lua_Float4 *input) {
 LUA_API const char *lua_dimension_label (lua_State *L, int idx) {
   UNUSED(L);
   return (idx >= 1 && idx <= 4) ? dims[idx - 1] : NULL;
-}
-
-LUA_API int lua_dimensions_count (lua_State *L, int tp) {
-  switch (tp) {
-    case LUA_VVECTOR1: return 1;
-    case LUA_VVECTOR2: return 2;
-    case LUA_VVECTOR3: return 3;
-    case LUA_VVECTOR4: return 4;
-    case LUA_VQUAT: return 4;
-    default:
-      return luaL_typeerror(L, tp, "vectortype");
-  }
 }
 
 LUA_API const char *lua_vectypename (lua_State *L, int t) {
@@ -302,10 +290,10 @@ void luaVec_objlen (lua_State *L, StkId ra, const TValue *o) {
 
   switch (ttypetag(o)) {
     case LUA_VVECTOR1: setfltvalue(s2v(ra), val_(o).n); break;
-    case LUA_VVECTOR2: setfltvalue(s2v(ra), luaVec_length2(val_(o).f4)); break;
-    case LUA_VVECTOR3: setfltvalue(s2v(ra), luaVec_length3(val_(o).f4)); break;
-    case LUA_VVECTOR4: setfltvalue(s2v(ra), luaVec_length4(val_(o).f4)); break;
-    case LUA_VQUAT: setfltvalue(s2v(ra), luaVec_length4(val_(o).f4)); break;
+    case LUA_VVECTOR2: setfltvalue(s2v(ra), luaVec_length2(vvalue(o))); break;
+    case LUA_VVECTOR3: setfltvalue(s2v(ra), luaVec_length3(vvalue(o))); break;
+    case LUA_VVECTOR4: setfltvalue(s2v(ra), luaVec_length4(vvalue(o))); break;
+    case LUA_VQUAT: setfltvalue(s2v(ra), luaVec_length4(vvalue(o))); break;
     default:
       luaG_runerror(L, "Invalid arguments, vector type required.");
       break;
@@ -320,10 +308,10 @@ void luaVec_objlen (lua_State *L, StkId ra, const TValue *o) {
 ** ===================================================================
 */
 
-#define l_vfx(v) ((LUA_VEC_UACNUMBER)(v).x)
-#define l_vfy(v) ((LUA_VEC_UACNUMBER)(v).y)
-#define l_vfz(v) ((LUA_VEC_UACNUMBER)(v).z)
-#define l_vfw(v) ((LUA_VEC_UACNUMBER)(v).w)
+#define l_vfx(v) (cast(LUAI_UACNUMBER, (v).x))
+#define l_vfy(v) (cast(LUAI_UACNUMBER, (v).y))
+#define l_vfz(v) (cast(LUAI_UACNUMBER, (v).z))
+#define l_vfw(v) (cast(LUAI_UACNUMBER, (v).w))
 
 #if !defined(LUA_USE_C89)
   #define l_vprintf(s,sz,f,...) snprintf(s,sz,f,__VA_ARGS__)
@@ -451,16 +439,6 @@ int luaVec_tostr (char *buff, size_t len, const lua_Float4 v, int variant) {
   }
 }
 
-int luaVec_pullstring (lua_State *L, const TValue *o, lua_Float4 *sink) {
-  if (ttisstring(o)) {
-    sink->x = sink->y = sink->z = sink->w = V_ZERO;
-    luaG_runerror(L, "luaVec_pullstring not yet implemented");
-  }
-  else {
-    luaG_runerror(L, "invalid vectorstring option");
-  }
-}
-
 LUA_API const char *lua_pushvecstring (lua_State *L, int idx) {
   if (lua_isinteger(L, idx))
     return lua_pushfstring(L, LUA_INTEGER_FMT, lua_tointeger(L, idx));
@@ -497,25 +475,25 @@ void luaVec_getstring (lua_State *L, const TValue *t, const char *skey, TValue *
     int index = -1;
     lua_VecF v = V_ZERO;
     switch (*skey) {
-      case 'x': index = 0; v = val_(t).f4.x; break;
-      case 'y': index = 1; v = val_(t).f4.y; break;
-      case 'z': index = 2; v = val_(t).f4.z; break;
-      case 'w': index = 3; v = val_(t).f4.w; break;
+      case 'x': index = 0; v = vvalue(t).x; break;
+      case 'y': index = 1; v = vvalue(t).y; break;
+      case 'z': index = 2; v = vvalue(t).z; break;
+      case 'w': index = 3; v = vvalue(t).w; break;
       case 'n': { /* Dimension fields takes priority over metamethods */
-        setivalue(s2v(val), luaVec_dimensions(t));
+        setivalue(s2v(val), luaVec_dimensions(rawtt(t)));
         return;
       }
       default:
         break;
     }
 
-    if (index >= 0 && index < luaVec_dimensions(t)) {
+    if (index >= 0 && index < luaVec_dimensions(rawtt(t))) {
       setfltvalue(s2v(val), cast_num(v));
     }
     else
       luaV_finishget(L, t, key, val, NULL);
   }
-  else if ((out_s = luaVec_swizzle(skey, vslen(key), &val_(t).f4, luaVec_dimensions(t), &out)) > 0) {
+  else if ((out_s = luaVec_swizzle(skey, vslen(key), &(val_(t).f4), luaVec_dimensions(rawtt(t)), &out)) > 0) {
     switch (out_s) {
       case 1: setfltvalue(s2v(val), cast_num(out.x)); break;
       case 2: setvvalue(s2v(val), out, LUA_VVECTOR2); break;
@@ -528,17 +506,17 @@ void luaVec_getstring (lua_State *L, const TValue *t, const char *skey, TValue *
   }
   /* Dimension fields takes priority over metamethods */
   else if (strcmp(skey, "dim") == 0) {
-    setivalue(s2v(val), luaVec_dimensions(t));
+    setivalue(s2v(val), luaVec_dimensions(rawtt(t)));
   }
   /* Default functions when the LUA_TVECTOR does not have a debug metatable. */
   else if (tm = luaT_gettmbyobj(L, t, TM_INDEX), ttisnil(tm)) {
     if (ttisquat(t)) {
       if (strcmp(skey, "angle") == 0) {
-        setfltvalue(s2v(val), luaVec_axisangle(val_(t).f4));
+        setfltvalue(s2v(val), luaVec_axisangle(vvalue(t)));
       }
       else if (strcmp(skey, "axis") == 0) {
         lua_Float4 r;
-        luaVec_axis(val_(t).f4, &r);
+        luaVec_axis(vvalue(t), &r);
         setvvalue(s2v(val), r, LUA_VVECTOR3);
       }
       else
@@ -554,7 +532,7 @@ void luaVec_getstring (lua_State *L, const TValue *t, const char *skey, TValue *
 
 void luaVec_getint (lua_State *L, const TValue *t, const lua_Integer key, TValue *pkey, StkId val) {
   const TValue *tm;
-  const int dimensions = luaVec_dimensions(t);
+  const int dimensions = luaVec_dimensions(rawtt(t));
   if (key >= 1 && key <= dimensions) {
     setfltvalue(s2v(val), cast_num((&(val_(t).f4.x))[key - 1]));
     return;

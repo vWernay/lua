@@ -23,13 +23,14 @@
 #include "lgc.h"
 #include "lmem.h"
 #include "lobject.h"
+#include "lgrit.h"
 #include "lstate.h"
 #include "lstring.h"
 #include "ltable.h"
 #include "ltm.h"
 #include "lundump.h"
 #include "lvm.h"
-#include "lgrit.h"
+
 
 
 const char lua_ident[] =
@@ -419,7 +420,7 @@ LUA_API int lua_tovector (lua_State *L, int idx, int flags, lua_Float4 *vector) 
   lua_Number n = 0;
   const TValue *o = index2value(L, idx);
   if (ttisvector(o)) {
-    *vector = val_(o).f4;
+    *vector = vvalue(o);
     return ttypetag(o);
   }
   else if ((flags & V_PARSETABLE) != 0 && ttistable(o)) {
@@ -796,7 +797,7 @@ LUA_API int lua_getfield (lua_State *L, int idx, const char *k) {
   lua_lock(L);
   t = index2value(L, idx);
   if (ttisvector(t)) {
-    int vt = luavec_getstr(L, &(val_(t).f4), luaVec_dimensions(t), k);
+    int vt = luavec_getstr(L, &(val_(t).f4), luaVec_dimensions(ttypetag(t)), k);
     api_incr_top(L);
     lua_unlock(L);
     return vt;
@@ -811,7 +812,7 @@ LUA_API int lua_geti (lua_State *L, int idx, lua_Integer n) {
   lua_lock(L);
   t = index2value(L, idx);
   if (ttisvector(t))
-    luaVec_rawgeti(L, &(val_(t).f4), luaVec_dimensions(t), n);
+    luaVec_rawgeti(L, &(val_(t).f4), luaVec_dimensions(ttypetag(t)), n);
   else if (luaV_fastgeti(L, t, n, slot)) {
     setobj2s(L, L->top, slot);
   }
@@ -856,7 +857,7 @@ LUA_API int lua_rawget (lua_State *L, int idx) {
   api_checknelems(L, 1);
   v = index2value(L, idx);
   if (ttisvector(v)) {
-    const int dims = luaVec_dimensions(v);
+    const int dims = luaVec_dimensions(ttypetag(v));
     const int vt = luaVec_rawget(L, &(val_(v).f4), dims, s2v(L->top - 1));
     lua_unlock(L);
     return vt;
@@ -875,7 +876,7 @@ LUA_API int lua_rawgeti (lua_State *L, int idx, lua_Integer n) {
   lua_lock(L);
   v = index2value(L, idx);
   if (ttisvector(v)) {
-    const int vt = luaVec_rawgeti(L, &(val_(v).f4), luaVec_dimensions(v), n);
+    const int vt = luaVec_rawgeti(L, &(val_(v).f4), luaVec_dimensions(ttypetag(v)), n);
     api_incr_top(L);
     lua_unlock(L);
     return vt;
@@ -1405,12 +1406,6 @@ LUA_API int lua_gc (lua_State *L, int what, ...) {
 */
 
 
-LUA_API void lua_extmemburden (lua_State *L, int sz) {
-    G(L)->totalbytes += sz;
-    G(L)->GCestimate += sz;
-}
-
-
 LUA_API int lua_error (lua_State *L) {
   TValue *errobj;
   lua_lock(L);
@@ -1433,7 +1428,7 @@ LUA_API int lua_next (lua_State *L, int idx) {
   api_checknelems(L, 1);
   v = index2value(L, idx);
   if (ttisvector(v)) {
-    more = luaVec_next(L, &(val_(v).f4), luaVec_dimensions(v), L->top - 1);
+    more = luaVec_next(L, &(val_(v).f4), luaVec_dimensions(ttypetag(v)), L->top - 1);
   }
   else {
     Table *t = ensuretable(L, v);

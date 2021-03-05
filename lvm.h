@@ -10,6 +10,7 @@
 
 #include "ldo.h"
 #include "lobject.h"
+#include "lgrit.h"
 #include "ltm.h"
 
 

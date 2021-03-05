@@ -15,6 +15,7 @@
 #include "lua.h"
 
 #include "lobject.h"
+#include "lgrit.h"
 #include "lstate.h"
 #include "lundump.h"
 

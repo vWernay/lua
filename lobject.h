@@ -14,6 +14,7 @@
 
 #include "llimits.h"
 #include "lua.h"
+#include "lgrit_lib.h"
 
 
 /*
@@ -321,7 +322,6 @@ typedef struct GCObject {
 
 #define fltvalueraw(v)	((v).n)
 #define ivalueraw(v)	((v).i)
-#define vvalueraw(v)  ((v).f4)
 
 #define setfltvalue(obj,x) \
   { TValue *io=(obj); val_(io).n=(x); settt_(io, LUA_VNUMFLT); }
@@ -334,34 +334,6 @@ typedef struct GCObject {
 
 #define chgivalue(obj,x) \
   { TValue *io=(obj); lua_assert(ttisinteger(io)); val_(io).i=(x); }
-
-/* }================================================================== */
-
-/*
-** {==================================================================
-** Vectors
-** ===================================================================
-*/
-
-/* Variant tags for vectors */
-#if LUA_VVECTOR2 != makevariant(LUA_TVECTOR, 0)
-  #error "Invalid vector2 variant"
-#elif LUA_VVECTOR3 != makevariant(LUA_TVECTOR, 1)
-  #error "Invalid vector3 variant"
-#elif LUA_VVECTOR4 != makevariant(LUA_TVECTOR, 2)
-  #error "Invalid vector4 variant"
-#elif LUA_VQUAT != makevariant(LUA_TVECTOR, 3)
-  #error "Invalid quaternion variant"
-#endif
-
-#define ttisvector(o)         checktype((o), LUA_TVECTOR)
-#define vvalue(o)             check_exp(ttisvector(o),  val_(o).f4)
-#define setvvalue(obj, x, v)  { TValue *io=(obj); val_(io).f4=(x); settt_(io, (v)); }
-
-#define ttisvector2(o)  checktag((o), LUA_VVECTOR2)
-#define ttisvector3(o)  checktag((o), LUA_VVECTOR3)
-#define ttisvector4(o)  checktag((o), LUA_VVECTOR4)
-#define ttisquat(o)     checktag((o), LUA_VQUAT)
 
 /* }================================================================== */
 

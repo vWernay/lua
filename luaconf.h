@@ -825,60 +825,34 @@
 
 #define LUA_GRIT_API
 
-/*
-** lobject.c:
-** Maximum length of the conversion of a number to a string. Must be
-** enough to accommodate both LUA_INTEGER_FMT and LUA_NUMBER_FMT.
-** (For a long long int, this is 19 digits plus a sign and a final '\0',
-** adding to 21. For a long double, it can go to a sign, 33 digits,
-** the dot, an exponent letter, an exponent sign, 5 exponent digits,
-** and a final '\0', adding to 43.)
-*/
-#define ORIG_MAXNUMBER2STR 44
-
-/*
-** Value changed from:
-**   #define LUAI_MAXFLOAT2STR 16
-**   #define LUAI_MAXVECTOR42STR (7 + 4*(1+LUAI_MAXFLOAT2STR+1))
-** To something a bit more robust.
-*/
-#define LUAI_MAXVECTORSTR (7 + 4 * (1 + ORIG_MAXNUMBER2STR + 1))
-
 #if defined(GRIT_LONG_FLOAT)
   #define LUA_VEC_TYPE LUA_FLOAT_TYPE
-
   #define LUA_VEC_NUMBER LUA_NUMBER
   #define LUA_VEC_NUMBER_EPS LUA_NUMBER_EPS
-  #define LUA_VEC_UACNUMBER LUAI_UACNUMBER
-  #define LUA_VEC_FMT LUA_NUMBER_FMT
-
-  #define l_vecop(op) l_mathop(op)
-  #define l_vecfatt(n) l_floatatt(n)
 #else
   #define LUA_VEC_TYPE LUA_FLOAT_FLOAT
-
   #define LUA_VEC_NUMBER float
   #define LUA_VEC_NUMBER_EPS FLT_EPSILON
-  #define LUA_VEC_UACNUMBER LUAI_UACNUMBER
+#endif
+
+#if LUA_FLOAT_TYPE == LUA_VEC_TYPE
+  #define l_vecop(op) l_mathop(op)
+  #define l_vecfatt(n) l_floatatt(n)
+  #define LUA_VEC_FMT LUA_NUMBER_FMT
+#else
+  #define l_vecfatt(n) (FLT_##n)
+  #if (defined(LUA_USE_C89) && !defined(LUA_USE_WINDOWS)) || (defined(HUGE_VAL) && !defined(HUGE_VALF))
+    /* variants not available */
+    #define l_vecop(op) (LUA_VEC_NUMBER)op
+  #else
+    #define l_vecop(op) op##f
+  #endif
 
   #if LUA_FLOAT_TYPE == LUA_FLOAT_LONGDOUBLE
     #define LUA_VEC_FMT "%.7Lg"
   #else
     #define LUA_VEC_FMT "%.7g"
   #endif
-
-  #if LUA_FLOAT_TYPE == LUA_FLOAT_FLOAT
-    #define l_vecop(op) l_mathop(op)
-    #define l_vecfatt(n) l_floatatt(n)
-  #else
-    #define l_vecop(op) op##f
-    #define l_vecfatt(n) (FLT_##n)
-  #endif
-#endif
-
-#if (defined(LUA_USE_C89) && !defined(LUA_USE_WINDOWS)) || (defined(HUGE_VAL) && !defined(HUGE_VALF))
-  #undef l_vecop      /* variants not available */
-  #define l_vecop(op) (LUA_VEC_NUMBER)op
 #endif
 
 /* type of numbers in Lua */

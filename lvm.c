@@ -346,13 +346,9 @@ void luaV_finishset (lua_State *L, const TValue *t, TValue *key,
       /* else will try the metamethod */
     }
     else {  /* not a table; check metamethod */
-      /*
-       * mutable fields of vectors/quats does not work very well in lua since
-       * o.f is not an lvalue, o.f.x = 10 is a no-op
-       */
       tm = luaT_gettmbyobj(L, t, TM_NEWINDEX);
       if (l_unlikely(notm(tm))) {
-        if (ttype(t) == LUA_TVECTOR)
+        if (ttisvector(t))
           luaG_runerror(L, "attempting to mutate a vector value");
         else
           luaG_typeerror(L, t, "index");
@@ -886,6 +882,8 @@ void luaV_finishOp (lua_State *L) {
 }
 
 
+
+
 /*
 ** {==================================================================
 ** Macros for arithmetic/bitwise/comparison opcodes in 'luaV_execute'
@@ -1243,7 +1241,7 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
         const TValue *slot;
         TValue *upval = cl->upvals[GETARG_B(i)]->v;
         TValue *rc = KC(i);
-        if (ttype(upval) == LUA_TVECTOR)  /* key must be a string */
+        if (ttisvector(upval))  /* key must be a string */
           Protect(luaVec_getstring(L, upval, svalue(rc), rc, ra));
         else {
           TString *key = tsvalue(rc);  /* key must be a string */
@@ -1258,7 +1256,7 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
       vmcase(OP_GETTABLE) {
         TValue *rb = vRB(i);
         TValue *rc = vRC(i);
-        if (ttype(rb) == LUA_TVECTOR) {
+        if (ttisvector(rb)) {
           if (ttisinteger(rc))
             Protect(luaVec_getint(L, rb, ivalue(rc), rc, ra));
           else if (ttisstring(rc))
@@ -1291,8 +1289,8 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
       vmcase(OP_GETI) {
         TValue *rb = vRB(i);
         int c = GETARG_C(i);
-        if (ttype(rb) == LUA_TVECTOR) {
-          if (c >= 1 && c <= luaVec_dimensions(rb)) {
+        if (ttisvector(rb)) {
+          if (c >= 1 && c <= luaVec_dimensions(ttypetag(rb))) {
             setfltvalue(s2v(ra), cast_num((&(val_(rb).f4.x))[c - 1]));
           }
           else {
@@ -1317,9 +1315,8 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
       vmcase(OP_GETFIELD) {
         TValue *rb = vRB(i);
         TValue *rc = KC(i);
-        if (ttype(rb) == LUA_TVECTOR) {
+        if (ttisvector(rb))
           Protect(luaVec_getstring(L, rb, svalue(rc), rc, ra));
-        }
         else {
           const TValue *slot;
           TString *key = tsvalue(rc);  /* key must be a string */
@@ -1406,7 +1403,7 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
         TValue *rb = vRB(i);
         TValue *rc = RKC(i);
         setobj2s(L, ra + 1, rb);
-        if (ttype(rb) == LUA_TVECTOR)  /* key must be a string */
+        if (ttisvector(rb))  /* key must be a string */
           Protect(luaVec_getstring(L, rb, svalue(rc), rc, ra));
         else {
           const TValue *slot;

@@ -14,15 +14,50 @@
 #include "ltm.h"
 #include "lgrit_lib.h"
 
-#define V2_EQ(V, V2) (V_ISEQUAL((V).x, (V2).x) && V_ISEQUAL((V).y, (V2).y))
-#define V3_EQ(V, V2) (V_ISEQUAL((V).z, (V2).z) && V2_EQ(V, V2))
-#define V4_EQ(V, V2) (V_ISEQUAL((V).w, (V2).w) && V3_EQ(V, V2))
+/*
+** {==================================================================
+** Vector Object API
+** ===================================================================
+*/
+
+/* Variant tags for vectors */
+#if LUA_VVECTOR2 != makevariant(LUA_TVECTOR, 0)
+  #error "Invalid vector2 variant"
+#elif LUA_VVECTOR3 != makevariant(LUA_TVECTOR, 1)
+  #error "Invalid vector3 variant"
+#elif LUA_VVECTOR4 != makevariant(LUA_TVECTOR, 2)
+  #error "Invalid vector4 variant"
+#elif LUA_VQUAT != makevariant(LUA_TVECTOR, 3)
+  #error "Invalid quaternion variant"
+#endif
+
+#define ttisvector(o) checktype((o), LUA_TVECTOR)
+#define vvalue(o) check_exp(ttisvector(o), val_(o).f4)
+#define vvalueraw(v) ((v).f4)
+
+#define setvvalue(obj, x, v) \
+  LUA_MLM_BEGIN              \
+  TValue *io = (obj);        \
+  val_(io).f4 = (x);         \
+  settt_(io, (v));           \
+  LUA_MLM_END
+
+#define ttisvector2(o) checktag((o), LUA_VVECTOR2)
+#define ttisvector3(o) checktag((o), LUA_VVECTOR3)
+#define ttisvector4(o) checktag((o), LUA_VVECTOR4)
+#define ttisquat(o) checktag((o), LUA_VQUAT)
+
+/* }================================================================== */
 
 /*
 ** {==================================================================
 ** Vector Math
 ** ===================================================================
 */
+
+#define V2_EQ(V, V2) (V_ISEQUAL((V).x, (V2).x) && V_ISEQUAL((V).y, (V2).y))
+#define V3_EQ(V, V2) (V_ISEQUAL((V).z, (V2).z) && V2_EQ(V, V2))
+#define V4_EQ(V, V2) (V_ISEQUAL((V).w, (V2).w) && V3_EQ(V, V2))
 
 /* Individual functions for vector length. */
 LUAI_FUNC lua_Number luaVec_length2 (const lua_Float4 v2);
@@ -142,9 +177,6 @@ LUAI_FUNC int luaVec_next (lua_State *L, const lua_Float4 *v, int vdims, StkId k
 /* converts a vector to a string. */
 LUAI_FUNC int luaVec_tostr (char *buff, size_t len, const lua_Float4 v, int variant);
 
-/* Parse the string object and return the number of dimensions to the vector. */
-LUAI_FUNC int luaVec_pullstring (lua_State *L, const TValue *o, lua_Float4 *sink);
-
 /*
 ** Attempt to parse the provided table as a vector, i.e., check if the table has
 ** 'x', 'y', 'z', and 'w' fields and if those values are numeric types. If 'v'
@@ -160,12 +192,6 @@ LUAI_FUNC int luaVec_parse (lua_State* L, const TValue *o, lua_Float4 *v);
 ** returning the number of elements (i.e., dimensions of vector).
 */
 LUAI_FUNC int lua_unpackvec (lua_State *L);
-
-/* Number of dimensions associated with the vector object */
-static LUA_INLINE int luaVec_dimensions (const TValue *o) {
-  const int dims = (rawtt(o) & 0x30) >> 4;  /* variant bits 4-5 */
-  return (dims < 3) ? (2 + dims) : 4;  /* quat uses 3rd bit. */
-}
 
 /* }================================================================== */
 

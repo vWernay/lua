@@ -33,6 +33,7 @@
 #include "lgc.h"
 #include "lmem.h"
 #include "lobject.h"
+#include "lgrit.h"
 #include "lstate.h"
 #include "lstring.h"
 #include "ltable.h"

@@ -14,7 +14,6 @@
 #include <string.h>
 
 #include "lua.h"
-#include "lgrit_lib.h"
 
 #include "ldebug.h"
 #include "ldo.h"
@@ -24,6 +23,9 @@
 #include "lstring.h"
 #include "lundump.h"
 #include "lzio.h"
+#include "lgrit.h"
+#include "lgrit_lib.h"
+
 
 #if defined(LUA_NO_BYTECODE)
 LClosure *luaU_undump(lua_State *L, ZIO *Z, const char *name) {

@@ -1627,7 +1627,7 @@ static RET_ASSIGN_RESULT restassign (LexState *ls, struct LHS_assign *lh, int nv
     leavelevel(ls);
   }
 #if defined(GRIT_POWER_INTABLE)
-  else if (ls->t.token == TK_IN) { /* hook for table unpack */
+  else if (ls->t.token == TK_IN) {  /* hook for table unpack */
     return get_table_unpack(ls, lh, &e);
   }
 #endif
@@ -1649,7 +1649,7 @@ static RET_ASSIGN_RESULT restassign (LexState *ls, struct LHS_assign *lh, int nv
     }
   }
 #if defined(GRIT_POWER_COMPOUND)
-  else if (opeqexpr(ls->t.token)) { /* restassign -> opeq expr */
+  else if (opeqexpr(ls->t.token)) {  /* restassign -> opeq expr */
     check_condition(ls, nvars == 1, "compound assignment not allowed on tuples");
     compound_assignment(ls,&lh->v);
     return RET_ASSIGN_RETURN;

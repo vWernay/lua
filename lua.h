@@ -200,28 +200,6 @@ LUA_API const void     *(lua_topointer) (lua_State *L, int idx);
 
 
 /*
-** vector variants exposed in lua.h to simplify the internal/external
-** translation between vector-types.
-**
-** NOTE: LUA_VVECTOR1 is the implicit vector-type (not enough variant bits) that
-** is functionally equivalent to a LUA_TNUMBER. Therefore, ensure LUA_VVECTOR1
-** is be equivalent to LUA_VNUMFLT internally.
-*/
-#define LUA_VVECTOR1 (LUA_TNUMBER | (1 << 4))
-#define LUA_VVECTOR2 (LUA_TVECTOR | (0 << 4))
-#define LUA_VVECTOR3 (LUA_TVECTOR | (1 << 4))
-#define LUA_VVECTOR4 (LUA_TVECTOR | (2 << 4))
-#define LUA_VQUAT    (LUA_TVECTOR | (3 << 4))
-
-#define V_NOTABLE 0x0  /* Only explicit vectors can be tovector'd */
-#define V_PARSETABLE 0x1  /* Attempt to parse a table object as a vector. */
-#define V_NONUMBER 0x2 /* Ignore lua_Number == LUA_VVECTOR1 */
-
-/* Returns the variant of the vector if it is indeed a vector, zero otherwise */
-LUA_API int (lua_isvector) (lua_State *L, int idx, int flags);
-LUA_API int (lua_tovector) (lua_State *L, int idx, int flags, lua_Float4 *vector);
-
-/*
 ** Comparison and arithmetic functions
 */
 
@@ -256,7 +234,6 @@ LUA_API int   (lua_compare) (lua_State *L, int idx1, int idx2, int op);
 LUA_API void        (lua_pushnil) (lua_State *L);
 LUA_API void        (lua_pushnumber) (lua_State *L, lua_Number n);
 LUA_API void        (lua_pushinteger) (lua_State *L, lua_Integer n);
-LUA_API void        (lua_pushvector) (lua_State *L, lua_Float4 f4, int variant);
 LUA_API const char *(lua_pushlstring) (lua_State *L, const char *s, size_t len);
 LUA_API const char *(lua_pushstring) (lua_State *L, const char *s);
 LUA_API const char *(lua_pushvfstring) (lua_State *L, const char *fmt,
@@ -495,7 +472,6 @@ LUA_API void (lua_closeslot) (lua_State *L, int idx);
 
 typedef struct lua_Debug lua_Debug;  /* activation record */
 
-LUA_API void lua_extmemburden (lua_State *L, int sz);
 
 /* Functions to be called by the debugger in specific events */
 typedef void (*lua_Hook) (lua_State *L, lua_Debug *ar);
