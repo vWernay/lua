@@ -174,6 +174,46 @@ string = to_string(q --[[ quat ]])
 string = to_string(m --[[ matNxM ]])
 ```
 
+### allEqual
+```lua
+-- glm.all(glm.equal(...)) shorthand
+
+bool = allEqual(v1 --[[ vec ]], v2 --[[ vec ]])
+bool = allEqual(v1 --[[ vec ]], v2 --[[ vec ]], eps --[[ number ]])
+bool = allEqual(v1 --[[ vec ]], v2 --[[ vec ]], eps --[[ vec ]])
+bool = allEqual(v1 --[[ vec ]], v2 --[[ vec ]], ULPs --[[ integer ]])
+
+bool = allEqual(q1 --[[ quat ]], q2 --[[ quat ]])
+bool = allEqual(q1 --[[ quat ]], q2 --[[ quat ]], eps --[[ number ]])
+bool = allEqual(q1 --[[ quat ]], q2 --[[ quat ]], eps --[[ vec4 ]])
+bool = allEqual(q1 --[[ quat ]], q2 --[[ quat ]], ULPs --[[ integer ]])
+
+bool = allEqual(m1 --[[ matrix ]], m2 --[[ matrix ]])
+bool = allEqual(m1 --[[ matrix ]], m2 --[[ matrix ]], eps --[[ number ]])
+bool = allEqual(m1 --[[ matrix ]], m2 --[[ matrix ]], eps --[[ vec4 ]])
+bool = allEqual(m1 --[[ matrix ]], m2 --[[ matrix ]], ULPs --[[ integer ]])
+```
+
+### anyNotEqual
+```lua
+-- glm.any(glm.notEqual(...)) shorthand
+
+bool = anyNotEqual(v1 --[[ vec ]], v2 --[[ vec ]])
+bool = anyNotEqual(v1 --[[ vec ]], v2 --[[ vec ]], eps --[[ number ]])
+bool = anyNotEqual(v1 --[[ vec ]], v2 --[[ vec ]], eps --[[ vec ]])
+bool = anyNotEqual(v1 --[[ vec ]], v2 --[[ vec ]], ULPs --[[ integer ]])
+
+bool = anyNotEqual(q1 --[[ quat ]], q2 --[[ quat ]])
+bool = anyNotEqual(q1 --[[ quat ]], q2 --[[ quat ]], eps --[[ number ]])
+bool = anyNotEqual(q1 --[[ quat ]], q2 --[[ quat ]], eps --[[ vec4 ]])
+bool = anyNotEqual(q1 --[[ quat ]], q2 --[[ quat ]], ULPs --[[ integer ]])
+
+bool = anyNotEqual(m1 --[[ matrix ]], m2 --[[ matrix ]])
+bool = anyNotEqual(m1 --[[ matrix ]], m2 --[[ matrix ]], eps --[[ number ]])
+bool = anyNotEqual(m1 --[[ matrix ]], m2 --[[ matrix ]], eps --[[ vec4 ]])
+bool = anyNotEqual(m1 --[[ matrix ]], m2 --[[ matrix ]], ULPs --[[ integer ]])
+```
+
 ### right
 ```lua
 -- A unit vector designating right
@@ -926,6 +966,1488 @@ quat = quatEulerAngleZYZ(Z --[[ number ]], Y --[[ number ]], Z --[[ number ]])
 - `eulerZXZ = eulerAngleZXZ`
 - `eulerZYX = eulerAngleZYX`
 - `eulerZYZ = eulerAngleZYZ`
+
+# Geometry API
+## AABB
+An Axis-Aligned Bounding Box. All operators (non-constructors) are of the form:
+```lua
+-- aabbMin --[[ vec3 ]]: The minimum extent of the AABB in world space,
+-- aabbMax --[[ vec3 ]]: The maximum extent of the AABB in world space,
+-- ...: vardiac function parameters
+result = aabb.function(aabbMin, aabbMax, ...)
+```
+
+### aabb.new
+```lua
+-- Create a new AABB that encloses all coordinates on the Lua stack (or within a
+-- table if it is the first argument)
+aabbMin,aabbMax = aabb.new(...)
+```
+
+### aabb.fromCenterAndSize:
+```lua
+-- Create an AABB by specifying its center and size (uniform on each dimension)
+aabbMin,aabbMax = aabb.fromCenterAndSize(center --[[ vec3 ]], size --[[ number ]])
+```
+
+### aabb.aabbFromSphere:
+```lua
+-- Create the smallest possible AABB, in terms of volume, that contains the
+-- provided sphere
+aabbMin,aabbMax = aabb.aabbFromSphere(spherePos --[[ vec3 ]], sphereRad --[[ number ]])
+```
+
+### aabb.operator\_negate
+```lua
+aabbMin,aabbMax = aabb.operator_negate(...)
+```
+
+### aabb.operator\_add
+```lua
+aabbMin,aabbMax = aabb.operator_add(..., point --[[ vec3 ]])
+```
+
+### aabb.operator\_sub
+```lua
+aabbMin,aabbMax = aabb.operator_sub(..., point --[[ vec3 ]])
+```
+
+### aabb.operator\_mul
+```lua
+aabbMin,aabbMax = aabb.operator_mul(matrix3x3, ...)
+aabbMin,aabbMax = aabb.operator_mul(matrix4x3, ...)
+aabbMin,aabbMax = aabb.operator_mul(matrix4x4, ...)
+aabbMin,aabbMax = aabb.operator_mul(quat, ...)
+```
+
+### aabb.equal
+```lua
+bool = aabb.equal(..., otherMin --[[ vec3 ]], otherMax --[[ vec3 ]])
+bool = aabb.equal(..., otherMin --[[ vec3 ]], otherMax --[[ vec3 ]], eps --[[ number ]])
+bool = aabb.equal(..., otherMin --[[ vec3 ]], otherMax --[[ vec3 ]], eps --[[ vec3 ]])
+bool = aabb.equal(..., otherMin --[[ vec3 ]], otherMax --[[ vec3 ]], ULPs --[[ integer ]])
+
+-- explicit operator==(AABB, AABB)
+bool = aabb.operator_equals(..., otherMin --[[ vec3 ]], otherMax --[[ vec3 ]])
+```
+
+### aabb.notEqual
+```lua
+bool = aabb.notEqual(..., otherMin --[[ vec3 ]], otherMax --[[ vec3 ]])
+bool = aabb.notEqual(..., otherMin --[[ vec3 ]], otherMax --[[ vec3 ]], eps --[[ number ]])
+bool = aabb.notEqual(..., otherMin --[[ vec3 ]], otherMax --[[ vec3 ]], eps --[[ vec3 ]])
+bool = aabb.notEqual(..., otherMin --[[ vec3 ]], otherMax --[[ vec3 ]], ULPs --[[ integer ]])
+```
+
+### aabb.to\_string
+```lua
+-- @TODO: Not implemented
+string = aabb.to_string(...)
+```
+
+### aabb.isinf
+```lua
+-- Tests if any component of the AABB is infinite
+bool = aabb.isinf(...)
+```
+
+### aabb.isnan
+```lua
+-- Tests if any component of the AABB is NaN
+bool = aabb.isnan(...)
+```
+
+### aabb.isfinite
+```lua
+-- Test if all components of the AABB are finite
+bool = aabb.isfinite(...)
+```
+
+### aabb.isDegenerate
+```lua
+-- Return true if the AABB is degenerate, i.e., does not span in a strictly
+-- positive volume
+bool = aabb.isDegenerate(...)
+```
+
+### aabb.centerPoint
+```lua
+-- Return the center point of the AABB
+vec3 = aabb.centerPoint(...)
+```
+
+### aabb.pointInside
+```lua
+-- Generates a point inside the AABB where "p" is a vector of normalized values
+-- (i.e., between [0, 1]) along each axis relative to the AABB minpoint
+vec3 = aabb.pointInside(..., p --[[ vec3 ]])
+```
+
+### aabb.minimalEnclosingSphere
+```lua
+-- Return the smallest sphere that contains the AABB
+spherePos --[[ vec3 ]], sphereRad --[[ number ]] = aabb.minimalEnclosingSphere(...)
+```
+
+### aabb.maximalContainedSphere
+```lua
+-- Return the largest sphere that can fit inside the AABB
+spherePos --[[ vec3 ]], sphereRad --[[ number ]] = aabb.maximalContainedSphere(...)
+```
+
+### aabb.edge
+```lua
+-- Return an edge (segment) of the AABB: [0, 11]
+segStart --[[ vec3 ]], segEnd --[[ vec3 ]] = aabb.edge(..., index --[[ integer ]])
+```
+
+### aabb.cornerPoint
+```lua
+-- Return a corner point of the AABB: [0, 7]
+vec3 = aabb.cornerPoint(..., index --[[ integer ]])
+```
+
+### aabb.extremePoint
+```lua
+-- Compute an extreme point along the AABB, i.e., the furthest point in a given
+-- direction
+vec3 = aabb.extremePoint(..., direction --[[ vec3 ]])
+```
+
+### aabb.pointOnEdge
+```lua
+-- Computes a point along an edge of the AABB
+vec3 = aabb.pointOnEdge(..., edgeIndex --[[ integer ]], u --[[ number ]])
+```
+
+### aabb.faceCenterPoint
+```lua
+-- Return the point at the center of the given face, [0, 5], of the AABB
+vec3 = aabb.faceCenterPoint(..., faceIndex --[[ integer ]])
+```
+
+### aabb.facePoint
+```lua
+-- Generate a point on the surface of the given face of the AABB
+vec3 = aabb.facePoint(...,
+    faceIndex --[[ integer ]],
+    u --[[ number ]],
+    v --[[ number ]]
+)
+```
+
+### aabb.faceNormal
+```lua
+-- Return the surface normal of the given face of the AABB
+vec3 = aabb.faceNormal(..., faceIndex --[[ integer ]])
+```
+
+### aabb.facePlane
+```lua
+-- Generate a plane (point and normal) for the given face of the AABB
+planeNormal --[[ vec3 ]], planeOffset --[[ number ]] = aabb.facePlane(...,
+    faceIndex --[[ integer ]]
+)
+```
+
+### aabb.size
+```lua
+-- Return the length of the AABB along each dimension
+vec3 = aabb.size(...)
+```
+
+### aabb.halfSize
+```lua
+-- Return the radius of the AABB along each dimension
+vec3 = aabb.halfSize(...)
+```
+
+### aabb.volume
+```lua
+-- Compute the volume of the AABB
+number = aabb.volume(...)
+```
+
+### aabb.surfaceArea
+```lua
+-- Computes the surface area of the faces of the AABB
+number = aabb.surfaceArea(...)
+```
+
+### aabb.scale
+```lua
+-- Apply a uniform scale to the AABB
+aabbMin,aabbMax = aabb.scale(..., centerPoint --[[ vec3 --]], factor --[[ number ]])
+```
+
+### aabb.projectToAxis
+```lua
+-- Project the AABB onto the provided axis
+parametricMin --[[ number ]], parametricMax --[[ number ]] = aabb.projectToAxis(, axis --[[ vec3 ]])
+```
+
+### aabb.closestPoint
+```lua
+-- Computes the closest point inside the AABB to the given point
+vec3 = aabb.closestPoint(..., point --[[ vec3 ]])
+```
+
+### aabb.distance
+```lua
+-- Computes the distance between the AABB and the given objects
+number = aabb.distance(..., point --[[ vec3 ]])
+number = aabb.distanceSphere(..., spherePos --[[ vec3 ]], sphereRad --[[ number ]])
+```
+
+### aabb.contains
+```lua
+-- Tests for if the given objects are fully contained inside the AABB
+bool = aabb.contains(..., point --[[ vec3 ]])
+bool = aabb.containsAABB(..., aabbMin --[[ vec3 ]], aabbMax --[[ vec3 ]])
+bool = aabb.containsSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+bool = aabb.containsSphere(..., spherePos --[[ vec3 ]], sphereRad --[[ number ]])
+bool = aabb.containsPolygon(..., polygon --[[ polygon ]])
+```
+
+### aabb.enclose
+```lua
+-- Expand the AABB to enclose the given objects
+aabbMin,aabbMax = aabb.enclose(..., point --[[ vec3 ]])
+aabbMin,aabbMax = aabb.encloseSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+aabbMin,aabbMax = aabb.encloseSphere(..., spherePos --[[ vec3 ]], sphereRad --[[ number ]])
+aabbMin,aabbMax = aabb.encloseAABB(..., otherMin --[[ vec3 ]], otherMax --[[ vec3 ]])
+aabbMin,aabbMax = aabb.enclosePolygon(..., polygon --[[ polygon ]])
+```
+
+### aabb.intersect
+```lua
+-- Functions to determine if the AABB to intersect the given objects.
+-- dNear --[[ number ]]: Distance along the object where the object enters the AABB,
+-- dFar --[[ number ]]: Distance along the object where the object exits the AABB,
+-- result --[[ bool ]]: True on intersection
+result = aabb.intersectAABB(..., otherMin --[[ vec3 ]], otherMax --[[ vec3 ]])
+result = aabb.intersectSphere(..., spherePos --[[ vec3 ]], sphereRad --[[ number ]])
+result = aabb.intersectPlane(..., planeNormal --[[ vec3 ]], planeOffset --[[ number]])
+
+result,dNear,dFar = aabb.intersectLine(..., linePos --[[ vec3 ]], lineDir --[[ vec3 ]])
+result,dNear,dFar = aabb.intersectRay(..., rayPos --[[ vec3 ]], rayDir --[[ vec3 ]])
+result,dNear,dFar = aabb.intersectSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+```
+
+## Line
+A line that extends to plus/minus infinity. All operators (non-constructors) are of the form:
+```lua
+-- linePos --[[ vec3 ]]: The origin of the line in world space,
+-- lineDir --[[ vec3 ]]: The direction of the line,
+-- ...: vardiac function parameters.
+result = line.function(linePos, lineDir, ...)
+```
+
+### line.operator\_negate
+```lua
+linePos,lineDir = line.operator_negate(...)
+```
+
+### line.operator\_add
+```lua
+linePos,lineDir = line.operator_add(..., point --[[ vec3 ]])
+```
+
+### line.operator\_sub
+```lua
+linePos,lineDir = line.operator_sub(..., point --[[ vec3 ]])
+```
+
+### line.operator\_mul
+```lua
+linePos,lineDir = line.operator_mul(matrix3x3, ...)
+linePos,lineDir = line.operator_mul(matrix4x3, ...)
+linePos,lineDir = line.operator_mul(matrix4x4, ...)
+linePos,lineDir = line.operator_mul(quat, ...)
+```
+
+### line.equal
+```lua
+bool = line.equal(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]])
+bool = line.equal(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]], eps --[[ number ]])
+bool = line.equal(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]], eps --[[ vec3 ]])
+bool = line.equal(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]], ULPs --[[ integer ]])
+
+-- explicit operator==(Line, Line)
+bool = line.operator_equals(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]])
+```
+
+### line.notEqual
+```lua
+bool = line.notEqual(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]])
+bool = line.notEqual(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]], eps --[[ number ]])
+bool = line.notEqual(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]], eps --[[ vec3 ]])
+bool = line.notEqual(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]], ULPs --[[ integer ]])
+```
+
+### line.to\_string
+```lua
+-- @TODO: Not implemented
+line.to_string(...)
+```
+
+### line.to\_segment
+```lua
+-- Convert the Line to a LineSegment by specifying the (possibly negative)
+-- distance to the endpoint along this Line
+segStart --[[ vec3 ]], segEnd --[[ vec3 ]] = line.to_segment(..., distance --[[ number ]])
+```
+
+### line.isinf
+```lua
+-- Tests if any component of the line is infinite
+bool = line.isinf(...)
+```
+
+### line.isnan
+```lua
+-- Tests if any component of the line is NaN
+bool = line.isnan(...)
+```
+
+### line.isfinite
+```lua
+-- Test if all components of the line are finite
+bool = line.isfinite(...)
+```
+
+### line.getPoint
+```lua
+-- Get a point along the line at a given distance (parametric point)
+vec3 = line.getPoint(..., distance --[[ number ]])
+```
+
+### line.projectToAxis
+```lua
+-- Project the line onto the given axis (direction), i.e., collapse the line
+parametricMin --[[ number ]], parametricMax --[[ number ]] = line.projectToAxis(..., axis --[[ vec3 ]])
+```
+
+### line.closest
+```lua
+-- Computes the closest point on this line to the given object
+-- d --[[ number ]]: Parametric distance along along the line,
+-- d2 -- [[ number ]]: Parametric distance along the other object,
+-- p --[[ vec3 ]]: Closest point.
+p,d = line.closest(..., point --[[ vec3 ]])
+p,d,d2 = line.closestRay(..., rayPos --[[ vec3 ]], rayDir --[[ vec3 ]])
+p,d,d2 = line.closestLine(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]])
+p,d,d2 = line.closestSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+```
+
+### line.contains
+```lua
+-- Tests if the given object is fully contained on the line
+bool = line.contains(..., point --[[ vec3 ]], epsilon --[[ number ]])
+bool = line.containsRay(..., rayPos --[[ vec3 ]], rayDir --[[ vec3 ]], epsilon --[[ number ]])
+bool = line.containsSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]], epsilon --[[ number ]])
+```
+
+### line.distance
+```lua
+-- Computes the distance between the line and the given object
+-- d --[[ number ]]: Parametric distance along along the line,
+-- d2 --[[ number ]]: Parametric distance along the other object,
+-- dist --[[ number ]]: Distance between the two objects.
+dist,d = line.distance(..., point --[[ vec3 ]])
+dist,d,d2 = line.distanceRay(..., rayPos --[[ vec3 ]], rayDir --[[ vec3 ]])
+dist,d,d2 = line.distanceLine(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]])
+dist,d,d2 = line.distanceSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+dist = line.distanceSphere(..., spherePos --[[ vec3 ]], sphereRad --[[ number ]])
+```
+
+### line.intersect
+```lua
+-- Tests whether the line and the given object intersect
+bool = line.intersectPlane(..., planeNormal --[[ vec3 ]], planeOffset --[[ number ]])
+
+-- dNear --[[ number ]]: Distance along the line where the line enters the AABB,
+-- dFar --[[ number ]]: Distance along the line where the line exits the AABB,
+-- count --[[ integer ]]: Number of intersection points between the line and
+--                      : sphere: 0, 1 (dNear), or 2 (dNear & dFar)
+bool,dNear,dFar = line.intersectAABB(..., aabbMin --[[ vec3 ]], aabbMax --[[ vec3 ]])
+count,dNear,dFar = line.intersectSphere(..., spherePos --[[ vec3 ]], sphereRad --[[ number ]])
+```
+
+## Ray
+A line that extends to infinity is only **one** direction. All operators (non-constructors) are of the form:
+```lua
+-- rayPos --[[ vec3 ]]: The origin of the line in world space,
+-- rayDir --[[ vec3 ]]: The direction of the line,
+-- ...: vardiac function parameters
+result = line.function(rayPos, rayDir, ...)
+```
+
+### ray.operator\_negate
+```lua
+rayPos,rayDir = ray.operator_negate(...)
+```
+
+### ray.operator\_add
+```lua
+rayPos,rayDir = ray.operator_add(..., offset --[[ vec3 ]])
+```
+
+### ray.operator\_sub
+```lua
+rayPos,rayDir = ray.operator_sub(..., offset --[[ vec3 ]])
+```
+
+### ray.operator\_mul
+```lua
+rayPos,rayDir = ray.operator_mul(matrix3x3, ...)
+rayPos,rayDir = ray.operator_mul(matrix4x3, ...)
+rayPos,rayDir = ray.operator_mul(matrix4x4, ...)
+rayPos,rayDir = ray.operator_mul(quat, ...)
+```
+
+### ray.equal
+```lua
+bool = ray.equal(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]])
+bool = ray.equal(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]], eps --[[ number ]])
+bool = ray.equal(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]], eps --[[ vec3 ]])
+bool = ray.equal(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]], ULPs --[[ integer ]])
+
+-- explicit operator==(Ray, Ray)
+bool = ray.operator_equals(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]])
+```
+
+### ray.notEqual
+```lua
+bool = ray.notEqual(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]])
+bool = ray.notEqual(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]], eps --[[ number ]])
+bool = ray.notEqual(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]], eps --[[ vec3 ]])
+bool = ray.notEqual(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]], ULPs --[[ integer ]])
+```
+
+### ray.to\_string
+```lua
+-- @TODO: Not implemented
+string = ray.to_string(...)
+```
+
+### ray.isinf
+```lua
+-- Tests if any component of the ray is infinite
+bool = ray.isinf(...)
+```
+
+### ray.isnan
+```lua
+-- Tests if any component of the ray is NaN
+bool = ray.isnan(...)
+```
+
+### ray.isfinite
+```lua
+-- Test if all components of the AABB are finite
+bool = ray.isfinite(...)
+```
+
+### ray.getPoint
+```lua
+-- Get a point along the ray at a given distance (parametric point). Passing
+-- negative values to this function treats the ray as if it were a line
+vec3 = ray.getPoint(..., distance --[[ number ]])
+```
+
+### ray.projectToAxis
+```lua
+-- Project the ray onto the given axis (direction), i.e., collapse the ray onto
+-- an axis
+--
+-- d --[[ number ]]: Parametric distance along along the ray,
+-- d2 -- [[ number ]]: Parametric distance along the other object.
+d,d2 = ray.projectToAxis(..., direction --[[ vec3 ]])
+```
+
+### ray.closest
+```lua
+-- Computes the closest point on this ray to the given object
+-- d --[[ number ]]: Parametric distance along along the ray,
+-- d2 -- [[ number ]]: Parametric distance along the other object,
+-- p --[[ vec3 ]]: Closest point
+p,d = ray.closest(..., point --[[ vec3 ]])
+p,d,d2 = ray.closestRay(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]])
+p,d,d2 = ray.closestLine(..., linePos --[[ vec3 ]], lineDir --[[ vec3 ]]))
+p,d,d2 = ray.closestSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+```
+
+### ray.contains
+```lua
+-- Tests if the given object is fully contained on the ray.
+bool = ray.contains(..., point --[[ vec3 ]])
+bool = ray.containsSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+```
+
+### ray.distance
+```lua
+-- Computes the distance between the ray and the given object
+-- d --[[ number ]]: Parametric distance along along the ray,
+-- d2 -- [[ number ]]: Parametric distance along the other object,
+-- dist --[[ number ]]: Distance between the ray and other object
+dist,d = ray.distance(..., point --[[ vec3 ]])
+dist,d,d2 = ray.distanceLine(..., linePos --[[ vec3 ]], lineDir --[[ vec3 ]])
+dist,d,d2 = ray.distanceRay(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]])
+dist,d,d2 = ray.distanceSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+dist = ray.distanceSphere(..., spherePos --[[ vec3 ]], sphereRad --[[ number ]])
+```
+
+### ray.intersect
+```lua
+-- Tests whether the ray and the given object intersect
+-- dNear --[[ number ]]: Distance along the line where the line enters the AABB,
+-- dFar --[[ number ]]: Distance along the line where the line exits the AABB,
+-- count --[[ integer ]]: Number of intersection points between the ray and
+--                      : sphere: 0, 1 (dNear), or 2 (dNear & dFar)
+bool,dNear,dFar = ray.intersectAABB(..., aabbMin --[[ vec3 ]], aabbMax --[[ vec3 ]])
+bool,dNear = ray.intersectPlane(..., planeNormal --[[ vec3 ]], planeOffset --[[ number ]])
+count,dNear,dFar = ray.intersectSphere(..., spherePos --[[ vec3 ]], sphereRad --[[ number ]])
+```
+
+## Segment
+A line in world-space with a finite/definite start and end point. All operators (non-constructors) are of the form:
+```lua
+-- segStart --[[ vec3 ]]: The starting point of the line segment,
+-- segEnd --[[ vec3 ]]: The ending point to the line segment,
+-- ...: vardiac function parameters
+result = segment.function(segStart, segEnd, ...)
+```
+
+### segment.operator\_negate
+```lua
+segStart,segEnd = line.operator_negate(...)
+```
+
+### segment.operator\_add
+```lua
+segStart,segEnd = line.operator_add(..., point --[[ vec3 ]])
+```
+
+### segment.operator\_sub
+```lua
+segStart,segEnd = line.operator_sub(..., point --[[ vec3 ]])
+```
+
+### segment.operator\_mul
+```lua
+segStart,segEnd = line.operator_mul(matrix3x3, ...)
+segStart,segEnd = line.operator_mul(matrix4x3, ...)
+segStart,segEnd = line.operator_mul(matrix4x4, ...)
+segStart,segEnd = line.operator_mul(quat, ...)
+```
+
+### segment.equal
+```lua
+bool = segment.equal(..., otherStart --[[ vec3 ]], otherEnd --[[ vec3 ]])
+bool = segment.equal(..., otherStart --[[ vec3 ]], otherEnd --[[ vec3 ]], eps --[[ number ]])
+bool = segment.equal(..., otherStart --[[ vec3 ]], otherEnd --[[ vec3 ]], eps --[[ vec3 ]])
+bool = segment.equal(..., otherStart --[[ vec3 ]], otherEnd --[[ vec3 ]], ULPs --[[ integer ]])
+
+-- explicit operator==(Segment, Segment)
+bool = segment.operator_equals(..., otherStart --[[ vec3 ]], otherEnd --[[ vec3 ]])
+
+```
+
+### segment.notEqual
+```lua
+bool = segment.notEqual(..., otherStart --[[ vec3 ]], otherEnd --[[ vec3 ]])
+bool = segment.notEqual(..., otherStart --[[ vec3 ]], otherEnd --[[ vec3 ]], eps --[[ number ]])
+bool = segment.notEqual(..., otherStart --[[ vec3 ]], otherEnd --[[ vec3 ]], eps --[[ vec3 ]])
+bool = segment.notEqual(..., otherStart --[[ vec3 ]], otherEnd --[[ vec3 ]], ULPs --[[ integer ]])
+```
+
+### segment.to\_string
+```lua
+-- @TODO: Not implemented
+string = to_string(...)
+```
+
+### segment.length
+```lua
+-- Return the length of this line segment
+number = length(...)
+
+-- Return the squared length of this line segment
+number = length2(...)
+```
+
+### segment.isfinite
+```lua
+-- Tests if any component of the segment is infinite
+bool = isfinite(...)
+```
+
+### segment.getPoint
+```lua
+-- Get a point along the line at a given distance (parametric point)
+vec3 = line.getPoint(..., distance --[[ number ]])
+```
+
+### segment.centerPoint
+```lua
+-- Returns the center point of the line segment: getPoint(line, T(0.5))
+vec3 = centerPoint(...)
+```
+
+### segment.reverse
+```lua
+-- Reverses the direction of the line segment
+segEnd,segStart = reverse(...)
+```
+
+### segment.dir
+```lua
+-- Returns the (normalized) direction vector that points from segStart to segEnd
+vec3 = dir(...)
+```
+
+### segment.extremePoint
+```lua
+-- Compute an extreme point along the segment, i.e., the furthest point in a
+-- given direction
+vec3 = extremePoint(..., direction --[[ vec3 ]])
+```
+
+### segment.closest
+```lua
+-- Computes the closest point on this segment to the given object.
+-- d --[[ number ]]: Parametric distance along along the line,
+-- d2 -- [[ number ]]: Parametric distance along the other object,
+-- p --[[ vec3 ]]: Closest point
+p,d = closestPoint(..., point --[[ vec3 ]])
+p,d,d2 = closestRay(..., rayPos --[[ vec3 ]], rayDir --[[ vec3 ]])
+p,d,d2 = closestLine(..., linePos --[[ vec3 ]], lineDir --[[ vec3 ]])
+p,d,d2 = closestSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+```
+
+### segment.contains
+```lua
+-- Tests if the given object is fully contained on the segment
+bool = containsPoint(..., point --[[ vec3 ]], epsilon --[[ number ]])
+bool = containsSegment(... segStart --[[ vec3 ]], segEnd --[[ vec3 ]], epsilon --[[ number ]])
+```
+
+### segment.distance
+```lua
+-- Computes the distance between the segment and the given object
+-- d --[[ number ]]: Parametric distance along along the segment,
+-- d2 --[[ number ]]: Parametric distance along the other object,
+-- dist --[[ number ]]: Distance between the two objects
+dist,d = distance(..., point --[[ vec3 ]])
+dist,d,d2 = distanceRay(..., rayPos --[[ vec3 ]], rayDir --[[ vec3 ]])
+dist,d,d2 = distanceLine(..., linePos --[[ vec3 ]], lineDir --[[ vec3 ]])
+dist,d,d2 = distanceSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+dist = distancePlane(..., planeNormal --[[ vec3 ]], planeOffset --[[ number ]])
+
+-- Squared distanced
+dist,d = distance2(..., point --[[ vec3 ]])
+dist,d,d2 = distanceSegment2(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+```
+
+### segment.intersect
+```lua
+-- Tests whether the segment and the given object intersect
+-- d --[[ number ]]: Parametric distance along along the segment,
+-- d2 --[[ number ]]: Parametric distance along the other object,
+-- count --[[ integer ]]: Number of intersection points between the line and
+--                      : sphere: 0, 1 (dNear), or 2 (dNear & dFar)
+bool,d,d2 = segment.intersectsAABB(..., aabbMin --[[ vec3 ]], aabbMax --[[ vec3 ]])
+bool,d,d2 = segment.intersectsSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]], epsilon --[[ number ]])
+bool,d = segment.intersectsPlane(..., planeNormal --[[ vec3 ]], planeOffset --[[ number ]])
+count,dNear,dFar = segment.intersectsSphere(..., spherePos --[[ vec3 ]], sphereRad --[[ number ]])
+```
+
+## Sphere:
+A Sphere. All operators (non-constructors) are of the form:
+```lua
+-- spherePos: The centroid of the sphere,
+-- sphereRad: The radius of the sphere,
+-- ...: vardiac function parameters
+result = sphere.function(spherePos --[[ vec3 ]], sphereRad --[[ number ]], ...)
+```
+
+### sphere.operator\_negate
+```lua
+spherePos,sphereRad = sphere.operator_negate(...)
+```
+
+### sphere.operator\_add
+```lua
+spherePos,sphereRad = sphere.operator_add(..., offset --[[ vec3 ]])
+```
+
+### sphere.operator\_sub
+```lua
+spherePos,sphereRad = sphere.operator_sub(..., offset --[[ vec3 ]])
+```
+
+### sphere.operator\_mul
+```lua
+spherePos,sphereRad = sphere.operator_mul(matrix3x3, ...)
+spherePos,sphereRad = sphere.operator_mul(matrix4x3, ...)
+spherePos,sphereRad = sphere.operator_mul(matrix4x4, ...)
+spherePos,sphereRad = sphere.operator_mul(quat, ...)
+```
+
+### sphere.equal
+```lua
+bool = sphere.equal(..., otherPos --[[ vec3 ]], otherRad --[[ number ]])
+bool = sphere.equal(..., otherPos --[[ vec3 ]], otherRad --[[ number ]], eps --[[ number ]])
+bool = sphere.equal(..., otherPos --[[ vec3 ]], otherRad --[[ number ]], eps --[[ vec3 ]])
+bool = sphere.equal(..., otherPos --[[ vec3 ]], otherRad --[[ number ]], ULPs --[[ integer ]])
+
+-- explicit operator==(Sphere, Sphere)
+bool = sphere.operator_equals(..., otherPos --[[ vec3 ]], otherRad --[[ number ]])
+```
+
+### sphere.notEqual
+```lua
+bool = sphere.notEqual(..., otherPos --[[ vec3 ]], otherRad --[[ number ]])
+bool = sphere.notEqual(..., otherPos --[[ vec3 ]], otherRad --[[ number ]], eps --[[ number ]])
+bool = sphere.notEqual(..., otherPos --[[ vec3 ]], otherRad --[[ number ]], eps --[[ vec3 ]])
+bool = sphere.notEqual(..., otherPos --[[ vec3 ]], otherRad --[[ number ]], ULPs --[[ integer ]])
+```
+
+### sphere.to\_string
+```lua
+-- @TODO: Not implemented
+string = sphere.to_string(...)
+```
+
+### sphere.isinf
+```lua
+-- Tests if any component of the sphere is infinite
+bool = sphere.isinf(...)
+```
+
+### sphere.isnan
+```lua
+-- Tests if any component of the sphere is NaN
+bool = sphere.isnan(...)
+```
+
+### sphere.isfinite
+```lua
+-- Test if all components of the sphere are finite
+bool = sphere.isfinite(...)
+```
+
+### sphere.isDegenerate
+```lua
+-- Test whether the sphere is degenerate, i.e., not finite or if the radius is
+-- less-or-equal to zero
+bool = sphere.isDegenerate(...)
+```
+
+### sphere.volume
+```lua
+-- Return the volume of the sphere
+number = sphere.volume(...)
+```
+
+### sphere.surfaceArea
+```lua
+-- Return the surface area of the sphere
+number = sphere.surfaceArea(...)
+```
+
+### sphere.extremePoint
+```lua
+-- Return an extreme point along the sphere, i.e., the furthest point in a given
+-- direction
+vec3 = sphere.extremePoint(..., direction --[[ vec3 ]])
+```
+
+### sphere.enclose
+```lua
+-- Expands the sphere to enclose both the sphere and the given object(s)
+spherePos,sphereRad = sphere.enclose(..., point --[[ vec3 ]])
+spherePos,sphereRad = sphere.encloseSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+spherePos,sphereRad = sphere.encloseSphere(..., otherPos --[[ vec3 ]], otherRad --[[ number ]]))
+spherePos,sphereRad = sphere.encloseAABB(..., aabbMin --[[ vec3 ]], aabbMax --[[ vec3 ]])
+```
+
+### sphere.extendRadiusToContain
+```lua
+-- Expands the radius of the Sphere until it encloses the given object(s)
+spherePos,sphereRad = sphere.extendRadiusToContain(..., point --[[ vec3 ]])
+spherePos,sphereRad = sphere.extendRadiusToContainSphere(..., otherPos --[[ vec3 ]], otherRad --[[ number ]])
+```
+
+### sphere.maximalContainedAABB
+```lua
+-- Return the smallest AABB that encloses the sphere
+aabbMin --[[ vec3 ]], aabbMax --[[ vec3 ]] = sphere.maximalContainedAABB(...)
+```
+
+### sphere.optimalEnclosingSphere
+```lua
+-- Compute the minimum bounding sphere for some number of points, i.e., the
+-- smallest volume sphere that contains the provided points. Note, a minimal
+-- enclosing sphere can be defined by four points (or fewer)
+
+-- Compute the minimal bounding sphere for a fixed number of points
+spherePos,sphereRad = sphere.optimalEnclosingSphere(a --[[ vec3 ]], b --[[ vec3 ]])
+spherePos,sphereRad = sphere.optimalEnclosingSphere(a --[[ vec3 ]], b --[[ vec3 ]], c --[[ vec3 ]])
+spherePos,sphereRad = sphere.optimalEnclosingSphere(a --[[ vec3 ]], b --[[ vec3 ]], c --[[ vec3 ]]), d --[[ vec3 ]])
+
+-- Compute the minimal bounding sphere for a list of points
+spherePos,sphereRad = sphere.optimalEnclosingSphere(array --[[ table ]])
+```
+
+### sphere.closestPoint
+```lua
+-- Return point on the sphere closest to the given point
+vec3 = sphere.closestPoint(...)
+```
+
+### sphere.projectToAxis
+```lua
+-- Project the Sphere onto the provided axis
+parametricMin --[[ number ]], parametricMax --[[ number ]] = sphere.projectToAxis(, axis --[[ vec3 ]])
+```
+
+### sphere.contains
+```lua
+// Tests if the given object is fully contained within the sphere.
+bool = sphere.contains(..., point --[[ vec3 ]])
+bool = sphere.containsSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+bool = sphere.containsSphere(..., otherPos --[[ vec3 ]], otherRad --[[ number ]])
+bool = sphere.containsAABB(..., aabbMin --[[ vec3 ]], aabbMax --[[ vec3 ]])
+```
+
+### sphere.distance
+```lua
+-- Computes the distance between the sphere and the given object
+number = sphere.distance(..., point --[[ vec3 ]])
+number = sphere.distanceSphere(..., otherPos --[[ vec3 ]], otherRad --[[ number ]])
+number = sphere.distanceAABB(..., aabbMin --[[ vec3 ]], aabbMax --[[ vec3 ]])
+number = sphere.distanceRay(..., rayPos --[[ vec3 ]], rayDir --[[ vec3 ]])
+number = sphere.distanceSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+number = sphere.distanceLine(..., linePos --[[ vec3 ]], lineDir --[[ vec3 ]])
+```
+
+### sphere.intersect
+```lua
+-- Tests whether the sphere and the given object intersect
+bool = sphere.intersectSphere(..., otherPos --[[ vec3 ]], otherRad --[[ number ]])
+bool = sphere.intersectAABB(..., aabbMin --[[ vec3 ]], aabbMax --[[ vec3 ]])
+bool = sphere.intersectPlane(..., planeNormal --[[ vec3 ]], planeOffset --[[ number ]])
+
+-- dNear --[[ number ]]: Distance along the ray where the ray enters the sphere,
+-- dFar --[[ number ]]: Distance along the ray where the ray exits the sphere,
+-- count --[[ integer ]]: Number of intersection points between the ray and
+--                      : sphere: 0, 1 (dNear), or 2 (dFar).
+count,dNear,dFar = sphere.intersectLine(..., linePos --[[ vec3 ]], lineDir --[[ vec3 ]])
+count,dNear,dFar = sphere.intersectSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+count,dNear,dFar = sphere.intersectRay(..., rayPos --[[ vec3 ]], rayDir --[[ vec3 ]])
+```
+
+## Plane:
+An affine 2D subspace of a 3D dimensional space. All operators (non-constructors) are of the form:
+```lua
+-- planeNormal --[[ vec3 ]]: The direction the plane is facing,
+-- planeOffset --[[ vec3 ]]: The offset of this plane from the origin (0,0,0),
+-- ...: vardiac function parameters
+result = plane.function(planeNormal, planeOffset, ...)
+```
+
+### plane.operator\_negate
+```lua
+planeNormal,planeOffset = plane.operator_negate(...)
+```
+
+### plane.operator\_add
+```lua
+planeNormal,planeOffset = plane.operator_add(..., offset --[[ vec3 ]])
+```
+
+### plane.operator\_sub
+```lua
+planeNormal,planeOffset = plane.operator_sub(..., offset --[[ vec3 ]])
+```
+
+### plane.operator\_mul
+```lua
+planeNormal,planeOffset = plane.operator_mul(matrix3x3, ...)
+planeNormal,planeOffset = plane.operator_mul(matrix4x3, ...)
+planeNormal,planeOffset = plane.operator_mul(matrix4x4, ...)
+planeNormal,planeOffset = plane.operator_mul(quat, ...)
+```
+
+### plane.equal
+```lua
+bool = plane.equal(..., otherNormal --[[ vec3 ]], otherOffset --[[ number ]])
+bool = plane.equal(..., otherNormal --[[ vec3 ]], otherOffset --[[ number ]], eps --[[ number ]])
+bool = plane.equal(..., otherNormal --[[ vec3 ]], otherOffset --[[ number ]], eps --[[ vec3 ]])
+bool = plane.equal(..., otherNormal --[[ vec3 ]], otherOffset --[[ number ]], ULPs --[[ integer ]])
+
+-- explicit operator==(Plane, Plane)
+bool = plane.operator_equals(..., otherNormal --[[ vec3 ]], otherOffset --[[ number ]])
+```
+
+### plane.notEqual
+```lua
+bool = plane.notEqual(..., otherNormal --[[ vec3 ]], otherOffset --[[ number ]])
+bool = plane.notEqual(..., otherNormal --[[ vec3 ]], otherOffset --[[ number ]], eps --[[ number ]])
+bool = plane.notEqual(..., otherNormal --[[ vec3 ]], otherOffset --[[ number ]], eps --[[ vec3 ]])
+bool = plane.notEqual(..., otherNormal --[[ vec3 ]], otherOffset --[[ number ]], ULPs --[[ integer ]])
+```
+
+### plane.to\_string
+```lua
+-- @TODO: Not implemented
+string = plane.to_string(...)
+```
+
+### plane.from
+```lua
+-- Construct a plane by specifying a ray that lies along the plane and its normal
+planeNormal,planeOffset = plane.fromRay(rayPos --[[ vec3 ]], rayDir --[[ vec3 ]], normal --[[ vec3 ]])
+
+-- Construct a plane by specifying a line that lies along the plane and its normal
+planeNormal,planeOffset = plane.fromLine(linePos --[[ vec3 ]], lineDir --[[ vec3 ]], normal --[[ vec3 ]])
+
+-- Construct a plane by specifying a segment that lies along the plane and its normal
+planeNormal,planeOffset = plane.fromLineSegment(segStart --[[ vec3 ]], segEnd --[[ vec3 ]], normal --[[ vec3 ]])
+
+-- Construct a plane by specifying a point on the plane and its normal
+planeNormal,planeOffset = plane.fromPointNormal(point --[[ vec3 ]], normal --[[ vec3 ]])
+
+-- Construct a plane by specifying three points on the plane
+planeNormal,planeOffset = plane.fromPoints(a --[[ vec3 ]], b --[[ vec3 ]], c --[[ vec3 ]])
+```
+
+### plane.isDegenerate
+```lua
+-- Test whether the plane is degenerate, i.e., not finite or if the normal
+-- vector is null (length is zero, see glm::isNull)
+bool = plane.isDegenerate(...)
+```
+
+### plane.isParallel
+```lua
+-- Return true if two planes are parallel (up to a given epsilon)
+bool = plane.isParallel(..., otherNormal --[[ vec3 ]], otherOffset --[[ number ]], epsilon --[[ number ]])
+```
+
+### plane.areOnSameSide
+```lua
+-- Return true if two points are on the same side of the plane
+bool = plane.areOnSameSide(..., point --[[ vec3 ]], other --[[ vec3 ]])
+```
+
+### plane.isInPositiveDirection
+```lua
+-- Tests if the given direction vector points towards the positive side of the
+-- plane
+bool = plane.isInPositiveDirection(..., direction --[[ vec3 ]])
+```
+
+### plane.isOnPositiveSide
+```lua
+-- Tests if the given point lies on the positive side of this plane
+plane.isOnPositiveSide(..., point --[[ vec3 ]])
+```
+
+### plane.passesThroughOrigin
+```lua
+-- Return true if the plane contains/passes-through the origin (i.e., 0, 0, 0)
+bool = plane.passesThroughOrigin(...)
+```
+
+### plane.angle
+```lua
+-- Compute the angle (radians) of intersection between two planes
+number = plane.angle(..., otherNormal --[[ vec3 ]], otherOffset --[[ number ]])
+```
+
+### plane.reverseNormal
+```lua
+-- Reverse the direction of the plane normal, while still representing the same
+-- set of points
+planeNormal --[[ vec3 ]], planeOffset --[[ number ]] = plane.reverseNormal(...)
+```
+
+### plane.pointOnPlane
+```lua
+-- Returns a point on this plane.
+--
+-- The returned point has the property that the line passing through "it" and
+-- (0,0,0) is perpendicular to the plane.
+vec3 = plane.pointOnPlane(...)
+```
+
+### plane.point
+```lua
+-- Return a point on the plane at the given parameterized (u, v) coordinates
+vec3 = plane.point(... u --[[ number ]], v --[[ number ]])
+
+-- Reference: A point that defines an origin for the returned points.
+vec3 = plane.point(... u --[[ number ]], v --[[ number ]], reference --[[ vec3 ]])
+```
+
+### plane.refract
+```lua
+-- Refract the given incident vector along the plane
+-- negativeSideRefraction: Refraction index of material exiting,
+-- positiveSideRefraction: Refraction index of material entering.
+vec3 = plane.refract(..., incident --[[[ vec3 ]], negativeSideRefraction --[[ number ]], positiveSideRefraction --[[ number ]])
+```
+
+### plane.project
+```lua
+-- Orthographically projects the given object onto the plane
+vec3 = plane.project(..., point --[[ vec3 ]])
+
+linePos --[[ vec3 ]], lineDir --[[ vec3 ]] = plane.projectLine(..., linePos --[[ vec3 ]], lineDir --[[ vec3 ]])
+
+segStart --[[ vec3 ]], segEnd --[[ vec3 ]] = plane.projectSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+
+rayPos --[[ vec3 ]], rayDir --[[ vec3 ]] = plane.projectRay(..., rayPos --[[ vec3 ]], rayDir --[[ vec3 ]])
+```
+
+### plane.projectToNegativeHalf
+```lua
+-- Projects the given point to the negative halfspace of the plane
+vec3 = plane.projectToNegativeHalf(...)
+```
+
+### plane.projectToPositiveHalf
+```lua
+-- Projects the given point to the positive halfspace of the plane
+vec3 = plane.projectToPositiveHalf(...)
+```
+
+### plane.orthoProjection
+```lua
+-- Return an affine transformation matrix that projects orthographically onto
+-- the plane
+matrix4x3 = plane.orthoProjection(...)
+```
+
+### plane.mirrorMatrix
+```lua
+-- Returns a transformation matrix that mirrors objects along the plane
+matrix4x3 = plane.mirrorMatrix(...)
+```
+
+### plane.mirror
+```lua
+-- Mirrors the given point with respect to the plane
+vec3 = plane.mirror(..., point --[[ vec3 ]])
+```
+
+### plane.clipLine
+```lua
+-- Clips a line against the plane, i.e., remove part of the line that lies in
+-- the negative halfspace of the plane. Returning:
+--   0 - If clipping removes the entire line (the line lies entirely in the
+--       negative halfspace),
+--   1 - If clipping results in a ray (clipped at the point of intersection),
+--   2 - If clipping keeps the entire line (the line lies entirely in the
+--       positive halfspace)
+result --[[ int ]], v1 --[[ vec3 ]], v2 --[[ vec3 ]] = plane.clipLine(...,
+    linePos --[[ vec3 ]],
+    lineDir --[[ vec3 ]]
+)
+```
+
+### plane.clipSegment
+```lua
+-- Clips a line segment against the plane, i.e., remove part of the line that
+-- lies in the negative halfspace of the plane
+segStart --[[ vec3 ]], segEnd --[[ vec3 ]] = plane.clipSegment(...,
+    segStart --[[ vec3 ]],
+    segEnd --[[ vec3 ]]
+)
+```
+
+### plane.closest
+```lua
+-- Computes the closest point on this plane to the given object
+vec3 = plane.closestPointRay(..., rayPos --[[ vec3 ]], rayDir --[[ vec3 ]])
+vec3 = plane.closestPointSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+```
+
+### plane.distance
+```lua
+-- Returns the absolute distance of this plane to the given object
+number = plane.distance(..., point --[[ vec3 ]])
+number = plane.distanceSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+number = plane.distanceSphere(..., spherePos --[[ vec3 ]], sphereRad --[[ number ]])
+```
+
+### plane.signedDistance
+```lua
+-- Returns the signed distance of this plane to the given point, with a negative
+-- distance corresponding to the object lying within the negative halfspace of
+-- the plane
+number = plane.signedDistance(..., point --[[ vec3 ]])
+number = plane.signedDistanceLine(..., linePos --[[ vec3 ]], lineDir --[[ vec3 ]])
+number = plane.signedDistanceSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+number = plane.signedDistanceRay(..., rayPos --[[ vec3 ]], rayDir --[[ vec3 ]])
+number = plane.signedDistanceAABB(..., aabbMin --[[ vec3 ]], aabbMax --[[ vec3 ]])
+number = plane.signedDistanceSphere(..., spherePos --[[ vec3 ]], sphereRad --[[ number ]])
+```
+
+### plane.contains
+```lua
+-- Tests if this plane contains the given object(s)
+bool = plane.contains(..., point --[[ vec3 ]])
+bool = plane.containsLine(..., linePos --[[ vec3 ]], lineDir --[[ vec3 ]])
+bool = plane.containsRay(..., rayPos --[[ vec3 ]], rayDir --[[ vec3 ]])
+bool = plane.containsSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+```
+
+### plane.intersect
+```lua
+-- Tests whether the plane and the given object intersect
+bool,dist --[[ number ]] = plane.intersectsRay(..., rayPos --[[ vec3 ]], rayDir --[[ vec3 ]])
+bool,dist --[[ number ]] = plane.intersectsLine(..., linePos --[[ vec3 ]], lineDir --[[ vec3 ]])
+bool,dist --[[ number ]] = plane.intersectsSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+bool = plane.intersectsSphere(..., spherePos --[[ vec3 ]], sphereRad --[[ number ]])
+bool = plane.intersectsAABB(..., aabbMin --[[ vec3 ]], aabbMax --[[ vec3 ]])
+```
+
+## Polygon:
+A two-dimensional closed surface in three dimensional space. A **well-formed** polygon is planar, i.e., all vertices lie on the same plane. Much of the polygon API assumes the polygon is well-formed and for all practical purposes, non-planar polygons should be avoided. Note the polygon metatable and the `lua-glm` polygon library are the same table.
+
+All operators (non-constructors) are of the form:
+
+```lua
+-- polygon: A userdata that collects points on a plane
+result = polygon.function(poly --[[ userdata ]], ...)
+```
+
+### polygon.new
+```lua
+-- Create a new polygon from an array of points
+polygon --[[ userdata ]] = polygon.new(points --[[ table ]])
+```
+
+### polygon.\_\_call
+```lua
+-- Convert a polygon into an array of vector values
+table = polygon.__call(...)
+```
+
+### polygon.\_\_gc
+```lua
+-- Garbage collect an allocated polygon userdata
+polygon.__gc(...)
+```
+
+### polygon.\_\_len
+```lua
+-- Return the number of points within a polygon
+integer = polygon.__len(...)
+```
+
+### polygon.\_\_index
+```lua
+-- Return a point along the polygon:
+--   1 <= index and index <= polygon.__length(poly)
+vector = polygon.__index(..., index --[[ integer ]])
+
+-- Return the value associated to some "key" in the polygon library
+value = polygon.__index(..., key --[[ string ]])
+```
+
+### polygon.\_\_newindex
+```lua
+-- index == __length(poly) + 1: Append a point to the polygon
+-- index >= 1 && index <= __length(poly): Set/replace the point on the polygon
+polygon.__newindex(..., index --[[ integer ]], point --[[ vec3 ]])
+```
+
+### polygon.\_\_pairs
+```lua
+-- __pairs metamethod
+iterator --[[ function ]], polygon --[[ userdata ]], initialValue --[[ integer ]] = polygon.__pairs(...)
+```
+
+### polygon.to\_string
+```lua
+string = polygon.__tostring(...)
+```
+
+### polygon.operator\_negate
+```lua
+-- Negate all vertices in the polygon
+polygon --[[ userdata ]] = polygon.operator_negate(...)
+polygon --[[ userdata ]] = polygon.__unm(...)
+```
+
+### polygon.operator\_add
+```lua
+-- Add an offset to all vertices
+polygon --[[ userdata ]] = polygon.operator_add(..., offset --[[ vec3 ]])
+polygon --[[ userdata ]] = polygon.__add(..., offset --[[ vec3 ]])
+```
+
+### polygon.operator\_sub
+```lua
+-- Subtract an offset to from vertices
+polygon --[[ userdata ]] = polygon.operator_sub(..., offset --[[ vec3 ]])
+polygon --[[ userdata ]] = polygon.__sub(..., offset --[[ vec3 ]])
+```
+
+### polygon.operator\_mul
+```lua
+polygon --[[ userdata ]] = polygon.operator_mul(matrix3x3, ...)
+polygon --[[ userdata ]] = polygon.operator_mul(matrix4x3, ...)
+polygon --[[ userdata ]] = polygon.operator_mul(matrix4x4, ...)
+polygon --[[ userdata ]] = polygon.operator_mul(quat, ...)
+
+polygon --[[ userdata ]] = polygon.__mul(quat, ...)
+```
+
+### polygon.equal
+```lua
+bool = polygon.equal(..., otherPoly --[[ userdata ]])
+bool = polygon.equal(..., otherPoly --[[ userdata ]], eps --[[ number ]])
+bool = polygon.equal(..., otherPoly --[[ userdata ]], eps --[[ vec3 ]])
+bool = polygon.equal(..., otherPoly --[[ userdata ]], ULPs --[[ integer ]])
+
+-- explicit operator==(Polygon, Polygon)
+bool = polygon.operator_equals(..., otherPoly --[[ userdata ]])
+
+-- Metamethod
+bool = polygon.__eq(..., otherPoly --[[ userdata ]])
+```
+
+### polygon.edge
+```lua
+-- Return a line segment between two adjacent vertices of the polygon
+segStart --[[ vec3 ]], segEnd --[[ vec3 ]] = polygon.edge(..., index --[[ integer ]])
+```
+
+### polygon.edge2d
+```lua
+-- Return a line segment between two adjacent vertices of the polygon, in the
+-- local space of the polygon
+segStart --[[ vec3 ]], segEnd --[[ vec3 ]] = polygon.edge2d(..., index --[[ integer ]])
+```
+
+### polygon.diagonal
+```lua
+--  Returns the diagonal (segment) that joins the two given vertices of the
+-- polygon. If |i - j| == 1, then an edge of the polygon is returned
+segStart --[[ vec3 ]], segEnd --[[ vec3 ]] = polygon.diagonal(...,
+    i --[[ integer ]], j --[[ integer ]]
+)
+```
+
+### polygon.diagonalExists
+```lua
+-- Tests whether the diagonal that joins the two given vertices lie inside the
+-- polygon and is not intersected by edges of the polygon
+bool = polygon.diagonalExists(..., i --[[ integer ]], j --[[ integer ]])
+```
+
+### polygon.basisU
+```lua
+-- Generates the U-vector (i.e., local space "x" axis) of the polygon
+vec3 = polygon.basisU(...)
+```
+
+### polygon.basisV
+```lua
+-- Generates the V-vector (i.e., local-space "y" axis) of the polygon
+vec3 = polygon.basisV(...)
+```
+
+### polygon.mapTo2D
+```lua
+-- Maps the given (world) space point to the local 2D space of the polygon
+vec2 = polygon.mapTo2D(..., point --[[ vec3 ]])
+```
+
+### polygon.mapFrom2D
+```lua
+-- Map the given local 2D space coordinate to a 3D point world space coordinate
+vec3 = polygon.mapFrom2D(..., point --[[ vec2 ]])
+```
+
+### polygon.area
+```lua
+-- Return the surface area of the polygon
+number = polygon.area(...)
+```
+
+### polygon.perimeter
+```lua
+-- Return the total edge length of the polygon
+number = polygon.perimeter(...)
+```
+
+### polygon.centroid
+```lua
+-- Return the center of mass of the polygon
+vec3 = polygon.centroid(...)
+```
+
+### polygon.isPlanar
+```lua
+-- Tests if the polygon is planar, i.e., all of its verticies lie on the same
+-- plane
+bool = polygon.isPlanar(...)
+```
+
+### polygon.isSimple
+```lua
+-- Tests if the polygon is simple, i.e., no two non-consecutive edges have a
+-- point in common
+bool = polygon.isSimple(...)
+```
+
+### polygon.isNull
+```lua
+-- Tests if the polygon is null, i.e., has no verticies
+bool = polygon.isNull(...)
+```
+
+### polygon.isfinite
+```lua
+-- Test if all vertices of the polygon are finite
+bool = polygon.isfinite(...)
+```
+
+### polygon.isDegenerate
+```lua
+-- Return true if the polygon is degenerate:
+--   1. It has two-or-less vertices
+--   2. its surface area is less or equal than a given epsilon
+bool = polygon.isDegenerate(..., epsilon --[[ number ]])
+```
+
+### polygon.isConvex
+```lua
+-- Tests whether the polygon is convex, i.e., for each pair of points inside
+-- the polygon, the segment joining those points is also completely inside the
+-- polygon
+bool = polygon.isConvex(...)
+```
+
+### polygon.extremePoint
+```lua
+-- Compute an extreme point along the polygon, i.e., the furthest point in a
+-- given direction
+point --[[ vec3 ]], distance --[[ number ]] = polygon.extremePoint(..., vec3 --[[ direction ]])
+```
+
+### polygon.projectToAxis
+```lua
+-- Project the polygon onto the provided axis
+parametricMin --[[ number ]], parametricMax --[[ number ]] = polygon.projectToAxis(, axis --[[ vec3 ]])
+```
+
+### polygon.planeCCW
+```lua
+-- Computes the plane the polygon is contained in.
+--
+-- The normal vector of the plane points to the direction from which the
+-- vertices wind in counter-clockwise order
+planeNormal --[[ vec3 ]], planeOffset --[[ number ]] = polygon.planeCCW(...)
+```
+
+### polygon.normalCCW
+```lua
+-- Compute the normal of the polygon in the counter-clockwise direction
+planeNormal --[[ vec3 ]] = polygon.normalCCW(...)
+```
+
+### polygon.planeCW
+```lua
+-- Computes the plane the polygon is contained in.
+--
+-- The normal vector of the plane points to the direction from which the
+-- vertices wind in clockwise order
+planeNormal --[[ vec3 ]], planeOffset --[[ number ]] = polygon.planeCW(...)
+```
+
+### polygon.normalCW
+```lua
+-- Compute the normal of the polygon in the clockwise direction
+planeNormal --[[ vec3 ]] = polygon.normalCW(..., )
+```
+
+### polygon.pointOnEdge
+```lua
+-- Computes a point on the perimeter of this polygon.
+--
+-- "dist" is a value between [0, 1] corresponding to a relative location along
+-- the polygons perimeter
+vec3 = polygon.pointOnEdge(..., dist --[[ number ]])
+```
+
+### polygon.edgeNormal
+```lua
+-- Return the normal vector of the given edge, i.e., the vector perpendicular to
+-- the plane the polygon lies in
+planeNormal --[[ vec3 ]] = polygon.edgeNormal(..., index --[[ integer ]])
+```
+
+### polygon.edgePlane
+```lua
+-- Return the normal plane of the given edge
+planeNormal --[[ vec3 ]], planeOffset --[[ number ]] = polygon.edgePlane(..., index --[[ integer ]])
+```
+
+### polygon.minimalEnclosingAABB
+```lua
+-- Return the smallest AABB that encloses the polygon
+aabbMin --[[ vec3 ]], aabbMax --[[ vec3 ]] = polygon.minimalEnclosingAABB(...)
+```
+
+### polygon.contains
+```lua
+-- Tests if the given object (worldspace) are fully contained inside the polygon.
+-- The approach used by this function is the Crossings Test.
+--
+-- Given that a polygon is a 2D object in 3D space, a "thickness" value can be
+-- used to describe a height/length in the third dimension. Defaulting to an
+-- "epsilon" to handle floating-point inaccuracies.
+--
+-- Thickness emanates from the plane: 0.5 * thickness in each half-space.
+bool = polygon.contains(..., point --[[ vec3 ]], thickness --[[ number ]])
+bool = polygon.containsPolygon(..., otherPolygon --[[ userdata ]])
+bool = polygon.containsSegment(...,
+    segStart --[[ vec3 ]],
+    segEnd --[[ vec3 ]],
+    thickness --[[ number ]])
+)
+
+-- Thickness expands only in the positive half-space, emanating from the plane
+bool = polygon.containsAbove(..., point --[[ vec3 ]], thickness --[[ number ]])
+
+-- Thickness expands only in the negative half-space, emanating from the plane
+bool = polygon.containsBelow(..., point --[[ vec3 ]], thickness --[[ number ]])
+
+-- Tests if the given line segment, expressed in parametric/local coordinates,
+-- is fully contained inside the polygon
+bool = polygon.containsSegment2D(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+```
+
+### polygon.intersect
+```lua
+-- Tests whether the polygon and the given object(s) intersect
+bool = polygon.intersectsLine(..., linePos --[[ vec3 ]], lineDir --[[ vec3 ]])
+bool = polygon.intersectsRay(..., rayPos --[[ vec3 ]], rayDir --[[ vec3 ]])
+bool = polygon.intersectsSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+bool = polygon.intersectsPlane(..., planeNormal --[[ vec3 ]], planeOffset --[[ number ]])
+
+-- Tests if the given line segment, expressed in parametric/local coordinates,
+-- intersects the polygon
+bool = polygon.intersectsSegment2D(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+```
 
 # Preprocessor Header Definitions:
 * COMMON_HPP

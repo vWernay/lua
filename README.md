@@ -187,6 +187,44 @@ As vector/quaternion types are represented by float-point values, some additiona
 1. All other `glm::vec` structures are float-casted (and/or bound to float-templated functions). Consequently, bitfield and integer operations, e.g., [packUnorm](http://glm.g-truc.net/0.9.9/api/a00716.html#gaccd3f27e6ba5163eb7aa9bc8ff96251a) and [floatBitsToInt](http://glm.g-truc.net/0.9.9/api/a00662.html#ga99f7d62f78ac5ea3b49bae715c9488ed), are considered unsafe when operating on multi-dimensional vectors (consider inexact IEEE754);
 1. Matrices are represented by a collection of column-vectors that abide by the vector rules above. Prior to GLM 0.9.9.9, there has been little practical use for integer/bool templated matrices given the lack of an API.
 
+#### Geometry API
+Many of the geometric structures developed for [MathGeoLib](https://github.com/juj/MathGeoLib/tree/master/src/Geometry) have been ported to [GLM](https://github.com/g-truc/glm). In turn these structures bound to `lua-glm`, providing functional libraries for **AABB**, **Line**, **Ray**, **Segment**, **Sphere**, **Plane**, and **Polygon**. Each geometrical structure is stored as a sub-library within the binding library. For example:
+
+```lua
+-- AABB/Line Raycast
+rayOrigin = vec3(-5, -5, -5)
+rayDirection = glm.norm(vec3(1, 1, 1))
+aabbMin = vec3(-2, -2, -2)
+aabbMax = vec3(2, 2, 2)
+intersects,tNear,tFar = glm.ray.intersectAABB(rayOrigin, rayDirection, aabbMin, aabbMax)
+if intersects then
+    enter_point = glm.ray.getPoint(rayOrigin, rayDirection, tNear)
+    exit_point = glm.ray.getPoint(rayOrigin, rayDirection, tFar)
+    print(("Enters: %s"):format(glm.to_string(enter_point)))
+    print(("Exits: %s"):format(glm.to_string(exit_point)))
+end
+
+-- Structures may also be rotated
+rayOrigin,rayDirection = glm.ray.operator_mul(m, rayOrigin, rayDirection)
+```
+
+Polygons -- sequences of coplanar points -- are represented by a full userdata type:
+
+```lua
+p = glm.polygon.new({
+  vec3(1809.6550,2611.9644,44.0),
+  vec3(1809.8136,2620.5571,44.0),
+  -- ...
+  vec3(1819.0066,2591.5283,44.0),
+  vec3(1818.5493,2612.0737,44.0),
+})
+
+> type(p)
+userdata
+```
+
+See **EXTENDED.md** for the full list of functions.
+
 #### Missing Functions
 Modules/functions not bound to LuaGLM due to compatibility issues, usefulness, or complexity:
 
@@ -500,6 +538,7 @@ For all GLM preprocessor flags, reference the [GLM manual](https://github.com/g-
 - **GLM\_FAST\_MATH**: Enable fast math optimizations (see `-ffast-math` caveats);
 - **GLM\_FORCE\_Z\_UP**: Unit "up" vector is along the Z-axis (Y-axis otherwise);
 - **GLM\_INCLUDE\_ALL**: Create bindings for all declared GLM headers. To create module-only, extension-only, or header-only bindings see **EXTENDED.md** for a list of all headers;
+- **GLM\_GEOM\_EXTENSIONS**: Include support for geometric structures;
 - **LUA\_GLM\_ALIASES**: Create aliases for common (alternate) names when registering the library;
 - **LUA\_GLM\_REPLACE\_MATH**: Replace the global math table with the glm binding library on loading;
 
@@ -510,6 +549,8 @@ For all GLM preprocessor flags, reference the [GLM manual](https://github.com/g-
 1. Support for integer vectors/matrices. Either by introducing an additional type, e.g., `LUA_TVECTORI`, or splitting the vector tag `LUA_TVECTOR` into `LUA_TVECTOR2`, `LUA_TVECTOR3`, `LUA_TVECTOR4`, and `LUA_TQUAT` and use variant bits for the primitive type;
 1. A LINQ-style library that takes advantage of `__iter/__pairs`;
 1. Replace `glm/gtc/random.{inl,hpp}` with a variant that takes advantage of CXX11's [Pseudo-random number generation](https://en.cppreference.com/w/cpp/numeric/random) facilities. Or one that unifies this API and `math.random()`;
+1. Include spatial indexing scripts (k-d tree, octree, etc.) or other scripting examples that take advantage of the integrated vector and geometry APIs;
+1. Initial support for frustums (both orthographic and perspective) and OBBs, or, at minimum, the more computationally complex parts of these structures;
 1. UNARY\_EACH: Allow some binding functions to be independently applied to each value or structure on the call stack. If disabled, only operate on the minimum number of required objects (following lmathlib). For example:
     ``` lua
     -- lmathlib
@@ -529,6 +570,7 @@ For all GLM preprocessor flags, reference the [GLM manual](https://github.com/g-
 1. Fix/improve MSVC portions of CMakeLists;
 1. `glmMat_set` support for tables, e.g., `mat[i] = { ... }`, by using `glmH_tovector`;
 1. Improve support for `glm::mat3x4` and `glm::mat4x3`;
+1. Support for two-dimensional geometrical structures (AABB2D, LineSegment2D, Circle2D, etc);
 
 ## Benchmarking
 **TODO**: Finish comparisons to...
@@ -539,6 +581,7 @@ For all GLM preprocessor flags, reference the [GLM manual](https://github.com/g-
 
 ## Sources & Acknowledgments:
 1. [grit-lua](https://github.com/grit-engine/grit-lua): Original implementation (and inspiration);
+1. [MathGeoLib](https://github.com/juj/MathGeoLib/): Geometry API, (`libs/glm-binding/geom/`), is distributed under [Apache License](http://www.apache.org/licenses/LICENSE-2.0.html);
 1. [SharpDX](https://github.com/sharpdx/SharpDX): Reference for Extended API (aliases);
 1. [Unity](https://docs.unity3d.com/ScriptReference/UnityEngine.CoreModule.html): Reference for Extended API (aliases and emulation of some [mathf](https://docs.unity3d.com/ScriptReference/Mathf.html) functions).
 

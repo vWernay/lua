@@ -47,6 +47,17 @@ extern LUA_API_LINKAGE {
   #include "lglm_core.h"
 }
 
+#if defined(LUA_GLM_GEOM_EXTENSIONS)
+  #include "allocator.hpp"
+  #include "geom/aabb.hpp"
+  #include "geom/line.hpp"
+  #include "geom/linesegment.hpp"
+  #include "geom/ray.hpp"
+  #include "geom/sphere.hpp"
+  #include "geom/plane.hpp"
+  #include "geom/polygon.hpp"
+#endif
+
 /* Lua Definitions */
 #define GLM_NAME(F) glm_##F
 #define GLM_NAMESPACE(NAME) glm::NAME
@@ -60,6 +71,9 @@ extern LUA_API_LINKAGE {
 #define GLM_INVALID_MAT_DIMENSIONS ("invalid " LABEL_MATRIX " dimensions")
 #define GLM_INVALID_MAT_ROW ("unexpected " LABEL_MATRIX " row")
 #define GLM_INVALID_MAT_COLUMN ("unexpected " LABEL_MATRIX " column")
+
+/* Metatable name for polygon userdata. */
+#define LUA_GLM_POLYGON_META "GLM_POLYGON"
 
 /*
 ** Matrices in GLM are stored in a column-major format. These macros exists for
@@ -532,6 +546,122 @@ struct gLuaBase {
   LUA_TRAIT_QUALIFIER int Push(const gLuaBase &LB, const glm::mat<C, R, glm_Float> &m) {
     return glm_pushmat(LB.L, glmMatrix(m));
   }
+
+#if defined(LUA_GLM_GEOM_EXTENSIONS)
+  template<glm::length_t D, typename T>
+  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx, glm::AABB<D, T> &v) {
+    Pull(LB, idx, v.minPoint);
+    Pull(LB, idx + 1, v.maxPoint);
+    return 2;
+  }
+
+  template<glm::length_t D, typename T>
+  LUA_TRAIT_QUALIFIER int Push(gLuaBase &LB, const glm::AABB<D, T> &v) {
+    Push(LB, v.minPoint);
+    Push(LB, v.maxPoint);
+    return 2;
+  }
+
+  template<glm::length_t D, typename T>
+  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx, glm::Line<D, T> &l) {
+    Pull(LB, idx, l.pos);
+    Pull(LB, idx + 1, l.dir);
+    return 2;
+  }
+
+  template<glm::length_t D, typename T>
+  LUA_TRAIT_QUALIFIER int Push(gLuaBase &LB, const glm::Line<D, T> &l) {
+    Push(LB, l.pos);
+    Push(LB, l.dir);
+    return 2;
+  }
+
+  template<glm::length_t D, typename T>
+  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx, glm::LineSegment<D, T> &l) {
+    Pull(LB, idx, l.a);
+    Pull(LB, idx + 1, l.b);
+    return 2;
+  }
+
+  template<glm::length_t D, typename T>
+  LUA_TRAIT_QUALIFIER int Push(gLuaBase &LB, const glm::LineSegment<D, T> &l) {
+    Push(LB, l.a);
+    Push(LB, l.b);
+    return 2;
+  }
+
+  template<glm::length_t D, typename T>
+  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx, glm::Ray<D, T> &r) {
+    Pull(LB, idx, r.pos);
+    Pull(LB, idx + 1, r.dir);
+    return 2;
+  }
+
+  template<glm::length_t D, typename T>
+  LUA_TRAIT_QUALIFIER int Push(gLuaBase &LB, const glm::Ray<D, T> &r) {
+    Push(LB, r.pos);
+    Push(LB, r.dir);
+    return 2;
+  }
+
+  template<glm::length_t D, typename T>
+  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx, glm::Sphere<D, T> &s) {
+    Pull(LB, idx, s.pos);
+    Pull(LB, idx + 1, s.r);
+    return 2;
+  }
+
+  template<glm::length_t D, typename T>
+  LUA_TRAIT_QUALIFIER int Push(gLuaBase &LB, const glm::Sphere<D, T> &s) {
+    Push(LB, s.pos);
+    Push(LB, s.r);
+    return 2;
+  }
+
+  template<glm::length_t D, typename T>
+  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx, glm::Plane<D, T> &p) {
+    Pull(LB, idx, p.normal);
+    Pull(LB, idx + 1, p.d);
+    return 2;
+  }
+
+  template<glm::length_t D, typename T>
+  LUA_TRAIT_QUALIFIER int Push(gLuaBase &LB, const glm::Plane<D, T> &p) {
+    Push(LB, p.normal);
+    Push(LB, p.d);
+    return 2;
+  }
+
+  template<typename T>
+  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx, glm::Polygon<3, T> &p) {
+    void *ptr = GLM_NULLPTR;
+    if (idx <= 0)
+      return luaL_error(LB.L, "Invalid PolygonPull operation; incorrect API usage");
+    else if ((ptr = luaL_checkudata(LB.L, idx, LUA_GLM_POLYGON_META)) == GLM_NULLPTR)
+      return luaL_error(LB.L, "Invalid PolygonPull operation; not userdata");
+
+    p = *(reinterpret_cast<glm::Polygon<3, T> *>(ptr));
+    p.stack_idx = idx;
+    return 1;
+  }
+
+  /// <summary>
+  /// All mutable operations mutate the referenced Polygon userdata; simply
+  /// push that userdata back onto the Lua stack.
+  /// </summary>
+  template<typename T>
+  LUA_TRAIT_QUALIFIER int Push(const gLuaBase &LB, const glm::Polygon<3, T> &p) {
+    if (p.stack_idx >= 1) {
+      lua_pushvalue(LB.L, p.stack_idx);
+      return 1;
+    }
+
+    // This code-path is not implemented for the time being. All polygons must
+    // already exist on the Lua stack. Otherwise polygon_new will need to be
+    // duplicated here.
+    return luaL_error(LB.L, "not implemented");
+  }
+#endif
 };
 
 /* }================================================================== */

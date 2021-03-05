@@ -20,6 +20,9 @@
 
 #include "api.hpp"
 #include "lglmlib.hpp"
+#if defined(LUA_GLM_GEOM_EXTENSIONS)
+  #include "geom.hpp"
+#endif
 
 /* Create a "{ function, glm_function }" registry instance */
 #define REG_STR(C) #C
@@ -52,6 +55,21 @@ static int glm_libraryindex(lua_State *L) {
   return 1;
 }
 
+#if defined(LUA_GLM_GEOM_EXTENSIONS)
+/// <summary>
+/// Helper function for creating meta/library tables.
+/// </summary>
+static void glm_newmetatable(lua_State *L, const char *meta_name, const char *lib_name, const luaL_Reg *lib) {
+  if (luaL_newmetatable(L, meta_name)) {
+    luaL_setfuncs(L, lib, 0);
+    lua_setfield(L, -2, lib_name);  // Push the library into the GLM library table
+  }
+  else {
+    lua_pop(L, 1);
+  }
+}
+#endif
+
 static const luaL_Reg luaglm_lib[] = {
   /* API */
   #include "lglmlib_reg.hpp"
@@ -72,6 +90,16 @@ static const luaL_Reg luaglm_lib[] = {
   { "FP_NORMAL", GLM_NULLPTR },
   /* Metamethods */
   { "__index", GLM_NULLPTR },
+  /* Geometry API */
+#if defined(LUA_GLM_GEOM_EXTENSIONS)
+  { "aabb", GLM_NULLPTR },
+  { "line", GLM_NULLPTR },
+  { "ray", GLM_NULLPTR },
+  { "segment", GLM_NULLPTR },
+  { "sphere", GLM_NULLPTR },
+  { "plane", GLM_NULLPTR },
+  { "polygon", GLM_NULLPTR },
+#endif
   /* Library Details */
   { "_NAME", GLM_NULLPTR },
   { "_VERSION", GLM_NULLPTR },
@@ -89,6 +117,16 @@ static const luaL_Reg luaglm_metamethods[] = {
 extern "C" {
   LUAMOD_API int luaopen_glm(lua_State *L) {
     luaL_newlib(L, luaglm_lib);  // Initialize GLM library
+#if defined(LUA_GLM_GEOM_EXTENSIONS)
+    luaL_newlib(L, luaglm_aabblib); lua_setfield(L, -2, "aabb");
+    luaL_newlib(L, luaglm_linelib); lua_setfield(L, -2, "line");
+    luaL_newlib(L, luaglm_raylib); lua_setfield(L, -2, "ray");
+    luaL_newlib(L, luaglm_segmentlib); lua_setfield(L, -2, "segment");
+    luaL_newlib(L, luaglm_spherelib); lua_setfield(L, -2, "sphere");
+    luaL_newlib(L, luaglm_planelib); lua_setfield(L, -2, "plane");
+    // The "polygon" API is a reference to the polygon metatable stored in the registry.
+    glm_newmetatable(L, LUA_GLM_POLYGON_META, "polygon", luaglm_polylib);
+#endif
   #if defined(CONSTANTS_HPP) || defined(EXT_SCALAR_CONSTANTS_HPP)
     GLM_CONSTANT(L, cos_one_over_two);
     GLM_CONSTANT(L, e);
