@@ -261,6 +261,11 @@
 ** ===================================================================
 */
 
+/* __has_attribute is supported on gcc >=5, clang >=2.9, and icc >=17 */
+#if !defined(__has_attribute)
+  #define __has_attribute(x) 0
+#endif
+
 /*
 @@ LUA_API is a mark for all core API functions.
 @@ LUALIB_API is a mark for all auxiliary library functions.
@@ -308,14 +313,10 @@
 */
 #if defined(__GNUC__) && ((__GNUC__*100 + __GNUC_MINOR__) >= 302) && \
     defined(__ELF__)		/* { */
-#define LUAI_FUNC	__attribute__((visibility("internal"))) extern
-#elif defined(__has_attribute)
-  #if __has_attribute(visibility)
-    #define LUAI_FUNC __attribute__((visibility("internal"))) extern
-  #else
-    #define LUAI_FUNC extern
-  #endif
-#else				/* }{ */
+#define LUAI_FUNC __attribute__((visibility("internal"))) extern
+#elif __has_attribute(visibility)		/* { */
+#define LUAI_FUNC __attribute__((visibility("internal"))) extern
+#else
 #define LUAI_FUNC	extern
 #endif				/* } */
 
@@ -788,38 +789,28 @@
 
 #ifdef _MSC_VER
   #define LUA_INLINE __forceinline
-#elif defined(__has_attribute)
-  #if __has_attribute(__always_inline__)
-    #define LUA_INLINE inline __attribute__((__always_inline__))
-  #else
-    #define LUA_INLINE inline
-  #endif
+#elif __has_attribute(__always_inline__)
+  #define LUA_INLINE inline __attribute__((__always_inline__))
 #else
   #define LUA_INLINE inline
 #endif
 
 #if defined(__cplusplus) && __cplusplus >= 201703
   #define LUA_FALLTHROUGH [[fallthrough]]
-#elif defined(__has_attribute)
-  #if __has_attribute(__fallthrough__)
-    #define LUA_FALLTHROUGH __attribute__((__fallthrough__))
-  #else
-    #define LUA_FALLTHROUGH do {} while (0)  /* FALLTHROUGH */
-  #endif
-#else /* Pulled from: linux/compiler_attributes.h */
-  #define LUA_FALLTHROUGH do {} while (0)  /* FALLTHROUGH */
+#elif __has_attribute(__fallthrough__)
+  #define LUA_FALLTHROUGH __attribute__((__fallthrough__))
+#else
+  #define LUA_FALLTHROUGH /* FALLTHROUGH */
 #endif
 
 /* Compiler-specific multi-line macro definitions */
 #ifdef _MSC_VER
-  #define LUA_MLM_BEGIN     \
-    do {                    \
-    __pragma(warning(push)) \
-    __pragma(warning(disable : 4127))
-
-  #define LUA_MLM_END \
-    }                 \
-    while (0)         \
+  #define LUA_MLM_BEGIN do {
+  #define LUA_MLM_END                 \
+    __pragma(warning(push))           \
+    __pragma(warning(disable : 4127)) \
+    }                                 \
+    while (0)                         \
     __pragma(warning(pop))
 #else
   #define LUA_MLM_BEGIN do {
