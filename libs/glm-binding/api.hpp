@@ -436,7 +436,7 @@ SYMMETRIC_MATRIX_DEFN(invertible, glm::invertible, LAYOUT_UNARY) /* LUA_MATRIX_E
 /* glm/ext/quaternion_trigonometric.hpp */
 #if defined(EXT_QUATERNION_TRIGONOMETRIC_HPP)
 QUAT_DEFN(axis, glm::axis, LAYOUT_UNARY)
-TRAITS_DEFN(angleAxis, glm::angleAxis, gLuaTrait<gLuaVec3<>::value_type>, gLuaVec3<>)
+TRAITS_DEFN(angleAxis, glm::angleAxis, gLuaTrait<gLuaVec3<>::value_type>, gLuaDir3<>)
 #endif
 
 /* glm/gtc/quaternion.hpp */
@@ -447,9 +447,9 @@ QUAT_DEFN(mat4_cast, glm::mat4_cast, LAYOUT_UNARY)
 QUAT_DEFN(pitch, glm::pitch, LAYOUT_UNARY)
 QUAT_DEFN(roll, glm::roll, LAYOUT_UNARY)
 QUAT_DEFN(yaw, glm::yaw, LAYOUT_UNARY)
-TRAITS_LAYOUT_DEFN(quatLookAt, glm::quatLookAt, LAYOUT_BINARY, gLuaVec3<>)
-TRAITS_LAYOUT_DEFN(quatLookAtLH, glm::quatLookAtLH, LAYOUT_BINARY, gLuaVec3<>)
-TRAITS_LAYOUT_DEFN(quatLookAtRH, glm::quatLookAtRH, LAYOUT_BINARY, gLuaVec3<>)
+TRAITS_LAYOUT_DEFN(quatLookAt, glm::quatLookAt, LAYOUT_BINARY, gLuaDir3<>)
+TRAITS_LAYOUT_DEFN(quatLookAtLH, glm::quatLookAtLH, LAYOUT_BINARY, gLuaDir3<>)
+TRAITS_LAYOUT_DEFN(quatLookAtRH, glm::quatLookAtRH, LAYOUT_BINARY, gLuaDir3<>)
 TRAITS_LAYOUT_DEFN(quatbillboard, glm::quatbillboard, LAYOUT_QUATERNARY, gLuaVec3<>) /* LUA_QUATERNION_EXTENSIONS */
 TRAITS_LAYOUT_DEFN(quatbillboardRH, glm::quatbillboardRH, LAYOUT_QUATERNARY, gLuaVec3<>)
 TRAITS_LAYOUT_DEFN(quatbillboardLH, glm::quatbillboardLH, LAYOUT_QUATERNARY, gLuaVec3<>)
@@ -471,7 +471,7 @@ TRAITS_DEFN(quat_identity, glm::identity<gLuaQuat<>::type>)
 
 /* glm/gtx/rotate_normalized_axis.hpp */
 #if defined(GTX_ROTATE_NORMALIZED_AXIS_HPP)
-ROTATION_MATRIX_DEFN(rotateNormalizedAxis, glm::rotateNormalizedAxis, LAYOUT_UNARY, gLuaFloat, gLuaVec3<>)
+ROTATION_MATRIX_DEFN(rotateNormalizedAxis, glm::rotateNormalizedAxis, LAYOUT_UNARY, gLuaFloat, gLuaDir3<>)
 #endif
 
 /* }================================================================== */
@@ -626,15 +626,15 @@ GLM_BINDING_QUALIFIER(identity) {
   GLM_BINDING_END
 }
 
-TRAITS_LAYOUT_DEFN(lookAt, glm::lookAt, LAYOUT_TERNARY, gLuaVec3<>)
-TRAITS_LAYOUT_DEFN(lookAtLH, glm::lookAtLH, LAYOUT_TERNARY, gLuaVec3<>)
-TRAITS_LAYOUT_DEFN(lookAtRH, glm::lookAtRH, LAYOUT_TERNARY, gLuaVec3<>)
-TRAITS_LAYOUT_DEFN(lookRotation, glm::lookRotation, LAYOUT_BINARY, gLuaVec3<>) /* LUA_MATRIX_EXTENSIONS */
-TRAITS_LAYOUT_DEFN(lookRotationRH, glm::lookRotationRH, LAYOUT_BINARY, gLuaVec3<>)
-TRAITS_LAYOUT_DEFN(lookRotationLH, glm::lookRotationLH, LAYOUT_BINARY, gLuaVec3<>)
-TRAITS_LAYOUT_DEFN(billboard, glm::billboard, LAYOUT_QUATERNARY, gLuaVec3<>)
-TRAITS_LAYOUT_DEFN(billboardRH, glm::billboardRH, LAYOUT_QUATERNARY, gLuaVec3<>)
-TRAITS_LAYOUT_DEFN(billboardLH, glm::billboardLH, LAYOUT_QUATERNARY, gLuaVec3<>)
+TRAITS_DEFN(lookAt, glm::lookAt, gLuaVec3<>, gLuaVec3<>, gLuaDir3<>)
+TRAITS_DEFN(lookAtLH, glm::lookAtLH, gLuaVec3<>, gLuaVec3<>, gLuaDir3<>)
+TRAITS_DEFN(lookAtRH, glm::lookAtRH, gLuaVec3<>, gLuaVec3<>, gLuaDir3<>)
+TRAITS_LAYOUT_DEFN(lookRotation, glm::lookRotation, LAYOUT_BINARY, gLuaDir3<>) /* LUA_MATRIX_EXTENSIONS */
+TRAITS_LAYOUT_DEFN(lookRotationRH, glm::lookRotationRH, LAYOUT_BINARY, gLuaDir3<>)
+TRAITS_LAYOUT_DEFN(lookRotationLH, glm::lookRotationLH, LAYOUT_BINARY, gLuaDir3<>)
+TRAITS_DEFN(billboard, glm::billboard, gLuaVec3<>, gLuaVec3<>, gLuaDir3<>, gLuaDir3<>)
+TRAITS_DEFN(billboardRH, glm::billboardRH, gLuaVec3<>, gLuaVec3<>, gLuaDir3<>, gLuaDir3<>)
+TRAITS_DEFN(billboardLH, glm::billboardLH, gLuaVec3<>, gLuaVec3<>, gLuaDir3<>, gLuaDir3<>)
 #endif
 
 #if defined(EXT_MATRIX_PROJECTION_HPP)
@@ -758,7 +758,7 @@ SYMMETRIC_MATRIX_DEFN(rq_decompose, glm::rq_decompose, QRDECOMPOSE)
 
 /* glm/gtx/matrix_interpolation.hpp */
 #if defined(GTX_MATRIX_INTERPOLATION_HPP)
-TRAITS_DEFN(axisAngleMatrix, glm::axisAngleMatrix, gLuaVec3<>, gLuaFloat)
+TRAITS_DEFN(axisAngleMatrix, glm::axisAngleMatrix, gLuaDir3<>, gLuaFloat)
 TRAITS_DEFN(extractMatrixRotation, glm::extractMatrixRotation, gLuaMat4x4<>)
 TRAITS_DEFN(interpolate, glm::interpolate, gLuaMat4x4<>, gLuaMat4x4<>, gLuaFloat)
 GLM_BINDING_QUALIFIER(axisAngle) {
@@ -1538,7 +1538,7 @@ GLM_BINDING_QUALIFIER(components) {  // An optimized variant of glm::components
 #endif
 
 #if defined(GTX_ROTATE_VECTOR_HPP)
-TRAITS_LAYOUT_DEFN(orientation, glm::orientation, LAYOUT_BINARY, gLuaVec3<>)
+TRAITS_LAYOUT_DEFN(orientation, glm::orientation, LAYOUT_BINARY, gLuaDir3<>)
 TRAITS_BINARY_LAYOUT_DEFN(rotateX, glm::rotateX, LAYOUT_BINARY_SCALAR, gLuaVec3<>, gLuaVec4<>)
 TRAITS_BINARY_LAYOUT_DEFN(rotateY, glm::rotateY, LAYOUT_BINARY_SCALAR, gLuaVec3<>, gLuaVec4<>)
 TRAITS_BINARY_LAYOUT_DEFN(rotateZ, glm::rotateZ, LAYOUT_BINARY_SCALAR, gLuaVec3<>, gLuaVec4<>)
@@ -1559,12 +1559,12 @@ GLM_BINDING_QUALIFIER(rotate) {
     case LUA_VNUMINT: /* integer to number */
     case LUA_VNUMFLT: TRAITS_FUNC(LB, glm::rotate, gLuaFloat, gLuaVec3<>); break; /* glm/gtx/transform.hpp */
     case LUA_VVECTOR2: TRAITS_FUNC(LB, glm::rotate, gLuaVec2<>, gLuaTrait<gLuaVec2<>::value_type>); break;
-    case LUA_VVECTOR3: TRAITS_FUNC(LB, glm::rotate, gLuaVec3<>, gLuaTrait<gLuaVec3<>::value_type>, gLuaVec3<>); break;
-    case LUA_VVECTOR4: TRAITS_FUNC(LB, glm::rotate, gLuaVec4<>, gLuaTrait<gLuaVec4<>::value_type>, gLuaVec3<>); break;
+    case LUA_VVECTOR3: TRAITS_FUNC(LB, glm::rotate, gLuaVec3<>, gLuaTrait<gLuaVec3<>::value_type>, gLuaDir3<>); break;
+    case LUA_VVECTOR4: TRAITS_FUNC(LB, glm::rotate, gLuaVec4<>, gLuaTrait<gLuaVec4<>::value_type>, gLuaDir3<>); break;
     case LUA_VQUAT: { /* glm/ext/quaternion_transform.hpp */
       const TValue *_tv2 = glm_i2v(LB.L, LB.idx + 1);
       if (ttisnumber(_tv2))
-        TRAITS_FUNC(LB, glm::rotate, gLuaQuat<>, gLuaFloat, gLuaVec3<>); /* <quat, angle, axis> */
+        TRAITS_FUNC(LB, glm::rotate, gLuaQuat<>, gLuaFloat, gLuaDir3<>); /* <quat, angle, axis> */
       else if (ttisvector3(_tv2)) /* glm/gtx/quaternion.hpp */
         TRAITS_FUNC(LB, glm::rotate, gLuaQuat<>, gLuaVec3<>);
       else if (ttisvector4(_tv2)) /* glm/gtx/quaternion.hpp */
@@ -1576,7 +1576,7 @@ GLM_BINDING_QUALIFIER(rotate) {
       if (mat.size == 3 && mat.secondary == 3)
         TRAITS_FUNC(LB, glm::rotate, gLuaMat3x3<>, gLuaTrait<gLuaMat3x3<>::value_type>);
       else if (mat.size == 4 && mat.secondary == 4)
-        TRAITS_FUNC(LB, glm::rotate, gLuaMat4x4<>, gLuaTrait<gLuaMat4x4<>::value_type>, gLuaVec3<>);
+        TRAITS_FUNC(LB, glm::rotate, gLuaMat4x4<>, gLuaTrait<gLuaMat4x4<>::value_type>, gLuaDir3<>);
       return luaL_typeerror(LB.L, LB.idx, LABEL_MATRIX "3x3 or " LABEL_MATRIX "4x4");
     }
     default:
@@ -1651,9 +1651,9 @@ NUMBER_VECTOR_QUAT_DEFNS(angle, glm::angle, LAYOUT_BINARY, LAYOUT_BINARY, LAYOUT
 GLM_BINDING_QUALIFIER(orientedAngle) {
   GLM_BINDING_BEGIN
   switch (ttypetag(glm_i2v(LB.L, LB.idx))) {
-    case LUA_VVECTOR2: TRAITS_FUNC(LB, glm::orientedAngle, gLuaVec2<>, gLuaVec2<>); break;
-    case LUA_VVECTOR3: TRAITS_FUNC(LB, glm::orientedAngle, gLuaVec3<>, gLuaVec3<>, gLuaVec3<>); break;
-    case LUA_VQUAT: TRAITS_FUNC(LB, glm::orientedAngle, gLuaQuat<>, gLuaQuat<>, gLuaVec3<>); break;
+    case LUA_VVECTOR2: TRAITS_FUNC(LB, glm::orientedAngle, gLuaDir2<>, gLuaDir2<>); break;
+    case LUA_VVECTOR3: TRAITS_FUNC(LB, glm::orientedAngle, gLuaDir3<>, gLuaDir3<>, gLuaDir3<>); break;
+    case LUA_VQUAT: TRAITS_FUNC(LB, glm::orientedAngle, gLuaQuat<>, gLuaQuat<>, gLuaDir3<>); break;
     default:
       break;
   }

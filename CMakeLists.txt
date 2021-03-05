@@ -546,6 +546,7 @@ OPTION(LUA_GLM_FORCED_RECYCLE
   "All function results must be preallocated, i.e., functions that return \
   matrices must have preallocated matrix trailing function arguments." OFF
 )
+OPTION(LUA_GLM_DRIFT "Experiment: implicitly correct floating point drift in direction vectors and quaternions" OFF)
 
 IF( GLM_FORCE_MESSAGES )
   ADD_COMPILE_DEFINITIONS(GLM_FORCE_MESSAGES)
@@ -623,6 +624,10 @@ IF ( LUA_GLM_RECYCLE )
   IF ( LUA_GLM_FORCED_RECYCLE )
     ADD_COMPILE_DEFINITIONS(LUA_GLM_FORCED_RECYCLE)
   ENDIF()
+ENDIF()
+
+IF ( LUA_GLM_DRIFT )
+  ADD_COMPILE_DEFINITIONS(LUA_GLM_DRIFT)
 ENDIF()
 
 ################################################################################

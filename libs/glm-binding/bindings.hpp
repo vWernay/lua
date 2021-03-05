@@ -85,6 +85,13 @@ extern LUA_API_LINKAGE {
 #define gm_cols(M) lua_matrix_cols(mvalue(M).size, mvalue(M).secondary)
 #define gm_rows(M) lua_matrix_rows(mvalue(M).size, mvalue(M).secondary)
 
+/* Macro for implicitly handling floating point drift where possible */
+#if defined(LUA_GLM_DRIFT)
+  #define gm_drift(x) glm::normalize((x))
+#else
+  #define gm_drift(x) x
+#endif
+
 /* lua_gettop() macro */
 #if !defined(_gettop)
 #define _gettop(L) cast_int((L)->top - ((L)->ci->func + 1))
@@ -528,7 +535,7 @@ struct gLuaBase {
   LUA_TRAIT_QUALIFIER int Pull(const gLuaBase LB, int idx, glm::qua<glm_Float> &q) {
     const TValue *o = glm_i2v(LB.L, idx);
     if (l_likely(ttisquat(o))) {
-      q = glm_quatvalue(o).q;
+      q = gm_drift(glm_quatvalue(o).q);
       return 1;
     }
     return luaL_typeerror(LB.L, idx, LABEL_QUATERN);
@@ -538,7 +545,7 @@ struct gLuaBase {
   /// Convert the provided glm::qua into a Lua suitable value(s).
   /// </summary>
   LUA_TRAIT_QUALIFIER int Push(const gLuaBase &LB, const glm::qua<glm_Float> &q) {
-    return glm_pushquat(LB.L, q);
+    return glm_pushquat(LB.L, gm_drift(q));
   }
 
   /* mat<C, ?> */
@@ -600,13 +607,16 @@ struct gLuaBase {
   LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx, glm::Line<D, T> &l) {
     Pull(LB, idx, l.pos);
     Pull(LB, idx + 1, l.dir);
+#if defined(LUA_GLM_DRIFT)
+    l.dir = gm_drift(l.dir);
+#endif
     return 2;
   }
 
   template<glm::length_t D, typename T>
   LUA_TRAIT_QUALIFIER int Push(gLuaBase &LB, const glm::Line<D, T> &l) {
     Push(LB, l.pos);
-    Push(LB, l.dir);
+    Push(LB, gm_drift(l.dir));
     return 2;
   }
 
@@ -628,13 +638,16 @@ struct gLuaBase {
   LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx, glm::Ray<D, T> &r) {
     Pull(LB, idx, r.pos);
     Pull(LB, idx + 1, r.dir);
+#if defined(LUA_GLM_DRIFT)
+    r.dir = gm_drift(r.dir);
+#endif
     return 2;
   }
 
   template<glm::length_t D, typename T>
   LUA_TRAIT_QUALIFIER int Push(gLuaBase &LB, const glm::Ray<D, T> &r) {
     Push(LB, r.pos);
-    Push(LB, r.dir);
+    Push(LB, gm_drift(r.dir));
     return 2;
   }
 
@@ -867,6 +880,23 @@ template<typename T = glm_Float> using gLuaMat3x4 = gLuaTrait<glm::mat<3, 4, T>>
 template<typename T = glm_Float> using gLuaMat4x2 = gLuaTrait<glm::mat<4, 2, T>>;
 template<typename T = glm_Float> using gLuaMat4x3 = gLuaTrait<glm::mat<4, 3, T>>;
 template<typename T = glm_Float> using gLuaMat4x4 = gLuaTrait<glm::mat<4, 4, T>>;
+
+/// <summary>
+/// Specialization for implicitly normalizing direction vectors/quaternions.
+/// </summary>
+#if defined(LUA_GLM_DRIFT)
+template<glm::length_t L, typename T = glm_Float>
+struct gLuaDir : gLuaTrait<glm::vec<L, T>> {
+  LUA_TRAIT_QUALIFIER glm::vec<L, T> Next(gLuaBase &LB) {
+    return gm_drift(gLuaTrait<glm::vec<L, T>>::Next(LB));
+  }
+};
+template<typename T = glm_Float> using gLuaDir2 = gLuaDir<2, T>;
+template<typename T = glm_Float> using gLuaDir3 = gLuaDir<3, T>;
+#else
+template<typename T = glm_Float> using gLuaDir2 = gLuaTrait<glm::vec<2, T>>;
+template<typename T = glm_Float> using gLuaDir3 = gLuaTrait<glm::vec<3, T>>;
+#endif
 
 /// <summary>
 /// epsilon specialization for floating point types.
@@ -1600,7 +1630,7 @@ struct gLuaEps : gLuaTrait<T> {
   LUA_MLM_BEGIN                                   \
   Tr::value_type v5;                              \
   const Tr::type v1 = Tr::Next(LB);               \
-  const Tr::type v2 = Tr::Next(LB);               \
+  const Tr::type v2 = gm_drift(Tr::Next(LB));     \
   const Tr::type v3 = Tr::Next(LB);               \
   const Tr::type v4 = Tr::Next(LB);               \
   if (glm::intersectRayPlane(v1, v2, v3, v4, v5)) \
@@ -1613,7 +1643,7 @@ struct gLuaEps : gLuaTrait<T> {
   LUA_MLM_BEGIN                                                  \
   Tr::type v5, v6;                                               \
   const Tr::type v1 = Tr::Next(LB);                              \
-  const Tr::type v2 = Tr::Next(LB);                              \
+  const Tr::type v2 = gm_drift(Tr::Next(LB));                    \
   const Tr::type v3 = Tr::Next(LB);                              \
   const Tr::value_type v4 = gLuaTrait<Tr::value_type>::Next(LB); \
   if (glm::intersectRaySphere(v1, v2, v3, v4, v5, v6))           \

@@ -541,6 +541,7 @@ For all GLM preprocessor flags, reference the [GLM manual](https://github.com/g-
 - **GLM\_GEOM\_EXTENSIONS**: Include support for geometric structures;
 - **LUA\_GLM\_ALIASES**: Create aliases for common (alternate) names when registering the library;
 - **LUA\_GLM\_REPLACE\_MATH**: Replace the global math table with the glm binding library on loading;
+- **LUA\_GLM\_DRIFT**: Implicitly normalize all direction vector parameters (experiment to avoid floating-point drift);
 - **LUA\_GLM\_RECYCLE**: Treat all trailing and unused values on the Lua stack (but passed as parameters to the `CClosure`) as a 'cache' of recyclable structures.
     ```lua
     -- Some shared matrix
