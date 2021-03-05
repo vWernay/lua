@@ -34,8 +34,11 @@ static const char *const HOOKKEY = "_HOOKKEY";
 **
 ** In the worst case, the registry subtable can be given an __index metamethod
 ** that exposes acceptable fields to the script runtime.
+**
+** @TODO: LUA_SANDBOX the base macro for improved runtime sandboxing;
+**        see: http://lua-users.org/wiki/SandBoxes
 */
-#if defined(LUA_HIDE_DEBUG)
+#if defined(LUA_SANDBOX)
 static const char *const REGISTRY_SUBKEY = "_REGISTRYKEY";
 #endif
 
@@ -51,7 +54,7 @@ static void checkstack (lua_State *L, lua_State *L1, int n) {
 
 
 static int db_getregistry (lua_State *L) {
-#if defined(LUA_HIDE_DEBUG)
+#if defined(LUA_SANDBOX)
   if (!luaL_getsubtable(L, LUA_REGISTRYINDEX, REGISTRY_SUBKEY)) {
     /* table just created; initialize it ... */
   }
@@ -435,7 +438,7 @@ static int db_gethook (lua_State *L) {
 }
 
 
-#if !defined(LUA_HIDE_DEBUG)
+#if !defined(LUA_SANDBOX)
 static int db_debug (lua_State *L) {
   for (;;) {
     char buffer[250];
@@ -466,7 +469,7 @@ static int db_traceback (lua_State *L) {
 }
 
 
-#if !defined(LUA_HIDE_DEBUG)
+#if !defined(LUA_SANDBOX)
 static int db_setcstacklimit (lua_State *L) {
   int limit = (int)luaL_checkinteger(L, 1);
   int res = lua_setcstacklimit(L, limit);
@@ -477,7 +480,7 @@ static int db_setcstacklimit (lua_State *L) {
 
 
 static const luaL_Reg dblib[] = {
-#if !defined(LUA_HIDE_DEBUG)
+#if !defined(LUA_SANDBOX)
   {"debug", db_debug},
   {"getuservalue", db_getuservalue},
 #endif
@@ -489,7 +492,7 @@ static const luaL_Reg dblib[] = {
   {"getupvalue", db_getupvalue},
   {"upvaluejoin", db_upvaluejoin},
   {"upvalueid", db_upvalueid},
-#if !defined(LUA_HIDE_DEBUG)
+#if !defined(LUA_SANDBOX)
   {"setuservalue", db_setuservalue},
 #endif
   {"sethook", db_sethook},
@@ -497,8 +500,8 @@ static const luaL_Reg dblib[] = {
   {"setmetatable", db_setmetatable},
   {"setupvalue", db_setupvalue},
   {"traceback", db_traceback},
-#if !defined(LUA_HIDE_DEBUG)
-  {"setcstacklimit", db_setcstacklimit}, /* Additional constraints on min/max instead ? */
+#if !defined(LUA_SANDBOX)
+  {"setcstacklimit", db_setcstacklimit},
 #endif
   {NULL, NULL}
 };

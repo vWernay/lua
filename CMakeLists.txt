@@ -63,11 +63,11 @@ ELSE ()
   OPTION ( LUA_USE_POSIX "Use POSIX functionality." ON )
   OPTION ( LUA_USE_DLOPEN "Use dynamic linker to load modules." ON )
   OPTION ( LUA_INCLUDE_TEST "Include ltests.h")
-  OPTION ( LUA_HIDE_DEBUG "Hide additional ldblib fields" )
+  OPTION ( LUA_SANDBOX "Initial sandboxing support (hide additional ldblib fields)" )
 
   ADD_DEFINITIONS (-DLUA_C99_MATHLIB)
-  if (LUA_HIDE_DEBUG)
-    ADD_DEFINITIONS (-DLUA_HIDE_DEBUG)
+  if (LUA_SANDBOX)
+    ADD_DEFINITIONS (-DLUA_SANDBOX)
   ENDIF ()
 
   ADD_DEFINITIONS(
