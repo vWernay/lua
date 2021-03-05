@@ -282,6 +282,25 @@ static int luaB_pairs (lua_State *L) {
 }
 
 
+#if defined(GRIT_POWER_EACH)
+static int luaB_each (lua_State *L) {
+  luaL_checkany(L, 1);
+  if (luaL_getmetafield(L, 1, "__iter") == LUA_TNIL) {  /* no metamethod? */
+    if (luaL_getmetafield(L, 1, "__pairs") == LUA_TNIL) {  /* use __pairs as fallback */
+      lua_pushcfunction(L, luaB_next);  /* will return generator, */
+      lua_pushvalue(L, 1);  /* state, */
+      lua_pushnil(L);  /* and initial value */
+      return 3;
+    }
+  }
+
+  lua_pushvalue(L, 1);  /* argument 'self' to metamethod */
+  lua_call(L, 1, 4);  /* get 4 values from metamethod */
+  return 4;
+}
+#endif
+
+
 /*
 ** Traversal function for 'ipairs'
 */
@@ -568,6 +587,9 @@ static const luaL_Reg base_funcs[] = {
   {"load", luaB_load},
   {"next", luaB_next},
   {"pairs", luaB_pairs},
+#if defined(GRIT_POWER_EACH)
+  {"each", luaB_each},
+#endif
   {"pcall", luaB_pcall},
   {"print", luaB_print},
   {"warn", luaB_warn},

@@ -45,9 +45,6 @@ void luaT_init (lua_State *L) {
     "__band", "__bor", "__bxor", "__shl", "__shr",
     "__unm", "__bnot", "__lt", "__le",
     "__concat", "__call", "__close"
-#if defined(GRIT_POWER_OITER)
-     , "__iter"
-#endif
   };
   int i;
   for (i=0; i<TM_N; i++) {

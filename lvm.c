@@ -886,19 +886,6 @@ void luaV_finishOp (lua_State *L) {
 }
 
 
-#if defined(GRIT_POWER_OITER)
-static int objiter_next(lua_State *L) {
-  lua_settop(L, 2);  /* create a 2nd argument if there isn't one */
-  if (lua_next(L, 1))
-    return 2;
-  else {
-    lua_pushnil(L);
-    return 1;
-  }
-}
-#endif
-
-
 /*
 ** {==================================================================
 ** Macros for arithmetic/bitwise/comparison opcodes in 'luaV_execute'
@@ -1828,32 +1815,6 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
         vmbreak;
       }
       vmcase(OP_TFORPREP) {
-#if defined(GRIT_POWER_OITER)
-        StkId cb = ra + 4;  /* call base */
-        if (!ttisfunction(s2v(ra)) && ttisnil(s2v(ra + 1)) && ttisnil(s2v(ra + 2))) {
-          /* Intervene before first iteration if sole iteration value is not an iterator function */
-          const TValue *tm = luaT_gettmbyobj(L, s2v(ra), TM_ITER);
-          if (ttisnil(tm)) {
-            if (ttistable(s2v(ra))) { /* Table with no metamethod: default to 'next' */
-              setobjs2s(L, ra + 1, ra);
-              setfvalue(s2v(ra), objiter_next);
-            }
-          }
-          else { /* Metamethod found: call it to replace the iteration values */
-            setobj(L, s2v(cb), tm);
-            setobj(L, s2v(cb + 1), s2v(ra));
-            L->top = cb + 2; /* metamethod + object for method call */
-            ProtectNT(luaD_call(L, cb, 4));
-            L->top = L->ci->top;
-            ra = RA(i);
-            setobj(L, s2v(ra + 3), s2v(cb + 3));
-            setobj(L, s2v(ra + 2), s2v(cb + 2));
-            setobj(L, s2v(ra + 1), s2v(cb + 1));
-            setobj(L, s2v(ra), s2v(cb));
-            L->top = ra + 3;
-          }
-        }
-#endif
         /* create to-be-closed upvalue (if needed) */
         halfProtect(luaF_newtbcupval(L, ra + 3));
         pc += GETARG_Bx(i);
