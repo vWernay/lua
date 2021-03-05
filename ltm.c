@@ -151,7 +151,7 @@ static int callbinTM (lua_State *L, const TValue *p1, const TValue *p2,
 
 void luaT_trybinTM (lua_State *L, const TValue *p1, const TValue *p2,
                     StkId res, TMS event) {
-  if (callbinTM(L, p1, p2, res, event)) { /* FALLTHROUGH */ }
+  if (l_likely(callbinTM(L, p1, p2, res, event))) { /* FALLTHROUGH */ }
   else if (tmbitop(event)) {
     if (ttisnumber(p1) && ttisnumber(p2))
       luaG_tointerror(L, p1, p2);
@@ -166,7 +166,8 @@ void luaT_trybinTM (lua_State *L, const TValue *p1, const TValue *p2,
 
 void luaT_tryconcatTM (lua_State *L) {
   StkId top = L->top;
-  if (!callbinTM(L, s2v(top - 2), s2v(top - 1), top - 2, TM_CONCAT))
+  if (l_unlikely(!callbinTM(L, s2v(top - 2), s2v(top - 1), top - 2,
+                               TM_CONCAT)))
     luaG_concaterror(L, s2v(top - 2), s2v(top - 1));
 }
 
