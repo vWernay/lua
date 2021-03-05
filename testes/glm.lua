@@ -15,6 +15,42 @@ c3 = vec(7, 8, 9)
 c4 = vec(10, 11, 12)
 mt = debug.getmetatable(mat(c1, c2, c3, c4)) -- Save previous matrix metatable
 
+------------------------------------------
+-- lmathlib string coercion consistency --
+------------------------------------------
+if glm then
+
+print("lmathlib string coercion consistency")
+
+assert(_meq(math.abs("-1"), glm.abs("-1")))
+assert(_meq(math.acos("0.5"), glm.acos("0.5")))
+assert(_meq(math.asin("0.5"), glm.asin("0.5")))
+assert(_meq(math.atan("0.5"), glm.atan("0.5")))
+
+assert(_meq(math.ceil("0.5"), glm.ceil("0.5")))
+assert(_meq(math.floor("1.5"), glm.floor("1.5")))
+assert(_meq(math.tointeger("3.0"), glm.tointeger("3.0")))
+
+assert(_meq(math.cos("0.78539816339745"), glm.cos("0.78539816339745")))
+assert(_meq(math.sin("0.78539816339745"), glm.sin("0.78539816339745")))
+assert(_meq(math.tan("0.78539816339745"), glm.tan("0.78539816339745")))
+assert(_meq(math.deg("0.78539816339745"), glm.deg("0.78539816339745")))
+assert(_meq(math.rad("45.0"), glm.rad("45.0")))
+assert(_meq(math.rad("45"), glm.rad("45")))
+
+assert(_meq(math.sqrt("5"), glm.sqrt("5")))
+assert(_meq(math.exp("3"), glm.exp("3")))
+assert(_meq(math.log("2"), glm.log("2")))
+
+local a,b = math.modf("8.275")
+local x,y = glm.modf("8.275")
+
+assert(_meq(a, x) and _meq(b, y))
+assert(_meq(math.fmod("8", "5"), glm.fmod("8", "5")))
+assert(_meq(math.max("1", "4", "3", "2"), glm.max("1", "4", "3", "2")))
+assert(_meq(math.min("1", "4", "3", "2"), glm.min("1", "4", "3", "2")))
+
+end
 ---------------------------------------
 ---------- gettable/settable ----------
 ---------------------------------------

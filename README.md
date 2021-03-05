@@ -67,7 +67,7 @@ When vectors/quaternions are accessed by other values some additional rules exis
 1. For quaternions, the `angle` and `axis` strings are reserved for the angle (in degrees) and normalized axis of rotation (grit-lua compatibility);
 1. The dimensionality of a vector can be accessed by the `n` and `dim` strings as the length operator returns the vector magnitude (grit-lua compatibility).
 
-Vector and quaternion types do not maintain an explicit metatable reference. The Lua functions `getmetatable` and `debug.setmetatable`, and C API functions `lua_setmetatable` and `lua_getmetatable` can be used to define explicit metatables for these types.
+Vector and quaternion types do not maintain an explicit metatable reference. The Lua functions `getmetatable` and `debug.setmetatable`, and C API functions `lua_setmetatable` and `lua_getmetatable` can be used to define explicit metatables for these types. The binding library (see **Building**) has the option to override the metatables for vector and matrix types when loaded.
 
 #### C API
 Vector and quaternions values are represented by the `LUA_TVECTOR` tag. They are primitive types (immutable) and use a struct of floats to represent each component. On an API level, vectors and quaternions are effectively tables and accessing their values can be done using the same Lua API functions:
@@ -133,6 +133,68 @@ Matrices are objects and represented by the `LUA_TMATRIX` tag. On an API level, 
 - [`lua_rawlen`](https://www.lua.org/manual/5.4/manual.html#lua_rawlen), [`lua_len`](https://www.lua.org/manual/5.4/manual.html#lua_len): Returns the dimensionality (number of columns) of the matrix;
 
 See [lglm.hpp](...), the external header for interfacing with ``glm`` defined matrices within Lua.
+
+## Binding Library
+Each function within the [GLM API](https://glm.g-truc.net/0.9.9/api/modules.html) has an equivalent Lua library function of the same name whose template arguments are resolved at call-time when parsing values from the Lua stack. For example,
+
+```lua
+-- Creates a matrix with four vector components (recall GLM is column-major);
+> m = glm.axisAngleMatrix(vec3(1.0, 0.0, 0.0), glm.radians(35.0))
+
+-- Iterate over each matrix component;
+> for k,v in pairs(m) do print(k, v) end
+1       vec4(1.000000, 0.000000, 0.000000, 0.000000)
+2       vec4(0.000000, 0.819152, 0.573576, 0.000000)
+3       vec4(0.000000, -0.573576, 0.819152, 0.000000)
+4       vec4(0.000000, 0.000000, 0.000000, 1.000000)
+
+-- Note: getmetatable(m).__index == glm
+--
+-- Convert the matrix to a quaternion;
+> m:toQuat()
+quat(0.953717, {0.300706, 0.000000, 0.000000})
+
+-- Apply a rotation to the matrix (note, there are nine variations of glm::rotate);
+m2 = m:rotate(math.rad(35.0), vec3(1, 0, 0))
+
+-- Extract XZY Angles;
+> glm.degrees(vec(m2:extractEulerAngleXZY()))
+vec3(70.000000, -0.000000, 0.000000)
+
+-- spherical linear interpolation of the matrices as quaternions;
+> slerp(m:toQuat(), m2:toQuat(), 2/glm.pi)
+quat(0.877641, {0.479318, 0.000000, 0.000000})
+
+-- Other examples:
+> aspect = 4.0 / 3.0
+> viewMatrix = glm.lookAt(glm.vec3(0.3, 0.3, 1.5), glm.vec3(0, 0, 0), glm.vec3(0, 1, 0))
+> perspective = glm.perspective(glm.radians(55.0), aspect, 0.1, 100.0)
+> frustum = glm.frustum(-aspect * 0.1, aspect * 0.1, -0.1, 0.1, 0.1, 100.0)
+```
+
+The binding library also extends GLM to:
+
+1. Add vector support for all functions declared in [cmath(C99/C++11)](http://www.cplusplus.com/reference/cmath/);
+1. Alias (e.g., length vs. magnitude), emulate, and port useful and common functions from other popular vector-math libraries (listed in **Sources & Acknowledgments**);
+1. Be a complete superset of Lua's [lmathlib](https://www.lua.org/manual/5.4/manual.html#6.7). Meaning `_G.math` can be replaced by the binding library without compatibility concerns. Note, `math.random` and `math.randomseed` are copied from `lmathlib` when the library is loaded rather than extending/maintaining another pseudorandom-state (see `glm/gtc/random.hpp`).
+
+See **EXTENDED.md** for a list of additional functions.
+
+#### Casting Rules
+As vector/quaternion types are represented by float-point values, some additional type-inferencing rules are required when casting values to and from float point values (see sections [4.6-4.9] in your favorite `ISO/IEC 14882` document):
+
+1. A `glm::vec<1, ...>` structure is represented by `lua_Integer`, `lua_Number`, or `bool` Lua value and all `glm::vec<1, ...>` bindings are templated to those Lua types;
+1. All other `glm::vec` structures are float-casted (and/or bound to float-templated functions). Consequently, bitfield and integer operations, e.g., [packUnorm](http://glm.g-truc.net/0.9.9/api/a00716.html#gaccd3f27e6ba5163eb7aa9bc8ff96251a) and [floatBitsToInt](http://glm.g-truc.net/0.9.9/api/a00662.html#ga99f7d62f78ac5ea3b49bae715c9488ed), are considered unsafe when operating on multi-dimensional vectors (consider inexact IEEE754);
+1. Matrices are represented by a collection of column-vectors that abide by the vector rules above. Prior to GLM 0.9.9.9, there has been little practical use for integer/bool templated matrices given the lack of an API.
+
+#### Missing Functions
+Modules/functions not bound to LuaGLM due to compatibility issues, usefulness, or complexity:
+
+- glm/gtx/associated_min_max.hpp: all;
+- glm/integer.hpp: `imulExtended`, `uaddCarry`, `umulExtended`, `usubBorrow`;
+- glm/gtx/bit.hpp: `powerOfTwoAbove`, `powerOfTwoBelow`, `powerOfTwoNearest`;
+- glm/gtx/range.hpp: `begin`, `end`;
+- glm/ext/vector_relational.hpp:  `equal(..., vec<L, int, Q> const& ULPs)`, as the current Lua binding cannot differentiate between it and `(..., vec<L, T, Q> const& epsilon)`.
 
 ## Power Patches
 This runtime [imports](http://lua-users.org/wiki/LuaPowerPatches) many (small) useful changes to the Lua runtime, all bound to preprocessor flags:
@@ -359,12 +421,15 @@ An modified version of the makefile [bundled](https://www.lua.org/download.html)
 # Build for the linux platform target, linked with readline;
 └> make linux-readline
 
-# Run Lua
-└> ./lua
+# Compile the glm binding library;
+└> make lib-glm
+
+# Run Lua and use Library Preloading to load GLM.
+└> ./lua -lglm
 ```
 
 ### CMake
-A CMake project that builds the stand-alone interpreter (`lua`), a compiler (`luac`), and shared/static libraries. This project includes variables for most preprocessor configuration flags supported by Lua and GLM. See `cmake -LAH` or [cmake-gui](https://cmake.org/runningcmake/) for the complete list of build options.
+A CMake project that builds the stand-alone interpreter (`lua`), a compiler (`luac`), the GLM binding library, and shared/static libraries. This project includes variables for most preprocessor configuration flags supported by Lua and GLM. See `cmake -LAH` or [cmake-gui](https://cmake.org/runningcmake/) for the complete list of build options.
 
 ```bash
 # Create build directory
@@ -421,7 +486,7 @@ Note, not all Lua-specific options are listed.
 - **GLM\_FORCE\_INTRINSICS**: Using SIMD optimizations;
 - **GLM\_FORCE\_PRECISION\_**: Default precision;
 - **GLM\_FORCE\_SINGLE\_ONLY**: Removed explicit 64-bits floating point types;
-- **GLM\_FORCE\_XYZW\_ONLY**: Only exposes x, y, z and w components;
+- **GLM\_FORCE\_XYZW\_ONLY**: Only exposes x, y, z and w components. Note: when enabled disables all **COLOR_SPACE** bindings;
 - **GLM\_FORCE\_LEFT\_HANDED**: Force left handed coordinate system;
 - **GLM\_FORCE\_DEPTH\_ZERO\_TO\_ONE**: Force the use of a clip space between 0 to 1;
 - **GLM\_FORCE\_SIZE\_T\_LENGTH**: Vector and matrix static size type;
@@ -433,6 +498,10 @@ For all GLM preprocessor flags, reference the [GLM manual](https://github.com/g-
 
 #### Added GLM Preprocessor Configurations:
 - **GLM\_FAST\_MATH**: Enable fast math optimizations (see `-ffast-math` caveats);
+- **GLM\_FORCE\_Z\_UP**: Unit "up" vector is along the Z-axis (Y-axis otherwise);
+- **GLM\_INCLUDE\_ALL**: Create bindings for all declared GLM headers. To create module-only, extension-only, or header-only bindings see **EXTENDED.md** for a list of all headers;
+- **LUA\_GLM\_ALIASES**: Create aliases for common (alternate) names when registering the library;
+- **LUA\_GLM\_REPLACE\_MATH**: Replace the global math table with the glm binding library on loading;
 
 ## Developer Notes:
 
@@ -440,6 +509,21 @@ For all GLM preprocessor flags, reference the [GLM manual](https://github.com/g-
 1. One downside to vectors/quaternions being an explicit `Value` is that they increase the minimum `Value` to at least 16 bytes. Given that types in Lua are fairly transparent, it may be beneficial to introduce, or at least experiment with, a compile-time option to make vector/quaternion types collectible;
 1. Support for integer vectors/matrices. Either by introducing an additional type, e.g., `LUA_TVECTORI`, or splitting the vector tag `LUA_TVECTOR` into `LUA_TVECTOR2`, `LUA_TVECTOR3`, `LUA_TVECTOR4`, and `LUA_TQUAT` and use variant bits for the primitive type;
 1. A LINQ-style library that takes advantage of `__iter/__pairs`;
+1. Replace `glm/gtc/random.{inl,hpp}` with a variant that takes advantage of CXX11's [Pseudo-random number generation](https://en.cppreference.com/w/cpp/numeric/random) facilities. Or one that unifies this API and `math.random()`;
+1. UNARY\_EACH: Allow some binding functions to be independently applied to each value or structure on the call stack. If disabled, only operate on the minimum number of required objects (following lmathlib). For example:
+    ``` lua
+    -- lmathlib
+    > math.rad(35, 35)
+    0.61086523819802
+
+    -- LUA_GLM_EXT_UNARY=OFF
+    > glm.rad(35, 35)
+    0.61086523819802
+
+    -- LUA_GLM_EXT_UNARY=ON
+    > glm.rad(35, 35)
+    0.61086523819802 0.61086523819802
+    ```
 
 #### Tweaks:
 1. Fix/improve MSVC portions of CMakeLists;

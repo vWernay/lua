@@ -33,6 +33,9 @@
 
 #include "lualib.h"
 #include "lauxlib.h"
+#if defined(LUA_INCLUDE_LIBGLM)
+#include "lglmlib.hpp"
+#endif
 
 
 /*
@@ -50,6 +53,9 @@ static const luaL_Reg loadedlibs[] = {
   {LUA_MATHLIBNAME, luaopen_math},
   {LUA_UTF8LIBNAME, luaopen_utf8},
   {LUA_DBLIBNAME, luaopen_debug},
+#if defined(LUA_INCLUDE_LIBGLM)
+  {LUA_GLMLIBNAME, luaopen_glm},
+#endif
   {NULL, NULL}
 };
 

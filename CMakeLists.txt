@@ -535,6 +535,12 @@ OPTION(GLM_FORCE_QUAT_DATA_WXYZ "Removing genType restriction" OFF)
 
 ADD_COMPILE_DEFINITIONS(GLM_ENABLE_EXPERIMENTAL)
 
+# lua-glm Options
+OPTION(GLM_FORCE_Z_UP "Unit up vector is along the Z-axis (Y-axis otherwise)" ON)
+OPTION(LUA_GLM_INCLUDE_ALL "Include all GLM modules, glm/gtc/gtx" ON)
+OPTION(LUA_GLM_ALIASES "Include all function aliases" ON)
+OPTION(LUA_GLM_REPLACE_MATH "Replace the global math library on library initialization" OFF)
+
 IF( GLM_FORCE_MESSAGES )
   ADD_COMPILE_DEFINITIONS(GLM_FORCE_MESSAGES)
 ENDIF()
@@ -566,6 +572,10 @@ IF( GLM_FORCE_LEFT_HANDED )
   ADD_COMPILE_DEFINITIONS(GLM_FORCE_LEFT_HANDED)
 ENDIF()
 
+IF ( GLM_FORCE_Z_UP )
+  ADD_COMPILE_DEFINITIONS(GLM_FORCE_Z_UP)
+ENDIF()
+
 IF( GLM_FORCE_DEPTH_ZERO_TO_ONE )
   ADD_COMPILE_DEFINITIONS(GLM_FORCE_DEPTH_ZERO_TO_ONE)
 ENDIF()
@@ -586,15 +596,29 @@ IF( GLM_FORCE_QUAT_DATA_WXYZ )
   ADD_COMPILE_DEFINITIONS(GLM_FORCE_QUAT_DATA_WXYZ)
 ENDIF()
 
+IF ( LUA_GLM_INCLUDE_ALL )
+  ADD_COMPILE_DEFINITIONS(LUA_GLM_INCLUDE_ALL)
+ENDIF()
+
+IF ( LUA_GLM_ALIASES )
+  ADD_COMPILE_DEFINITIONS(LUA_GLM_ALIASES)
+ENDIF()
+
+IF ( LUA_GLM_REPLACE_MATH )
+  ADD_COMPILE_DEFINITIONS(LUA_GLM_REPLACE_MATH)
+ENDIF()
+
 ################################################################################
 # Compilation
 ################################################################################
 
 OPTION(ONE_LUA "Compile Lua core, libraries, and interpreter in a single file" OFF)
 OPTION(LUA_HPP "Compile Lua as cplusplus (note: this requires changing the extern field of lua.hpp" OFF)
+OPTION(LUA_INCLUDE_LIBGLM "Build lglm into the runtime and include it in the initialization libraries" OFF)
 
 INCLUDE_DIRECTORIES( . )
 INCLUDE_DIRECTORIES( ./libs/glm/ )
+INCLUDE_DIRECTORIES( ./libs/glm-binding/ )
 
 SET(LUA_PUBLIC_HDRS luaconf.h lua.h lauxlib.h lualib.h lua.hpp lglm.hpp )
 
@@ -609,6 +633,8 @@ SET(SRC_LIB
   lstrlib.c ltable.c ltablib.c ltm.c lundump.c lutf8lib.c lvm.c lzio.c
 )
 
+SET(SRC_LIBGLM libs/glm-binding/lglmlib.cpp)
+
 IF( LUA_INCLUDE_TEST )
   ADD_COMPILE_DEFINITIONS(LUA_USER_H="ltests.h")
   SET(SRC_LIB ${SRC_LIB} ltests.c)
@@ -620,6 +646,11 @@ IF( LUA_HPP )
 ELSE()
   SET_SOURCE_FILES_PROPERTIES(${SRC_LIB} ${SRC_LUA} ${SRC_LUAC} PROPERTIES LANGUAGE C )
   ADD_COMPILE_DEFINITIONS(LUA_C_LINKAGE) # Setup ${SRC_LUAGLM} linkage
+ENDIF()
+
+IF( LUA_INCLUDE_LIBGLM )
+  ADD_COMPILE_DEFINITIONS(LUA_INCLUDE_LIBGLM)
+  SET(SRC_LUAGLM ${SRC_LUAGLM} ${SRC_LIBGLM})
 ENDIF()
 
 # Setup ${SRC_LUAGLM}
@@ -666,6 +697,8 @@ IF( NOT ONE_LUA )
   ADD_LIBRARY(liblua_static STATIC ${SRC_LIB} ${SRC_LUAGLM})
   TARGET_LINK_LIBRARIES(liblua_static ${LIBS})
   SET_TARGET_PROPERTIES(liblua_static PROPERTIES OUTPUT_NAME lua${LIB_LUA_VER}_static CLEAN_DIRECT_OUTPUT 1)
+ELSE()
+  ADD_COMPILE_DEFINITIONS(LUA_INCLUDE_LIBGLM)
 ENDIF()
 
 # Add extra rc files to the windows build
@@ -675,6 +708,23 @@ IF( MSVC OR CYGWIN OR MSYS )
   ENDIF()
 
   SET(LUA_RC etc/lua.rc)
+ENDIF()
+
+# lib-glm
+IF( NOT LUA_INCLUDE_LIBGLM AND NOT ONE_LUA )
+  ADD_LIBRARY(glm MODULE ${SRC_LIBGLM})
+  TARGET_INCLUDE_DIRECTORIES(glm PRIVATE ${INCLUDE_DIRECTORIES})
+  IF ( LUA_INCLUDE_TEST )
+    TARGET_LINK_LIBRARIES(glm ${LIBS} liblua_static)
+  ELSE()
+    TARGET_LINK_LIBRARIES(glm ${LIBS} liblua)
+  ENDIF()
+
+  SET_TARGET_PROPERTIES(glm PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  SET_TARGET_PROPERTIES(glm PROPERTIES PREFIX "" OUTPUT_NAME "glm" CLEAN_DIRECT_OUTPUT 1)
+  IF( LUA_BUILD_AS_DLL )
+    TARGET_COMPILE_DEFINITIONS(glm PUBLIC LUA_BUILD_AS_DLL)
+  ENDIF()
 ENDIF()
 
 #######################################

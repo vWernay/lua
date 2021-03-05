@@ -698,8 +698,15 @@ do   -- testing floor & ceil
     assert(math.ceil(2^p) == 2^p)
     assert(math.ceil(2^p - 0.5) == 2^p)
   end
-  checkerror("number expected", math.floor, {})
-  checkerror("number expected", math.ceil, print)
+
+  if math.equal ~= nil then  -- math == glm
+    checkerror("number or vector expected", math.floor, {}) -- math = glm
+    checkerror("number or vector expected", math.ceil, print) -- math = glm
+  else
+    checkerror("number expected", math.floor, {})
+    checkerror("number expected", math.ceil, print)
+  end
+
   assert(eqT(math.tointeger(minint), minint))
   assert(eqT(math.tointeger(minint .. ""), minint))
   assert(eqT(math.tointeger(maxint), maxint))

@@ -98,6 +98,9 @@ LUA_PATCHES = -DLUA_C99_MATHLIB  \
 GLM_FLAGS = -DGLM_ENABLE_EXPERIMENTAL \
 		-DGLM_FORCE_INTRINSICS \
 		-DGLM_FORCE_INLINE \
+		-DGLM_FORCE_Z_UP \
+		-DLUA_GLM_INCLUDE_ALL \
+		-DLUA_GLM_ALIASES \
 
 MYCFLAGS= $(TESTS) $(LUA_PATCHES) $(GLM_FLAGS) -Ilibs/glm/
 MYLDFLAGS= $(TESTS)
@@ -194,7 +197,7 @@ linux-readline:
 	$(MAKE) $(ALL) SYSCFLAGS="-DLUA_USE_LINUX -DLUA_USE_READLINE" SYSLIBS="-Wl,-E -ldl -lreadline"
 
 linux-one:
-	$(MAKE) linux-readline CC="$(CPP)" LUA_O="onelua.o" BASE_O="onelua.o" CORE_O="" LIB_O="" LUAC_T="" MYCFLAGS="$(MYCFLAGS) $(CPERF_FLAGS)"
+	$(MAKE) linux-readline CC="$(CPP)" LUA_O="onelua.o" BASE_O="onelua.o" CORE_O="" LIB_O="" LUAC_T="" MYCFLAGS="$(MYCFLAGS) $(CPERF_FLAGS) -DLUA_INCLUDE_LIBGLM -I. -Ilibs/glm-binding"
 
 Darwin macos macosx:
 	$(MAKE) $(ALL) SYSCFLAGS="-DLUA_USE_MACOSX"
@@ -222,6 +225,34 @@ lglm.o: lglm.cpp lua.h luaconf.h lglm.hpp lua.hpp lualib.h \
  lgrit_lib.h lapi.h lstate.h lzio.h lmem.h ldebug.h lfunc.h lgc.h \
  lstring.h ltable.h lvm.h ldo.h
 	$(CPP) -DLUA_C_LINKAGE $(CFLAGS) $(CPERF_FLAGS) $(TESTS) -c -o lglm.o lglm.cpp
+
+# lua-glm binding
+GLM_A = glm.so
+
+lib-glm:
+	$(CPP) -DLUA_C_LINKAGE $(CFLAGS) $(CPERF_FLAGS) $(TESTS) -fPIC -I. -Ilibs/glm-binding -shared -o $(GLM_A) libs/glm-binding/lglmlib.cpp $(LIBS)
+
+lib-glm-mingw:
+	$(MAKE) lib-glm SYSCFLAGS="-L . -DLUA_BUILD_AS_DLL" GLM_A="glm.dll" SYSLIBS="-llua" SYSLDFLAGS="-s"
+
+lib-glm-macos:
+	$(MAKE) lib-glm SYSCFLAGS="-L . -DLUA_USE_MACOSX" SYSLIBS="-llua"
+
+# GLM binding library built as an object; disabled by default.
+# -I. -Ilibs/glm/ -Ilibs/glm-binding
+# -DLUA_INCLUDE_LIBGLM
+# lglmlib.o
+lglmlib.o: libs/glm-binding/lglmlib.cpp lglm.hpp lua.hpp lua.h luaconf.h \
+ lualib.h lauxlib.h libs/glm-binding/api.hpp \
+ libs/glm-binding/bindings.hpp lapi.h llimits.h lstate.h lobject.h \
+ lglm.hpp ltm.h lzio.h lmem.h lgc.h lvm.h ldo.h lobject.h lstate.h \
+ lglm_core.h libs/glm-binding/ext/vector_extensions.hpp \
+ libs/glm-binding/ext/matrix_extensions.hpp \
+ libs/glm-binding/ext/quat_extensions.hpp \
+ libs/glm-binding/ext/vector_extensions.hpp \
+ libs/glm-binding/ext/matrix_extensions.hpp lua.hpp \
+ libs/glm-binding/lglmlib.hpp lua.h libs/glm-binding/lglmlib_reg.hpp
+	$(CC) $(CFLAGS) $(CPERF_FLAGS) -I. -Ilibs/glm-binding -c -o lglmlib.o libs/glm-binding/lglmlib.cpp
 
 # DO NOT EDIT
 # automatically made with 'g++ -MM l*.c'
