@@ -221,6 +221,9 @@ static void loadConstants (LoadState *S, Proto *f) {
         break;
       }
       case LUA_VSHRSTR:
+#if defined(GRIT_POWER_BLOB)
+      case LUA_VBLOBSTR:
+#endif
       case LUA_VLNGSTR:
         setsvalue2n(S->L, o, loadString(S, f));
         break;

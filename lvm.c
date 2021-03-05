@@ -597,6 +597,9 @@ int luaV_equalobj (lua_State *L, const TValue *t1, const TValue *t2) {
     case LUA_VQUAT: case LUA_VVECTOR4: return V4_EQ(vvalue(t1), vvalue(t2));
     case LUA_VLCF: return fvalue(t1) == fvalue(t2);
     case LUA_VSHRSTR: return eqshrstr(tsvalue(t1), tsvalue(t2));
+#if defined(GRIT_POWER_BLOB)
+    case LUA_VBLOBSTR: return luaS_eqlngstr(tsvalue(t1), tsvalue(t2));
+#endif
     case LUA_VLNGSTR: return luaS_eqlngstr(tsvalue(t1), tsvalue(t2));
     case LUA_VUSERDATA: {
       if (uvalue(t1) == uvalue(t2)) return 1;
@@ -712,6 +715,9 @@ void luaV_objlen (lua_State *L, StkId ra, const TValue *rb) {
       setivalue(s2v(ra), tsvalue(rb)->shrlen);
       return;
     }
+#if defined(GRIT_POWER_BLOB)
+    case LUA_VBLOBSTR:
+#endif
     case LUA_VLNGSTR: {
       setivalue(s2v(ra), tsvalue(rb)->u.lnglen);
       return;

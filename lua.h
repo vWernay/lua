@@ -269,7 +269,6 @@ LUA_API void        (lua_pushnil) (lua_State *L);
 LUA_API void        (lua_pushnumber) (lua_State *L, lua_Number n);
 LUA_API void        (lua_pushinteger) (lua_State *L, lua_Integer n);
 LUA_API void        (lua_pushvector) (lua_State *L, lua_Float4 f4, int variant);
-LUA_API const char *(lua_pushblob) (lua_State *L, size_t len);
 LUA_API const char *(lua_pushlstring) (lua_State *L, const char *s, size_t len);
 LUA_API const char *(lua_pushstring) (lua_State *L, const char *s);
 LUA_API const char *(lua_pushvfstring) (lua_State *L, const char *fmt,
@@ -311,6 +310,19 @@ LUA_API void  (lua_rawsetp) (lua_State *L, int idx, const void *p);
 LUA_API int   (lua_setmetatable) (lua_State *L, int objindex);
 LUA_API int   (lua_setiuservalue) (lua_State *L, int idx, int n);
 
+/*
+** string blob API
+*/
+#if defined(GRIT_POWER_BLOB)
+/* Returns 1 if the value at the given index is a blob variant */
+LUA_API int (lua_isstringblob) (lua_State *L, int idx);
+
+/* Converts the string at the given index to a (C-)string blob. */
+LUA_API char *(lua_tostringblob) (lua_State *L, int idx, size_t *len);
+
+/* Pushes the string pointed to by s with size len onto the stack as a blob variant. */
+LUA_API char *(lua_pushblob) (lua_State *L, size_t len);
+#endif
 
 /*
 ** 'load' and 'call' functions (load and run Lua code)

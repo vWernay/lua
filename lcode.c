@@ -688,6 +688,9 @@ static void const2exp (TValue *v, expdesc *e) {
     case LUA_VNIL:
       e->k = VNIL;
       break;
+#if defined(GRIT_POWER_BLOB)
+    case LUA_VBLOBSTR:
+#endif
     case LUA_VSHRSTR:  case LUA_VLNGSTR:
       e->k = VKSTR; e->u.strval = tsvalue(v);
       break;

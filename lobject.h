@@ -375,10 +375,17 @@ typedef struct GCObject {
 /* Variant tags for strings */
 #define LUA_VSHRSTR	makevariant(LUA_TSTRING, 0)  /* short strings */
 #define LUA_VLNGSTR	makevariant(LUA_TSTRING, 1)  /* long strings */
+#if defined(GRIT_POWER_BLOB)
+  #define LUA_VBLOBSTR makevariant(LUA_TSTRING, 2)  /* long blobs */
+#endif
 
 #define ttisstring(o)		checktype((o), LUA_TSTRING)
 #define ttisshrstring(o)	checktag((o), ctb(LUA_VSHRSTR))
 #define ttislngstring(o)	checktag((o), ctb(LUA_VLNGSTR))
+#if defined(GRIT_POWER_BLOB)
+  #define ttisblobstring(o)	checktag((o), ctb(LUA_VBLOBSTR))
+  #define islongstring(tt) ((tt) == LUA_VLNGSTR || (tt) == LUA_VBLOBSTR)
+#endif
 
 #define tsvalueraw(v)	(gco2ts((v).gc))
 

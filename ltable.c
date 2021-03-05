@@ -177,6 +177,9 @@ static Node *mainposition (const Table *t, int ktt, const Value *kvl) {
       return hashpointer(t, pvalueraw(*kvl));
     case LUA_VLCF:
       return hashpointer(t, fvalueraw(*kvl));
+#if defined(GRIT_POWER_BLOB)
+    case LUA_VBLOBSTR:  /* blobs stored by pointer */
+#endif
     default:
       return hashpointer(t, gcvalueraw(*kvl));
   }
@@ -241,6 +244,9 @@ static int equalkey (const TValue *k1, const Node *n2, int deadok) {
         luai_numeq(vvalue(k1).y, vvalueraw(keyval(n2)).y) &&
         luai_numeq(vvalue(k1).z, vvalueraw(keyval(n2)).z) &&
         luai_numeq(vvalue(k1).w, vvalueraw(keyval(n2)).w);
+#if defined(GRIT_POWER_BLOB)
+    case ctb(LUA_VBLOBSTR):  /* blobs stored by pointer */
+#endif
     default:
       return gcvalue(k1) == gcvalueraw(keyval(n2));
   }

@@ -486,6 +486,9 @@ LUA_API lua_Unsigned lua_rawlen (lua_State *L, int idx) {
     case LUA_VVECTOR4: case LUA_VQUAT: return 4;
     case LUA_VSHRSTR: return tsvalue(o)->shrlen;
     case LUA_VLNGSTR: return tsvalue(o)->u.lnglen;
+#if defined(GRIT_POWER_BLOB)
+    case LUA_VBLOBSTR: return tsvalue(o)->u.lnglen;
+#endif
     case LUA_VUSERDATA: return uvalue(o)->len;
     case LUA_VTABLE: return luaH_getn(hvalue(o));
     default: return 0;
@@ -624,7 +627,13 @@ LUA_API const char *lua_pushstring (lua_State *L, const char *s) {
 }
 
 
-LUA_API const char *lua_pushblob (lua_State *L, size_t len) {
+#if defined(GRIT_POWER_BLOB)
+LUA_API int lua_isstringblob (lua_State *L, int idx) {
+  const TValue *o = index2value(L, idx);
+  return ttisblobstring(o);
+}
+
+LUA_API char *lua_pushblob (lua_State *L, size_t len) {
   TString *ts;
   lua_lock(L);
   ts = luaS_newblob(L, len);
@@ -634,6 +643,32 @@ LUA_API const char *lua_pushblob (lua_State *L, size_t len) {
   lua_unlock(L);
   return getstr(ts);
 }
+
+LUA_API char *lua_tostringblob (lua_State *L, int idx, size_t *len) {
+  char *result = NULL;
+  size_t result_len = 0;
+
+  TValue *o;
+  lua_lock(L);
+  o = index2value(L, idx);
+  if (ttisstring(o)) {
+    TString *str = luaS_asblob(L, tsvalue(o));
+    if (str != NULL) {  /* new object created; replace stack object */
+      setsvalue(L, o, str);
+      luaC_checkGC(L);  /* previous call may reallocate the stack */
+      o = index2value(L, idx);
+    }
+
+    result = svalue(o);
+    result_len = vslen(o);
+  }
+  lua_unlock(L);
+
+  if (len != NULL)
+    *len = result_len;
+  return result;
+}
+#endif
 
 
 LUA_API const char *lua_pushvfstring (lua_State *L, const char *fmt,

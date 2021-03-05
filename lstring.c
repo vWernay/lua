@@ -33,7 +33,11 @@
 */
 int luaS_eqlngstr (TString *a, TString *b) {
   size_t len = a->u.lnglen;
+#if defined(GRIT_POWER_BLOB)
+  lua_assert(islongstring(a->tt) && islongstring(b->tt));
+#else
   lua_assert(a->tt == LUA_VLNGSTR && b->tt == LUA_VLNGSTR);
+#endif
   return (a == b) ||  /* same instance or... */
     ((len == b->u.lnglen) &&  /* equal length and ... */
      (memcmp(getstr(a), getstr(b), len) == 0));  /* equal contents */
@@ -49,9 +53,17 @@ unsigned int luaS_hash (const char *str, size_t l, unsigned int seed) {
 
 
 unsigned int luaS_hashlongstr (TString *ts) {
+#if defined(GRIT_POWER_BLOB)
+  lua_assert(islongstring(ts->tt));
+#else
   lua_assert(ts->tt == LUA_VLNGSTR);
+#endif
   if (ts->extra == 0) {  /* no hash? */
     size_t len = ts->u.lnglen;
+#if defined(GRIT_POWER_BLOB)
+    if (ts->tt == LUA_VBLOBSTR)
+      return luaS_hash(getstr(ts), len, ts->hash);
+#endif
     ts->hash = luaS_hash(getstr(ts), len, ts->hash);
     ts->extra = 1;  /* now it has its hash */
   }
@@ -231,16 +243,32 @@ TString *luaS_newlstr (lua_State *L, const char *str, size_t l) {
   }
 }
 
-LUAI_FUNC TString *luaS_newblob (lua_State *L, size_t l) {
-  TString *ts;
-  l = (l <= LUAI_MAXSHORTLEN) ? (LUAI_MAXSHORTLEN + 1) : l;
+#if defined(GRIT_POWER_BLOB)
+#define blob_length(l) (((l) <= LUAI_MAXSHORTLEN) ? (LUAI_MAXSHORTLEN + 1) : (l));
+TString *luaS_newblob (lua_State *L, size_t l) {
+  l = blob_length(l);
   if (l_unlikely(l >= (MAX_SIZE - sizeof(TString))/sizeof(char)))
     luaM_toobig(L);
-
-  ts = luaS_createlngstrobj(L, l);
-  memset(getstr(ts), 0, l * sizeof(char));
-  return ts;
+  else {
+    TString *ts = createstrobj(L, l, LUA_VBLOBSTR, G(L)->seed);
+    ts->u.lnglen = l;
+    memset(getstr(ts), 0, l * sizeof(char));
+    return ts;
+  }
+  return NULL;
 }
+
+TString *luaS_asblob (lua_State *L, TString *str) {
+  if (str->tt == LUA_VBLOBSTR)
+    return NULL;
+  else {  /* This can be optimized, memset + memcpy is redundant*/
+    const size_t l = tsslen(str);
+    TString *blob = luaS_newblob(L, l);
+    memcpy(getstr(blob), getstr(str), l);
+    return blob;
+  }
+}
+#endif
 
 /*
 ** Create or reuse a zero-terminated string, first checking in the

@@ -315,7 +315,11 @@ static void printobj (global_State *g, GCObject *o) {
            ttypename(novariant(o->tt)), (void *)o,
            isdead(g,o) ? 'd' : isblack(o) ? 'b' : iswhite(o) ? 'w' : 'g',
            "ns01oTt"[getage(o)], o->marked);
+#if defined(GRIT_POWER_BLOB)
+  if (novariant((o)->tt) == LUA_TSTRING)
+#else
   if (o->tt == LUA_VSHRSTR || o->tt == LUA_VLNGSTR)
+#endif
     printf(" '%s'", getstr(gco2ts(o)));
 }
 
@@ -489,6 +493,9 @@ static void checkrefs (global_State *g, GCObject *o) {
       break;
     }
     case LUA_VSHRSTR:
+#if defined(GRIT_POWER_BLOB)
+    case LUA_VBLOBSTR:
+#endif
     case LUA_VLNGSTR: {
       assert(!isgray(o));  /* strings are never gray */
       break;
