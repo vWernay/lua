@@ -596,7 +596,11 @@ static int llex (LexState *ls, SemInfo *seminfo) {
       }
       case ':': {
         ls_next(ls);
+#if defined(GRIT_POWER_NAMESPACE_SEL)
+        if (check_next1(ls, ':')) return '.';
+#else
         if (check_next1(ls, ':')) return TK_DBCOLON;  /* '::' */
+#endif
         else return ':';
       }
       case '"': case '\'': {  /* short literal strings */

@@ -428,6 +428,7 @@ OPTION(GRIT_POWER_INTABLE "Support for unpacking named values from tables using 
 OPTION(GRIT_POWER_TABINIT "Syntactic sugar to improve the syntax for specifying sets" ON)
 OPTION(GRIT_POWER_SAFENAV "An indexing operation that suppresses errors on accesses into undefined table" ON)
 OPTION(GRIT_POWER_CCOMMENT "Support for C-style block comments" ON)
+OPTION(GRIT_POWER_NAMESPACE_SEL "Allow double-colon tokens to be used as field selection (e.g., CPP namespaces)" OFF)
 OPTION(GRIT_POWER_ANONDO "Syntactic sugar for empty-function statements using do/end" ON)
 OPTION(GRIT_POWER_WOW "Expose lua_createtable and other WowLua compatibility functions" ON)
 OPTION(GRIT_POWER_CHRONO "Enable nanosecond resolution timers and x86 rdtsc sampling" ON)
@@ -489,6 +490,10 @@ ENDIF()
 
 IF( GRIT_POWER_CCOMMENT )
   ADD_COMPILE_DEFINITIONS(GRIT_POWER_CCOMMENT)
+ENDIF()
+
+IF( GRIT_POWER_NAMESPACE_SEL )
+  ADD_COMPILE_DEFINITIONS(GRIT_POWER_NAMESPACE_SEL)
 ENDIF()
 
 IF( GRIT_POWER_ANONDO )
