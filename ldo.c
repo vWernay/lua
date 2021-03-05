@@ -17,6 +17,7 @@
 #include "lua.h"
 
 #include "lapi.h"
+#include "lgrit_lib.h"
 #include "ldebug.h"
 #include "ldo.h"
 #include "lfunc.h"
@@ -526,16 +527,34 @@ static void rethook (lua_State *L, CallInfo *ci, int nres) {
 }
 
 
+/* Unpack the first vector/matrix object */
+static int glmVec_call_unpack(lua_State *L) { return glm_unpack_vector(L, 1); };
+static int glmMat_call_unpack(lua_State *L) { return glm_unpack_matrix(L, 1); };
+
+
 /*
 ** Check whether 'func' has a '__call' metafield. If so, put it in the
 ** stack, below original 'func', so that 'luaD_precall' can call it. Raise
 ** an error if there is no '__call' metafield.
 */
 void luaD_tryfuncTM (lua_State *L, StkId func) {
+  TValue unpack_fallback;
   const TValue *tm = luaT_gettmbyobj(L, s2v(func), TM_CALL);
   StkId p;
-  if (l_unlikely(ttisnil(tm)))
-    luaG_callerror(L, s2v(func));  /* nothing to call */
+  if (l_unlikely(ttisnil(tm))) {
+    /* Default _call operators for vectors and matrices unpack its contents */
+    if (ttisvector(s2v(func))) {
+      setfvalue(&unpack_fallback, glmVec_call_unpack);
+    }
+    else if (ttismatrix(s2v(func))) {
+      setfvalue(&unpack_fallback, glmMat_call_unpack);
+    }
+    else {
+      setnilvalue(&unpack_fallback);
+      luaG_callerror(L, s2v(func));  /* nothing to call */
+    }
+    tm = &unpack_fallback;
+  }
   for (p = L->top; p > func; p--)  /* open space for metamethod */
     setobjs2s(L, p, p-1);
   L->top++;  /* stack space pre-allocated by the caller */

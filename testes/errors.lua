@@ -217,7 +217,7 @@ checkmessage([[
 _G.D = nil
 
 do   -- named objects (field '__name')
-  checkmessage("math.sin(io.input())", "(number or vector type expected, got FILE*)")
+  checkmessage("math.sin(io.input())", "(number expected, got FILE*)")
   _G.XX = setmetatable({}, {__name = "My Type"})
   assert(string.find(tostring(XX), "^My Type"))
   checkmessage("io.input(XX)", "(FILE* expected, got My Type)")

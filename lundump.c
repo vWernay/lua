@@ -23,8 +23,6 @@
 #include "lstring.h"
 #include "lundump.h"
 #include "lzio.h"
-#include "lgrit.h"
-#include "lgrit_lib.h"
 
 
 #if defined(LUA_NO_BYTECODE)
@@ -115,10 +113,29 @@ static lua_Integer loadInteger (LoadState *S) {
 }
 
 
-static lua_VecF loadVecF (LoadState *S) {
-  lua_VecF x;
-  loadVar(S, x);
-  return x;
+static lua_Float4 loadVectorType(LoadState *S, int t) {
+  lua_Float4 v = { 0, 0, 0, 0 };
+  switch (t) {
+    case LUA_VVECTOR2:
+      loadVar(S, v.x);
+      loadVar(S, v.y);
+      break;
+    case LUA_VVECTOR3:
+      loadVar(S, v.x);
+      loadVar(S, v.y);
+      loadVar(S, v.z);
+      break;
+    case LUA_VVECTOR4:
+    case LUA_VQUAT:
+      loadVar(S, v.x);
+      loadVar(S, v.y);
+      loadVar(S, v.z);
+      loadVar(S, v.w);
+      break;
+    default:
+      break;
+  }
+  return v;
 }
 
 /*
@@ -178,7 +195,7 @@ static void loadConstants (LoadState *S, Proto *f) {
     setnilvalue(&f->k[i]);
   for (i = 0; i < n; i++) {
     TValue *o = &f->k[i];
-    lu_byte t = loadByte(S);
+    int t = loadByte(S);
     switch (t) {
       case LUA_VNIL:
         setnilvalue(o);
@@ -195,33 +212,12 @@ static void loadConstants (LoadState *S, Proto *f) {
       case LUA_VNUMINT:
         setivalue(o, loadInteger(S));
         break;
-      case LUA_VVECTOR2: {
-        lua_Float4 f4;
-        f4.x = loadVecF(S);
-        f4.y = loadVecF(S);
-        f4.z = V_ZERO;
-        f4.w = V_ZERO;
-        setvvalue(o, f4, t);
+      case LUA_VVECTOR2:
+      case LUA_VVECTOR3:
+      case LUA_VVECTOR4:
+      case LUA_VQUAT:
+        setvvalue(o, loadVectorType(S, t), cast_byte(t));
         break;
-      }
-      case LUA_VVECTOR3: {
-        lua_Float4 f4;
-        f4.x = loadVecF(S);
-        f4.y = loadVecF(S);
-        f4.z = loadVecF(S);
-        f4.w = V_ZERO;
-        setvvalue(o, f4, t);
-        break;
-      }
-      case LUA_VVECTOR4: case LUA_VQUAT: {
-        lua_Float4 f4;
-        f4.x = loadVecF(S);
-        f4.y = loadVecF(S);
-        f4.z = loadVecF(S);
-        f4.w = loadVecF(S);
-        setvvalue(o, f4, t);
-        break;
-      }
       case LUA_VSHRSTR:
 #if defined(GRIT_POWER_BLOB)
       case LUA_VBLOBSTR:

@@ -698,8 +698,8 @@ do   -- testing floor & ceil
     assert(math.ceil(2^p) == 2^p)
     assert(math.ceil(2^p - 0.5) == 2^p)
   end
-  checkerror("number or vector type expected", math.floor, {})
-  checkerror("number or vector type expected", math.ceil, print)
+  checkerror("number expected", math.floor, {})
+  checkerror("number expected", math.ceil, print)
   assert(eqT(math.tointeger(minint), minint))
   assert(eqT(math.tointeger(minint .. ""), minint))
   assert(eqT(math.tointeger(maxint), maxint))
@@ -744,8 +744,8 @@ checkerror("zero", math.fmod, 3, 0)
 
 
 do    -- testing max/min
-  checkerror("number or vector type expected", math.max)
-  checkerror("number or vector type expected", math.min)
+  checkerror("value expected", math.max)
+  checkerror("value expected", math.min)
   assert(eqT(math.max(3), 3))
   assert(eqT(math.max(3, 5, 9, 1), 9))
   assert(math.max(maxint, 10e60) == 10e60)

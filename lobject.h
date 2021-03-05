@@ -14,7 +14,6 @@
 
 #include "llimits.h"
 #include "lua.h"
-#include "lgrit_lib.h"
 
 
 /*
@@ -50,7 +49,7 @@
 typedef union Value {
   struct GCObject *gc;    /* collectable objects */
   void *p;         /* light userdata */
-  lua_Float4 f4;   /* vectors and quat extension by Spark */
+  lua_Float4 f4;   /* vector and quaternion stub */
   lua_CFunction f; /* light C functions */
   lua_Integer i;   /* integer numbers */
   lua_Number n;    /* float numbers */
@@ -773,6 +772,67 @@ typedef struct Table {
 
 /* }================================================================== */
 
+/*
+** {==================================================================
+** Vector Object API
+** ===================================================================
+*/
+
+/* Variant tags for vectors */
+#if LUA_VVECTOR2 != makevariant(LUA_TVECTOR, 0)
+  #error "Invalid vector2 variant"
+#elif LUA_VVECTOR3 != makevariant(LUA_TVECTOR, 1)
+  #error "Invalid vector3 variant"
+#elif LUA_VVECTOR4 != makevariant(LUA_TVECTOR, 2)
+  #error "Invalid vector4 variant"
+#elif LUA_VQUAT != makevariant(LUA_TVECTOR, 3)
+  #error "Invalid quaternion variant"
+#endif
+
+#define ttisvector(o) checktype((o), LUA_TVECTOR)
+#define ttisvector2(o) checktag((o), LUA_VVECTOR2)
+#define ttisvector3(o) checktag((o), LUA_VVECTOR3)
+#define ttisvector4(o) checktag((o), LUA_VVECTOR4)
+#define ttisquat(o) checktag((o), LUA_VQUAT)
+
+#define vvalue_raw(o) ((o).f4)
+#define vvalue_(o) vvalue_raw(val_((o)))
+#define vvalue_ref(o) check_exp((ttisvector(o) || ttisquat(o)), &vvalue_(o))
+
+#define vvalue(o) check_exp((ttisvector(o) || ttisquat(o)), vvalue_(o))
+#define vecvalue(o) check_exp(ttisvector(o), vvalue_(o))
+#define quatvalue(o) check_exp(ttisquat(o), vvalue_(o))
+#define setqvalue(obj, x) setvvalue(obj, x, LUA_VQUAT)
+#define setvvalue(obj, x, o) \
+  LUA_MLM_BEGIN              \
+  TValue *io = (obj);        \
+  val_(io).f4 = (x);         \
+  settt_(io, (o));           \
+  LUA_MLM_END
+
+/* }================================================================== */
+
+/*
+** {==================================================================
+** Matrix Object API
+** ===================================================================
+*/
+
+typedef struct GCMatrix {
+  CommonHeader;
+  lua_Mat4 mat4;
+} GCMatrix;
+
+#define LUA_VMATRIX makevariant(LUA_TMATRIX, 0)
+
+#define ttismatrix(o) checktag((o), ctb(LUA_VMATRIX))
+#define mvalue(o)	check_exp(ttismatrix(o), gco2mat(val_(o).gc)->mat4)
+#define mvalue_ref(o)	check_exp(ttismatrix(o), &gco2mat(val_(o).gc)->mat4)
+
+#define setmvalue2s(L, o, x) setmvalue(L, s2v(o), x)
+#define setmvalue(L, obj, x) glm_setmvalue(L, obj, x)
+
+/* }================================================================== */
 
 
 /*
@@ -803,16 +863,6 @@ LUAI_FUNC const char *luaO_pushvfstring (lua_State *L, const char *fmt,
 LUAI_FUNC const char *luaO_pushfstring (lua_State *L, const char *fmt, ...);
 LUAI_FUNC void luaO_chunkid (char *out, const char *source, size_t srclen);
 
-
-/*
-** Jenkins' one-at-a-time hash.
-**
-** It is the assume the string is properly delimited.
-**
-** @TODO: Change API to use lua_Unsigned
-** @TODO: Compile-time option to allow 32-bit or 64-bit hashing.
-*/
-LUAI_FUNC lua_Integer luaO_HashString (const char* string, size_t length, int ignore_case);
 
 #endif
 

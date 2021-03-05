@@ -1,6 +1,11 @@
 /*
 ** $Id: lgrit_lib.h $
-** API & Auxiliary definitions for gritLua.
+** API definitions for gritLua.
+**
+** All functions defined in this header are expected to have C linkage and
+** interface with other Lua libraries. For simplicity, this header also
+** maintains all additional GLM API functions under those same constraints.
+**
 ** See Copyright Notice in lua.h
 */
 
@@ -13,25 +18,6 @@
 #include "lua.h"
 #include "lauxlib.h"
 
-/*
-** lobject.c:
-** Maximum length of the conversion of a number to a string. Must be
-** enough to accommodate both LUA_INTEGER_FMT and LUA_NUMBER_FMT.
-** (For a long long int, this is 19 digits plus a sign and a final '\0',
-** adding to 21. For a long double, it can go to a sign, 33 digits,
-** the dot, an exponent letter, an exponent sign, 5 exponent digits,
-** and a final '\0', adding to 43.)
-*/
-#define ORIG_MAXNUMBER2STR 44
-
-/*
-** Value changed from:
-**   #define LUAI_MAXFLOAT2STR 16
-**   #define LUAI_MAXVECTOR42STR (7 + 4*(1+LUAI_MAXFLOAT2STR+1))
-** To something a bit more robust.
-*/
-#define LUAI_MAXVECTORSTR (7 + 4 * (1 + ORIG_MAXNUMBER2STR + 1))
-
 /* Avoid old-style-cast for C++ libraries */
 #if defined(__cplusplus)
   #define cast_vec(i) static_cast<lua_VecF>((i))
@@ -39,37 +25,17 @@
   #define cast_vec(i) ((lua_VecF)(i))
 #endif
 
-#define V_ZERO (cast_vec(0.0))
-#define V_HALF (cast_vec(0.5))
-#define V_ONE (cast_vec(1.0))
-#define V_TWO (cast_vec(2.0))
-#define V_PI cast_vec(3.141592653589793238462643383279502884)
-#define V_ISZERO(a) (l_vecop(fabs)((a)) <= LUA_VEC_NUMBER_EPS)
-#define V_ISEQUAL(a, b) (V_ISZERO((a) - (b)) || ((a) == (b)))
-
-#define LABEL_INTEGER "integer"
-#define LABEL_NUMBER "number"
-#define LABEL_VECTOR "vector"
-#define LABEL_VECTOR1 "vector1"
-#define LABEL_VECTOR2 "vector2"
-#define LABEL_VECTOR3 "vector3"
-#define LABEL_VECTOR4 "vector4"
-#define LABEL_QUATERN "quat"
-#define LABEL_ALL "number or vector type"
-
-/*
-** vector variants exposed in the library to simplify the internal/external
-** translation between vector-types.
-**
-** NOTE: LUA_VVECTOR1 is the implicit vector-type (not enough variant bits) that
-** is functionally equivalent to a LUA_TNUMBER. Therefore, ensure LUA_VVECTOR1
-** is be equivalent to LUA_VNUMFLT internally.
-*/
-#define LUA_VVECTOR1 (LUA_TNUMBER | (1 << 4))
-#define LUA_VVECTOR2 (LUA_TVECTOR | (0 << 4))
-#define LUA_VVECTOR3 (LUA_TVECTOR | (1 << 4))
-#define LUA_VVECTOR4 (LUA_TVECTOR | (2 << 4))
-#define LUA_VQUAT    (LUA_TVECTOR | (3 << 4))
+#if !defined(LABEL_VECTOR3)
+  #define LABEL_INTEGER "integer"
+  #define LABEL_NUMBER "number"
+  #define LABEL_VECTOR "vector"
+  #define LABEL_VECTOR1 "vector1"
+  #define LABEL_VECTOR2 "vector2"
+  #define LABEL_VECTOR3 "vector3"
+  #define LABEL_VECTOR4 "vector4"
+  #define LABEL_QUATERN "quat"
+  #define LABEL_MATRIX "matrix"
+#endif
 
 /*
 ** {==================================================================
@@ -77,41 +43,31 @@
 ** ===================================================================
 */
 
-#define V_NOTABLE 0x0  /* Only explicit vectors can be tovector'd */
-#define V_PARSETABLE 0x1  /* Attempt to parse a table object as a vector. */
-#define V_NONUMBER 0x2 /* Ignore lua_Number == LUA_VVECTOR1 */
+#define V_NOTABLE    0x0  /* Only explicit vector types can be parsed */
+#define V_PARSETABLE 0x1  /* Attempt to parse table values as vectors. */
+#define V_NONUMBER   0x2  /* Ignore lua_Number being the implicit VECTOR1; i.e.
+                             the dimensions of the returned vector >= 2. */
+
+/* Number of dimensions associated with the vector object */
+LUA_API int luaVec_dimensions (int rtt);
 
 /* Returns the variant of the vector if it is indeed a vector, zero otherwise */
 LUA_API int lua_isvector (lua_State *L, int idx, int flags);
 LUA_API int lua_tovector (lua_State *L, int idx, int flags, lua_Float4 *vector);
 LUA_API void lua_pushvector (lua_State *L, lua_Float4 f4, int variant);
 
-/* Returns the name of the type encoded by the (vector-variant) value tp */
-LUA_API const char *lua_vectypename (lua_State *L, int tp);
-
-/* Return the label associated with a given vector dimension. */
-LUA_API const char *lua_dimension_label (lua_State *L, int idx);
-
-/* Push a string representing the vector object on top of the stack. */
-LUA_API const char *lua_pushvecstring (lua_State *L, int idx);
+/* Returns true if the object at the given index is a matrix, storing its
+** dimensions in size & secondary. These are extensions to the grit-lua API */
+LUA_API int lua_ismatrix (lua_State *L, int idx, int *size, int *secondary);
+LUA_API int lua_tomatrix (lua_State *L, int idx, lua_Mat4 *matrix);
+LUA_API int lua_pushmatrix (lua_State *L, lua_Mat4 *matrix);
 
 /*
 ** Jenkins-hash the object at the provided index. String values are hashed,
 ** boolean and numeric values are casted to lua_Integer; otherwise, zero is
 ** returned.
-**
-** @PARAM ignore_case: A string value is hashed as-is. Otherwise, the lowercase
-**  of each string character is computed then hashed.
-**
-** @TODO: Possibly consider allow the (potentially destructive) lua_tolstring.
 */
 LUA_API lua_Integer lua_ToHash (lua_State *L, int idx, int ignore_case);
-
-/* Number of dimensions associated with the vector object */
-static LUA_INLINE int luaVec_dimensions (int rawtt) {
-  const int dims = (rawtt & 0x30) >> 4;  /* variant bits 4-5 */
-  return (dims < 3) ? (2 + dims) : 4;  /* quat uses 3rd bit. */
-}
 
 /* }================================================================== */
 
@@ -130,7 +86,7 @@ static LUA_INLINE int luaVec_dimensions (int rawtt) {
 #define lua_isvector3(L, I, F) (lua_isvector((L), (I), (F)) == LUA_VVECTOR3)
 #define lua_isvector4(L, I, F) (lua_isvector((L), (I), (F)) == LUA_VVECTOR4)
 #define lua_isquat(L, I, F) (lua_isvector((L), (I), V_NOTABLE) == LUA_VQUAT \
-                             || (((F)&V_PARSETABLE) != 0 && lua_isvector((L), (I), (F)) == LUA_VVECTOR4))
+                             || (((F) & V_PARSETABLE) != 0 && lua_isvector((L), (I), (F)) == LUA_VVECTOR4))
 
 /*
 ** Compatibility API: Populate a Float4 of an explicit type, throwing an error
@@ -159,10 +115,128 @@ static LUA_INLINE int luaVec_dimensions (int rawtt) {
     lua_pushvector((L), f4, (T));                      \
   } while (0)
 
-#define lua_pushvector2(L, x, y) _lua_pushvector(L, LUA_VVECTOR2, x, y, V_ZERO, V_ZERO)
-#define lua_pushvector3(L, x, y, z) _lua_pushvector(L, LUA_VVECTOR3, x, y, z, V_ZERO)
-#define lua_pushvector4(L, x, y, z, w) _lua_pushvector(L, LUA_VVECTOR4, x, y, z, w)
-#define lua_pushquat(L, w, x, y, z) _lua_pushvector(L, LUA_VQUAT, x, y, z, w)
+#define lua_pushvector2(L, X, Y) _lua_pushvector(L, LUA_VVECTOR2, (X), (Y), cast_vec(0.0), cast_vec(0.0))
+#define lua_pushvector3(L, X, Y, Z) _lua_pushvector(L, LUA_VVECTOR3, (X), (Y), (Z), cast_vec(0.0))
+#define lua_pushvector4(L, X, Y, Z, W) _lua_pushvector(L, LUA_VVECTOR4, (X), (Y), (Z), (W))
+#define lua_pushquat(L, W, X, Y, Z) _lua_pushvector(L, LUA_VQUAT, (X), (Y), (Z), (W))
+
+/* }================================================================== */
+
+/*
+** {==================================================================
+** LuaGLM
+** ===================================================================
+*/
+
+/* Constructors */
+
+LUA_API int glmVec_vec (lua_State *L);
+LUA_API int glmVec_vec1 (lua_State *L);
+LUA_API int glmVec_vec2 (lua_State *L);
+LUA_API int glmVec_vec3 (lua_State *L);
+LUA_API int glmVec_vec4 (lua_State *L);
+
+LUA_API int glmVec_ivec (lua_State *L);
+LUA_API int glmVec_ivec1 (lua_State *L);
+LUA_API int glmVec_ivec2 (lua_State *L);
+LUA_API int glmVec_ivec3 (lua_State *L);
+LUA_API int glmVec_ivec4 (lua_State *L);
+
+LUA_API int glmVec_bvec (lua_State *L);
+LUA_API int glmVec_bvec1 (lua_State *L);
+LUA_API int glmVec_bvec2 (lua_State *L);
+LUA_API int glmVec_bvec3 (lua_State *L);
+LUA_API int glmVec_bvec4 (lua_State *L);
+
+LUA_API int glmMat_mat (lua_State *L);
+LUA_API int glmMat_mat2x2 (lua_State *L);
+LUA_API int glmMat_mat2x3 (lua_State *L);
+LUA_API int glmMat_mat2x4 (lua_State *L);
+LUA_API int glmMat_mat3x2 (lua_State *L);
+LUA_API int glmMat_mat3x3 (lua_State *L);
+LUA_API int glmMat_mat3x4 (lua_State *L);
+LUA_API int glmMat_mat4x2 (lua_State *L);
+LUA_API int glmMat_mat4x3 (lua_State *L);
+LUA_API int glmMat_mat4x4 (lua_State *L);
+
+LUA_API int glmVec_qua (lua_State *L);
+
+/* Returns the name of the type encoded by the vector variant */
+LUA_API const char *glm_typename (lua_State *L, int idx);
+
+/* Push a string representing the vector/matrix object on top of the stack. */
+LUA_API const char *glm_pushstring (lua_State *L, int idx);
+
+/*
+** Unpack an individual vector and place its contents to onto the Lua stack,
+** returning the number of elements (i.e., dimensions of vector).
+*/
+LUA_API int glm_unpack_vector (lua_State *L, int idx);
+
+/*
+** Unpack an the individual column-vectors of the given Matrix and place them
+** onto the Lua stack, returning the number of elements, dimensions of vector,
+** placed on the stack.
+*/
+LUA_API int glm_unpack_matrix (lua_State *L, int idx);
+
+/*
+** Jenkins-hash the object at the provided index. String values are hashed,
+** boolean and numeric values are casted to lua_Integer; otherwise, zero is
+** returned.
+**
+** @PARAM ignore_case: A string value is hashed as-is. Otherwise, the lowercase
+**  of each string character is computed then hashed.
+**
+** @TODO: Possibly consider allow the (potentially destructive) lua_tolstring.
+*/
+LUA_API lua_Integer glm_tohash (lua_State *L, int idx, int ignore_case);
+
+/* }================================================================== */
+
+/*
+** {==================================================================
+** @DEPRECATED gritLua base library requirements
+** ===================================================================
+*/
+
+/*
+** Returns the dot product of x and y, i.e., result = x * y.
+**   T glm::dot(qua<T, Q> const &x, qua<T, Q> const &y)
+**   T glm::dot(vec<L, T, Q> const &x, vec<L, T, Q> const &y)
+*/
+LUA_API int glmVec_dot (lua_State *L);
+
+/*
+** Returns the cross product of x and y.
+**   qua<T, Q> glm::cross(qua<T, Q> const &x, qua<T, Q> const &y)
+**   vec<3, T, Q> glm::cross(qua<T, Q> const &x, vec<3, T, Q> const &y)
+**   vec<3, T, Q> glm::cross(vec<3, T, Q> const &x, vec<3, T, Q> const &y)
+**   vec<3, T, Q> glm::cross(vec<3, T, Q> const &x, qua<T, Q> const &y)
+**   T glm::cross(vec<2, T, Q> const &x, vec<2, T, Q> const &y)
+*/
+LUA_API int glmVec_cross (lua_State *L);
+
+/*
+** Returns the m/q inverse.
+**   qua<T, Q> glm::inverse(qua<T, Q> const &q)
+**   mat<C, R, T, Q> glm::inverse(mat<C, R, T, Q> const &m)
+*/
+LUA_API int glmVec_inverse (lua_State *L);
+
+/*
+** Returns a vector in the same direction as x but with length of 1.
+**   qua<T, Q> glm::normalize(qua<T, Q> const &x)
+**   vec<L, T, Q> glm::normalize(vec<L, T, Q> const &x)
+*/
+LUA_API int glmVec_normalize (lua_State *L);
+
+/*
+** Spherical linear interpolation of two vectors/quaternions.
+**   qua<T, Q> glm::slerp(qua<T, Q> const &x, qua<T, Q> const &y, T a)
+**   vec<3, T, Q> glm::slerp(vec<3, T, Q> const &x, vec<3, T, Q> const &y, T const &a)
+*/
+LUA_API int glmVec_slerp (lua_State *L);
 
 /* }================================================================== */
 

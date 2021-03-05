@@ -18,7 +18,7 @@
 #include "ldo.h"
 #include "lgc.h"
 #include "lobject.h"
-#include "lgrit.h"
+#include "lglm_core.h"
 #include "lstate.h"
 #include "lstring.h"
 #include "ltable.h"
@@ -31,7 +31,7 @@ static const char udatatypename[] = "userdata";
 LUAI_DDEF const char *const luaT_typenames_[LUA_TOTALTYPES] = {
   "no value",
   "nil", "boolean", udatatypename, "number", "vector",
-  "string", "table", "function", udatatypename, "thread",
+  "string", "table", "function", udatatypename, "thread", "matrix",
   "upvalue", "proto" /* these last cases are used for tests only */
 };
 
@@ -152,20 +152,37 @@ void luaT_trybinTM (lua_State *L, const TValue *p1, const TValue *p2,
   else if (tmbitop(event)) {
     if (ttisnumber(p1) && ttisnumber(p2))
       luaG_tointerror(L, p1, p2);
+    /*
+    ** @NOTE: bitwise operators apply to integer vectors (i.e., glm::ivec). As
+    ** this iteration of Lua does not explicitly support integer vectors, each
+    ** vector is int-casted beforehand.
+    */
+    else if (ttisvector(p1) && glm_trybinTM(L, p1, p2, res, event)) {
+      /* FALLTHROUGH; successful operation */
+    }
     else
       luaG_opinterror(L, p1, p2, "perform bitwise operation on");
   }
-  else if (!luaVec_trybinTM(L, p1, p2, res, event)) {
-    luaG_opinterror(L, p1, p2, "perform arithmetic on");
+  else if (!glm_trybinTM(L, p1, p2, res, event)) {
+    if (ttisvector(p1) || ttismatrix(p1))
+      luaG_opinterror(L, p1, p2, "perform unsupported operation on");
+    else
+      luaG_opinterror(L, p1, p2, "perform arithmetic on");
   }
 }
 
 
 void luaT_tryconcatTM (lua_State *L) {
   StkId top = L->top;
-  if (l_unlikely(!callbinTM(L, s2v(top - 2), s2v(top - 1), top - 2,
-                               TM_CONCAT)))
-    luaG_concaterror(L, s2v(top - 2), s2v(top - 1));
+  const TValue *p1 = s2v(top - 2);
+  const TValue *p2 = s2v(top - 1);
+  if (l_unlikely(!callbinTM(L, p1, p2, top - 2, TM_CONCAT))) {
+    /* Append a value to the vector, increasing its dimensionality. */
+    if (ttisvector(p1) && glmVec_concat(p1, p2, top - 2))
+      return;
+
+    luaG_concaterror(L, p1, p2);
+  }
 }
 
 

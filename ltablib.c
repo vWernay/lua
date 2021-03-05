@@ -18,7 +18,7 @@
 
 #include "lauxlib.h"
 #include "lualib.h"
-#include "lgrit.h"
+#include "lgrit_lib.h"
 
 
 /*
@@ -194,8 +194,10 @@ static int tpack (lua_State *L) {
 static int tunpack (lua_State *L) {
   lua_Unsigned n;
   lua_Integer i, e;
-  if (lua_isvector(L, 1, V_NOTABLE | V_NONUMBER))
-    return lua_unpackvec(L);
+  if (lua_isvector_t(L, 1))
+    return glm_unpack_vector(L, 1);
+  else if (lua_ismatrix_t(L, 1))
+    return glm_unpack_matrix(L, 1);
 
   i = luaL_optinteger(L, 2, 1);
   e = luaL_opt(L, luaL_checkinteger, 3, luaL_len(L, 1));

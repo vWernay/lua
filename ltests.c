@@ -492,6 +492,7 @@ static void checkrefs (global_State *g, GCObject *o) {
       checkproto(g, gco2p(o));
       break;
     }
+    case LUA_VMATRIX:
     case LUA_VSHRSTR:
 #if defined(GRIT_POWER_BLOB)
     case LUA_VBLOBSTR:

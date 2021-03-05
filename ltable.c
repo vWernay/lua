@@ -33,7 +33,7 @@
 #include "lgc.h"
 #include "lmem.h"
 #include "lobject.h"
-#include "lgrit.h"
+#include "lglm_core.h"
 #include "lstate.h"
 #include "lstring.h"
 #include "ltable.h"
@@ -127,11 +127,6 @@ static int l_hashfloat (lua_Number n) {
 }
 #endif
 
-/** Helper function for combining hashes */
-static LUA_INLINE size_t hash_combine(size_t seed, size_t hash) {
-  hash += 0x9e3779b9 + (seed << 6) + (seed >> 2);
-  return (seed ^= hash);
-}
 
 /*
 ** returns the 'main' position of an element in a table (that is,
@@ -145,27 +140,11 @@ static Node *mainposition (const Table *t, int ktt, const Value *kvl) {
       return hashint(t, ivalueraw(*kvl));
     case LUA_VNUMFLT:
       return hashmod(t, l_hashfloat(fltvalueraw(*kvl)));
-    case LUA_VVECTOR2: {
-      size_t seed = 0;
-      seed = hash_combine(seed, l_hashfloat(cast_num(vvalueraw(*kvl).x)));
-      seed = hash_combine(seed, l_hashfloat(cast_num(vvalueraw(*kvl).y)));
-      return hashmod(t, seed);
-    }
-    case LUA_VVECTOR3: {
-      size_t seed = 0;
-      seed = hash_combine(seed, l_hashfloat(cast_num(vvalueraw(*kvl).x)));
-      seed = hash_combine(seed, l_hashfloat(cast_num(vvalueraw(*kvl).y)));
-      seed = hash_combine(seed, l_hashfloat(cast_num(vvalueraw(*kvl).z)));
-      return hashmod(t, seed);
-    }
-    case LUA_VVECTOR4: {
-      size_t seed = (withvariant(ktt) == LUA_VQUAT) ? 0x9e3779b1 : 0;
-      seed = hash_combine(seed, l_hashfloat(cast_num(vvalueraw(*kvl).x)));
-      seed = hash_combine(seed, l_hashfloat(cast_num(vvalueraw(*kvl).y)));
-      seed = hash_combine(seed, l_hashfloat(cast_num(vvalueraw(*kvl).z)));
-      seed = hash_combine(seed, l_hashfloat(cast_num(vvalueraw(*kvl).w)));
-      return hashmod(t, seed);
-    }
+    case LUA_VVECTOR2:
+    case LUA_VVECTOR3:
+    case LUA_VVECTOR4:
+    case LUA_VQUAT:
+      return hashmod(t, glmcVec_hash(kvl, ktt));
     case LUA_VSHRSTR:
       return hashstr(t, tsvalueraw(*kvl));
     case LUA_VLNGSTR:
@@ -233,18 +212,10 @@ static int equalkey (const TValue *k1, const Node *n2, int deadok) {
     case ctb(LUA_VLNGSTR):
       return luaS_eqlngstr(tsvalue(k1), keystrval(n2));
     case LUA_VVECTOR2:
-      return luai_numeq(vvalue(k1).x, vvalueraw(keyval(n2)).x) &&
-        luai_numeq(vvalue(k1).y, vvalueraw(keyval(n2)).y);
     case LUA_VVECTOR3:
-      return luai_numeq(vvalue(k1).x, vvalueraw(keyval(n2)).x) &&
-        luai_numeq(vvalue(k1).y, vvalueraw(keyval(n2)).y) &&
-        luai_numeq(vvalue(k1).z, vvalueraw(keyval(n2)).z);
     case LUA_VVECTOR4:
     case LUA_VQUAT:
-      return luai_numeq(vvalue(k1).x, vvalueraw(keyval(n2)).x) &&
-        luai_numeq(vvalue(k1).y, vvalueraw(keyval(n2)).y) &&
-        luai_numeq(vvalue(k1).z, vvalueraw(keyval(n2)).z) &&
-        luai_numeq(vvalue(k1).w, vvalueraw(keyval(n2)).w);
+      return glmVec_equalKey(k1, n2, keytt(n2));
 #if defined(GRIT_POWER_BLOB)
     case ctb(LUA_VBLOBSTR):  /* blobs stored by pointer */
 #endif

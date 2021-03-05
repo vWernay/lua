@@ -19,7 +19,7 @@
 
 #include "lauxlib.h"
 #include "lualib.h"
-#include "lgrit.h"
+#include "lgrit_lib.h"
 
 
 static int luaB_print (lua_State *L) {
@@ -155,17 +155,19 @@ static int luaB_rawequal (lua_State *L) {
 }
 
 
+#define luaB_haslen(t) ((t) == LUA_TTABLE || (t) == LUA_TSTRING || (t) == LUA_TVECTOR || (t) == LUA_TMATRIX)
 static int luaB_rawlen (lua_State *L) {
   int t = lua_type(L, 1);
-  luaL_argexpected(L, t == LUA_TTABLE || t == LUA_TSTRING || t == LUA_TVECTOR, 1,
-                      "table or string or vector");
+  luaL_argexpected(L, luaB_haslen(t), 1, "table or string or vector");
   lua_pushinteger(L, lua_rawlen(L, 1));
   return 1;
 }
 
 
+#define luaB_hasget(t) ((t) == LUA_TTABLE || (t) == LUA_TVECTOR || (t) == LUA_TMATRIX)
 static int luaB_rawget (lua_State *L) {
-  if (lua_type(L, 1) != LUA_TTABLE && lua_type(L, 1) != LUA_TVECTOR)
+  const int type = lua_type(L, 1);
+  if (!luaB_hasget(type))
     return luaL_typeerror(L, 1, lua_typename(L, LUA_TTABLE));
   luaL_checkany(L, 2);
   lua_settop(L, 2);
@@ -174,7 +176,9 @@ static int luaB_rawget (lua_State *L) {
 }
 
 static int luaB_rawset (lua_State *L) {
-  luaL_checktype(L, 1, LUA_TTABLE);
+  const int type = lua_type(L, 1);
+  if (type != LUA_TTABLE && type != LUA_TMATRIX)
+    luaL_typeerror(L, 1, lua_typename(L, LUA_TTABLE));
   luaL_checkany(L, 2);
   luaL_checkany(L, 3);
   lua_settop(L, 3);
@@ -243,19 +247,22 @@ static int luaB_collectgarbage (lua_State *L) {
 }
 
 
+#define luaB_glmtype(t) ((t) == LUA_TVECTOR || (t) == LUA_TMATRIX)
 static int luaB_type (lua_State *L) {
   int t = lua_type(L, 1);
   luaL_argcheck(L, t != LUA_TNONE, 1, "value expected");
-  if (t == LUA_TVECTOR)  /* isvector returns the variant */
-    lua_pushstring(L, lua_vectypename(L, lua_isvector(L, 1, V_NOTABLE)));
+  if (luaB_glmtype(t))
+    lua_pushstring(L, glm_typename(L, 1));
   else
     lua_pushstring(L, lua_typename(L, t));
   return 1;
 }
 
 
+#define luaB_hasnext(t) ((t) == LUA_TTABLE || (t) == LUA_TVECTOR || (t) == LUA_TMATRIX)
 static int luaB_next (lua_State *L) {
-  if (lua_type(L, 1) != LUA_TTABLE && lua_type(L, 1) != LUA_TVECTOR)
+  const int type = lua_type(L, 1);
+  if (!luaB_hasnext(type))
     return luaL_typeerror(L, 1, lua_typename(L, LUA_TTABLE));
   lua_settop(L, 2);  /* create a 2nd argument if there isn't one */
   if (lua_next(L, 1))
@@ -315,8 +322,10 @@ static int ipairsaux (lua_State *L) {
 ** Traversal function for 'ipairs' for raw tables
 */
 static int ipairsaux_raw (lua_State *L) {
+  const int type = lua_type(L, 1);
   lua_Integer i = luaL_checkinteger(L, 2) + 1;
-  luaL_checktype(L, 1, LUA_TTABLE);
+  if (type != LUA_TTABLE && type != LUA_TMATRIX)
+    luaL_typeerror(L, 1, lua_typename(L, LUA_TTABLE));
   lua_pushinteger(L, i);
   return (lua_rawgeti(L, 1, i) == LUA_TNIL) ? 1 : 2;
 }
@@ -349,15 +358,15 @@ static int luaB_ipairs (lua_State *L) {
 */
 static int luaB_ipairs (lua_State *L) {
   luaL_checkany(L, 1);
-  if (lua_isvector(L, 1, V_NOTABLE | V_NONUMBER)) {
+  if (lua_isvector_t(L, 1) || lua_ismatrix_t(L, 1)) {
     lua_pushcfunction(L, luaB_next);  /* will return generator, */
     lua_pushvalue(L, 1);  /* state, */
     lua_pushinteger(L, 0);
   }
   else {
-  lua_pushcfunction(L, ipairsaux);  /* iteration function */
-  lua_pushvalue(L, 1);  /* state */
-  lua_pushinteger(L, 0);  /* initial value */
+    lua_pushcfunction(L, ipairsaux);  /* iteration function */
+    lua_pushvalue(L, 1);  /* state */
+    lua_pushinteger(L, 0);  /* initial value */
   }
   return 3;
 }
@@ -570,7 +579,7 @@ static int luaB_joaat (lua_State *L) {
   if (type != LUA_TNUMBER && type != LUA_TBOOLEAN && type != LUA_TSTRING)
     return luaL_typeerror(L, 1, lua_typename(L, LUA_TSTRING));
 
-  lua_pushinteger(L, lua_ToHash(L, 1, lua_toboolean(L, 2)));
+  lua_pushinteger(L, glm_tohash(L, 1, lua_toboolean(L, 2)));
   return 1;
 }
 #endif
@@ -630,16 +639,38 @@ static const luaL_Reg base_funcs[] = {
 #endif
   /* placeholders */
 
-  {"vec", lua_vectorN}, {LABEL_VECTOR, lua_vectorN},
-  {"vec4", lua_vector4}, {LABEL_VECTOR4, lua_vector4},
-  {"vec3", lua_vector3}, {LABEL_VECTOR3, lua_vector3},
-  {"vec2", lua_vector2}, {LABEL_VECTOR2, lua_vector2},
-  {LABEL_QUATERN, lua_quat},
-  {"dot", luaVec_dot},
-  {"cross", luaVec_cross},
-  {"inv", luaVec_inv},
-  {"norm", luaVec_norm},
-  {"slerp", luaVec_slerp},
+  {"vec", glmVec_vec}, {"vector", glmVec_vec},
+  {"vec1", glmVec_vec1}, {"vector1", glmVec_vec1},
+  {"vec2", glmVec_vec2}, {"vector2", glmVec_vec2},
+  {"vec3", glmVec_vec3}, {"vector3", glmVec_vec3},
+  {"vec4", glmVec_vec4}, {"vector4", glmVec_vec4},
+  {"ivec", glmVec_ivec},
+  {"ivec1", glmVec_ivec1},
+  {"ivec2", glmVec_ivec2},
+  {"ivec3", glmVec_ivec3},
+  {"ivec4", glmVec_ivec4},
+  {"bvec", glmVec_bvec},
+  {"bvec1", glmVec_bvec1},
+  {"bvec2", glmVec_bvec2},
+  {"bvec3", glmVec_bvec3},
+  {"bvec4", glmVec_bvec4},
+  {"mat", glmMat_mat},
+  {"mat2x2", glmMat_mat2x2},
+  {"mat2x3", glmMat_mat2x3},
+  {"mat2x4", glmMat_mat2x4},
+  {"mat3x2", glmMat_mat3x2},
+  {"mat3x3", glmMat_mat3x3},
+  {"mat3x4", glmMat_mat3x4},
+  {"mat4x2", glmMat_mat4x2},
+  {"mat4x3", glmMat_mat4x3},
+  {"mat4x4", glmMat_mat4x4},
+  {"qua", glmVec_qua}, {"quat", glmVec_qua},
+  /* gritLua compatibility functions */
+  {"dot", glmVec_dot},
+  {"cross", glmVec_cross},
+  {"inv", glmVec_inverse},
+  {"norm", glmVec_normalize},
+  {"slerp", glmVec_slerp},
 
   {LUA_GNAME, NULL},
   {"_VERSION", NULL},

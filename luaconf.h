@@ -819,47 +819,69 @@
 
 /*
 ** {==================================================================
-** Vector API
+** (DEPRECATED) gritLua vector API
+**
+** @NOTE: GRIT_LONG_FLOAT has been deprecated and replaced by GLM_LUA_NUMBER_TYPE
+**
+** @NOTE: GLM_FORCE_QUAT_DATA_WXYZ needs to be considered for quaternions when
+**  operating within the C boundary.
+**
+** @NOTE: GLM_FORCE_SIZE_T_LENGTH is requires synchronization across the C and
+**  CPP boundaries as lglm.hpp operates on glm::length_t instead of explicitly
+**  forcing a length type.
 ** ===================================================================
 */
 
 #define LUA_GRIT_API
 
-#if defined(GRIT_LONG_FLOAT)
+#if defined(GRIT_LONG_FLOAT) && !defined(GLM_LUA_NUMBER_TYPE)
+  #define GLM_LUA_NUMBER_TYPE
+#endif
+
+#if defined(GLM_LUA_NUMBER_TYPE) && LUA_FLOAT_TYPE != LUA_FLOAT_LONGDOUBLE
   #define LUA_VEC_TYPE LUA_FLOAT_TYPE
   #define LUA_VEC_NUMBER LUA_NUMBER
-  #define LUA_VEC_NUMBER_EPS LUA_NUMBER_EPS
 #else
   #define LUA_VEC_TYPE LUA_FLOAT_FLOAT
   #define LUA_VEC_NUMBER float
-  #define LUA_VEC_NUMBER_EPS FLT_EPSILON
 #endif
 
-#if LUA_FLOAT_TYPE == LUA_VEC_TYPE
-  #define l_vecop(op) l_mathop(op)
-  #define l_vecfatt(n) l_floatatt(n)
-  #define LUA_VEC_FMT LUA_NUMBER_FMT
+/*
+** When GLM_FORCE_SIZE_T_LENGTH is defined, length_t is a typedef of size_t
+** otherwise length_t is a typedef of int like GLSL defines it.
+*/
+#if defined(GLM_FORCE_SIZE_T_LENGTH)
+  typedef size_t grit_length_t;
 #else
-  #define l_vecfatt(n) (FLT_##n)
-  #if (defined(LUA_USE_C89) && !defined(LUA_USE_WINDOWS)) || (defined(HUGE_VAL) && !defined(HUGE_VALF))
-    /* variants not available */
-    #define l_vecop(op) (LUA_VEC_NUMBER)op
-  #else
-    #define l_vecop(op) op##f
-  #endif
-
-  #if LUA_FLOAT_TYPE == LUA_FLOAT_LONGDOUBLE
-    #define LUA_VEC_FMT "%.7Lg"
-  #else
-    #define LUA_VEC_FMT "%.7g"
-  #endif
+  typedef int grit_length_t;
 #endif
 
 /* type of numbers in Lua */
 typedef LUA_VEC_NUMBER lua_VecF;
 
-/* vector and quat extension by Spark */
+/*
+** gritLua: vector and quat extension
+**
+*** @NOTE: This structure is intended to be a byte-wise equivalent to glmVector
+**    within lglm.hpp but without the glm dependencies.
+*/
 typedef struct lua_Float4 { lua_VecF x, y, z, w; } lua_Float4;
+
+/*
+** gritLua: column-oriented matrix extension.
+**
+** @NOTE: This structure is intended to be a byte-wise equivalent to glmMatrix
+**  within lglm.hpp without the glm dependencies.
+*/
+typedef struct lua_Mat4 {
+  grit_length_t size;
+  grit_length_t secondary;  /* Number of columns & size of each column vector */
+  union Columns {
+    struct lua_Float2 { lua_VecF x, y; } m2[4];  /* Aligned X-by-2 matrix */
+    struct lua_Float3 { lua_VecF x, y, z; } m3[4];  /* Aligned X-by-3 matrix */
+    lua_Float4 m4[4];  /* Aligned X-by-4 matrix */
+  } cols;
+} lua_Mat4;
 
 /* }================================================================== */
 

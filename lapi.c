@@ -23,7 +23,7 @@
 #include "lgc.h"
 #include "lmem.h"
 #include "lobject.h"
-#include "lgrit.h"
+#include "lglm_core.h"
 #include "lstate.h"
 #include "lstring.h"
 #include "ltable.h"
@@ -307,26 +307,6 @@ LUA_API int lua_isnumber (lua_State *L, int idx) {
 }
 
 
-LUA_API int lua_isvector (lua_State *L, int idx, int flags) {
-  int result = 0;
-  const TValue *o = index2value(L, idx);
-  if (ttisvector(o))
-    result = ttypetag(o);
-  else if (ttisnumber(o) && (flags & V_NONUMBER) == 0)
-    result = LUA_VVECTOR1;
-  else if (ttistable(o) && (flags & V_PARSETABLE) != 0) {
-    switch (luaVec_parse(L, o, NULL)) {
-      case 4: result = LUA_VVECTOR4; break;
-      case 3: result = LUA_VVECTOR3; break;
-      case 2: result = LUA_VVECTOR2; break;
-      default:
-        break;
-    }
-  }
-  return result;
-}
-
-
 LUA_API int lua_isstring (lua_State *L, int idx) {
   const TValue *o = index2value(L, idx);
   return (ttisstring(o) || cvt2str(o));
@@ -416,34 +396,6 @@ LUA_API int lua_toboolean (lua_State *L, int idx) {
 }
 
 
-LUA_API int lua_tovector (lua_State *L, int idx, int flags, lua_Float4 *vector) {
-  lua_Number n = 0;
-  const TValue *o = index2value(L, idx);
-  if (ttisvector(o)) {
-    *vector = vvalue(o);
-    return ttypetag(o);
-  }
-  else if ((flags & V_PARSETABLE) != 0 && ttistable(o)) {
-    switch (luaVec_parse(L, o, vector)) {
-      case 1: return LUA_VVECTOR1;
-      case 2: return LUA_VVECTOR2;
-      case 3: return LUA_VVECTOR3;
-      case 4: return LUA_VVECTOR4;
-      default: return LUA_TNIL;
-    }
-  }
-  /*
-  ** Most library functions should beware of potential downcasting w/
-  ** using LUA_VVECTOR1's.
-  **/
-  else if ((flags & V_NONUMBER) == 0 && ttisnumber(o) && tonumberns(o, n)) {
-    vector->x = cast_vec(n);
-    return LUA_VVECTOR1;
-  }
-  return LUA_TNIL;
-}
-
-
 LUA_API const char *lua_tolstring (lua_State *L, int idx, size_t *len) {
   TValue *o;
   lua_lock(L);
@@ -470,7 +422,9 @@ LUA_API lua_Unsigned lua_rawlen (lua_State *L, int idx) {
   switch (ttypetag(o)) {
     case LUA_VVECTOR2: return 2;
     case LUA_VVECTOR3: return 3;
-    case LUA_VVECTOR4: case LUA_VQUAT: return 4;
+    case LUA_VVECTOR4: return 4;
+    case LUA_VQUAT: return 4;
+    case LUA_VMATRIX: return cast(lua_Unsigned, mvalue(o).size);
     case LUA_VSHRSTR: return tsvalue(o)->shrlen;
     case LUA_VLNGSTR: return tsvalue(o)->u.lnglen;
 #if defined(GRIT_POWER_BLOB)
@@ -561,20 +515,6 @@ LUA_API void lua_pushnumber (lua_State *L, lua_Number n) {
 LUA_API void lua_pushinteger (lua_State *L, lua_Integer n) {
   lua_lock(L);
   setivalue(s2v(L->top), n);
-  api_incr_top(L);
-  lua_unlock(L);
-}
-
-
-/* Does not sanitize variant... */
-LUA_API void lua_pushvector (lua_State *L, lua_Float4 f4, int variant) {
-  lua_lock(L);
-  if (variant == LUA_VVECTOR1) {  /* Implicit vector1 */
-    setfltvalue(s2v(L->top), cast_num(f4.x));
-  }
-  else {
-    setvvalue(s2v(L->top), f4, (lu_byte)variant);
-  }
   api_incr_top(L);
   lua_unlock(L);
 }
@@ -752,9 +692,13 @@ static int auxgetstr (lua_State *L, const TValue *t, const char *k) {
   else {
     setsvalue2s(L, L->top, str);
     api_incr_top(L);
-    luaV_finishget(L, t, s2v(L->top - 1), L->top - 1, slot);
+    if (ttisvector(t))  /* assume glmVec_rawget has already been called/failed */
+      glmVec_get(L, t, s2v(L->top - 1), L->top - 1);
+    else if (ttismatrix(t))
+      glmMat_get(L, t, s2v(L->top -1), L->top - 1);
+    else
+      luaV_finishget(L, t, s2v(L->top - 1), L->top - 1, slot);
   }
-  lua_unlock(L);
   return ttype(s2v(L->top - 1));
 }
 
@@ -771,9 +715,14 @@ static int auxgetstr (lua_State *L, const TValue *t, const char *k) {
 
 LUA_API int lua_getglobal (lua_State *L, const char *name) {
   const TValue *G;
+  int result = LUA_TNONE;
+
   lua_lock(L);
   G = getGtable(L);
-  return auxgetstr(L, G, name);
+  result = auxgetstr(L, G, name);
+  lua_unlock(L);
+
+  return result;
 }
 
 
@@ -785,6 +734,10 @@ LUA_API int lua_gettable (lua_State *L, int idx) {
   if (luaV_fastget(L, t, s2v(L->top - 1), slot, luaH_get)) {
     setobj2s(L, L->top - 1, slot);
   }
+  else if (ttisvector(t))
+    glmVec_get(L, t, s2v(L->top - 1), L->top - 1);
+  else if (ttismatrix(t))
+    glmMat_get(L, t, s2v(L->top - 1), L->top - 1);
   else
     luaV_finishget(L, t, s2v(L->top - 1), L->top - 1, slot);
   lua_unlock(L);
@@ -793,16 +746,23 @@ LUA_API int lua_gettable (lua_State *L, int idx) {
 
 
 LUA_API int lua_getfield (lua_State *L, int idx, const char *k) {
-  TValue *t;
+  TValue *v;
+  int result = LUA_TNONE;
+
   lua_lock(L);
-  t = index2value(L, idx);
-  if (ttisvector(t)) {
-    int vt = luavec_getstr(L, &(val_(t).f4), luaVec_dimensions(ttypetag(t)), k);
-    api_incr_top(L);
-    lua_unlock(L);
-    return vt;
+  v = index2value(L, idx);
+  if (ttisvector(v)) {  /* hot-path single character field access */
+    result = glmVec_rawgets(v, k, L->top);
+    if (result == LUA_TNIL)  /* failure, attempt swizzle/metatable lookup. */
+      result = auxgetstr(L, v, k);
+    else {
+      api_incr_top(L);
+    }
   }
-  return auxgetstr(L, t, k);
+  else  /* otherwise, matrix or table */
+    result = auxgetstr(L, v, k);
+  lua_unlock(L);
+  return result;
 }
 
 
@@ -811,11 +771,13 @@ LUA_API int lua_geti (lua_State *L, int idx, lua_Integer n) {
   const TValue *slot;
   lua_lock(L);
   t = index2value(L, idx);
-  if (ttisvector(t))
-    luaVec_rawgeti(L, &(val_(t).f4), luaVec_dimensions(ttypetag(t)), n);
-  else if (luaV_fastgeti(L, t, n, slot)) {
+  if (luaV_fastgeti(L, t, n, slot)) {
     setobj2s(L, L->top, slot);
   }
+  else if (ttisvector(t))
+    glmVec_geti(L, t, n, L->top);
+  else if (ttismatrix(t))
+    glmMat_rawgeti(t, n, L->top);
   else {
     TValue aux;
     setivalue(&aux, n);
@@ -833,15 +795,7 @@ static int finishrawget (lua_State *L, const TValue *val) {
   else
     setobj2s(L, L->top, val);
   api_incr_top(L);
-  lua_unlock(L);
   return ttype(s2v(L->top - 1));
-}
-
-
-static Table *gettable (lua_State *L, int idx) {
-  TValue *t = index2value(L, idx);
-  api_check(L, ttistable(t), "table expected");
-  return hvalue(t);
 }
 
 
@@ -852,49 +806,63 @@ static Table *ensuretable (lua_State *L, const TValue *t) {
 
 
 LUA_API int lua_rawget (lua_State *L, int idx) {
-  const TValue *v;
+  const TValue *o;
+  int result = LUA_TNONE;
+
   lua_lock(L);
   api_checknelems(L, 1);
-  v = index2value(L, idx);
-  if (ttisvector(v)) {
-    const int dims = luaVec_dimensions(ttypetag(v));
-    const int vt = luaVec_rawget(L, &(val_(v).f4), dims, s2v(L->top - 1));
-    lua_unlock(L);
-    return vt;
-  }
+  o = index2value(L, idx);
+  if (ttisvector(o))
+    result = glmVec_rawget(o, s2v(L->top - 1), L->top - 1);
+  else if (ttismatrix(o))
+    result = glmMat_rawget(o, s2v(L->top - 1), L->top - 1);
   else {
-    Table *t = ensuretable(L, v);
+    Table *t = ensuretable(L, o);
     const TValue *val = luaH_get(t, s2v(L->top - 1));
     L->top--;  /* remove key */
-    return finishrawget(L, val);
+    result = finishrawget(L, val);
   }
+  lua_unlock(L);
+  return result;
 }
 
 
 LUA_API int lua_rawgeti (lua_State *L, int idx, lua_Integer n) {
-  const TValue *v;
+  const TValue *o;
+  int result = LUA_TNONE;
+
   lua_lock(L);
-  v = index2value(L, idx);
-  if (ttisvector(v)) {
-    const int vt = luaVec_rawgeti(L, &(val_(v).f4), luaVec_dimensions(ttypetag(v)), n);
+  o = index2value(L, idx);
+  if (ttisvector(o)) {
+    result = glmVec_rawgeti(o, n, L->top);
     api_incr_top(L);
-    lua_unlock(L);
-    return vt;
+  }
+  else if (ttismatrix(o)) {
+    result = glmMat_rawgeti(o, n, L->top);
+    api_incr_top(L);
   }
   else {
-    Table *t = ensuretable(L, v);
-    return finishrawget(L, luaH_getint(t, n));
+    Table *t = ensuretable(L, o);
+    result = finishrawget(L, luaH_getint(t, n));
   }
+  lua_unlock(L);
+  return result;
 }
 
 
 LUA_API int lua_rawgetp (lua_State *L, int idx, const void *p) {
-  Table *t;
+  TValue *t;
   TValue k;
+  int result = LUA_TNONE;
   lua_lock(L);
-  t = gettable(L, idx);
+
+  t = index2value(L, idx);
+  api_check(L, ttistable(t), "table expected");
   setpvalue(&k, cast_voidp(p));
-  return finishrawget(L, luaH_get(t, &k));
+  result = finishrawget(L, luaH_get(hvalue(t), &k));
+
+  lua_unlock(L);
+  return result;
 }
 
 
@@ -1005,7 +973,10 @@ static void auxsetstr (lua_State *L, const TValue *t, const char *k) {
   else {
     setsvalue2s(L, L->top, str);  /* push 'str' (to make it a TValue) */
     api_incr_top(L);
-    luaV_finishset(L, t, s2v(L->top - 1), s2v(L->top - 2), slot);
+    if (ttismatrix(t))
+      glmMat_set(L, t, s2v(L->top - 1), s2v(L->top - 2));
+    else
+      luaV_finishset(L, t, s2v(L->top - 1), s2v(L->top - 2), slot);
     L->top -= 2;  /* pop value and key */
   }
   lua_unlock(L);  /* lock done by caller */
@@ -1022,15 +993,19 @@ LUA_API void lua_setglobal (lua_State *L, const char *name) {
 
 LUA_API void lua_settable (lua_State *L, int idx) {
   TValue *t;
-  const TValue *slot;
   lua_lock(L);
   api_checknelems(L, 2);
   t = index2value(L, idx);
-  if (luaV_fastget(L, t, s2v(L->top - 2), slot, luaH_get)) {
-    luaV_finishfastset(L, t, slot, s2v(L->top - 1));
+  if (ttismatrix(t))
+    glmMat_set(L, t, s2v(L->top - 2), s2v(L->top - 1));
+  else {
+    const TValue *slot;
+    if (luaV_fastget(L, t, s2v(L->top - 2), slot, luaH_get)) {
+      luaV_finishfastset(L, t, slot, s2v(L->top - 1));
+    }
+    else
+      luaV_finishset(L, t, s2v(L->top - 2), s2v(L->top - 1), slot);
   }
-  else
-    luaV_finishset(L, t, s2v(L->top - 2), s2v(L->top - 1), slot);
   L->top -= 2;  /* pop index and value */
   lua_unlock(L);
 }
@@ -1044,17 +1019,24 @@ LUA_API void lua_setfield (lua_State *L, int idx, const char *k) {
 
 LUA_API void lua_seti (lua_State *L, int idx, lua_Integer n) {
   TValue *t;
-  const TValue *slot;
   lua_lock(L);
   api_checknelems(L, 1);
   t = index2value(L, idx);
-  if (luaV_fastgeti(L, t, n, slot)) {
-    luaV_finishfastset(L, t, slot, s2v(L->top - 1));
-  }
-  else {
+  if (ttismatrix(t)) {
     TValue aux;
     setivalue(&aux, n);
-    luaV_finishset(L, t, &aux, s2v(L->top - 1), slot);
+    glmMat_set(L, t, &aux, s2v(L->top - 1));
+  }
+  else {
+    const TValue *slot;
+    if (luaV_fastgeti(L, t, n, slot)) {
+      luaV_finishfastset(L, t, slot, s2v(L->top - 1));
+    }
+    else {
+      TValue aux;
+      setivalue(&aux, n);
+      luaV_finishset(L, t, &aux, s2v(L->top - 1), slot);
+    }
   }
   L->top--;  /* pop value */
   lua_unlock(L);
@@ -1062,13 +1044,19 @@ LUA_API void lua_seti (lua_State *L, int idx, lua_Integer n) {
 
 
 static void aux_rawset (lua_State *L, int idx, TValue *key, int n) {
-  Table *t;
+  TValue *v;
   lua_lock(L);
   api_checknelems(L, n);
-  t = gettable(L, idx);
-  luaH_set(L, t, key, s2v(L->top - 1));
-  invalidateTMcache(t);
-  luaC_barrierback(L, obj2gco(t), s2v(L->top - 1));
+
+  v = index2value(L, idx);
+  if (ttismatrix(v))
+    glmMat_rawset(L, v, key, s2v(L->top - 1));
+  else {
+    Table *t = ensuretable(L, v);
+    luaH_set(L, t, key, s2v(L->top - 1));
+    invalidateTMcache(t);
+    luaC_barrierback(L, obj2gco(t), s2v(L->top - 1));
+  }
   L->top -= n;
   lua_unlock(L);
 }
@@ -1087,12 +1075,20 @@ LUA_API void lua_rawsetp (lua_State *L, int idx, const void *p) {
 
 
 LUA_API void lua_rawseti (lua_State *L, int idx, lua_Integer n) {
-  Table *t;
+  TValue *v;
   lua_lock(L);
   api_checknelems(L, 1);
-  t = gettable(L, idx);
-  luaH_setint(L, t, n, s2v(L->top - 1));
-  luaC_barrierback(L, obj2gco(t), s2v(L->top - 1));
+  v = index2value(L, idx);
+  if (ttismatrix(v)) {
+    TValue key;
+    setivalue(&key, n);
+    glmMat_rawset(L, v, &key, s2v(L->top - 1));
+  }
+  else {
+    Table *t = ensuretable(L, v);
+    luaH_setint(L, t, n, s2v(L->top - 1));
+    luaC_barrierback(L, obj2gco(t), s2v(L->top - 1));
+  }
   L->top--;
   lua_unlock(L);
 }
@@ -1107,8 +1103,7 @@ LUA_API int lua_setmetatable (lua_State *L, int objindex) {
   if (ttisnil(s2v(L->top - 1)))
     mt = NULL;
   else {
-    api_check(L, ttistable(s2v(L->top - 1)), "table expected");
-    mt = hvalue(s2v(L->top - 1));
+    mt = ensuretable(L, s2v(L->top - 1));
   }
   switch (ttype(obj)) {
     case LUA_TTABLE: {
@@ -1423,15 +1418,16 @@ LUA_API int lua_error (lua_State *L) {
 
 LUA_API int lua_next (lua_State *L, int idx) {
   int more;
-  const TValue *v;
+  const TValue *o;
   lua_lock(L);
   api_checknelems(L, 1);
-  v = index2value(L, idx);
-  if (ttisvector(v)) {
-    more = luaVec_next(L, &(val_(v).f4), luaVec_dimensions(ttypetag(v)), L->top - 1);
-  }
+  o = index2value(L, idx);
+  if (ttisvector(o))
+    more = glmVec_next(o, L->top - 1);
+  else if (ttismatrix(o))
+    more = glmMat_next(o, L->top - 1);
   else {
-    Table *t = ensuretable(L, v);
+    Table *t = ensuretable(L, o);
     more = luaH_next(L, t, L->top - 1);
   }
   if (more) {
@@ -1638,36 +1634,3 @@ LUA_API void lua_upvaluejoin (lua_State *L, int fidx1, int n1,
 }
 
 
-/* Hashing */
-static LUA_INLINE char ToLower (const char c) {
-  return (c >= 'A' && c <= 'Z') ? (c - 'A' + 'a') : c;
-}
-
-LUA_API lua_Integer lua_ToHash (lua_State *L, int idx, int ignore_case) {
-  const TValue *o = index2value(L, idx);
-  if (ttisstring(o))
-    return luaO_HashString(svalue(o), vslen(o), ignore_case);
-  else if (ttisboolean(o))
-    return ttistrue(o) ? 1 : 0;
-  else if (ttisnumber(o)) {
-    lua_Integer res = 0;
-    return tointeger(o, &res) ? res : 0;
-  }
-  return 0;
-}
-
-lua_Integer luaO_HashString (const char* string, size_t length, int ignore_case) {
-  unsigned int hash = 0;
-  for (size_t i = 0; i < length; ++i) {
-    hash += (ignore_case ? string[i] : ToLower(string[i]));
-    hash += (hash << 10);
-    hash ^= (hash >> 6);
-  }
-
-  hash += (hash << 3);
-  hash ^= (hash >> 11);
-  hash += (hash << 15);
-
-  /* @TODO: Eventually avoid sign-extension issues. If ever... */
-  return (lua_Integer)(int)hash;
-}

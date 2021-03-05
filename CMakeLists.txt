@@ -1,313 +1,795 @@
-# Copyright (C) 2007-2011 LuaDist.
-# Created by Peter Drahoš, Peter Kapec
-# Redistribution and use of this file is allowed according to the terms of the MIT license.
-# For details see the COPYRIGHT file distributed with LuaDist.
-# Please note that the package source code is licensed under its own license.
-# Changed by Vinicius Jarina (viniciusjarina@gmail.com)
+# See License in lua.h.
+CMAKE_MINIMUM_REQUIRED( VERSION 3.9.0 )
 
-SET (CMAKE_LEGACY_CYGWIN_WIN32 0) # Remove when CMake >= 2.8.4 is required
-PROJECT ( lua C )
-CMAKE_MINIMUM_REQUIRED ( VERSION 2.8.7 )
-if (CMAKE_C_COMPILER MATCHES ".*clang")
-    SET (CMAKE_COMPILER_IS_CLANGCC 1)
-endif()
+PROJECT( lua C )
 
-IF (CMAKE_SIZEOF_VOID_P EQUAL 8)
-    SET (LIB_SUFFIX "64" CACHE STRING "Suffix of the directory name, e.g. 64 for lib64")
-ELSE (CMAKE_SIZEOF_VOID_P EQUAL 8)
-    SET (LIB_SUFFIX "" CACHE STRING "Suffix of the directory name, e.g. 64 for lib64")
-ENDIF (CMAKE_SIZEOF_VOID_P EQUAL 8)
-
-SET (CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-
-# $ORIGIN support in rpath.
-IF (UNIX AND NOT APPLE)
-    SET (USE_RPATH_ORIGIN TRUE)
-    SET (CMAKE_INSTALL_RPATH "\$ORIGIN/..")
-ENDIF ()
-
-IF (APPLE)
-  SET(SKIP_BUILD_RPATH, TRUE)
-  SET(CMAKE_MACOSX_RPATH 1)
-  ADD_DEFINITIONS (-DLUA_USE_MACOSX)
-  LIST ( APPEND LIBS readline )
-ENDIF ()
-
-SET(CMAKE_DEBUG_POSTFIX "d")
-SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}" CACHE STRING "Library build output directory")
-SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
-SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
-SET(EXECUTABLE_OUTPUT_PATH         "${CMAKE_BINARY_DIR}")
-
-SET (LIB_LUA_VER "54" CACHE STRING "Suffix of version (for library name) e.g lua54")
-
-#
-# Include dir COPY
-# If the source dir and the binary dir are not equals,
-# copy the content of libzond/cinlude to $/include
-#
-IF(NOT ${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR})
-    SET(TEMP_INCLUDE_LUA_DIR_FROM "${PROJECT_SOURCE_DIR}/include")
-    SET(TEMP_INCLUDE_LUA_DIR_TO   "${PROJECT_BINARY_DIR}")
-    MESSAGE(STATUS "Copying include dirs from  ${TEMP_INCLUDE_LUA_DIR_FROM} to ${TEMP_INCLUDE_LUA_DIR_TO}")
-    FILE ( COPY ${TEMP_INCLUDE_LUA_DIR_FROM} DESTINATION ${TEMP_INCLUDE_LUA_DIR_TO})
+INCLUDE(CheckCCompilerFlag)
+IF( CMAKE_C_COMPILER_ID MATCHES "Clang" )
+  SET(CMAKE_COMPILER_IS_CLANG 1) # using Clang or AppleClang
 ENDIF()
 
-IF ( WIN32 AND NOT CYGWIN )
-  # Windows systems
-  OPTION ( LUA_WIN "Windows specific build." ON )
-  OPTION ( LUA_BUILD_AS_DLL "Build  Lua library as Dll." ON )
+# Enable CXX for the glm bits.
+ENABLE_LANGUAGE(CXX)
+SET(CMAKE_CXX_STANDARD 11)
+SET(CMAKE_CXX_STANDARD_REQUIRED ON)
+SET(CXX_EXTENSIONS OFF)
+SET(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE) # CMake 3.9.0; support flto
 
-ELSE ()
-  # Posix systems (incl. Cygwin)
-  OPTION ( LUA_USE_POSIX "Use POSIX functionality." ON )
-  OPTION ( LUA_USE_DLOPEN "Use dynamic linker to load modules." ON )
-  OPTION ( LUA_INCLUDE_TEST "Include ltests.h")
-  OPTION ( LUA_SANDBOX "Initial sandboxing support (hide additional ldblib fields)" )
+INCLUDE(CheckCXXCompilerFlag)
+IF( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
+  SET(CMAKE_COMPILER_IS_CLANGXX 1) # using Clang or AppleClang
+ENDIF()
 
-  ADD_DEFINITIONS (-DLUA_C99_MATHLIB)
-  if (LUA_SANDBOX)
-    ADD_DEFINITIONS (-DLUA_SANDBOX)
-  ENDIF ()
+################################################################################
+# Path/Library Setup.
+################################################################################
 
-  ADD_DEFINITIONS(
-    -DGRIT_POWER_PRELOADLIBS
-    -DGRIT_POWER_SIGACTION
-    -DGRIT_POWER_COMPOUND
-    -DGRIT_POWER_INTABLE
-    -DGRIT_POWER_TABINIT
-    -DGRIT_POWER_SAFENAV
-    -DGRIT_POWER_CCOMMENT
-    -DGRIT_POWER_ANONDO
-    -DGRIT_DEFER
-    -DGRIT_POWER_JOAAT
-    -DGRIT_POWER_EACH
-    -DGRIT_COMPAT_IPAIRS
-    -DGRIT_POWER_WOW
-    -DGRIT_POWER_CHRONO
-    -DGRIT_POWER_BLOB
-    -DGRIT_POWER_READLINE_HISTORY
-  )
-ENDIF ()
+SET(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/etc/")
+IF( NOT CMAKE_BUILD_TYPE )
+  SET(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, \
+  options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
+ENDIF()
 
-IF ( LUA_USE_POSIX )
-  # On POSIX Lua links to standard math library "m"
-  LIST ( APPEND LIBS m )
-  ADD_DEFINITIONS (-DLUA_USE_POSIX)
-ENDIF ()
+SET(LIB_LUA_VER "54" CACHE STRING "Suffix of version")
+IF( CMAKE_SIZEOF_VOID_P EQUAL 8 ) # TODO: Use w/ LUA_BIT32
+  SET(LIB_SUFFIX "64" CACHE STRING "Suffix of the directory name, e.g. 64 for lib64")
+ELSE( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+  SET(LIB_SUFFIX "" CACHE STRING "Suffix of the directory name, e.g. 64 for lib64")
+ENDIF()
 
-IF ( LUA_USE_DLOPEN )
-  # Link to dynamic linker library "dl"
-  LIST ( APPEND LIBS dl )
-ENDIF ()
+SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/" CACHE STRING "Library build output directory")
+SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/")
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/")
+SET(EXECUTABLE_OUTPUT_PATH         "${CMAKE_BINARY_DIR}/")
 
-# Compiler options taken from Lua: lua/blob/master/makefile
-ADD_COMPILE_OPTIONS (-fPIC
-  -Wall
-  -Wextra
-  -Wshadow
-  -Wsign-compare
-  -Wundef
-  -Wwrite-strings
-  -Wredundant-decls
-  -Wdouble-promotion
-  -Wunused-parameter
-  -Wno-comment
-  -Wno-unused-function
-  -Wno-array-bounds
-  #-Wconversion
-  -Wno-sign-conversion
-  -Wstrict-overflow=2
-  -Wformat=2
-  -Wno-format-nonliteral
-  #-Wcast-qual
-  #-Wdisabled-optimization
-  #-Wlogical-op
-  #-Wno-aggressive-loop-optimizations
-  # the next warnings might be useful sometimes, but usually they generate too much noise
-  #-Werror
-)
+SET(CMAKE_INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
+SET(CMAKE_INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
+SET(CMAKE_INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation directory for headers")
 
-IF (CMAKE_COMPILER_IS_CLANGCC)
-  ADD_COMPILE_OPTIONS (
-    -ferror-limit=5
-    -fno-common
-    #-Weverything
-    #-Wno-gnu-zero-variadic-macro-arguments
-    #-Wno-covered-switch-default
-    #-Wno-reserved-id-macro
-    #-Wno-unused-macros
-    #-Wno-padded
-    #-Wno-extra-semi-stmt
-  )
-ELSEIF (CMAKE_COMPILER_IS_GNUCC)
-  ADD_COMPILE_OPTIONS (
-    -fmax-errors=5
-    -Wduplicated-cond
-    -Wduplicated-branches
-    -Wrestrict
-    -Wnull-dereference
-    -Wlogical-op
-  )
-ENDIF ()
+################################################################################
+# Compiler Setup
+################################################################################
 
-# The next warnings are neither valid nor needed for C++
-SET (CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "\
-    -Wdeclaration-after-statement \
-    -Wmissing-prototypes \
-    -Wnested-externs \
-    -Wstrict-prototypes \
-    -Wc++-compat \
-    -Wold-style-definition"
-)
+# Enables the use of Intel AVX2 if/when possible
+OPTION(LUA_NATIVE_ARCH "Enable compiler optimizations for the native processor architecture" ON)
 
-IF ( LUA_INCLUDE_TEST )
-    ADD_DEFINITIONS (-DLUA_USER_H="ltests.h" -O0 -g)
-ENDIF ()
+# Include additional optimizations for glm-specific vector and matrix operations;
+OPTION(LUA_FAST_MATH "Enable fast math optimizations" OFF)
 
-IF ( LUA_WIN )
-  # Use static linked runtime for DLL to avoid issues with people without the vcredist installed
-  IF (MSVC)
-    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
-    SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
-    SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} /MT")
-    SET(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_DEBUG} /MT")
-    SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
-    SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
-    SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} /MT")
-    SET(CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_DEBUG} /MT")
+# Enables the use of Intel AVX2 if/when possible
+# This option is intended to be a subset of LUA_NATIVE_ARCH
+OPTION(GLM_NATIVE_ARCH "Enable compiler optimizations for the native processor architecture" ON)
+
+# Include additional optimizations for glm-specific vector and matrix operations;
+# This option is intended to be a subset of LUA_FAST_MATH
+OPTION(GLM_FAST_MATH "Enable fast math optimizations" OFF)
+
+# Compilation flags specific to the luaglm object.
+SET(glm_nativeFlags "")
+
+# Windows systems
+IF( MSVC )
+  OPTION(LUA_USE_WINDOWS "Windows specific build" ON)
+  OPTION(LUA_BUILD_AS_DLL "Build Lua library as DLL" ON)
+  IF( NOT( ${CMAKE_COMPILER_IS_CLANG} ) )
+    MESSAGE(WARNING "MSVC detected! For MSVC/msbuild environments, it is advised to use the LLVM/ClangCL toolset")
   ENDIF()
-  # Add extra rc files to the windows build
-  IF ( MSVC OR MINGW )
-    SET ( LUA_DLL_RC src/lua_dll.rc )
-    SET ( LUA_RC src/lua.rc )
-    SET ( LUAC_RC src/luac.rc )
-  ENDIF ()
-ENDIF ()
 
+  IF(MSVC AND NOT "${CMAKE_BUILD_TYPE}" MATCHES "Debug")
+    SET(MSVC_OPT_FLAG "/Ox /DNDEBUG")
+  ELSE()
+    SET(MSVC_OPT_FLAG "")
+  ENDIF()
 
-# Sources and headers
-INCLUDE_DIRECTORIES ( . )
-SET (   SRC_LIB
-        lapi.c
-        lauxlib.c
-        lbaselib.c
-        lcode.c
-        lcorolib.c
-        lctype.c
-        ldblib.c
-        ldebug.c
-        ldo.c
-        ldump.c
-        lfunc.c
-        lgc.c
-        linit.c
-        liolib.c
-        llex.c
-        lmathlib.c
-        lmem.c
-        loadlib.c
-        lobject.c
-        lopcodes.c
-        loslib.c
-        lparser.c
-        lstate.c
-        lstring.c
-        lstrlib.c
-        ltable.c
-        ltablib.c
-        ltm.c
-        lundump.c
-        lutf8lib.c
-        lvm.c
-        lzio.c
-        lgrit.c
-        lgrit_math.c
-)
+  SET(glm_nativeFlags "${MSVC_OPT_FLAG} /GF /GS- /fp:except-")
 
-SET ( SRC_LUA  lua.c )
-SET ( SRC_LUAC luac.c )
-if ( LUA_INCLUDE_TEST )
-    SET (SRC_LIB ${SRC_LIB} ltests.c)
-ENDIF ()
+  IF( LUA_FAST_MATH )
+    ADD_COMPILE_OPTIONS(/fp:fast /fp:except-)
+  ELSEIF( GLM_FAST_MATH )
+    SET(glm_nativeFlags "${glm_nativeFlags} /fp:fast /fp:except-")
+  ENDIF()
 
+  IF( LUA_NATIVE_ARCH OR GLM_NATIVE_ARCH )
+    CHECK_C_COMPILER_FLAG("/arch:AVX2" COMPILER_OPT_ARCH_AVX2_SUPPORTED)
+    IF( LUA_NATIVE_ARCH AND COMPILER_OPT_ARCH_AVX2_SUPPORTED )
+      ADD_COMPILE_OPTIONS(/arch:AVX2)
+    ELSEIF( GLM_NATIVE_ARCH AND COMPILER_OPT_ARCH_AVX2_SUPPORTED )
+      SET(glm_nativeFlags "${glm_nativeFlags} /arch:AVX2")
+    ENDIF()
+  ENDIF()
 
-## BUILD
-# Create dynamic library (dll, so)
+  ADD_COMPILE_OPTIONS(/nologo /Zc:__cplusplus)
+  ADD_COMPILE_DEFINITIONS(NOMINMAX)
+  ADD_COMPILE_DEFINITIONS(_CRT_SECURE_NO_DEPRECATE)
+  ADD_COMPILE_DEFINITIONS(_CRT_NONSTDC_NO_DEPRECATE)
 
-ADD_LIBRARY ( liblua SHARED ${SRC_LIB} ${LUA_DLL_RC})
+  SET(LUA_C_FLAGS "${MSVC_OPT_FLAG} /Ob2 /Oi /Ot /GT /GF /GS- /MP /EHsc /GL")
+  SET(LUA_LINK_FLAGS "/OPT:REF /OPT:ICF /INCREMENTAL:NO /LTCG")
 
-TARGET_LINK_LIBRARIES ( liblua ${LIBS} )
-SET_TARGET_PROPERTIES ( liblua PROPERTIES OUTPUT_NAME lua${LIB_LUA_VER} CLEAN_DIRECT_OUTPUT 1 )
+  # Visual Studio 2019 feature
+  CHECK_C_COMPILER_FLAG("/Ob3" COMPILER_OPT_OB3)
+  IF( COMPILER_OPT_OB3 )
+    STRING(REPLACE "/Ob2" "/Ob3" LUA_C_FLAGS "${LUA_C_FLAGS}")
+  ENDIF()
 
-if ( LUA_WIN )
-    SET_TARGET_PROPERTIES ( liblua PROPERTIES COMPILE_FLAGS -DLUA_BUILD_AS_DLL)
-endif ( LUA_WIN )
+  SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /Oy ${LUA_C_FLAGS} /DNDEBUG")
+  SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} /Zi ${LUA_C_FLAGS} /DNDEBUG")
+  SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /Od /EHs /RTC1")
+  # SET(CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL}")
 
-SET_TARGET_PROPERTIES(  liblua PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL ${PROJECT_BINARY_DIR} )
-SET_TARGET_PROPERTIES(  liblua PROPERTIES LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL ${PROJECT_BINARY_DIR} )
-SET_TARGET_PROPERTIES(  liblua PROPERTIES RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${PROJECT_BINARY_DIR} )
+  # W4 to turn compiler warnings all the way up...
+  STRING(REGEX REPLACE "[-/]W[1-4]" "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3")
 
-SET_TARGET_PROPERTIES(  liblua PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${PROJECT_BINARY_DIR} )
-SET_TARGET_PROPERTIES(  liblua PROPERTIES LIBRARY_OUTPUT_DIRECTORY_RELEASE ${PROJECT_BINARY_DIR} )
-SET_TARGET_PROPERTIES(  liblua PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_BINARY_DIR} )
+  SET(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} ${LUA_LINK_FLAGS}")
+  SET(CMAKE_STATIC_LINKER_FLAGS_RELEASE "${CMAKE_STATIC_LINKER_FLAGS_RELEASE} ${LUA_LINK_FLAGS}")
+  SET(CMAKE_MODULE_LINKER_FLAGS_RELEASE "${CMAKE_MODULE_LINKER_FLAGS_RELEASE} ${LUA_LINK_FLAGS}")
+  SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} ${LUA_LINK_FLAGS}")
 
-SET_TARGET_PROPERTIES(  liblua PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO ${PROJECT_BINARY_DIR} )
-SET_TARGET_PROPERTIES(  liblua PROPERTIES LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO ${PROJECT_BINARY_DIR} )
-SET_TARGET_PROPERTIES(  liblua PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${PROJECT_BINARY_DIR} )
+  SET(CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO} ${LUA_LINK_FLAGS}")
+  SET(CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO} ${LUA_LINK_FLAGS}")
+  SET(CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO} ${LUA_LINK_FLAGS}")
+  SET(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} ${LUA_LINK_FLAGS}")
 
-SET_TARGET_PROPERTIES(  liblua PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${PROJECT_BINARY_DIR} )
-SET_TARGET_PROPERTIES(  liblua PROPERTIES LIBRARY_OUTPUT_DIRECTORY_DEBUG ${PROJECT_BINARY_DIR} )
-SET_TARGET_PROPERTIES(  liblua PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_BINARY_DIR} )
+# Posix systems (including msys2/cygwin)
+ELSE()
+  OPTION(LUA_BIT32 "32bit compile" OFF)
+  OPTION(LUA_USE_POSIX "Use POSIX functionality" ON)
+  OPTION(LUA_USE_DLOPEN "Use dynamic linker to load modules" ON)
 
+  SET(glm_nativeFlags "-O3 -DNDEBUG")
+  IF( LUA_BIT32 )
+    ADD_REQUIRED_C_COMPILER_FLAG(-m32)
+  ENDIF()
 
-# Create static library, this is needed to compile luac in the 5.1.x, 5.2 Lua series
+  # Compile everything, or lglm.cpp, or nothing with -ffast-math
+  IF( LUA_FAST_MATH )
+    ADD_COMPILE_OPTIONS(-ffast-math)
+  ELSEIF( GLM_FAST_MATH )
+    SET(glm_nativeFlags "${glm_nativeFlags} -ffast-math")
+  ENDIF()
 
-ADD_LIBRARY ( liblua_static STATIC ${SRC_LIB} )
-TARGET_LINK_LIBRARIES ( liblua_static ${LIBS} )
+  # Compile everything, lglm.cpp, or nothing with common performance tweaks
+  IF( LUA_NATIVE_ARCH )
+    ADD_COMPILE_OPTIONS(-fno-plt -fno-stack-protector -flto)
+  ELSEIF( GLM_NATIVE_ARCH )
+    SET(glm_nativeFlags "${glm_nativeFlags} -fno-plt -fno-stack-protector -flto")
+  ENDIF()
 
-SET_TARGET_PROPERTIES ( liblua_static PROPERTIES OUTPUT_NAME lua${LIB_LUA_VER}_static CLEAN_DIRECT_OUTPUT 1 )
+  # Compile everything, or lglm.cpp, or nothing with -march=native
+  IF( LUA_NATIVE_ARCH OR GLM_NATIVE_ARCH )
+    CHECK_C_COMPILER_FLAG("-march=native" COMPILER_OPT_ARCH_NATIVE_SUPPORTED)
+    IF( LUA_NATIVE_ARCH AND COMPILER_OPT_ARCH_NATIVE_SUPPORTED )
+      ADD_COMPILE_OPTIONS(-march=native)
+    ELSEIF( GLM_NATIVE_ARCH AND COMPILER_OPT_ARCH_NATIVE_SUPPORTED )
+      SET(glm_nativeFlags "${glm_nativeFlags} -march=native")
+    ENDIF()
+  ENDIF()
 
-SET_TARGET_PROPERTIES(  liblua_static PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL ${PROJECT_BINARY_DIR} )
-SET_TARGET_PROPERTIES(  liblua_static PROPERTIES LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL ${PROJECT_BINARY_DIR} )
+  # Change default release build flags
+  SET(CMAKE_C_FLAGS_DEBUG "-O0 -g")
+  SET(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG")
+  SET(CMAKE_C_FLAGS_MINSIZEREL "-Os -DNDEBUG")
+  SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELEASE} -g")
 
-SET_TARGET_PROPERTIES(  liblua_static PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${PROJECT_BINARY_DIR} )
-SET_TARGET_PROPERTIES(  liblua_static PROPERTIES LIBRARY_OUTPUT_DIRECTORY_RELEASE ${PROJECT_BINARY_DIR} )
+  # Temporary fix: CMake no longer defines WIN32 on MSYS.
+  IF( CYGWIN OR MSYS )
+    SET(LUA_BUILD_AS_DLL ON)
+    ADD_COMPILE_DEFINITIONS(_WIN32)
+    ADD_COMPILE_OPTIONS(-Wno-attributes)
+  ENDIF()
 
-SET_TARGET_PROPERTIES(  liblua_static PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO ${PROJECT_BINARY_DIR} )
-SET_TARGET_PROPERTIES(  liblua_static PROPERTIES LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO ${PROJECT_BINARY_DIR} )
+  # Compiler options taken from Lua: lua/blob/master/makefile
+  ADD_COMPILE_OPTIONS(
+    -Wall -Wextra -Wshadow -Wsign-compare -Wundef -Wwrite-strings
+    -Wredundant-decls -Wdisabled-optimization -Wdouble-promotion -Wno-inline
+    -Wdouble-promotion -Wunused-parameter -Wno-comment -Wno-unused-function
+    -Wno-array-bounds -Wno-sign-conversion -Wstrict-overflow=2 -Wformat=2
+    -Wno-format-nonliteral
+    # -Werror
+    # -Wconversion
+    # -Wsign-conversion
+    # -Wcast-qual
+  )
 
-SET_TARGET_PROPERTIES(  liblua_static PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${PROJECT_BINARY_DIR} )
-SET_TARGET_PROPERTIES(  liblua_static PROPERTIES LIBRARY_OUTPUT_DIRECTORY_DEBUG ${PROJECT_BINARY_DIR} )
+  IF( CMAKE_COMPILER_IS_CLANG )
+    ADD_COMPILE_OPTIONS(-ferror-limit=5 -fno-common -Wno-deprecated
+      # Clang Everything support;
+      #-Weverything
+      #-Wno-gnu-zero-variadic-macro-arguments
+      #-Wno-covered-switch-default
+      #-Wno-reserved-id-macro
+      #-Wno-unused-macros
+      #-Wno-padded
+      #-Wno-old-style-cast
+      #-Wno-extra-semi-stmt
+      #-Wno-c++98-compat-pedantic
+      #-Wno-zero-as-null-pointer-constant
+      #-Wno-gnu-anonymous-struct
+      #-Wno-gnu-label-as-value
+      #-Wno-nested-anon-types
+      #-Wno-enum-enum-conversion
+    )
+  ELSEIF( CMAKE_COMPILER_IS_GNUC )
+    ADD_COMPILE_OPTIONS(-fmax-errors=5 -Wduplicated-cond -Wrestrict -Wlogical-op
+      -Wno-aggressive-loop-optimizations
+      #-Wnull-dereference
+      #-Wduplicated-branches
+    )
+  ENDIF()
 
-ADD_EXECUTABLE ( lua ${SRC_LUA} ${LUA_RC})
-TARGET_LINK_LIBRARIES ( lua liblua ${LIBS})
+  # On POSIX Lua links to standard math library "m"
+  IF( LUA_USE_POSIX )
+    ADD_COMPILE_DEFINITIONS(LUA_USE_POSIX)
+    LIST(APPEND LIBS m)
+  ENDIF()
 
-SET_TARGET_PROPERTIES ( lua PROPERTIES DEBUG_POSTFIX d)
-
-SET_TARGET_PROPERTIES ( lua PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG          ${PROJECT_BINARY_DIR} )
-SET_TARGET_PROPERTIES ( lua PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${PROJECT_BINARY_DIR} )
-SET_TARGET_PROPERTIES ( lua PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE        ${PROJECT_BINARY_DIR} )
-SET_TARGET_PROPERTIES ( lua PROPERTIES RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL     ${PROJECT_BINARY_DIR} )
-
-if (NOT LUA_INCLUDE_TEST )
-    ADD_EXECUTABLE ( luac ${SRC_LUAC} ${LUAC_RC} )
-    TARGET_LINK_LIBRARIES ( luac liblua_static )
-
-    SET_TARGET_PROPERTIES ( luac PROPERTIES DEBUG_POSTFIX d)
-
-    SET_TARGET_PROPERTIES ( luac PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG          ${PROJECT_BINARY_DIR} )
-    SET_TARGET_PROPERTIES ( luac PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${PROJECT_BINARY_DIR} )
-    SET_TARGET_PROPERTIES ( luac PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE        ${PROJECT_BINARY_DIR} )
-    SET_TARGET_PROPERTIES ( luac PROPERTIES RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL     ${PROJECT_BINARY_DIR} )
+  # Link to dynamic linker library "dl"
+  IF( LUA_USE_DLOPEN )
+    ADD_COMPILE_DEFINITIONS(LUA_USE_DLOPEN)
+    IF( NOT APPLE AND NOT _WIN32 )
+      LIST(APPEND LIBS dl)
+    ENDIF()
+  ENDIF()
 ENDIF()
 
-ENABLE_TESTING()
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
+SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
+SET(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL}")
 
-SET(TEST_PARAM -e _U=true)
+################################################################################
+# Build Options
+################################################################################
+# TODO luaconf: LUA_DIRSEP, Manual LUA_INT_TYPE/LUA_FLOAT_TYPE
+# TODO lstrlib: LUA_MAXCAPTURES, MAXCCALLS, L_FMTFLAGS, LUAL_PACKPADBYTE
+# TODO loadlib: LUA_CSUBSEP, LUA_LSUBSEP, LUA_LLE_FLAGS, LUA_PATH_VAR, LUA_CPATH_VAR
+# TODO loslib: LUA_TMPNAMTEMPLATE
 
-ADD_TEST(NAME test_all
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/testes
-        COMMAND all.lua
-    )
+OPTION(LUA_INCLUDE_TEST "Include ltests.h" OFF)
+OPTION(LUA_USE_APICHECK "Turns on several consistency checks on the C API" OFF)
+OPTION(LUAI_ASSERT "Turn on all assertions inside Lua" OFF)
+OPTION(HARDSTACKTESTS "Forces a reallocation of the stack at every point where the stack can be reallocated" OFF)
+OPTION(HARDMEMTESTS "Forces a full collection at all points where the collector can run" OFF)
+OPTION(EMERGENCYGCTESTS "Forces an emergency collection at every single allocation" OFF)
+OPTION(EXTERNMEMCHECK "Removes internal consistency checking of blocks being deallocated " OFF)
+OPTION(LUA_NOCVTN2S "Turn off automatic coercion from numbers to strings" OFF)
+OPTION(LUA_NOCVTS2N "Turn off automatic coercion from strings to numbers" OFF)
+OPTION(LUA_COMPAT_5_3 "Controls other macros for compatibility with Lua 5.3" ON)
+OPTION(LUA_COMPAT_5_4_0 "Controls other macros for compatibility with Lua 5.4.0" OFF)
+OPTION(LUA_COMPAT_MATHLIB "Controls the presence of several deprecated functions in the mathematical library." ON)
+OPTION(LUA_USE_JUMPTABLE "Force the use of jump tables in the main interpreter loop" OFF)
+OPTION(LUA_USE_LONGJMP "handles errors with _longjmp/_setjmp when compiling as C++" OFF)
+OPTION(LUA_CPP_EXCEPTIONS "unprotected calls are wrapped in typed C++ exceptions" ON)
 
+IF( CMAKE_BUILD_TYPE STREQUAL Debug )
+  SET(LUA_INCLUDE_TEST ON)
+ENDIF()
+
+SET(LUA_F2IMOD_ENUM F2Ieq F2Ifloor F2Iceil)
+SET(LUA_F2IMOD F2Ieq CACHE STRING "Rounding modes for float-to-integer coercion")
+SET_PROPERTY(CACHE LUA_F2IMOD PROPERTY STRINGS ${LUA_F2IMOD_ENUM})
+
+SET(LUAI_MAXCCALLS CACHE STRING "Minimum size for string buffer")
+SET(MAXIWTHABS CACHE STRING
+  "MAXimum number of successive Instructions WiTHout ABSolute line information \
+  Must be a power of two to allow fast divisions."
+)
+
+SET(LUA_MINBUFFER CACHE STRING
+  "Maximum depth for nested C calls, syntactical nested non-terminals, and \
+  other features implemented through recursion in C. (Value must fit in a \
+  16-bit unsigned integer. It must also be compatible with the size of the C stack.)"
+)
+
+SET(LUAI_MAXSHORTLEN CACHE STRING
+  "Maximum length for short strings, that is, strings that are internalized. \
+  (Cannot be smaller than reserved words or tags for metamethods, as these \
+  strings must be internalized; #(\"function\") = 8, #(\"__newindex\") = 10.)"
+)
+
+SET(MINSTRTABSIZE CACHE STRING
+  "Initial size for the string table (must be power of 2). The Lua core alone \
+  registers ~50 strings (reserved words + metaevent keys + a few others). \
+  Libraries would typically add a few dozens more."
+)
+
+SET(STRCACHE_M CACHE STRING "")
+SET(STRCACHE_N CACHE STRING
+  "Size of cache for strings in the API. \'N\' is the number of sets (better \
+  be a prime) and \"M\" is the size of each set (M == 1 makes a direct cache.)"
+)
+
+IF( LUA_USE_APICHECK )
+  ADD_COMPILE_DEFINITIONS(LUA_USE_APICHECK)
+ENDIF()
+
+IF( LUAI_ASSERT )
+  ADD_COMPILE_DEFINITIONS(LUAI_ASSERT)
+ENDIF()
+
+IF( HARDSTACKTESTS )
+  ADD_COMPILE_DEFINITIONS(HARDSTACKTESTS)
+ENDIF()
+
+IF( HARDMEMTESTS )
+  ADD_COMPILE_DEFINITIONS(HARDMEMTESTS)
+ENDIF()
+
+IF( EMERGENCYGCTESTS )
+  ADD_COMPILE_DEFINITIONS(EMERGENCYGCTESTS)
+ENDIF()
+
+IF( EXTERNMEMCHECK )
+  ADD_COMPILE_DEFINITIONS(EXTERNMEMCHECK)
+ENDIF()
+
+IF( LUA_NOCVTN2S )
+  ADD_COMPILE_DEFINITIONS(LUA_NOCVTN2S)
+ENDIF()
+
+IF( LUA_NOCVTS2N )
+  ADD_COMPILE_DEFINITIONS(LUA_NOCVTS2N)
+ENDIF()
+
+LIST(FIND LUA_F2IMOD_ENUM ${LUA_F2IMOD} index)
+IF( NOT index EQUAL -1 )
+  ADD_COMPILE_DEFINITIONS(LUA_FLOORN2I=${LUA_F2IMOD})
+ENDIF()
+
+IF( LUA_COMPAT_5_3 )
+  ADD_COMPILE_DEFINITIONS(LUA_COMPAT_5_3)
+  SET(LUA_COMPAT_MATHLIB OFF CACHE INTERNAL "" FORCE)
+ENDIF()
+
+IF( LUA_COMPAT_5_4_0 )
+  ADD_COMPILE_DEFINITIONS(LUA_COMPAT_5_4_0)
+ENDIF()
+
+IF( LUA_COMPAT_MATHLIB )
+  ADD_COMPILE_DEFINITIONS(LUA_COMPAT_MATHLIB)
+ENDIF()
+
+IF( LUA_USE_JUMPTABLE )
+  ADD_COMPILE_DEFINITIONS(LUA_USE_JUMPTABLE=1)
+ENDIF()
+
+IF( LUA_USE_LONGJMP )
+  ADD_COMPILE_DEFINITIONS(LUA_USE_LONGJMP)
+ENDIF()
+
+IF( LUA_CPP_EXCEPTIONS )
+  ADD_COMPILE_DEFINITIONS(LUA_CPP_EXCEPTIONS)
+ENDIF()
+
+IF( LUAI_MAXCCALLS )
+  ADD_COMPILE_DEFINITIONS(LUAI_MAXCCALLS=${LUAI_MAXCCALLS})
+ENDIF()
+
+IF( LUA_MINBUFFER )
+  ADD_COMPILE_DEFINITIONS(LUA_MINBUFFER=${LUA_MINBUFFER})
+ENDIF()
+
+IF( LUAI_MAXSHORTLEN )
+  ADD_COMPILE_DEFINITIONS(LUAI_MAXSHORTLEN=${LUAI_MAXSHORTLEN})
+ENDIF()
+
+LIST(FIND LUA_F2IMOD_ENUM ${LUA_F2IMOD} index)
+IF( NOT index EQUAL -1 )
+  ADD_COMPILE_DEFINITIONS(LUA_FLOORN2I=${LUA_F2IMOD})
+ENDIF()
+
+# Definitions redefined during testing
+IF( NOT LUA_INCLUDE_TEST )
+  IF( MAXIWTHABS )
+    ADD_COMPILE_DEFINITIONS(MAXIWTHABS=${MAXIWTHABS})
+  ENDIF()
+
+  IF( MINSTRTABSIZE )
+    ADD_COMPILE_DEFINITIONS(MINSTRTABSIZE=${MINSTRTABSIZE})
+  ENDIF()
+
+  IF( STRCACHE_N )
+    ADD_COMPILE_DEFINITIONS(STRCACHE_N=${STRCACHE_N})
+  ENDIF()
+
+  IF( STRCACHE_M )
+    ADD_COMPILE_DEFINITIONS(STRCACHE_M=${STRCACHE_M})
+  ENDIF()
+ENDIF()
+
+#######################################
+# Lua Extensions & PowerPatches
+#######################################
+
+OPTION(LUA_C99_MATHLIB "Enable extended C99/C++11 " ON)
+OPTION(LUA_SANDBOX "Initial sandboxing support (hide additional ldblib fields)" OFF)
+OPTION(LUA_NO_DUMP "Disable the dump module (dump Lua functions as precompiled chunk) " OFF)
+OPTION(LUA_NO_BYTECODE "Disables the usage of lua_load with binary (precompiled) chunks" OFF)
+OPTION(LUA_NO_PARSER "Compile the Lua core so it does not contain the parsing \
+  modules (lcode, llex, lparser); only binary files and strings, precompiled \
+  with luac, can be loaded." OFF
+)
+
+OPTION(GLM_LUA_NUMBER_TYPE "Use lua_Number as the vector primitive; float otherwise" OFF)
+OPTION(GLM_LUA_EPS_EQUAL "luaV_equalobj uses approximately equal (within glm::epsilon) for vector/matrix types (beware of hashing caveats)" OFF)
+OPTION(GLM_LUA_ROTATE_DIRECTION "How operator*(glm::mat4x4, glm::vec3) is handled" OFF)
+OPTION(GLM_LUA_APICHECK
+  "Throw runtime errors when accessing matrices/vectors with invalid \
+  keys/key-types. Otherwise, follow tables and set the result to nil" OFF
+)
+
+OPTION(GRIT_DEFER "Import func2close from ltests.h into the base library." ON)
+OPTION(GRIT_POWER_JOAAT "Enable compile time Jenkins' one-at-a-time hashing" ON)
+OPTION(GRIT_COMPAT_IPAIRS "Reintroduce compatibility for the ``__ipairs`` metamethod that was deprecated in 5.3 and removed in 5.4" ON)
+OPTION(GRIT_POWER_PRELOADLIBS "Allow the preloading of libraries via command line arguments." ON)
+OPTION(GRIT_POWER_COMPOUND "Add compound operators (+=, -=, *=, /=, <<=, >>=, &=, |=, and ^=) to the language." ON)
+OPTION(GRIT_POWER_INTABLE "Support for unpacking named values from tables using the in keyword" ON)
+OPTION(GRIT_POWER_TABINIT "Syntactic sugar to improve the syntax for specifying sets" ON)
+OPTION(GRIT_POWER_SAFENAV "An indexing operation that suppresses errors on accesses into undefined table" ON)
+OPTION(GRIT_POWER_CCOMMENT "Support for C-style block comments" ON)
+OPTION(GRIT_POWER_ANONDO "Syntactic sugar for empty-function statements using do/end" ON)
+OPTION(GRIT_POWER_WOW "Expose lua_createtable and other WowLua compatibility functions" ON)
+OPTION(GRIT_POWER_CHRONO "Enable nanosecond resolution timers and x86 rdtsc sampling" ON)
+OPTION(GRIT_POWER_EACH "__iter metamethod support; see documentation" ON)
+OPTION(GRIT_POWER_BLOB "Enable an API to create non-internalized contiguous byte sequences" ON)
+OPTION(GRIT_POWER_READLINE_HISTORY "" ON)
+
+IF( LUA_C99_MATHLIB )
+  ADD_COMPILE_DEFINITIONS(LUA_C99_MATHLIB)
+ENDIF()
+
+IF( LUA_SANDBOX )
+  ADD_COMPILE_DEFINITIONS(LUA_SANDBOX)
+ENDIF()
+
+IF( GLM_LUA_NUMBER_TYPE )
+  ADD_COMPILE_DEFINITIONS(GLM_LUA_NUMBER_TYPE)
+ENDIF()
+
+IF( GLM_LUA_EPS_EQUAL )
+  ADD_COMPILE_DEFINITIONS(GLM_LUA_EPS_EQUAL)
+ENDIF()
+
+IF( GLM_LUA_APICHECK )
+  ADD_COMPILE_DEFINITIONS(GLM_LUA_APICHECK)
+ENDIF()
+
+IF( GRIT_DEFER )
+  ADD_COMPILE_DEFINITIONS(GRIT_DEFER)
+ENDIF()
+
+IF( GRIT_POWER_JOAAT )
+  ADD_COMPILE_DEFINITIONS(GRIT_POWER_JOAAT)
+ENDIF()
+
+IF( GRIT_COMPAT_IPAIRS )
+  ADD_COMPILE_DEFINITIONS(GRIT_COMPAT_IPAIRS)
+ENDIF()
+
+IF( GRIT_POWER_PRELOADLIBS )
+  ADD_COMPILE_DEFINITIONS(GRIT_POWER_PRELOADLIBS)
+ENDIF()
+
+IF( GRIT_POWER_COMPOUND )
+  ADD_COMPILE_DEFINITIONS(GRIT_POWER_COMPOUND)
+ENDIF()
+
+IF( GRIT_POWER_INTABLE )
+  ADD_COMPILE_DEFINITIONS(GRIT_POWER_INTABLE)
+ENDIF()
+
+IF( GRIT_POWER_TABINIT )
+  ADD_COMPILE_DEFINITIONS(GRIT_POWER_TABINIT)
+ENDIF()
+
+IF( GRIT_POWER_SAFENAV )
+  ADD_COMPILE_DEFINITIONS(GRIT_POWER_SAFENAV)
+ENDIF()
+
+IF( GRIT_POWER_CCOMMENT )
+  ADD_COMPILE_DEFINITIONS(GRIT_POWER_CCOMMENT)
+ENDIF()
+
+IF( GRIT_POWER_ANONDO )
+  ADD_COMPILE_DEFINITIONS(GRIT_POWER_ANONDO)
+ENDIF()
+
+IF( GRIT_POWER_EACH )
+  ADD_COMPILE_DEFINITIONS(GRIT_POWER_EACH)
+ENDIF()
+
+IF( GRIT_POWER_BLOB )
+  ADD_COMPILE_DEFINITIONS(GRIT_POWER_BLOB)
+ENDIF()
+
+IF( GRIT_POWER_WOW )
+  ADD_COMPILE_DEFINITIONS(GRIT_POWER_WOW)
+ENDIF()
+
+IF( GRIT_POWER_CHRONO )
+  ADD_COMPILE_DEFINITIONS(GRIT_POWER_CHRONO)
+ENDIF()
+
+IF( GRIT_POWER_READLINE_HISTORY )
+  ADD_COMPILE_DEFINITIONS(GRIT_POWER_READLINE_HISTORY)
+ENDIF()
+
+#######################################
+# GLM Options
+#######################################
+
+OPTION(GLM_FORCE_MESSAGES "Platform auto detection and default configuration" OFF)
+OPTION(GLM_FORCE_INLINE "Force inline" ON)
+OPTION(GLM_FORCE_ALIGNED_GENTYPES "Force GLM to enable aligned types" OFF)
+OPTION(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES "Force GLM to use aligned types by default" OFF)
+OPTION(GLM_FORCE_INTRINSICS "Using SIMD optimizations" ON)
+OPTION(GLM_FORCE_XYZW_ONLY "Only exposes x, y, z and w components" OFF)
+OPTION(GLM_FORCE_LEFT_HANDED "Force left handed coordinate system" OFF)
+OPTION(GLM_FORCE_DEPTH_ZERO_TO_ONE "Force the use of a clip space between 0 to 1" OFF)
+OPTION(GLM_FORCE_SIZE_T_LENGTH "length_t is a typedef of size_t, otherwise length_t is a typedef of int like GLSL defines it." OFF)
+OPTION(GLM_FORCE_UNRESTRICTED_GENTYPE "Removing genType restriction" OFF)
+OPTION(GLM_FORCE_SILENT_WARNINGS "Silent C++ warnings from language extensions" OFF)
+OPTION(GLM_FORCE_QUAT_DATA_WXYZ "Removing genType restriction" OFF)
+# GLM_FORCE_PRECISION_{ LOWP_FLOAT, MEDIUMP_FLOAT, HIGHP_FLOAT }
+
+ADD_COMPILE_DEFINITIONS(GLM_ENABLE_EXPERIMENTAL)
+
+IF( GLM_FORCE_MESSAGES )
+  ADD_COMPILE_DEFINITIONS(GLM_FORCE_MESSAGES)
+ENDIF()
+
+# g++ doesn't support force-inlined vardiac functions, see glm::to_string.
+# Technically this is a GLM error that should be reported
+
+IF( GLM_FORCE_INLINE )
+  ADD_COMPILE_DEFINITIONS(GLM_FORCE_INLINE)
+ENDIF()
+
+IF( GLM_FORCE_ALIGNED_GENTYPES )
+  ADD_COMPILE_DEFINITIONS(GLM_FORCE_ALIGNED_GENTYPES)
+ENDIF()
+
+IF( GLM_FORCE_DEFAULT_ALIGNED_GENTYPES )
+  ADD_COMPILE_DEFINITIONS(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
+ENDIF()
+
+IF( GLM_FORCE_INTRINSICS )
+  ADD_COMPILE_DEFINITIONS(GLM_FORCE_INTRINSICS)
+ENDIF()
+
+IF( GLM_FORCE_XYZW_ONLY )
+  ADD_COMPILE_DEFINITIONS(GLM_FORCE_XYZW_ONLY)
+ENDIF()
+
+IF( GLM_FORCE_LEFT_HANDED )
+  ADD_COMPILE_DEFINITIONS(GLM_FORCE_LEFT_HANDED)
+ENDIF()
+
+IF( GLM_FORCE_DEPTH_ZERO_TO_ONE )
+  ADD_COMPILE_DEFINITIONS(GLM_FORCE_DEPTH_ZERO_TO_ONE)
+ENDIF()
+
+IF( GLM_FORCE_SIZE_T_LENGTH )
+  ADD_COMPILE_DEFINITIONS(GLM_FORCE_SIZE_T_LENGTH)
+ENDIF()
+
+IF( GLM_FORCE_UNRESTRICTED_GENTYPE )
+  ADD_COMPILE_DEFINITIONS(GLM_FORCE_UNRESTRICTED_GENTYPE)
+ENDIF()
+
+IF( GLM_FORCE_SILENT_WARNINGS )
+  ADD_COMPILE_DEFINITIONS(GLM_FORCE_SILENT_WARNINGS)
+ENDIF()
+
+IF( GLM_FORCE_QUAT_DATA_WXYZ )
+  ADD_COMPILE_DEFINITIONS(GLM_FORCE_QUAT_DATA_WXYZ)
+ENDIF()
+
+################################################################################
+# Compilation
+################################################################################
+
+OPTION(ONE_LUA "Compile Lua core, libraries, and interpreter in a single file" OFF)
+OPTION(LUA_HPP "Compile Lua as cplusplus (note: this requires changing the extern field of lua.hpp" OFF)
+
+INCLUDE_DIRECTORIES( . )
+INCLUDE_DIRECTORIES( ./libs/glm/ )
+
+SET(LUA_PUBLIC_HDRS luaconf.h lua.h lauxlib.h lualib.h lua.hpp lglm.hpp )
+
+SET(SRC_LUA lua.c)
+SET(SRC_LUAC luac.c)
+SET(SRC_ONELUA onelua.c)
+SET(SRC_LUAGLM lglm.cpp)
+SET(SRC_LIB
+  lapi.c lauxlib.c lbaselib.c lcode.c lcorolib.c lctype.c ldblib.c ldebug.c
+  ldo.c ldump.c lfunc.c lgc.c linit.c liolib.c llex.c lmathlib.c lmem.c
+  loadlib.c lobject.c lopcodes.c loslib.c lparser.c lstate.c lstring.c
+  lstrlib.c ltable.c ltablib.c ltm.c lundump.c lutf8lib.c lvm.c lzio.c
+)
+
+IF( LUA_INCLUDE_TEST )
+  ADD_COMPILE_DEFINITIONS(LUA_USER_H="ltests.h")
+  SET(SRC_LIB ${SRC_LIB} ltests.c)
+ENDIF()
+
+IF( LUA_HPP )
+  MESSAGE(WARNING "Ensure extern \"C++\" is defined in lua.hpp")
+  SET_SOURCE_FILES_PROPERTIES(${SRC_LIB} ${SRC_LUA} ${SRC_LUAC} PROPERTIES LANGUAGE CXX )
+ELSE()
+  SET_SOURCE_FILES_PROPERTIES(${SRC_LIB} ${SRC_LUA} ${SRC_LUAC} PROPERTIES LANGUAGE C )
+  ADD_COMPILE_DEFINITIONS(LUA_C_LINKAGE) # Setup ${SRC_LUAGLM} linkage
+ENDIF()
+
+# Setup ${SRC_LUAGLM}
+SET_SOURCE_FILES_PROPERTIES(${SRC_ONELUA} ${SRC_LUAGLM} PROPERTIES LANGUAGE CXX )
+IF( NOT CMAKE_BUILD_TYPE STREQUAL Debug )
+  SET_SOURCE_FILES_PROPERTIES(${SRC_ONELUA} PROPERTIES COMPILE_FLAGS ${glm_nativeFlags})
+  SET_SOURCE_FILES_PROPERTIES(${SRC_LUAGLM} PROPERTIES COMPILE_FLAGS ${glm_nativeFlags})
+ENDIF()
+
+#######################################
+# Library Properties
+#######################################
+
+# @TODO: Ideally, the shared and static libraries would only be compiled once
+# with a  'shared' position independent object library. However, LUA_NO_DUMP,
+# LUA_NO_BYTECODE, and LUA_NO_PARSER are compile time options instead of
+# link-time options.
+
+# Create dynamic library (dll, so)
+IF( NOT LUA_INCLUDE_TEST AND NOT ONE_LUA )
+  ADD_LIBRARY(liblua SHARED ${SRC_LIB} ${SRC_LUAGLM} ${LUA_RC})
+
+  TARGET_LINK_LIBRARIES(liblua ${LIBS})
+  SET_TARGET_PROPERTIES(liblua PROPERTIES OUTPUT_NAME lua${LIB_LUA_VER} CLEAN_DIRECT_OUTPUT 1)
+  IF( LUA_BUILD_AS_DLL )
+    TARGET_COMPILE_DEFINITIONS(liblua PUBLIC LUA_BUILD_AS_DLL)
+  ENDIF()
+
+  IF( LUA_NO_DUMP )
+    TARGET_COMPILE_DEFINITIONS(liblua PUBLIC LUA_NO_DUMP)
+  ENDIF()
+
+  IF( LUA_NO_BYTECODE )
+    TARGET_COMPILE_DEFINITIONS(liblua PUBLIC LUA_NO_BYTECODE)
+  ENDIF()
+
+  IF( LUA_NO_PARSER )
+    TARGET_COMPILE_DEFINITIONS(liblua PUBLIC LUA_NO_PARSER)
+  ENDIF()
+ENDIF()
+
+# Create static library
+IF( NOT ONE_LUA )
+  ADD_LIBRARY(liblua_static STATIC ${SRC_LIB} ${SRC_LUAGLM})
+  TARGET_LINK_LIBRARIES(liblua_static ${LIBS})
+  SET_TARGET_PROPERTIES(liblua_static PROPERTIES OUTPUT_NAME lua${LIB_LUA_VER}_static CLEAN_DIRECT_OUTPUT 1)
+ENDIF()
+
+# Add extra rc files to the windows build
+IF( MSVC OR CYGWIN OR MSYS )
+  IF( NOT CMAKE_RC_COMPILER )
+    SET(CMAKE_RC_COMPILER windres.exe)
+  ENDIF()
+
+  SET(LUA_RC etc/lua.rc)
+ENDIF()
+
+#######################################
+# Stand-Alone Interpreter
+#######################################
+
+IF( ONE_LUA )
+  ADD_EXECUTABLE(lua ${SRC_ONELUA} ${LUA_RC})
+  TARGET_COMPILE_DEFINITIONS(lua PUBLIC MAKE_LUA)
+ELSE()
+  ADD_EXECUTABLE(lua ${SRC_LUA} ${LUA_RC})
+ENDIF()
+
+SET(LUA_PROGNAME CACHE STRING "Interpreter program name")
+SET(LUA_PROMPT CACHE STRING "Default prompt used by stand-alone Lua")
+SET(LUA_PROMPT2 CACHE STRING "Default continuation prompt used by stand-alone Lua")
+SET(LUA_MAXINPUT CACHE STRING "The maximum length for an input line in the stand-alone interpreter.")
+
+IF( LUA_PROGNAME )
+  TARGET_COMPILE_DEFINITIONS(lua PUBLIC LUA_PROGNAME="${LUA_PROGNAME}")
+ENDIF()
+
+IF( LUA_PROMPT )
+  # echo ${PROMPT}: "└> "
+  TARGET_COMPILE_DEFINITIONS(lua PUBLIC LUA_PROMPT="${LUA_PROMPT}")
+ENDIF()
+
+IF( LUA_PROMPT2 )
+  TARGET_COMPILE_DEFINITIONS(lua PUBLIC LUA_PROMPT2="${LUA_PROMPT2}")
+ENDIF()
+
+IF( LUA_MAXINPUT )
+  TARGET_COMPILE_DEFINITIONS(lua PUBLIC LUA_MAXINPUT=${LUA_MAXINPUT})
+ENDIF()
+
+# Ensure libreadline linkage
+IF( APPLE )
+  SET(SKIP_BUILD_RPATH TRUE)
+  SET(CMAKE_MACOSX_RPATH 1)
+
+  LIST(APPEND LUA_LIBS readline)
+  TARGET_COMPILE_DEFINITIONS(lua PUBLIC "LUA_USE_READLINE")
+ELSEIF( UNIX )
+  FIND_PACKAGE (Readline)
+  IF( READLINE_FOUND )
+    SET(CMAKE_REQUIRED_LIBRARIES "readline")
+
+    LIST(APPEND LUA_LIBS readline)
+    TARGET_COMPILE_DEFINITIONS(lua PUBLIC "LUA_USE_READLINE")
+  ENDIF()
+ENDIF()
+
+# Lua Libraries
+IF( ONE_LUA )
+  TARGET_LINK_LIBRARIES(lua ${LIBS} ${LUA_LIBS})
+ELSE()
+  IF( LUA_INCLUDE_TEST )
+    SET(interpretor_target liblua_static)
+  ELSE()
+    SET(interpretor_target liblua)
+  ENDIF()
+
+  TARGET_LINK_LIBRARIES(lua ${interpretor_target} ${LIBS} ${LUA_LIBS})
+ENDIF()
+
+#######################################
+# Compiler
+#######################################
+
+# Use static library.
+IF( NOT LUA_INCLUDE_TEST )
+  IF( ONE_LUA )
+    ADD_EXECUTABLE(luac ${SRC_ONELUA} ${LUA_RC})
+    TARGET_COMPILE_DEFINITIONS(luac PUBLIC MAKE_LUAC)
+  ELSE()
+    ADD_EXECUTABLE(luac ${SRC_LUAC} ${LUA_RC})
+    SET(compiler_target liblua_static)
+  ENDIF()
+
+  TARGET_LINK_LIBRARIES(luac ${compiler_target} ${LIBS})
+ENDIF()
+
+#######################################
+# Install
+#######################################
+
+# Don't allow installation if including test builds
+SET(SKIP_INSTALL SKIP_INSTALL_ALL OR LUA_INCLUDE_TEST)
+
+IF( NOT SKIP_INSTALL_HEADERS AND NOT ${SKIP_INSTALL} )
+  INSTALL(FILES ${LUA_PUBLIC_HDRS} DESTINATION "${CMAKE_INSTALL_INC_DIR}")
+ENDIF()
+
+IF( NOT SKIP_INSTALL_LIBRARIES AND NOT ${SKIP_INSTALL} )
+  IF( UNIX AND NOT APPLE )
+    SET_TARGET_PROPERTIES( lua PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_LIB_DIR}" )
+  ENDIF()
+
+  INSTALL(TARGETS lua ${interpretor_target} ${compiler_target}
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BIN_DIR}"
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIB_DIR}"
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIB_DIR}"
+  )
+ENDIF()
+
+#######################################
+# Testing
+#######################################
+
+IF( LUA_INCLUDE_TEST ) # ctest --verbose
+  MESSAGE("CTest enabled: make test ARGS=\"-V\" for verbose output")
+
+  ENABLE_TESTING()
+  ADD_TEST(NAME test_all
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/testes
+    COMMAND lua ${PROJECT_SOURCE_DIR}/testes/all.lua
+  )
+ENDIF()

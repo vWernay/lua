@@ -23,7 +23,7 @@
 #include "lfunc.h"
 #include "lgc.h"
 #include "lobject.h"
-#include "lgrit.h"
+#include "lglm_core.h"
 #include "lopcodes.h"
 #include "lstate.h"
 #include "lstring.h"
@@ -45,6 +45,15 @@
 #endif
 
 
+/*
+** Prevent GCC -- or attempt to -- from optimizing the indirect jumps by sharing
+** them between opcodes when using threaded code.
+*/
+#if defined(LUA_USE_JUMPTABLE) && __has_attribute(optimize)
+  #define LUA_JUMPTABLE_ATTRIBUTE __attribute((optimize("no-crossjumping", "no-gcse")))
+#else
+  #define LUA_JUMPTABLE_ATTRIBUTE
+#endif
 
 /* limit for table tag-method chains (to avoid infinite loops) */
 #define MAXTAGLOOP	2000
@@ -90,6 +99,7 @@
 */
 static int l_strton (const TValue *obj, TValue *result) {
   lua_assert(obj != result);
+  setivalue(result, 0);
   if (!cvt2num(obj))  /* is object not a string? */
     return 0;
   else
@@ -347,12 +357,8 @@ void luaV_finishset (lua_State *L, const TValue *t, TValue *key,
     }
     else {  /* not a table; check metamethod */
       tm = luaT_gettmbyobj(L, t, TM_NEWINDEX);
-      if (l_unlikely(notm(tm))) {
-        if (ttisvector(t))
-          luaG_runerror(L, "attempting to mutate a vector value");
-        else
-          luaG_typeerror(L, t, "index");
-      }
+      if (l_unlikely(notm(tm)))
+        luaG_typeerror(L, t, ttisvector(t) ? "mutate" : "index");
     }
     /* try the metamethod */
     if (ttisfunction(tm)) {
@@ -588,15 +594,17 @@ int luaV_equalobj (lua_State *L, const TValue *t1, const TValue *t2) {
     case LUA_VNUMINT: return (ivalue(t1) == ivalue(t2));
     case LUA_VNUMFLT: return luai_numeq(fltvalue(t1), fltvalue(t2));
     case LUA_VLIGHTUSERDATA: return pvalue(t1) == pvalue(t2);
-    case LUA_VVECTOR2: return V2_EQ(vvalue(t1), vvalue(t2));
-    case LUA_VVECTOR3: return V3_EQ(vvalue(t1), vvalue(t2));
-    case LUA_VQUAT: case LUA_VVECTOR4: return V4_EQ(vvalue(t1), vvalue(t2));
     case LUA_VLCF: return fvalue(t1) == fvalue(t2);
     case LUA_VSHRSTR: return eqshrstr(tsvalue(t1), tsvalue(t2));
 #if defined(GRIT_POWER_BLOB)
     case LUA_VBLOBSTR: return luaS_eqlngstr(tsvalue(t1), tsvalue(t2));
 #endif
     case LUA_VLNGSTR: return luaS_eqlngstr(tsvalue(t1), tsvalue(t2));
+    case LUA_VVECTOR2: return glmVec_equalObj(L, t1, t2, LUA_VVECTOR2);
+    case LUA_VVECTOR3: return glmVec_equalObj(L, t1, t2, LUA_VVECTOR3);
+    case LUA_VVECTOR4: return glmVec_equalObj(L, t1, t2, LUA_VVECTOR4);
+    case LUA_VQUAT: return glmVec_equalObj(L, t1, t2, LUA_VQUAT);
+    case LUA_VMATRIX: return glmMat_equalObj(L, t1, t2);
     case LUA_VUSERDATA: {
       if (uvalue(t1) == uvalue(t2)) return 1;
       else if (L == NULL) return 0;
@@ -698,7 +706,10 @@ void luaV_objlen (lua_State *L, StkId ra, const TValue *rb) {
     case LUA_VVECTOR3:
     case LUA_VVECTOR4:
     case LUA_VQUAT:
-      luaVec_objlen(L, ra, rb);
+      glmVec_objlen(rb, ra);
+      return;
+    case LUA_VMATRIX:
+      glmMat_objlen(rb, ra);
       return;
     case LUA_VTABLE: {
       Table *h = hvalue(rb);
@@ -1146,7 +1157,7 @@ void luaV_finishOp (lua_State *L) {
 #define vmbreak		break
 
 
-void luaV_execute (lua_State *L, CallInfo *ci) {
+LUA_JUMPTABLE_ATTRIBUTE void luaV_execute (lua_State *L, CallInfo *ci) {
   LClosure *cl;
   TValue *k;
   StkId base;
@@ -1238,13 +1249,15 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
         vmbreak;
       }
       vmcase(OP_GETTABUP) {
-        const TValue *slot;
         TValue *upval = cl->upvals[GETARG_B(i)]->v;
         TValue *rc = KC(i);
-        if (ttisvector(upval))  /* key must be a string */
-          Protect(luaVec_getstring(L, upval, svalue(rc), rc, ra));
+        TString *key = tsvalue(rc);  /* key must be a string */
+        if (ttisvector(upval)) {
+          if (l_unlikely(!glmVec_fastgets(upval, key, ra)))
+            Protect(glmVec_get(L, upval, rc, ra));
+        }
         else {
-          TString *key = tsvalue(rc);  /* key must be a string */
+          const TValue *slot;
           if (luaV_fastget(L, upval, key, slot, luaH_getshortstr)) {
             setobj2s(L, ra, slot);
           }
@@ -1256,21 +1269,17 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
       vmcase(OP_GETTABLE) {
         TValue *rb = vRB(i);
         TValue *rc = vRC(i);
-        if (ttisvector(rb)) {
-          if (ttisinteger(rc))
-            Protect(luaVec_getint(L, rb, ivalue(rc), rc, ra));
-          else if (ttisstring(rc))
-            Protect(luaVec_getstring(L, rb, svalue(rc), rc, ra));
-          /* Following ltable.c: TValue *luaH_get() */
-          else if (ttisfloat(rc)) {
-            lua_Integer fInd;
-            if (luaV_flttointeger(fltvalue(rc), &fInd, F2Ieq)) /* index is an integral? */
-              Protect(luaVec_getint(L, rb, fInd, rc, ra));
-            else
-              luaG_runerror(L, "Attempting to index unknown value");
-          }
+        if (ttisvector(rb)) {  /* fast track for integers? */
+          if (ttisinteger(rc) && l_likely(glmVec_fastgeti(rb, ivalue(rc), ra))) { /* nothing */ }
+          else if (ttisstring(rc) && l_likely(glmVec_fastgets(rb, tsvalue(rc), ra))) { /* nothing */ }
           else {
-            luaG_runerror(L, "Attempting to index unknown value");
+            Protect(glmVec_get(L, rb, rc, ra));
+          }
+        }
+        else if (ttismatrix(rb)) {  /* fast track for integers? */
+          if (ttisinteger(rc) && glmMat_fastgeti(rb, ivalue(rc), ra)) { /* nothing */ }
+          else {
+            Protect(glmMat_get(L, rb, rc, ra));
           }
         }
         else {
@@ -1289,15 +1298,13 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
       vmcase(OP_GETI) {
         TValue *rb = vRB(i);
         int c = GETARG_C(i);
-        if (ttisvector(rb)) {
-          if (c >= 1 && c <= luaVec_dimensions(ttypetag(rb))) {
-            setfltvalue(s2v(ra), cast_num((&(val_(rb).f4.x))[c - 1]));
-          }
-          else {
-            TValue key;
-            setivalue(&key, c);
-            luaVec_getint(L, rb, c, &key, ra);
-          }
+        if (ttisvector(rb)) {  /* fast track for integers? */
+          if (l_unlikely(!glmVec_fastgeti(rb, c, ra)))
+            Protect(glmVec_geti(L, rb, c, ra));
+        }
+        else if (ttismatrix(rb)) {
+          if (l_unlikely(!glmMat_fastgeti(rb, c, ra)))
+            Protect(glmMat_geti(L, rb, c, ra));
         }
         else {
           const TValue *slot;
@@ -1315,11 +1322,13 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
       vmcase(OP_GETFIELD) {
         TValue *rb = vRB(i);
         TValue *rc = KC(i);
-        if (ttisvector(rb))
-          Protect(luaVec_getstring(L, rb, svalue(rc), rc, ra));
+        TString *key = tsvalue(rc);  /* key must be a string */
+        if (ttisvector(rb)) {
+          if (l_unlikely(!glmVec_fastgets(rb, key, ra)))
+            Protect(glmVec_get(L, rb, rc, ra));
+        }
         else {
           const TValue *slot;
-          TString *key = tsvalue(rc);  /* key must be a string */
           if (luaV_fastget(L, rb, key, slot, luaH_getshortstr)) {
             setobj2s(L, ra, slot);
           }
@@ -1329,43 +1338,55 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
         vmbreak;
       }
       vmcase(OP_SETTABUP) {
-        const TValue *slot;
         TValue *upval = cl->upvals[GETARG_A(i)]->v;
         TValue *rb = KB(i);
         TValue *rc = RKC(i);
-        TString *key = tsvalue(rb);  /* key must be a string */
-        if (luaV_fastget(L, upval, key, slot, luaH_getshortstr)) {
-          luaV_finishfastset(L, upval, slot, rc);
+        if (ttismatrix(upval))
+          Protect(glmMat_set(L, upval, rb, rc));
+        else {
+          const TValue *slot;
+          TString *key = tsvalue(rb);  /* key must be a string */
+          if (luaV_fastget(L, upval, key, slot, luaH_getshortstr)) {
+            luaV_finishfastset(L, upval, slot, rc);
+          }
+          else
+            Protect(luaV_finishset(L, upval, rb, rc, slot));
         }
-        else
-          Protect(luaV_finishset(L, upval, rb, rc, slot));
         vmbreak;
       }
       vmcase(OP_SETTABLE) {
-        const TValue *slot;
         TValue *rb = vRB(i);  /* key (table is in 'ra') */
         TValue *rc = RKC(i);  /* value */
-        lua_Unsigned n;
-        if (ttisinteger(rb)  /* fast track for integers? */
-            ? (cast_void(n = ivalue(rb)), luaV_fastgeti(L, s2v(ra), n, slot))
-            : luaV_fastget(L, s2v(ra), rb, slot, luaH_get)) {
-          luaV_finishfastset(L, s2v(ra), slot, rc);
+        if (ttismatrix(s2v(ra)))
+          Protect(glmMat_set(L, s2v(ra), rb, rc));
+        else {
+          const TValue *slot;
+          lua_Unsigned n;
+          if (ttisinteger(rb)  /* fast track for integers? */
+              ? (cast_void(n = ivalue(rb)), luaV_fastgeti(L, s2v(ra), n, slot))
+              : luaV_fastget(L, s2v(ra), rb, slot, luaH_get)) {
+            luaV_finishfastset(L, s2v(ra), slot, rc);
+          }
+          else
+            Protect(luaV_finishset(L, s2v(ra), rb, rc, slot));
         }
-        else
-          Protect(luaV_finishset(L, s2v(ra), rb, rc, slot));
         vmbreak;
       }
       vmcase(OP_SETI) {
-        const TValue *slot;
         int c = GETARG_B(i);
         TValue *rc = RKC(i);
-        if (luaV_fastgeti(L, s2v(ra), c, slot)) {
-          luaV_finishfastset(L, s2v(ra), slot, rc);
-        }
+        if (ttismatrix(s2v(ra)))
+          Protect(glmMat_seti(L, s2v(ra), c, rc));
         else {
-          TValue key;
-          setivalue(&key, c);
-          Protect(luaV_finishset(L, s2v(ra), &key, rc, slot));
+          const TValue *slot;
+          if (luaV_fastgeti(L, s2v(ra), c, slot)) {
+            luaV_finishfastset(L, s2v(ra), slot, rc);
+          }
+          else {
+            TValue key;
+            setivalue(&key, c);
+            Protect(luaV_finishset(L, s2v(ra), &key, rc, slot));
+          }
         }
         vmbreak;
       }
@@ -1402,12 +1423,14 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
       vmcase(OP_SELF) {
         TValue *rb = vRB(i);
         TValue *rc = RKC(i);
+        TString *key = tsvalue(rc);  /* key must be a string */
         setobj2s(L, ra + 1, rb);
-        if (ttisvector(rb))  /* key must be a string */
-          Protect(luaVec_getstring(L, rb, svalue(rc), rc, ra));
+        if (ttisvector(rb)) {  /* key must be a string */
+          if (l_unlikely(!glmVec_fastgets(rb, key, ra)))
+            Protect(glmVec_get(L, rb, rc, ra));
+        }
         else {
           const TValue *slot;
-          TString *key = tsvalue(rc);  /* key must be a string */
           if (luaV_fastget(L, rb, key, slot, luaH_getstr)) {
             setobj2s(L, ra, slot);
           }

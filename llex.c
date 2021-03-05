@@ -29,7 +29,7 @@
 
 
 
-#define next(ls)	(ls->current = zgetc(ls->z))
+#define ls_next(ls)	(ls->current = zgetc(ls->z))
 
 
 
@@ -52,7 +52,7 @@ static const char *const luaX_tokens [] = {
 };
 
 
-#define save_and_next(ls) (save(ls, ls->current), next(ls))
+#define save_and_next(ls) (save(ls, ls->current), ls_next(ls))
 
 
 static l_noret lexerror (LexState *ls, const char *msg, int token);
@@ -167,9 +167,9 @@ TString *luaX_newstring (LexState *ls, const char *str, size_t l) {
 static void inclinenumber (LexState *ls) {
   int old = ls->current;
   lua_assert(currIsNewline(ls));
-  next(ls);  /* skip '\n' or '\r' */
+  ls_next(ls);  /* skip '\n' or '\r' */
   if (currIsNewline(ls) && ls->current != old)
-    next(ls);  /* skip '\n\r' or '\r\n' */
+    ls_next(ls);  /* skip '\n\r' or '\r\n' */
   if (++ls->linenumber >= MAX_INT)
     lexerror(ls, "chunk has too many lines", 0);
 }
@@ -201,7 +201,7 @@ void luaX_setinput (lua_State *L, LexState *ls, ZIO *z, TString *source,
 
 static int check_next1 (LexState *ls, int c) {
   if (ls->current == c) {
-    next(ls);
+    ls_next(ls);
     return 1;
   }
   else return 0;
@@ -317,7 +317,7 @@ static void read_long_string (LexState *ls, SemInfo *seminfo, size_t sep) {
       }
       default: {
         if (seminfo) save_and_next(ls);
-        else next(ls);
+        else ls_next(ls);
       }
     }
   } endloop:
@@ -363,7 +363,7 @@ static unsigned long readutf8esc (LexState *ls) {
     r = (r << 4) + luaO_hexavalue(ls->current);
   }
   esccheck(ls, ls->current == '}', "missing '}'");
-  next(ls);  /* skip '}' */
+  ls_next(ls);  /* skip '}' */
   luaZ_buffremove(ls->buff, i);  /* remove saved chars from buffer */
   return r;
 }
@@ -421,10 +421,10 @@ static void read_string (LexState *ls, int del, SemInfo *seminfo) {
           case EOZ: goto no_save;  /* will raise an error next loop */
           case 'z': {  /* zap following span of spaces */
             luaZ_buffremove(ls->buff, 1);  /* remove '\\' */
-            next(ls);  /* skip the 'z' */
+            ls_next(ls);  /* skip the 'z' */
             while (lisspace(ls->current)) {
               if (currIsNewline(ls)) inclinenumber(ls);
-              else next(ls);
+              else ls_next(ls);
             }
             goto no_save;
           }
@@ -435,7 +435,7 @@ static void read_string (LexState *ls, int del, SemInfo *seminfo) {
           }
         }
        read_save:
-         next(ls);
+         ls_next(ls);
          /* go through */
        only_save:
          luaZ_buffremove(ls->buff, 1);  /* remove '\\' */
@@ -462,17 +462,17 @@ static int llex (LexState *ls, SemInfo *seminfo) {
         break;
       }
       case ' ': case '\f': case '\t': case '\v': {  /* spaces */
-        next(ls);
+        ls_next(ls);
         break;
       }
       case '-': {  /* '-' or '--' (comment) */
-        next(ls);
+        ls_next(ls);
 #if defined(GRIT_POWER_COMPOUND)
         if (check_next1(ls, '=')) return TK_MINUSEQ;
 #endif
         if (ls->current != '-') return '-';
         /* else is a comment */
-        next(ls);
+        ls_next(ls);
         if (ls->current == '[') {  /* long comment? */
           size_t sep = skip_sep(ls);
           luaZ_resetbuffer(ls->buff);  /* 'skip_sep' may dirty the buffer */
@@ -484,7 +484,7 @@ static int llex (LexState *ls, SemInfo *seminfo) {
         }
         /* else short comment */
         while (!currIsNewline(ls) && ls->current != EOZ)
-          next(ls);  /* skip until end of line (or end of file) */
+          ls_next(ls);  /* skip until end of line (or end of file) */
         break;
       }
       case '[': {  /* long string or simply '[' */
@@ -498,12 +498,12 @@ static int llex (LexState *ls, SemInfo *seminfo) {
         return '[';
       }
       case '=': {
-        next(ls);
+        ls_next(ls);
         if (check_next1(ls, '=')) return TK_EQ;  /* '==' */
         else return '=';
       }
       case '<': {
-        next(ls);
+        ls_next(ls);
         if (check_next1(ls, '=')) return TK_LE;  /* '<=' */
 #if defined(GRIT_POWER_COMPOUND)
         else if (check_next1(ls, '<')) {
@@ -518,7 +518,7 @@ static int llex (LexState *ls, SemInfo *seminfo) {
         else return '<';
       }
       case '>': {
-        next(ls);
+        ls_next(ls);
         if (check_next1(ls, '=')) return TK_GE;  /* '>=' */
 #if defined(GRIT_POWER_COMPOUND)
         else if (check_next1(ls, '>')) {
@@ -533,7 +533,7 @@ static int llex (LexState *ls, SemInfo *seminfo) {
         else return '>';
       }
       case '/': {
-        next(ls);
+        ls_next(ls);
         if (check_next1(ls, '/')) return TK_IDIV;  /* '//' */
 #if defined(GRIT_POWER_COMPOUND)
         else if (check_next1(ls, '=')) return TK_DIVEQ;
@@ -542,12 +542,12 @@ static int llex (LexState *ls, SemInfo *seminfo) {
 #if defined(GRIT_POWER_CCOMMENT)
           int last = 0;
           if (ls->current == '*') { /* long comment */
-            next(ls);
+            ls_next(ls);
             while (ls->current != EOZ) {
               if (last == '*' && ls->current == '/')
                 break;
               last = ls->current;
-              next(ls); /* skip until closing marker (or end of file) */
+              ls_next(ls); /* skip until closing marker (or end of file) */
             }
             if (ls->current == EOZ) {
               const char *msg = luaO_pushfstring(ls->L, "unfinished long comment (starting at line %d)", ls->linenumber);
@@ -555,7 +555,7 @@ static int llex (LexState *ls, SemInfo *seminfo) {
               break; /* to avoid warnings */
             }
             else
-              next(ls);
+              ls_next(ls);
             break;
           }
 #endif
@@ -564,38 +564,38 @@ static int llex (LexState *ls, SemInfo *seminfo) {
       }
 #if defined(GRIT_POWER_COMPOUND)
       case '+': {
-        next(ls);
+        ls_next(ls);
         if (check_next1(ls, '=')) return TK_PLUSEQ;
         else return '+';
       }
       case '*': {
-        next(ls);
+        ls_next(ls);
         if (check_next1(ls, '=')) return TK_MULTEQ;
         else return '*';
       }
       case '&': {
-        next(ls);
+        ls_next(ls);
         if (check_next1(ls, '=')) return TK_BANDEQ;
         else return '&';
       }
       case '|': {
-        next(ls);
+        ls_next(ls);
         if (check_next1(ls, '=')) return TK_BOREQ;
         else return '|';
       }
       case '^': {
-        next(ls);
+        ls_next(ls);
         if (check_next1(ls, '=')) return TK_BXOREQ;
         else return '^';
       }
 #endif
       case '~': {
-        next(ls);
+        ls_next(ls);
         if (check_next1(ls, '=')) return TK_NE;  /* '~=' */
         else return '~';
       }
       case ':': {
-        next(ls);
+        ls_next(ls);
         if (check_next1(ls, ':')) return TK_DBCOLON;  /* '::' */
         else return ':';
       }
@@ -643,7 +643,7 @@ static int llex (LexState *ls, SemInfo *seminfo) {
         }
         else {  /* single-char tokens ('+', '*', '%', '{', '}', ...) */
           int c = ls->current;
-          next(ls);
+          ls_next(ls);
           return c;
         }
       }

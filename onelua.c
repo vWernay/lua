@@ -1,6 +1,9 @@
 /*
 * one.c -- Lua core, libraries, and interpreter in a single file
 */
+#if !defined(__cplusplus)
+  #error "onelua must be compiled with cplusplus for GLM integration"
+#endif
 
 /* default is to build the full interpreter */
 #ifndef MAKE_LIB
@@ -74,14 +77,13 @@
 #include "ltm.c"
 #include "lstring.c"
 #include "ltable.c"
-#include "lgrit.c"
 #include "ldo.c"
 #include "lvm.c"
 #include "lapi.c"
+#include "lglm.cpp"
 
 /* auxiliary library -- used by all */
 #include "lauxlib.c"
-#include "lgrit_math.c"
 
 /* standard library  -- not used by luac */
 #ifndef MAKE_LUAC

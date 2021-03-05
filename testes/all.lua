@@ -3,7 +3,7 @@
 -- See Copyright Notice at the end of this file
 
 
-local version = "CfxLua 5.4"
+local version = "LuaGLM 5.4"
 if _VERSION ~= version then
   io.stderr:write("This test suite is for ", version,
                   ", not for ", _VERSION, "\nExiting tests")
@@ -189,6 +189,7 @@ dofile('coroutine.lua')
 dofile('goto.lua', true)
 dofile('errors.lua')
 dofile('math.lua')
+--dofile('glm.lua')
 dofile('sort.lua', true)
 dofile('bitwise.lua')
 assert(dofile('verybig.lua', true) == 10); collectgarbage()

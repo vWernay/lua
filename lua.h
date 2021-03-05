@@ -23,9 +23,9 @@
 #define LUA_VERSION_NUM			504
 #define LUA_VERSION_RELEASE_NUM		(LUA_VERSION_NUM * 100 + 0)
 
-#define LUA_VERSION	"CfxLua " LUA_VERSION_MAJOR "." LUA_VERSION_MINOR
+#define LUA_VERSION	"LuaGLM " LUA_VERSION_MAJOR "." LUA_VERSION_MINOR
 #define LUA_RELEASE	LUA_VERSION "." LUA_VERSION_RELEASE
-#define LUA_COPYRIGHT	LUA_RELEASE "  Copyright (C) 1994-2021 Lua.org, PUC-Rio, the Grit Game Engine project, and the CitizenFX project"
+#define LUA_COPYRIGHT	LUA_RELEASE "  Copyright (C) 1994-2021 Lua.org, PUC-Rio"
 #define LUA_AUTHORS	"R. Ierusalimschy, L. H. de Figueiredo, W. Celes"
 
 
@@ -72,8 +72,23 @@ typedef struct lua_State lua_State;
 #define LUA_TFUNCTION		7
 #define LUA_TUSERDATA		8
 #define LUA_TTHREAD		9
+#define LUA_TMATRIX		10
 
-#define LUA_NUMTYPES		10
+#define LUA_NUMTYPES		11
+
+/*
+** vector variants exposed in the library to simplify the internal/external
+** translation between vector-types. (gritLua compatibility)
+**
+** NOTE: LUA_VVECTOR1 is the implicit vector-type (not enough variant bits) that
+** is functionally equivalent to a LUA_TNUMBER. Therefore, ensure LUA_VVECTOR1
+** is be equivalent to LUA_VNUMFLT internally.
+*/
+#define LUA_VVECTOR1 (LUA_TNUMBER | (1 << 4))
+#define LUA_VVECTOR2 (LUA_TVECTOR | (0 << 4))
+#define LUA_VVECTOR3 (LUA_TVECTOR | (1 << 4))
+#define LUA_VVECTOR4 (LUA_TVECTOR | (2 << 4))
+#define LUA_VQUAT    (LUA_TVECTOR | (3 << 4))
 
 
 
@@ -400,6 +415,8 @@ LUA_API void (lua_closeslot) (lua_State *L, int idx);
 
 #define lua_isfunction(L,n)	(lua_type(L, (n)) == LUA_TFUNCTION)
 #define lua_istable(L,n)	(lua_type(L, (n)) == LUA_TTABLE)
+#define lua_ismatrix_t(L, n) (lua_type(L, (n)) == LUA_TMATRIX)
+#define lua_isvector_t(L, n) (lua_type(L, (n)) == LUA_TVECTOR)
 #define lua_islightuserdata(L,n)	(lua_type(L, (n)) == LUA_TLIGHTUSERDATA)
 #define lua_isnil(L,n)		(lua_type(L, (n)) == LUA_TNIL)
 #define lua_isboolean(L,n)	(lua_type(L, (n)) == LUA_TBOOLEAN)
@@ -520,6 +537,13 @@ struct lua_Debug {
 
 
 /******************************************************************************
+* LuaGLM
+* Copyright (C) 2020 - gottfriedleibniz
+\******************************************************************************
+* OpenGL Mathematics (GLM)
+* Copyright (C) 2005 - G-Truc Creation
+\******************************************************************************
+* Lua
 * Copyright (C) 1994-2021 Lua.org, PUC-Rio.
 *
 * Permission is hereby granted, free of charge, to any person obtaining

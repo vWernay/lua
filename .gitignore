@@ -11,6 +11,7 @@ luac
 testes/time.txt
 testes/time-debug.txt
 testes/libs/all
+testes/.lua_history
 manual/manual.html
 temp
 
@@ -34,6 +35,7 @@ lua54.dll
 *.map
 *.sym
 *.a
+*.dll
 
 # CMake
 CMakeFiles/
@@ -41,6 +43,7 @@ Testing/
 CMakeCache.txt
 CTestTestfile.cmake
 cmake_install.cmake
+CMakeSettings.json
 
 # Build results
 [Dd]ebug/
@@ -66,15 +69,3 @@ ipch/
 *.vcxproj
 *.sln
 *.filters
-
-# node modules
-node_modules/
-
-# build system
-!tools/build/
-
-# private configs
-privates_config.lua
-
-# caches
-/caches/

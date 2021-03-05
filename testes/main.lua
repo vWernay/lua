@@ -367,7 +367,7 @@ checkout('alo')
 -- bug in 5.2 beta (extra \0 after version line)
 RUN([[lua -v  -e"print'hello'" > %s]], out)
 t = getoutput()
-assert(string.find(t, "and the CitizenFX project\nhello"))
+assert(string.find(t, "PUC%-Rio\nhello"))
 
 
 -- testing os.exit

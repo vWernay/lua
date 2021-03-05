@@ -24,7 +24,6 @@
 #include "ldo.h"
 #include "lmem.h"
 #include "lobject.h"
-#include "lgrit.h"
 #include "lstate.h"
 #include "lstring.h"
 #include "lvm.h"
@@ -347,7 +346,7 @@ int luaO_utf8esc (char *buff, unsigned long x) {
 ** the dot, an exponent letter, an exponent sign, 5 exponent digits,
 ** and a final '\0', adding to 43.)
 */
-#define MAXNUMBER2STR	LUAI_MAXVECTORSTR
+#define MAXNUMBER2STR	44
 
 
 /*
@@ -355,11 +354,9 @@ int luaO_utf8esc (char *buff, unsigned long x) {
 */
 static int tostringbuff (TValue *obj, char *buff) {
   int len;
-  lua_assert(ttisnumber(obj) || ttisvector(obj));
+  lua_assert(ttisnumber(obj));
   if (ttisinteger(obj))
     len = lua_integer2str(buff, MAXNUMBER2STR, ivalue(obj));
-  else if (ttisvector(obj))
-    len = luaVec_tostr(buff, MAXNUMBER2STR, vvalue(obj), ttypetag(obj));
   else {
     len = lua_number2str(buff, MAXNUMBER2STR, fltvalue(obj));
     if (buff[strspn(buff, "-0123456789")] == '\0') {  /* looks like an int? */

@@ -25,7 +25,6 @@
 #include "lua.h"
 
 #include "lauxlib.h"
-#include "lgrit.h"
 #include "lgrit_lib.h"
 
 
@@ -897,7 +896,8 @@ LUALIB_API const char *luaL_tolstring (lua_State *L, int idx, size_t *len) {
         break;
       }
       case LUA_TVECTOR:
-        lua_pushvecstring(L, idx);
+      case LUA_TMATRIX:
+        glm_pushstring(L, idx);
         break;
       case LUA_TSTRING:
         lua_pushvalue(L, idx);

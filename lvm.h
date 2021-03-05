@@ -10,12 +10,11 @@
 
 #include "ldo.h"
 #include "lobject.h"
-#include "lgrit.h"
 #include "ltm.h"
 
 
 #if !defined(LUA_NOCVTN2S)
-#define cvt2str(o)	(ttisnumber(o) || ttisvector(o))
+#define cvt2str(o)	ttisnumber(o)
 #else
 #define cvt2str(o)	0	/* no conversion from numbers to strings */
 #endif
