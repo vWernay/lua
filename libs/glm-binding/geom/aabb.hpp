@@ -685,15 +685,14 @@ namespace glm {
   /// </summary>
   template<glm::length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool intersects(const AABB<L, T, Q> &aabb, const Line<L, T, Q> &line, T &dNear, T &dFar) {
-    dNear = -std::numeric_limits<T>::infinity();
-    dFar = std::numeric_limits<T>::infinity();
     return intersectLineAABB(aabb, line, dNear, dFar);
   }
 
   template<glm::length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool intersects(const AABB<L, T, Q> &aabb, const Line<L, T, Q> &line) {
-    T near, far;
-    return intersects(aabb, line, near, far);
+    T dNear = -std::numeric_limits<T>::infinity();
+    T dFar = std::numeric_limits<T>::infinity();
+    return intersects(aabb, line, dNear, dFar);
   }
 
   /// <summary>
@@ -701,15 +700,14 @@ namespace glm {
   /// </summary>
   template<glm::length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool intersects(const AABB<L, T, Q> &aabb, const Ray<L, T, Q> &ray, T &dNear, T &dFar) {
-    dNear = T(0);
-    dFar = std::numeric_limits<T>::infinity();
     return intersectLineAABB(aabb, ray.toLine(), dNear, dFar);
   }
 
   template<glm::length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool intersects(const AABB<L, T, Q> &aabb, const Ray<L, T, Q> &ray) {
-    T near, far;
-    return intersects(aabb, ray, near, far);
+    T dNear = T(0);
+    T dFar = std::numeric_limits<T>::infinity();
+    return intersects(aabb, ray, dNear, dFar);
   }
 
   /// <summary>

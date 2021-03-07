@@ -40,15 +40,30 @@
   LUA_MLM_END
 
 /*
-** Generic intersects definition: returning the point of intersection and
-** relative location along each object.
+** Generic intersects definition where the line/ray/segment is the first
+** parameter being tested against the structure passed as the second parameter.
+** Returning the point of intersection and relative location along each object.
 */
-#define GEOM_INTERSECTS(LB, F, A, B)      \
-  LUA_MLM_BEGIN                           \
-  const A::type a = A::Next(LB);          \
-  const B::type b = B::Next(LB);          \
-  A::value_type t(0), t2(0);              \
-  TRAITS_PUSH(LB, F(a, b, t, t2), t, t2); \
+#define GEOM_INTERSECTS(LB, F, A, B)    \
+  LUA_MLM_BEGIN                         \
+  const A::type a = A::Next(LB);        \
+  const B::type b = B::Next(LB);        \
+  A::Near::type n = A::Near::Next(LB);  \
+  A::Far::type f = A::Far::Next(LB);    \
+  TRAITS_PUSH(LB, F(a, b, n, f), n, f); \
+  LUA_MLM_END
+
+/*
+** The line/ray/segment is the second parameter being tested against the
+** structure passed as the first parameter.
+*/
+#define GEOM_INTERSECTS_RH(LB, F, A, B) \
+  LUA_MLM_BEGIN                         \
+  const A::type a = A::Next(LB);        \
+  const B::type b = B::Next(LB);        \
+  B::Near::type n = B::Near::Next(LB);  \
+  B::Far::type f = B::Far::Next(LB);    \
+  TRAITS_PUSH(LB, F(a, b, n, f), n, f); \
   LUA_MLM_END
 
 /*
@@ -64,6 +79,25 @@
   TRAITS_PUSH(LB, outMin, outMax);    \
   LUA_MLM_END
 
+/// <summary>
+/// Relative position along a line, segment, ray for casting.
+/// </summary>
+template<bool isNear, bool isRelative, typename T = glm_Float>
+struct gLuaRelative : gLuaTrait<T> {
+  static GLM_CONSTEXPR const char *Label() { return "RelativePosition"; }
+  LUA_TRAIT_QUALIFIER bool Is(const gLuaBase &LB, int idx) { return lua_isnoneornil(LB.L, idx) || gLuaTrait<T>::Is(LB, idx); }
+  LUA_TRAIT_QUALIFIER T Next(gLuaBase &LB) {
+    if (lua_isnoneornil(LB.L, LB.idx)) {
+      LB.idx++;  // Skip the argument
+      GLM_IF_CONSTEXPR(isNear)
+        return isRelative ? T(0) : -std::numeric_limits<T>::infinity();
+      return isRelative ? T(1) : std::numeric_limits<T>::infinity();
+    }
+
+    return gLuaTrait<T>::Next(LB);
+  }
+};
+
 template<glm::length_t L = 3, typename T = glm_Float>
 struct gLuaAABB : gLuaTraitCommon<T, glm::AABB<L, T>> {
   using Point = gLuaTrait<typename glm::AABB<L, T>::Point>;
@@ -78,6 +112,8 @@ struct gLuaAABB : gLuaTraitCommon<T, glm::AABB<L, T>> {
 template<glm::length_t L = 3, typename T = glm_Float>
 struct gLuaLine : gLuaTraitCommon<T, glm::Line<L, T>> {
   using Point = gLuaTrait<typename glm::Line<L, T>::Point>;
+  using Near = gLuaRelative<true, false, T>;
+  using Far = gLuaRelative<false, false, T>;
 
   static GLM_CONSTEXPR const char *Label() { return "Line"; }
   LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::Line<L, T> zero() { return glm::Line<L, T>(T(0)); }
@@ -89,6 +125,8 @@ struct gLuaLine : gLuaTraitCommon<T, glm::Line<L, T>> {
 template<glm::length_t L = 3, typename T = glm_Float>
 struct gLuaSegment : gLuaTraitCommon<T, glm::LineSegment<L, T>> {
   using Point = gLuaTrait<typename glm::LineSegment<L, T>::Point>;
+  using Near = gLuaRelative<true, true, T>;
+  using Far = gLuaRelative<false, true, T>;
 
   static GLM_CONSTEXPR const char *Label() { return "Segment"; }
   LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::LineSegment<L, T> zero() { return glm::LineSegment<L, T>(T(0)); }
@@ -100,6 +138,8 @@ struct gLuaSegment : gLuaTraitCommon<T, glm::LineSegment<L, T>> {
 template<glm::length_t L = 3, typename T = glm_Float>
 struct gLuaRay : gLuaTraitCommon<T, glm::Ray<L, T>> {
   using Point = gLuaTrait<typename glm::Ray<L, T>::Point>;
+  using Near = gLuaRelative<true, true, T>;
+  using Far = gLuaRelative<false, false, T>;
 
   static GLM_CONSTEXPR const char *Label() { return "Ray"; }
   LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::Ray<L, T> zero() { return glm::Ray<L, T>(T(0)); }
@@ -221,9 +261,9 @@ TRAITS_DEFN(aabb_enclosePolygon, glm::enclose, gLuaAABB<>, gLuaPolygon<>)
 TRAITS_DEFN(aabb_intersectAABB, glm::intersects, gLuaAABB<>, gLuaAABB<>)
 TRAITS_DEFN(aabb_intersectSphere, glm::intersects, gLuaAABB<>, gLuaSphere<>)
 TRAITS_DEFN(aabb_intersectPlane, glm::intersects, gLuaAABB<>, gLuaPlane<>)
-TRAITS_LAYOUT_DEFN(aabb_intersectLine, glm::intersects, GEOM_INTERSECTS, gLuaAABB<>, gLuaLine<>)
-TRAITS_LAYOUT_DEFN(aabb_intersectSegment, glm::intersects, GEOM_INTERSECTS, gLuaAABB<>, gLuaSegment<>)
-TRAITS_LAYOUT_DEFN(aabb_intersectRay, glm::intersects, GEOM_INTERSECTS, gLuaAABB<>, gLuaRay<>)
+TRAITS_LAYOUT_DEFN(aabb_intersectLine, glm::intersects, GEOM_INTERSECTS_RH, gLuaAABB<>, gLuaLine<>)
+TRAITS_LAYOUT_DEFN(aabb_intersectSegment, glm::intersects, GEOM_INTERSECTS_RH, gLuaAABB<>, gLuaSegment<>)
+TRAITS_LAYOUT_DEFN(aabb_intersectRay, glm::intersects, GEOM_INTERSECTS_RH, gLuaAABB<>, gLuaRay<>)
 TRAITS_LAYOUT_DEFN(aabb_projectToAxis, glm::projectToAxis, GEOM_PROJECTION, gLuaAABB<>, gLuaVec3<>)
 
 static const luaL_Reg luaglm_aabblib[] = {
@@ -561,9 +601,9 @@ TRAITS_DEFN(sphere_closestPoint, glm::closestPoint, gLuaSphere<>, gLuaVec3<>)
 TRAITS_DEFN(sphere_intersectSphere, glm::intersects, gLuaSphere<>, gLuaSphere<>)
 TRAITS_DEFN(sphere_intersectAABB, glm::intersects, gLuaSphere<>, gLuaAABB<>)
 TRAITS_DEFN(sphere_intersectPlane, glm::intersects, gLuaSphere<>, gLuaPlane<>)
-TRAITS_LAYOUT_DEFN(sphere_intersectLine, glm::intersects, GEOM_INTERSECTS, gLuaSphere<>, gLuaLine<>)
-TRAITS_LAYOUT_DEFN(sphere_intersectSegment, glm::intersects, GEOM_INTERSECTS, gLuaSphere<>, gLuaSegment<>)
-TRAITS_LAYOUT_DEFN(sphere_intersectRay, glm::intersects, GEOM_INTERSECTS, gLuaSphere<>, gLuaRay<>)
+TRAITS_LAYOUT_DEFN(sphere_intersectLine, glm::intersects, GEOM_INTERSECTS_RH, gLuaSphere<>, gLuaLine<>)
+TRAITS_LAYOUT_DEFN(sphere_intersectSegment, glm::intersects, GEOM_INTERSECTS_RH, gLuaSphere<>, gLuaSegment<>)
+TRAITS_LAYOUT_DEFN(sphere_intersectRay, glm::intersects, GEOM_INTERSECTS_RH, gLuaSphere<>, gLuaRay<>)
 TRAITS_DEFN(sphere_enclose, glm::enclose, gLuaSphere<>, gLuaVec3<>)
 TRAITS_DEFN(sphere_encloseSegment, glm::enclose, gLuaSphere<>, gLuaSegment<>)
 TRAITS_DEFN(sphere_encloseSphere, glm::enclose, gLuaSphere<>, gLuaSphere<>)

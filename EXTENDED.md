@@ -1222,16 +1222,18 @@ aabbMin,aabbMax = aabb.enclosePolygon(..., polygon --[[ polygon ]])
 ### aabb.intersect
 ```lua
 -- Functions to determine if the AABB to intersect the given objects.
--- dNear --[[ number ]]: Distance along the object where the object enters the AABB,
--- dFar --[[ number ]]: Distance along the object where the object exits the AABB,
 -- result --[[ bool ]]: True on intersection
+-- dNear/dFar: Distances along the object where it enters/exits the AABB. When
+--           : passed as an optional parameter: a limit to the intersection
+--           : test, e.g., absolute distances (-100, 100) for lines/rays and
+--           : relative distances (0.25, 0.75) for segments.
 result = aabb.intersectAABB(..., otherMin --[[ vec3 ]], otherMax --[[ vec3 ]])
 result = aabb.intersectSphere(..., spherePos --[[ vec3 ]], sphereRad --[[ number ]])
 result = aabb.intersectPlane(..., planeNormal --[[ vec3 ]], planeOffset --[[ number]])
 
-result,dNear,dFar = aabb.intersectLine(..., linePos --[[ vec3 ]], lineDir --[[ vec3 ]])
-result,dNear,dFar = aabb.intersectRay(..., rayPos --[[ vec3 ]], rayDir --[[ vec3 ]])
-result,dNear,dFar = aabb.intersectSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+result,dNear,dFar = aabb.intersectLine(..., linePos --[[ vec3 ]], lineDir --[[ vec3 ]], [dNear, dFar])
+result,dNear,dFar = aabb.intersectRay(..., rayPos --[[ vec3 ]], rayDir --[[ vec3 ]], [dNear, dFar])
+result,dNear,dFar = aabb.intersectSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]], [dNear, dFar])
 ```
 
 ## Line
@@ -1366,12 +1368,14 @@ dist = line.distanceSphere(..., spherePos --[[ vec3 ]], sphereRad --[[ number ]]
 -- Tests whether the line and the given object intersect
 bool = line.intersectPlane(..., planeNormal --[[ vec3 ]], planeOffset --[[ number ]])
 
--- dNear --[[ number ]]: Distance along the line where the line enters the AABB,
--- dFar --[[ number ]]: Distance along the line where the line exits the AABB,
--- count --[[ integer ]]: Number of intersection points between the line and
+-- count --[[ integer ]]: Number of intersection points between the object and
 --                      : sphere: 0, 1 (dNear), or 2 (dNear & dFar)
-bool,dNear,dFar = line.intersectAABB(..., aabbMin --[[ vec3 ]], aabbMax --[[ vec3 ]])
-count,dNear,dFar = line.intersectSphere(..., spherePos --[[ vec3 ]], sphereRad --[[ number ]])
+-- dNear/dFar: Distances along the object where it enters/exits the line. When
+--           : passed as an optional parameter: a limit to the intersection
+--           : test, e.g., absolute distances (-100, 100) for lines/rays and
+--           : relative distances (0.25, 0.75) for segments.
+bool,dNear,dFar = line.intersectAABB(..., aabbMin --[[ vec3 ]], aabbMax --[[ vec3 ]], [dNear, dFar])
+count,dNear,dFar = line.intersectSphere(..., spherePos --[[ vec3 ]], sphereRad --[[ number ]], [dNear, dFar])
 ```
 
 ## Ray
@@ -1501,13 +1505,15 @@ dist = ray.distanceSphere(..., spherePos --[[ vec3 ]], sphereRad --[[ number ]])
 ### ray.intersect
 ```lua
 -- Tests whether the ray and the given object intersect
--- dNear --[[ number ]]: Distance along the line where the line enters the AABB,
--- dFar --[[ number ]]: Distance along the line where the line exits the AABB,
--- count --[[ integer ]]: Number of intersection points between the ray and
+-- count --[[ integer ]]: Number of intersection points between the object and
 --                      : sphere: 0, 1 (dNear), or 2 (dNear & dFar)
-bool,dNear,dFar = ray.intersectAABB(..., aabbMin --[[ vec3 ]], aabbMax --[[ vec3 ]])
-bool,dNear = ray.intersectPlane(..., planeNormal --[[ vec3 ]], planeOffset --[[ number ]])
-count,dNear,dFar = ray.intersectSphere(..., spherePos --[[ vec3 ]], sphereRad --[[ number ]])
+-- dNear/dFar: Distances along the object where it enters/exits the ray. When
+--           : passed as an optional parameter: a limit to the intersection
+--           : test, e.g., absolute distances (-100, 100) for lines/rays and
+--           : relative distances (0.25, 0.75) for segments.
+bool,dNear,dFar = ray.intersectAABB(..., aabbMin --[[ vec3 ]], aabbMax --[[ vec3 ]], [dNear, dFar])
+bool,dNear = ray.intersectPlane(..., planeNormal --[[ vec3 ]], planeOffset --[[ number ]], [dNear, dFar])
+count,dNear,dFar = ray.intersectSphere(..., spherePos --[[ vec3 ]], sphereRad --[[ number ]], [dNear, dFar])
 ```
 
 ## Segment
@@ -1840,13 +1846,15 @@ bool = sphere.intersectSphere(..., otherPos --[[ vec3 ]], otherRad --[[ number ]
 bool = sphere.intersectAABB(..., aabbMin --[[ vec3 ]], aabbMax --[[ vec3 ]])
 bool = sphere.intersectPlane(..., planeNormal --[[ vec3 ]], planeOffset --[[ number ]])
 
--- dNear --[[ number ]]: Distance along the ray where the ray enters the sphere,
--- dFar --[[ number ]]: Distance along the ray where the ray exits the sphere,
 -- count --[[ integer ]]: Number of intersection points between the ray and
 --                      : sphere: 0, 1 (dNear), or 2 (dFar).
-count,dNear,dFar = sphere.intersectLine(..., linePos --[[ vec3 ]], lineDir --[[ vec3 ]])
-count,dNear,dFar = sphere.intersectSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
-count,dNear,dFar = sphere.intersectRay(..., rayPos --[[ vec3 ]], rayDir --[[ vec3 ]])
+-- dNear/dFar: Distances along the object where it enters/exits the sphere. When
+--           : passed as an optional parameter: a limit to the intersection
+--           : test, e.g., absolute distances (-100, 100) for lines/rays and
+--           : relative distances (0.25, 0.75) for segments.
+count,dNear,dFar = sphere.intersectLine(..., linePos --[[ vec3 ]], lineDir --[[ vec3 ]], [dNear, dFar])
+count,dNear,dFar = sphere.intersectSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]], [dNear, dFar])
+count,dNear,dFar = sphere.intersectRay(..., rayPos --[[ vec3 ]], rayDir --[[ vec3 ]], [dNear, dFar])
 ```
 
 ## Plane:
