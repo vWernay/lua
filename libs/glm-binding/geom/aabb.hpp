@@ -121,13 +121,13 @@ namespace glm {
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(AABB<L, T, Q> const &x, AABB<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
-    return all_equal(x.minPoint, y.minPoint, Epsilon) && all_equal(x.maxPoint, y.maxPoint, Epsilon);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(AABB<L, T, Q> const &x, AABB<L, T, Q> const &y, T eps = epsilon<T>()) {
+    return all_equal(x.minPoint, y.minPoint, eps) && all_equal(x.maxPoint, y.maxPoint, eps);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(AABB<L, T, Q> const &x, AABB<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
-    return all_equal(x.minPoint, y.minPoint, Epsilon) && all_equal(x.maxPoint, y.maxPoint, Epsilon);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(AABB<L, T, Q> const &x, AABB<L, T, Q> const &y, vec<L, T, Q> const &eps) {
+    return all_equal(x.minPoint, y.minPoint, eps) && all_equal(x.maxPoint, y.maxPoint, eps);
   }
 
   template<length_t L, typename T, qualifier Q>
@@ -141,13 +141,13 @@ namespace glm {
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(AABB<L, T, Q> const &x, AABB<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
-    return any_notequal(x.minPoint, y.minPoint, Epsilon) || any_notequal(x.maxPoint, y.maxPoint, Epsilon);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(AABB<L, T, Q> const &x, AABB<L, T, Q> const &y, T eps = epsilon<T>()) {
+    return any_notequal(x.minPoint, y.minPoint, eps) || any_notequal(x.maxPoint, y.maxPoint, eps);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(AABB<L, T, Q> const &x, AABB<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
-    return any_notequal(x.minPoint, y.minPoint, Epsilon) || any_notequal(x.maxPoint, y.maxPoint, Epsilon);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(AABB<L, T, Q> const &x, AABB<L, T, Q> const &y, vec<L, T, Q> const &eps) {
+    return any_notequal(x.minPoint, y.minPoint, eps) || any_notequal(x.maxPoint, y.maxPoint, eps);
   }
 
   template<length_t L, typename T, qualifier Q>

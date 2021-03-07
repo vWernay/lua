@@ -111,13 +111,13 @@ namespace glm {
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(Sphere<L, T, Q> const &x, Sphere<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
-    return all_equal(x.pos, y.pos, Epsilon) && equal(x.r, y.r, Epsilon);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(Sphere<L, T, Q> const &x, Sphere<L, T, Q> const &y, T eps = epsilon<T>()) {
+    return all_equal(x.pos, y.pos, eps) && equal(x.r, y.r, eps);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(Sphere<L, T, Q> const &x, Sphere<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
-    return all_equal(x.pos, y.pos, Epsilon) && equal(x.r, y.r, Epsilon[0]);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(Sphere<L, T, Q> const &x, Sphere<L, T, Q> const &y, vec<L, T, Q> const &eps) {
+    return all_equal(x.pos, y.pos, eps) && equal(x.r, y.r, eps[0]);
   }
 
   template<length_t L, typename T, qualifier Q>
@@ -131,13 +131,13 @@ namespace glm {
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(Sphere<L, T, Q> const &x, Sphere<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
-    return any_notequal(x.pos, y.pos, Epsilon) || notEqual(x.r, y.r, Epsilon);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(Sphere<L, T, Q> const &x, Sphere<L, T, Q> const &y, T eps = epsilon<T>()) {
+    return any_notequal(x.pos, y.pos, eps) || notEqual(x.r, y.r, eps);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(Sphere<L, T, Q> const &x, Sphere<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
-    return any_notequal(x.pos, y.pos, Epsilon) || notEqual(x.r, y.r, Epsilon[0]);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(Sphere<L, T, Q> const &x, Sphere<L, T, Q> const &y, vec<L, T, Q> const &eps) {
+    return any_notequal(x.pos, y.pos, eps) || notEqual(x.r, y.r, eps[0]);
   }
 
   template<length_t L, typename T, qualifier Q>
@@ -253,8 +253,8 @@ namespace glm {
   // Tests if the given object is fully contained within the sphere.
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER bool contains(const Sphere<L, T, Q> &sphere, const vec<L, T, Q> &point, T epsilon = T(0)) {
-    return distance2(sphere.pos, point) <= sphere.r * sphere.r + epsilon;
+  GLM_GEOM_QUALIFIER bool contains(const Sphere<L, T, Q> &sphere, const vec<L, T, Q> &point, T eps = epsilon<T>()) {
+    return distance2(sphere.pos, point) <= sphere.r * sphere.r + eps;
   }
 
   template<length_t L, typename T, qualifier Q>

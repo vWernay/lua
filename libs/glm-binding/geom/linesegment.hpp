@@ -93,13 +93,13 @@ namespace glm {
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(LineSegment<L, T, Q> const &x, LineSegment<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
-    return all_equal(x.a, y.a, Epsilon) && all_equal(x.b, y.b, Epsilon);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(LineSegment<L, T, Q> const &x, LineSegment<L, T, Q> const &y, T eps = epsilon<T>()) {
+    return all_equal(x.a, y.a, eps) && all_equal(x.b, y.b, eps);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(LineSegment<L, T, Q> const &x, LineSegment<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
-    return all_equal(x.a, y.a, Epsilon) && all_equal(x.b, y.b, Epsilon);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(LineSegment<L, T, Q> const &x, LineSegment<L, T, Q> const &y, vec<L, T, Q> const &eps) {
+    return all_equal(x.a, y.a, eps) && all_equal(x.b, y.b, eps);
   }
 
   template<length_t L, typename T, qualifier Q>
@@ -113,13 +113,13 @@ namespace glm {
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(LineSegment<L, T, Q> const &x, LineSegment<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
-    return any_notequal(x.a, y.a, Epsilon) || any_notequal(x.b, y.b, Epsilon);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(LineSegment<L, T, Q> const &x, LineSegment<L, T, Q> const &y, T eps = epsilon<T>()) {
+    return any_notequal(x.a, y.a, eps) || any_notequal(x.b, y.b, eps);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(LineSegment<L, T, Q> const &x, LineSegment<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
-    return any_notequal(x.a, y.a, Epsilon) || any_notequal(x.b, y.b, Epsilon);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(LineSegment<L, T, Q> const &x, LineSegment<L, T, Q> const &y, vec<L, T, Q> const &eps) {
+    return any_notequal(x.a, y.a, eps) || any_notequal(x.b, y.b, eps);
   }
 
   template<length_t L, typename T, qualifier Q>

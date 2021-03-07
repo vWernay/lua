@@ -84,8 +84,8 @@ namespace glm {
   }
 
   template<typename T>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(T const &x, T const &y, T Epsilon) {
-    return glm::equal(x, y, Epsilon);
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(T const &x, T const &y, T eps) {
+    return glm::equal(x, y, eps);
   }
 
   template<typename T>
@@ -99,8 +99,8 @@ namespace glm {
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(vec<L, T, Q> const &x, vec<L, T, Q> const &y, T Epsilon) {
-    return glm::all(glm::equal(x, y, Epsilon));
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(vec<L, T, Q> const &x, vec<L, T, Q> const &y, T eps) {
+    return glm::all(glm::equal(x, y, eps));
   }
 
   template<length_t L, typename T, qualifier Q>
@@ -109,8 +109,8 @@ namespace glm {
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(vec<L, T, Q> const &x, vec<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
-    return glm::all(glm::equal(x, y, Epsilon));
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(vec<L, T, Q> const &x, vec<L, T, Q> const &y, vec<L, T, Q> const &eps) {
+    return glm::all(glm::equal(x, y, eps));
   }
 
   template<length_t L, typename T, qualifier Q>
@@ -126,8 +126,8 @@ namespace glm {
   }
 
   template<typename T>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(T const &x, T const &y, T Epsilon) {
-    return glm::notEqual(x, y, Epsilon);
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(T const &x, T const &y, T eps) {
+    return glm::notEqual(x, y, eps);
   }
 
   template<typename T>
@@ -141,8 +141,8 @@ namespace glm {
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(vec<L, T, Q> const &x, vec<L, T, Q> const &y, T Epsilon) {
-    return glm::any(glm::notEqual(x, y, Epsilon));
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(vec<L, T, Q> const &x, vec<L, T, Q> const &y, T eps) {
+    return glm::any(glm::notEqual(x, y, eps));
   }
 
   template<length_t L, typename T, qualifier Q>
@@ -151,8 +151,8 @@ namespace glm {
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(vec<L, T, Q> const &x, vec<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
-    return glm::any(glm::notEqual(x, y, Epsilon));
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(vec<L, T, Q> const &x, vec<L, T, Q> const &y, vec<L, T, Q> const &eps) {
+    return glm::any(glm::notEqual(x, y, eps));
   }
 
   template<length_t L, typename T, qualifier Q>
@@ -426,8 +426,8 @@ namespace glm {
   /// Return true if the three given points are collinear, i.e., lie on the same line.
   /// </summary>
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER bool areCollinear(const vec<L, T, Q> &p1, const vec<L, T, Q> &p2, const vec<L, T, Q> &p3, T epsilonSq = epsilon<T>()) {
-    return length2(cross(p2 - p1, p3 - p1)) <= epsilonSq;
+  GLM_FUNC_QUALIFIER bool areCollinear(const vec<L, T, Q> &p1, const vec<L, T, Q> &p2, const vec<L, T, Q> &p3, T epsSq = epsilon<T>()) {
+    return length2(cross(p2 - p1, p3 - p1)) <= epsSq;
   }
 
   /// <summary>
@@ -865,17 +865,17 @@ namespace glm {
   }
 
   template<typename genType>
-  GLM_FUNC_QUALIFIER bool isNormalized(genType x, genType epsilon) {
-    return isNormalized(vec<1, genType>(x), epsilon);
+  GLM_FUNC_QUALIFIER bool isNormalized(genType x, genType eps = epsilon<genType>()) {
+    return isNormalized(vec<1, genType>(x), eps);
   }
 
   template<typename genType>
-  GLM_FUNC_QUALIFIER bool isNull(genType x, genType epsilon) {
-    return isNull(vec<1, genType>(x), epsilon);
+  GLM_FUNC_QUALIFIER bool isNull(genType x, genType eps = epsilon<genType>()) {
+    return isNull(vec<1, genType>(x), eps);
   }
 
   template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER vec<1, bool, Q> isCompNull(vec<1, T, Q> const &v, T const &eps) {
+  GLM_FUNC_QUALIFIER vec<1, bool, Q> isCompNull(vec<1, T, Q> const &v, T eps = epsilon<T>) {
     return vec<1, bool, Q>(abs(v.x) < eps);
   }
 
@@ -885,13 +885,13 @@ namespace glm {
   }
 
   template<typename genType>
-  GLM_FUNC_QUALIFIER bool areOrthonormal(genType v0, genType v1, genType epsilon) {
-    return areOrthonormal(vec<1, genType>(v0), vec<1, genType>(v1), epsilon);
+  GLM_FUNC_QUALIFIER bool areOrthonormal(genType v0, genType v1, genType eps = epsilon<genType>()) {
+    return areOrthonormal(vec<1, genType>(v0), vec<1, genType>(v1), eps);
   }
 
   template<typename genType>
-  GLM_FUNC_QUALIFIER bool areOrthogonal(genType v0, genType v1, genType epsilon) {
-    return areOrthogonal(vec<1, genType>(v0), vec<1, genType>(v1), epsilon);
+  GLM_FUNC_QUALIFIER bool areOrthogonal(genType v0, genType v1, genType eps = epsilon<genType>()) {
+    return areOrthogonal(vec<1, genType>(v0), vec<1, genType>(v1), eps);
   }
 
   template<typename genType>
@@ -1239,18 +1239,18 @@ namespace glm {
   */
 
   template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool areCollinear(vec<1, T, Q> const &v0, vec<1, T, Q> const &v1, T const &epsilon) {
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool areCollinear(vec<1, T, Q> const &v0, vec<1, T, Q> const &v1, T eps = epsilon<T>) {
     ((void)v0);
     ((void)v1);
-    ((void)epsilon);
+    ((void)eps);
     return true;
   }
 
   template<typename genType>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool areCollinear(genType v0, genType v1, genType epsilon) {
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool areCollinear(genType v0, genType v1, genType eps = epsilon<genType>()) {
     ((void)v0);
     ((void)v1);
-    ((void)epsilon);
+    ((void)eps);
     return true;
   }
 

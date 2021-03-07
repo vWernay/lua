@@ -88,13 +88,13 @@ namespace glm {
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(Line<L, T, Q> const &x, Line<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
-    return all_equal(x.pos, y.pos, Epsilon) && all_equal(x.dir, y.dir, Epsilon);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(Line<L, T, Q> const &x, Line<L, T, Q> const &y, T eps = epsilon<T>()) {
+    return all_equal(x.pos, y.pos, eps) && all_equal(x.dir, y.dir, eps);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(Line<L, T, Q> const &x, Line<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
-    return all_equal(x.pos, y.pos, Epsilon) && all_equal(x.dir, y.dir, Epsilon);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(Line<L, T, Q> const &x, Line<L, T, Q> const &y, vec<L, T, Q> const &eps) {
+    return all_equal(x.pos, y.pos, eps) && all_equal(x.dir, y.dir, eps);
   }
 
   template<length_t L, typename T, qualifier Q>
@@ -108,13 +108,13 @@ namespace glm {
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(Line<L, T, Q> const &x, Line<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
-    return any_notequal(x.pos, y.pos, Epsilon) || any_notequal(x.dir, y.dir, Epsilon);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(Line<L, T, Q> const &x, Line<L, T, Q> const &y, T eps = epsilon<T>()) {
+    return any_notequal(x.pos, y.pos, eps) || any_notequal(x.dir, y.dir, eps);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(Line<L, T, Q> const &x, Line<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
-    return any_notequal(x.pos, y.pos, Epsilon) || any_notequal(x.dir, y.dir, Epsilon);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(Line<L, T, Q> const &x, Line<L, T, Q> const &y, vec<L, T, Q> const &eps) {
+    return any_notequal(x.pos, y.pos, eps) || any_notequal(x.dir, y.dir, eps);
   }
 
   template<length_t L, typename T, qualifier Q>

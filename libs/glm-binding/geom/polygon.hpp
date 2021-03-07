@@ -403,7 +403,7 @@ namespace glm {
   /// plane.
   /// </summary>
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER_NOINLINE bool isPlanar(const Polygon<L, T, Q> &polygon, T epsilonSq = epsilon<T>()) {
+  GLM_GEOM_QUALIFIER_NOINLINE bool isPlanar(const Polygon<L, T, Q> &polygon, T epsSq = epsilon<T>()) {
     if (polygon.size() == 0)
       return false;
     else if (polygon.size() <= 3)
@@ -413,7 +413,7 @@ namespace glm {
     const T lenSq = length2(normal);
     for (size_t i = 3; i < polygon.size(); ++i) {
       const T d = dot(normal, polygon[i] - polygon[0]);
-      if (d * d > epsilonSq * lenSq) {
+      if (d * d > epsSq * lenSq) {
         return false;
       }
     }

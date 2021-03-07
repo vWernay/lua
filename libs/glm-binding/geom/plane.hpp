@@ -96,13 +96,13 @@ namespace glm {
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(Plane<L, T, Q> const &x, Plane<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
-    return all_equal(x.normal, y.normal, Epsilon) && equal(x.d, y.d, Epsilon);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(Plane<L, T, Q> const &x, Plane<L, T, Q> const &y, T eps = epsilon<T>()) {
+    return all_equal(x.normal, y.normal, eps) && equal(x.d, y.d, eps);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(Plane<L, T, Q> const &x, Plane<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
-    return all_equal(x.normal, y.normal, Epsilon) && equal(x.d, y.d, Epsilon[0]);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(Plane<L, T, Q> const &x, Plane<L, T, Q> const &y, vec<L, T, Q> const &eps) {
+    return all_equal(x.normal, y.normal, eps) && equal(x.d, y.d, eps[0]);
   }
 
   template<length_t L, typename T, qualifier Q>
@@ -116,13 +116,13 @@ namespace glm {
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(Plane<L, T, Q> const &x, Plane<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
-    return any_notequal(x.normal, y.normal, Epsilon) || notEqual(x.d, y.d, Epsilon);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(Plane<L, T, Q> const &x, Plane<L, T, Q> const &y, T eps = epsilon<T>()) {
+    return any_notequal(x.normal, y.normal, eps) || notEqual(x.d, y.d, eps);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(Plane<L, T, Q> const &x, Plane<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
-    return any_notequal(x.normal, y.normal, Epsilon) || notEqual(x.d, y.d, Epsilon[0]);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(Plane<L, T, Q> const &x, Plane<L, T, Q> const &y, vec<L, T, Q> const &eps) {
+    return any_notequal(x.normal, y.normal, eps) || notEqual(x.d, y.d, eps[0]);
   }
 
   template<length_t L, typename T, qualifier Q>
@@ -522,17 +522,17 @@ namespace glm {
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER bool contains(const Plane<L, T, Q> &plane, const Line<L, T, Q> &line, T eps) {
+  GLM_GEOM_QUALIFIER bool contains(const Plane<L, T, Q> &plane, const Line<L, T, Q> &line, T eps = epsilon<T>()) {
     return contains(plane, line.pos, epsilon<T>()) && isPerpendicular(line.dir, plane.normal, eps);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER bool contains(const Plane<L, T, Q> &plane, const Ray<L, T, Q> &ray, T eps) {
+  GLM_GEOM_QUALIFIER bool contains(const Plane<L, T, Q> &plane, const Ray<L, T, Q> &ray, T eps = epsilon<T>()) {
     return contains(plane, ray.pos, epsilon<T>()) && isPerpendicular(ray.dir, plane.normal, eps);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER bool contains(const Plane<L, T, Q> &plane, const LineSegment<L, T, Q> &line, T eps) {
+  GLM_GEOM_QUALIFIER bool contains(const Plane<L, T, Q> &plane, const LineSegment<L, T, Q> &line, T eps = epsilon<T>()) {
     return contains(plane, line.a, eps) && contains(plane, line.b, eps);
   }
 

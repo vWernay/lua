@@ -170,9 +170,9 @@ namespace glm {
   }
 
   template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER vec<4, bool, Q> equal(qua<T, Q> const &x, qua<T, Q> const &y, vec<4, T, Q> const &epsilon) {
+  GLM_FUNC_QUALIFIER vec<4, bool, Q> equal(qua<T, Q> const &x, qua<T, Q> const &y, vec<4, T, Q> const &eps) {
     const vec<4, T, Q> v(x.x - y.x, x.y - y.y, x.z - y.z, x.w - y.w);
-    return lessThan(abs(v), vec<4, T, Q>(epsilon));
+    return lessThan(abs(v), eps);
   }
 
   template<typename T, qualifier Q>
@@ -191,9 +191,9 @@ namespace glm {
   }
 
   template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER vec<4, bool, Q> notEqual(qua<T, Q> const &x, qua<T, Q> const &y, vec<4, T, Q> const &epsilon) {
+  GLM_FUNC_QUALIFIER vec<4, bool, Q> notEqual(qua<T, Q> const &x, qua<T, Q> const &y, vec<4, T, Q> const &eps) {
     const vec<4, T, Q> v(x.x - y.x, x.y - y.y, x.z - y.z, x.w - y.w);
-    return greaterThanEqual(abs(v), epsilon);
+    return greaterThanEqual(abs(v), eps);
   }
 
   template<typename T, qualifier Q>
@@ -202,8 +202,8 @@ namespace glm {
   }
 
   template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(qua<T, Q> const &x, qua<T, Q> const &y, T Epsilon) {
-    return glm::all(glm::equal(x, y, Epsilon));
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(qua<T, Q> const &x, qua<T, Q> const &y, T eps) {
+    return glm::all(glm::equal(x, y, eps));
   }
 
   template<typename T, qualifier Q>
@@ -212,8 +212,8 @@ namespace glm {
   }
 
   template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(qua<T, Q> const &x, qua<T, Q> const &y, vec<4, T, Q> const &Epsilon) {
-    return glm::all(glm::equal(x, y, Epsilon));
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(qua<T, Q> const &x, qua<T, Q> const &y, vec<4, T, Q> const &eps) {
+    return glm::all(glm::equal(x, y, eps));
   }
 
   template<typename T, qualifier Q>
@@ -227,8 +227,8 @@ namespace glm {
   }
 
   template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(qua<T, Q> const &x, qua<T, Q> const &y, T Epsilon) {
-    return glm::any(glm::notEqual(x, y, Epsilon));
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(qua<T, Q> const &x, qua<T, Q> const &y, T eps) {
+    return glm::any(glm::notEqual(x, y, eps));
   }
 
   template<typename T, qualifier Q>
@@ -237,8 +237,8 @@ namespace glm {
   }
 
   template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(qua<T, Q> const &x, qua<T, Q> const &y, vec<4, T, Q> const &Epsilon) {
-    return glm::any(glm::notEqual(x, y, Epsilon));
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(qua<T, Q> const &x, qua<T, Q> const &y, vec<4, T, Q> const &eps) {
+    return glm::any(glm::notEqual(x, y, eps));
   }
 
   template<typename T, qualifier Q>
@@ -247,15 +247,15 @@ namespace glm {
   }
 
   template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER bool isNormalized(qua<T, Q> const &q, T const &epsilon) {
+  GLM_FUNC_QUALIFIER bool isNormalized(qua<T, Q> const &q, T eps = epsilon<T>) {
     GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'isNormalized' only accept floating-point inputs");
-    return abs(length(q) - static_cast<T>(1)) <= static_cast<T>(2) * epsilon;
+    return abs(length(q) - static_cast<T>(1)) <= static_cast<T>(2) * eps;
   }
 
   template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER bool isNull(qua<T, Q> const &q, T const &epsilon) {
+  GLM_FUNC_QUALIFIER bool isNull(qua<T, Q> const &q, T eps = epsilon<T>) {
     GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'isNull' only accept floating-point inputs");
-    return length(q) <= epsilon;
+    return length(q) <= eps;
   }
 
   template<typename T, qualifier Q>

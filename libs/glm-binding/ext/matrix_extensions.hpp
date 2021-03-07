@@ -28,13 +28,13 @@ namespace glm {
   }
 
   template<length_t C, length_t R, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(mat<C, R, T, Q> const &a, mat<C, R, T, Q> const &b, T Epsilon) {
-    return glm::all(glm::equal(a, b, Epsilon));
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(mat<C, R, T, Q> const &a, mat<C, R, T, Q> const &b, T eps) {
+    return glm::all(glm::equal(a, b, eps));
   }
 
   template<length_t C, length_t R, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(mat<C, R, T, Q> const &a, mat<C, R, T, Q> const &b, vec<C, T, Q> const &Epsilon) {
-    return glm::all(glm::equal(a, b, Epsilon));
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(mat<C, R, T, Q> const &a, mat<C, R, T, Q> const &b, vec<C, T, Q> const &eps) {
+    return glm::all(glm::equal(a, b, eps));
   }
 
   template<length_t C, length_t R, typename T, qualifier Q>
@@ -55,13 +55,13 @@ namespace glm {
   }
 
   template<length_t C, length_t R, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(mat<C, R, T, Q> const &a, mat<C, R, T, Q> const &b, T Epsilon) {
-    return glm::any(glm::notEqual(a, b, Epsilon));
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(mat<C, R, T, Q> const &a, mat<C, R, T, Q> const &b, T eps) {
+    return glm::any(glm::notEqual(a, b, eps));
   }
 
   template<length_t C, length_t R, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(mat<C, R, T, Q> const &a, mat<C, R, T, Q> const &b, vec<C, T, Q> const &Epsilon) {
-    return glm::any(glm::notEqual(a, b, Epsilon));
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(mat<C, R, T, Q> const &a, mat<C, R, T, Q> const &b, vec<C, T, Q> const &eps) {
+    return glm::any(glm::notEqual(a, b, eps));
   }
 
   template<length_t C, length_t R, typename T, qualifier Q>
@@ -626,25 +626,25 @@ namespace glm {
   /* Fixes */
 
   template<length_t C, length_t R, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER bool _isNull(mat<C, R, T, Q> const &m, T const &epsilon) {
+  GLM_FUNC_QUALIFIER bool _isNull(mat<C, R, T, Q> const &m, T eps = epsilon<T>) {
     bool result = true;
     for (length_t i = 0; i < C; ++i)
-      result &= isNull(m[i], epsilon);
+      result &= isNull(m[i], eps);
     return result;
   }
 
   template<length_t C, length_t R, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER bool _isNormalized(mat<C, R, T, Q> const &m, T const &epsilon) {
+  GLM_FUNC_QUALIFIER bool _isNormalized(mat<C, R, T, Q> const &m, T eps = epsilon<T>) {
     bool result = true;
     for (length_t i = 0; i < C; ++i)
-      result &= isNormalized(m[i], epsilon);
+      result &= isNormalized(m[i], eps);
 
     for (length_t i = 0; i < R; ++i) {
       typename mat<C, R, T, Q>::row_type v(T(0));
       for (length_t j = 0; j < C; ++j)
         v[j] = m[j][i];
 
-      result &= isNormalized(v, epsilon);
+      result &= isNormalized(v, eps);
     }
     return result;
   }
