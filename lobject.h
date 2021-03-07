@@ -46,7 +46,7 @@
 /*
 ** Union of all Lua values
 */
-typedef union Value {
+typedef union LUA_ALIGNED_(16) Value {
   struct GCObject *gc;    /* collectable objects */
   void *p;         /* light userdata */
   lua_Float4 f4;   /* vector and quaternion stub */
@@ -153,7 +153,7 @@ typedef union StackValue {
 
 
 /* index to stack elements */
-typedef StackValue *StkId;
+typedef StackValue *LUA_RESTRICT StkId;
 
 /* convert a 'StackValue' to a 'TValue' */
 #define s2v(o)	(&(o)->val)

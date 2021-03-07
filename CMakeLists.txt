@@ -212,10 +212,13 @@ ELSE()
     )
   ELSEIF( CMAKE_COMPILER_IS_GNUC )
     ADD_COMPILE_OPTIONS(-fmax-errors=5 -Wduplicated-cond -Wrestrict -Wlogical-op
-      -Wno-aggressive-loop-optimizations
+      -Wno-aggressive-loop-optimizations -Wno-ignored-qualifiers
       #-Wnull-dereference
       #-Wduplicated-branches
     )
+
+    # Remove symbols and relocation information from the binding library
+    # SET(glm_nativeFlags "${glm_nativeFlags} -s")
   ENDIF()
 
   # On POSIX Lua links to standard math library "m"
@@ -747,6 +750,7 @@ IF( NOT LUA_INCLUDE_LIBGLM AND NOT ONE_LUA )
     TARGET_LINK_LIBRARIES(glm ${LIBS} liblua)
   ENDIF()
 
+  # SET_TARGET_PROPERTIES(glm PROPERTIES LINK_FLAGS_RELEASE -s)
   SET_TARGET_PROPERTIES(glm PROPERTIES POSITION_INDEPENDENT_CODE ON)
   SET_TARGET_PROPERTIES(glm PROPERTIES PREFIX "" OUTPUT_NAME "glm" CLEAN_DIRECT_OUTPUT 1)
   IF( LUA_BUILD_AS_DLL )

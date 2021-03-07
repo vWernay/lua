@@ -803,6 +803,22 @@
   #define LUA_FALLTHROUGH /* FALLTHROUGH */
 #endif
 
+#if defined(_MSC_VER)
+  #define LUA_ALIGNED_(x) __declspec(align(x))
+#elif __has_attribute(aligned)
+  #define LUA_ALIGNED_(x) __attribute__((aligned(x)))
+#else
+  #define LUA_ALIGNED_(x)
+#endif
+
+#if defined(_MSC_VER) && _MSC_VER >= 1400
+  #define LUA_RESTRICT __restrict
+#elif defined(__GNUC__) && ((__GNUC__ > 3) || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
+  #define LUA_RESTRICT __restrict
+#else
+  #define LUA_RESTRICT
+#endif
+
 /* Compiler-specific multi-line macro definitions */
 #ifdef _MSC_VER
   #define LUA_MLM_BEGIN do {
