@@ -53,18 +53,18 @@ namespace glm {
       return *this;
     }
 
-    void setNegativeInfinity() {
+    GLM_FUNC_QUALIFIER void setNegativeInfinity() {
       minPoint = vec<L, T, Q>(std::numeric_limits<T>::infinity());
       maxPoint = vec<L, T, Q>(-std::numeric_limits<T>::infinity());
     }
 
-    void setFromCenterAndSize(const vec<L, T, Q> &center, const vec<L, T, Q> &size) {
+    GLM_FUNC_QUALIFIER void setFromCenterAndSize(const vec<L, T, Q> &center, const vec<L, T, Q> &size) {
       vec<L, T, Q> halfSize = T(0.5) * size;
       minPoint = center - halfSize;
       maxPoint = center + halfSize;
     }
 
-    void enclose(const vec<L, T, Q> &point) {
+    GLM_FUNC_QUALIFIER void enclose(const vec<L, T, Q> &point) {
       minPoint = min(minPoint, point);
       maxPoint = max(maxPoint, point);
     }
@@ -121,43 +121,43 @@ namespace glm {
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool equal(AABB<L, T, Q> const &x, AABB<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
-    return all(equal(x.minPoint, y.minPoint, Epsilon)) && all(equal(x.maxPoint, y.maxPoint, Epsilon));
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(AABB<L, T, Q> const &x, AABB<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
+    return all_equal(x.minPoint, y.minPoint, Epsilon) && all_equal(x.maxPoint, y.maxPoint, Epsilon);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool equal(AABB<L, T, Q> const &x, AABB<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
-    return all(equal(x.minPoint, y.minPoint, Epsilon)) && all(equal(x.maxPoint, y.maxPoint, Epsilon));
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(AABB<L, T, Q> const &x, AABB<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
+    return all_equal(x.minPoint, y.minPoint, Epsilon) && all_equal(x.maxPoint, y.maxPoint, Epsilon);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool equal(AABB<L, T, Q> const &x, AABB<L, T, Q> const &y, int MaxULPs) {
-    return all(equal(x.minPoint, y.minPoint, MaxULPs)) && all(equal(x.maxPoint, y.maxPoint, MaxULPs));
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(AABB<L, T, Q> const &x, AABB<L, T, Q> const &y, int MaxULPs) {
+    return all_equal(x.minPoint, y.minPoint, MaxULPs) && all_equal(x.maxPoint, y.maxPoint, MaxULPs);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool equal(AABB<L, T, Q> const &x, AABB<L, T, Q> const &y, vec<L, int, Q> const &MaxULPs) {
-    return all(equal(x.minPoint, y.minPoint, MaxULPs)) && all(equal(x.maxPoint, y.maxPoint, MaxULPs));
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(AABB<L, T, Q> const &x, AABB<L, T, Q> const &y, vec<L, int, Q> const &MaxULPs) {
+    return all_equal(x.minPoint, y.minPoint, MaxULPs) && all_equal(x.maxPoint, y.maxPoint, MaxULPs);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool notEqual(AABB<L, T, Q> const &x, AABB<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
-    return any(notEqual(x.minPoint, y.minPoint, Epsilon)) || any(notEqual(x.maxPoint, y.maxPoint, Epsilon));
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(AABB<L, T, Q> const &x, AABB<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
+    return any_notequal(x.minPoint, y.minPoint, Epsilon) || any_notequal(x.maxPoint, y.maxPoint, Epsilon);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool notEqual(AABB<L, T, Q> const &x, AABB<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
-    return any(notEqual(x.minPoint, y.minPoint, Epsilon)) || any(notEqual(x.maxPoint, y.maxPoint, Epsilon));
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(AABB<L, T, Q> const &x, AABB<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
+    return any_notequal(x.minPoint, y.minPoint, Epsilon) || any_notequal(x.maxPoint, y.maxPoint, Epsilon);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool notEqual(AABB<L, T, Q> const &x, AABB<L, T, Q> const &y, int MaxULPs) {
-    return any(notEqual(x.minPoint, y.minPoint, MaxULPs)) || any(notEqual(x.maxPoint, y.maxPoint, MaxULPs));
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(AABB<L, T, Q> const &x, AABB<L, T, Q> const &y, int MaxULPs) {
+    return any_notequal(x.minPoint, y.minPoint, MaxULPs) || any_notequal(x.maxPoint, y.maxPoint, MaxULPs);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool notEqual(AABB<L, T, Q> const &x, AABB<L, T, Q> const &y, vec<L, int, Q> const &MaxULPs) {
-    return any(notEqual(x.minPoint, y.minPoint, MaxULPs)) || any(notEqual(x.maxPoint, y.maxPoint, MaxULPs));
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(AABB<L, T, Q> const &x, AABB<L, T, Q> const &y, vec<L, int, Q> const &MaxULPs) {
+    return any_notequal(x.minPoint, y.minPoint, MaxULPs) || any_notequal(x.maxPoint, y.maxPoint, MaxULPs);
   }
 
   /// <summary>
@@ -192,12 +192,12 @@ namespace glm {
   /// </summary>
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool isinf(const AABB<L, T, Q> &aabb) {
-    return any(isinf(aabb.minPoint)) || any(isinf(aabb.maxPoint));
+    return any_isinf(aabb.minPoint) || any_isinf(aabb.maxPoint);
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool isnan(const AABB<L, T, Q> &aabb) {
-    return any(isnan(aabb.minPoint)) || any(isnan(aabb.maxPoint));
+    return any_isnan(aabb.minPoint) || any_isnan(aabb.maxPoint);
   }
 
   /// <summary>
@@ -775,7 +775,7 @@ namespace glm {
   namespace detail {
     template<glm::length_t L, typename T, qualifier Q>
     struct compute_to_string<AABB<L, T, Q>> {
-      GLM_FUNC_QUALIFIER static std::string call(const AABB<L, T, Q> &aabb) {
+      GLM_GEOM_QUALIFIER std::string call(const AABB<L, T, Q> &aabb) {
         return detail::format("AABB(%s, %s)",
           glm::to_string(aabb.minPoint).c_str(),
           glm::to_string(aabb.maxPoint).c_str()

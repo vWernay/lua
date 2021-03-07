@@ -111,43 +111,43 @@ namespace glm {
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool equal(Sphere<L, T, Q> const &x, Sphere<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
-    return all(equal(x.pos, y.pos, Epsilon)) && equal(x.r, y.r, Epsilon);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(Sphere<L, T, Q> const &x, Sphere<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
+    return all_equal(x.pos, y.pos, Epsilon) && equal(x.r, y.r, Epsilon);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool equal(Sphere<L, T, Q> const &x, Sphere<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
-    return all(equal(x.pos, y.pos, Epsilon)) && equal(x.r, y.r, Epsilon[0]);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(Sphere<L, T, Q> const &x, Sphere<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
+    return all_equal(x.pos, y.pos, Epsilon) && equal(x.r, y.r, Epsilon[0]);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool equal(Sphere<L, T, Q> const &x, Sphere<L, T, Q> const &y, int MaxULPs) {
-    return all(equal(x.pos, y.pos, MaxULPs)) && equal(x.r, y.r, MaxULPs);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(Sphere<L, T, Q> const &x, Sphere<L, T, Q> const &y, int MaxULPs) {
+    return all_equal(x.pos, y.pos, MaxULPs) && equal(x.r, y.r, MaxULPs);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool equal(Sphere<L, T, Q> const &x, Sphere<L, T, Q> const &y, vec<L, int, Q> const &MaxULPs) {
-    return all(equal(x.pos, y.pos, MaxULPs)) && equal(x.r, y.r, MaxULPs[0]);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(Sphere<L, T, Q> const &x, Sphere<L, T, Q> const &y, vec<L, int, Q> const &MaxULPs) {
+    return all_equal(x.pos, y.pos, MaxULPs) && equal(x.r, y.r, MaxULPs[0]);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool notEqual(Sphere<L, T, Q> const &x, Sphere<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
-    return any(notEqual(x.pos, y.pos, Epsilon)) || notEqual(x.r, y.r, Epsilon);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(Sphere<L, T, Q> const &x, Sphere<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
+    return any_notequal(x.pos, y.pos, Epsilon) || notEqual(x.r, y.r, Epsilon);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool notEqual(Sphere<L, T, Q> const &x, Sphere<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
-    return any(notEqual(x.pos, y.pos, Epsilon)) || notEqual(x.r, y.r, Epsilon[0]);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(Sphere<L, T, Q> const &x, Sphere<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
+    return any_notequal(x.pos, y.pos, Epsilon) || notEqual(x.r, y.r, Epsilon[0]);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool notEqual(Sphere<L, T, Q> const &x, Sphere<L, T, Q> const &y, int MaxULPs) {
-    return any(notEqual(x.pos, y.pos, MaxULPs)) || notEqual(x.r, y.r, MaxULPs);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(Sphere<L, T, Q> const &x, Sphere<L, T, Q> const &y, int MaxULPs) {
+    return any_notequal(x.pos, y.pos, MaxULPs) || notEqual(x.r, y.r, MaxULPs);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool notEqual(Sphere<L, T, Q> const &x, Sphere<L, T, Q> const &y, vec<L, int, Q> const &MaxULPs) {
-    return any(notEqual(x.pos, y.pos, MaxULPs)) || notEqual(x.r, y.r, MaxULPs[0]);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(Sphere<L, T, Q> const &x, Sphere<L, T, Q> const &y, vec<L, int, Q> const &MaxULPs) {
+    return any_notequal(x.pos, y.pos, MaxULPs) || notEqual(x.r, y.r, MaxULPs[0]);
   }
 
   /// <summary>
@@ -172,12 +172,12 @@ namespace glm {
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool isinf(const Sphere<L, T, Q> &sphere) {
-    return any(isinf(sphere.pos)) || isinf(sphere.r);
+    return any_isinf(sphere.pos) || isinf(sphere.r);
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool isnan(const Sphere<L, T, Q> &sphere) {
-    return any(isnan(sphere.pos)) || isnan(sphere.r);
+    return any_isnan(sphere.pos) || isnan(sphere.r);
   }
 
   template<length_t L, typename T, qualifier Q>
@@ -764,7 +764,7 @@ namespace glm {
   namespace detail {
     template<glm::length_t L, typename T, qualifier Q>
     struct compute_to_string<Sphere<L, T, Q>> {
-      GLM_FUNC_QUALIFIER static std::string call(const Sphere<L, T, Q> &sphere) {
+      GLM_GEOM_QUALIFIER std::string call(const Sphere<L, T, Q> &sphere) {
         char const *LiteralStr = literal<T, std::numeric_limits<T>::is_iec559>::value();
         std::string FormatStr(detail::format("Sphere(%s, %s)", "%s", LiteralStr));
 

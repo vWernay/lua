@@ -56,11 +56,11 @@ namespace glm {
       return *this;
     }
 
-    GLM_FUNC_QUALIFIER GLM_CONSTEXPR size_t size() const {
+    GLM_FUNC_QUALIFIER size_t size() const {
       return (p == GLM_NULLPTR) ? 0 : p->size();
     }
 
-    GLM_FUNC_QUALIFIER GLM_CONSTEXPR const Point &back() const {
+    GLM_FUNC_QUALIFIER const Point &back() const {
       return p->back();
     }
 
@@ -72,19 +72,19 @@ namespace glm {
       return p->operator[](i);
     }
 
-    GLM_FUNC_QUALIFIER GLM_CONSTEXPR typename List<Point>::const_iterator begin() const {
+    GLM_FUNC_QUALIFIER typename List<Point>::const_iterator begin() const {
       return (p == GLM_NULLPTR) ? Polygon<L, T, Q>::NullVerticies.begin() : p->begin();
     }
 
-    GLM_FUNC_QUALIFIER GLM_CONSTEXPR typename List<Point>::const_iterator cbegin() const {
+    GLM_FUNC_QUALIFIER typename List<Point>::const_iterator cbegin() const {
       return (p == GLM_NULLPTR) ? Polygon<L, T, Q>::NullVerticies.cbegin() : p->cbegin();
     }
 
-    GLM_FUNC_QUALIFIER GLM_CONSTEXPR typename List<Point>::const_iterator end() const {
+    GLM_FUNC_QUALIFIER typename List<Point>::const_iterator end() const {
       return (p == GLM_NULLPTR) ? Polygon<L, T, Q>::NullVerticies.end() : p->end();
     }
 
-    GLM_FUNC_QUALIFIER GLM_CONSTEXPR typename List<Point>::const_iterator cend() const {
+    GLM_FUNC_QUALIFIER typename List<Point>::const_iterator cend() const {
       return (p == GLM_NULLPTR) ? Polygon<L, T, Q>::NullVerticies.cend() : p->cend();
     }
   };
@@ -476,7 +476,7 @@ namespace glm {
   }
 
   template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER bool orientedCCW(const vec<2, T, Q> &a, const vec<2, T, Q> &b, const vec<2, T, Q> &c) {
+  GLM_GEOM_QUALIFIER bool orientedCCW(const vec<2, T, Q> &a, const vec<2, T, Q> &b, const vec<2, T, Q> &c) {
     return (a.x - c.x) * (b.y - c.y) - (a.y - c.y) * (b.x - c.x) >= T(0);
   }
 
@@ -832,7 +832,7 @@ namespace glm {
   namespace detail {
     template<length_t L, typename T, qualifier Q>
     struct compute_to_string<Polygon<L, T, Q>> {
-      GLM_FUNC_QUALIFIER static std::string call(const Polygon<L, T, Q> &polygon) {
+      GLM_GEOM_QUALIFIER std::string call(const Polygon<L, T, Q> &polygon) {
         ((void)polygon);
         return std::string("Polygon");
       }

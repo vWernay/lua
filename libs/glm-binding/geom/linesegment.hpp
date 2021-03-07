@@ -38,11 +38,11 @@ namespace glm {
       return *this;
     }
 
-    Point dir() const {
+    GLM_FUNC_QUALIFIER Point dir() const {
       return normalize(b - a);
     }
 
-    Point dir2() const {
+    GLM_FUNC_QUALIFIER Point dir2() const {
       return b - a;
     }
   };
@@ -93,43 +93,43 @@ namespace glm {
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool equal(LineSegment<L, T, Q> const &x, LineSegment<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
-    return all(equal(x.a, y.a, Epsilon)) && all(equal(x.b, y.b, Epsilon));
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(LineSegment<L, T, Q> const &x, LineSegment<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
+    return all_equal(x.a, y.a, Epsilon) && all_equal(x.b, y.b, Epsilon);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool equal(LineSegment<L, T, Q> const &x, LineSegment<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
-    return all(equal(x.a, y.a, Epsilon)) && all(equal(x.b, y.b, Epsilon));
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(LineSegment<L, T, Q> const &x, LineSegment<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
+    return all_equal(x.a, y.a, Epsilon) && all_equal(x.b, y.b, Epsilon);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool equal(LineSegment<L, T, Q> const &x, LineSegment<L, T, Q> const &y, int MaxULPs) {
-    return all(equal(x.a, y.a, MaxULPs)) && all(equal(x.b, y.b, MaxULPs));
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(LineSegment<L, T, Q> const &x, LineSegment<L, T, Q> const &y, int MaxULPs) {
+    return all_equal(x.a, y.a, MaxULPs) && all_equal(x.b, y.b, MaxULPs);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool equal(LineSegment<L, T, Q> const &x, LineSegment<L, T, Q> const &y, vec<L, int, Q> const &MaxULPs) {
-    return all(equal(x.a, y.a, MaxULPs)) && all(equal(x.b, y.b, MaxULPs));
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(LineSegment<L, T, Q> const &x, LineSegment<L, T, Q> const &y, vec<L, int, Q> const &MaxULPs) {
+    return all_equal(x.a, y.a, MaxULPs) && all_equal(x.b, y.b, MaxULPs);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool notEqual(LineSegment<L, T, Q> const &x, LineSegment<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
-    return any(notEqual(x.a, y.a, Epsilon)) || any(notEqual(x.b, y.b, Epsilon));
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(LineSegment<L, T, Q> const &x, LineSegment<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
+    return any_notequal(x.a, y.a, Epsilon) || any_notequal(x.b, y.b, Epsilon);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool notEqual(LineSegment<L, T, Q> const &x, LineSegment<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
-    return any(notEqual(x.a, y.a, Epsilon)) || any(notEqual(x.b, y.b, Epsilon));
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(LineSegment<L, T, Q> const &x, LineSegment<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
+    return any_notequal(x.a, y.a, Epsilon) || any_notequal(x.b, y.b, Epsilon);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool notEqual(LineSegment<L, T, Q> const &x, LineSegment<L, T, Q> const &y, int MaxULPs) {
-    return any(notEqual(x.a, y.a, MaxULPs)) || any(notEqual(x.b, y.b, MaxULPs));
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(LineSegment<L, T, Q> const &x, LineSegment<L, T, Q> const &y, int MaxULPs) {
+    return any_notequal(x.a, y.a, MaxULPs) || any_notequal(x.b, y.b, MaxULPs);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool notEqual(LineSegment<L, T, Q> const &x, LineSegment<L, T, Q> const &y, vec<L, int, Q> const &MaxULPs) {
-    return any(notEqual(x.a, y.a, MaxULPs)) || any(notEqual(x.b, y.b, MaxULPs));
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(LineSegment<L, T, Q> const &x, LineSegment<L, T, Q> const &y, vec<L, int, Q> const &MaxULPs) {
+    return any_notequal(x.a, y.a, MaxULPs) || any_notequal(x.b, y.b, MaxULPs);
   }
 
   template<length_t L, typename T, qualifier Q>
@@ -416,7 +416,7 @@ namespace glm {
   namespace detail {
     template<glm::length_t L, typename T, qualifier Q>
     struct compute_to_string<LineSegment<L, T, Q>> {
-      GLM_FUNC_QUALIFIER static std::string call(const LineSegment<L, T, Q> &line) {
+      GLM_GEOM_QUALIFIER std::string call(const LineSegment<L, T, Q> &line) {
         return detail::format("Segment(%s, %s)",
           glm::to_string(line.a).c_str(),
           glm::to_string(line.b).c_str()

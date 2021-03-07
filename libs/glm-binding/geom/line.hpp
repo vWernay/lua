@@ -88,43 +88,43 @@ namespace glm {
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool equal(Line<L, T, Q> const &x, Line<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
-    return all(equal(x.pos, y.pos, Epsilon)) && all(equal(x.dir, y.dir, Epsilon));
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(Line<L, T, Q> const &x, Line<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
+    return all_equal(x.pos, y.pos, Epsilon) && all_equal(x.dir, y.dir, Epsilon);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool equal(Line<L, T, Q> const &x, Line<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
-    return all(equal(x.pos, y.pos, Epsilon)) && all(equal(x.dir, y.dir, Epsilon));
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(Line<L, T, Q> const &x, Line<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
+    return all_equal(x.pos, y.pos, Epsilon) && all_equal(x.dir, y.dir, Epsilon);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool equal(Line<L, T, Q> const &x, Line<L, T, Q> const &y, int MaxULPs) {
-    return all(equal(x.pos, y.pos, MaxULPs)) && all(equal(x.dir, y.dir, MaxULPs));
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(Line<L, T, Q> const &x, Line<L, T, Q> const &y, int MaxULPs) {
+    return all_equal(x.pos, y.pos, MaxULPs) && all_equal(x.dir, y.dir, MaxULPs);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool equal(Line<L, T, Q> const &x, Line<L, T, Q> const &y, vec<L, int, Q> const &MaxULPs) {
-    return all(equal(x.pos, y.pos, MaxULPs)) && all(equal(x.dir, y.dir, MaxULPs));
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(Line<L, T, Q> const &x, Line<L, T, Q> const &y, vec<L, int, Q> const &MaxULPs) {
+    return all_equal(x.pos, y.pos, MaxULPs) && all_equal(x.dir, y.dir, MaxULPs);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool notEqual(Line<L, T, Q> const &x, Line<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
-    return any(notEqual(x.pos, y.pos, Epsilon)) || any(notEqual(x.dir, y.dir, Epsilon));
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(Line<L, T, Q> const &x, Line<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
+    return any_notequal(x.pos, y.pos, Epsilon) || any_notequal(x.dir, y.dir, Epsilon);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool notEqual(Line<L, T, Q> const &x, Line<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
-    return any(notEqual(x.pos, y.pos, Epsilon)) || any(notEqual(x.dir, y.dir, Epsilon));
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(Line<L, T, Q> const &x, Line<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
+    return any_notequal(x.pos, y.pos, Epsilon) || any_notequal(x.dir, y.dir, Epsilon);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool notEqual(Line<L, T, Q> const &x, Line<L, T, Q> const &y, int MaxULPs) {
-    return any(notEqual(x.pos, y.pos, MaxULPs)) || any(notEqual(x.dir, y.dir, MaxULPs));
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(Line<L, T, Q> const &x, Line<L, T, Q> const &y, int MaxULPs) {
+    return any_notequal(x.pos, y.pos, MaxULPs) || any_notequal(x.dir, y.dir, MaxULPs);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool notEqual(Line<L, T, Q> const &x, Line<L, T, Q> const &y, vec<L, int, Q> const &MaxULPs) {
-    return any(notEqual(x.pos, y.pos, MaxULPs)) || any(notEqual(x.dir, y.dir, MaxULPs));
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(Line<L, T, Q> const &x, Line<L, T, Q> const &y, vec<L, int, Q> const &MaxULPs) {
+    return any_notequal(x.pos, y.pos, MaxULPs) || any_notequal(x.dir, y.dir, MaxULPs);
   }
 
   // Forward declaration
@@ -136,12 +136,12 @@ namespace glm {
   /// </summary>
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool isinf(const Line<L, T, Q> &line) {
-    return any(isinf(line.pos)) || any(isinf(line.dir));
+    return any_isinf(line.pos) || any_isinf(line.dir);
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool isnan(const Line<L, T, Q> &line) {
-    return any(isnan(line.pos)) || any(isnan(line.dir));
+    return any_isnan(line.pos) || any_isnan(line.dir);
   }
 
   /// <summary>
@@ -389,7 +389,7 @@ namespace glm {
   namespace detail {
     template<glm::length_t L, typename T, qualifier Q>
     struct compute_to_string<Line<L, T, Q>> {
-      GLM_FUNC_QUALIFIER static std::string call(const Line<L, T, Q> &line) {
+      GLM_GEOM_QUALIFIER std::string call(const Line<L, T, Q> &line) {
         return detail::format("Line(%s, %s)",
           glm::to_string(line.pos).c_str(),
           glm::to_string(line.dir).c_str()

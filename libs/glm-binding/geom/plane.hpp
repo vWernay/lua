@@ -96,43 +96,43 @@ namespace glm {
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool equal(Plane<L, T, Q> const &x, Plane<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
-    return all(equal(x.normal, y.normal, Epsilon)) && equal(x.d, y.d, Epsilon);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(Plane<L, T, Q> const &x, Plane<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
+    return all_equal(x.normal, y.normal, Epsilon) && equal(x.d, y.d, Epsilon);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool equal(Plane<L, T, Q> const &x, Plane<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
-    return all(equal(x.normal, y.normal, Epsilon)) && equal(x.d, y.d, Epsilon[0]);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(Plane<L, T, Q> const &x, Plane<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
+    return all_equal(x.normal, y.normal, Epsilon) && equal(x.d, y.d, Epsilon[0]);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool equal(Plane<L, T, Q> const &x, Plane<L, T, Q> const &y, int MaxULPs) {
-    return all(equal(x.normal, y.normal, MaxULPs)) && equal(x.d, y.d, MaxULPs);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(Plane<L, T, Q> const &x, Plane<L, T, Q> const &y, int MaxULPs) {
+    return all_equal(x.normal, y.normal, MaxULPs) && equal(x.d, y.d, MaxULPs);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool equal(Plane<L, T, Q> const &x, Plane<L, T, Q> const &y, vec<L, int, Q> const &MaxULPs) {
-    return all(equal(x.normal, y.normal, MaxULPs)) && equal(x.d, y.d, MaxULPs[0]);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool equal(Plane<L, T, Q> const &x, Plane<L, T, Q> const &y, vec<L, int, Q> const &MaxULPs) {
+    return all_equal(x.normal, y.normal, MaxULPs) && equal(x.d, y.d, MaxULPs[0]);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool notEqual(Plane<L, T, Q> const &x, Plane<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
-    return any(notEqual(x.normal, y.normal, Epsilon)) || notEqual(x.d, y.d, Epsilon);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(Plane<L, T, Q> const &x, Plane<L, T, Q> const &y, T Epsilon = epsilon<T>()) {
+    return any_notequal(x.normal, y.normal, Epsilon) || notEqual(x.d, y.d, Epsilon);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool notEqual(Plane<L, T, Q> const &x, Plane<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
-    return any(notEqual(x.normal, y.normal, Epsilon)) || notEqual(x.d, y.d, Epsilon[0]);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(Plane<L, T, Q> const &x, Plane<L, T, Q> const &y, vec<L, T, Q> const &Epsilon) {
+    return any_notequal(x.normal, y.normal, Epsilon) || notEqual(x.d, y.d, Epsilon[0]);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool notEqual(Plane<L, T, Q> const &x, Plane<L, T, Q> const &y, int MaxULPs) {
-    return any(notEqual(x.normal, y.normal, MaxULPs)) || notEqual(x.d, y.d, MaxULPs);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(Plane<L, T, Q> const &x, Plane<L, T, Q> const &y, int MaxULPs) {
+    return any_notequal(x.normal, y.normal, MaxULPs) || notEqual(x.d, y.d, MaxULPs);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool notEqual(Plane<L, T, Q> const &x, Plane<L, T, Q> const &y, vec<L, int, Q> const &MaxULPs) {
-    return any(notEqual(x.normal, y.normal, MaxULPs)) || notEqual(x.d, y.d, MaxULPs[0]);
+  GLM_GEOM_QUALIFIER GLM_CONSTEXPR bool notEqual(Plane<L, T, Q> const &x, Plane<L, T, Q> const &y, vec<L, int, Q> const &MaxULPs) {
+    return any_notequal(x.normal, y.normal, MaxULPs) || notEqual(x.d, y.d, MaxULPs[0]);
   }
 
   /// <summary>
@@ -618,7 +618,7 @@ namespace glm {
   namespace detail {
     template<glm::length_t L, typename T, qualifier Q>
     struct compute_to_string<Plane<L, T, Q>> {
-      GLM_FUNC_QUALIFIER static std::string call(const Plane<L, T, Q> &plane) {
+      GLM_GEOM_QUALIFIER std::string call(const Plane<L, T, Q> &plane) {
         char const *LiteralStr = literal<T, std::numeric_limits<T>::is_iec559>::value();
         std::string FormatStr(detail::format("Plane(%s, %s)", "%s", LiteralStr));
 

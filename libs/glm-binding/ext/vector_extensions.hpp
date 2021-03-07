@@ -76,7 +76,7 @@ namespace glm {
     }
   };
 
-  /* glm::all(glm::equal(...)) shorthand */
+  /* glm::all(glm::equal(...)) shorthand ; @TODO Optimize */
 
   template<typename T>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(T const &x, T const &y) {
@@ -118,7 +118,7 @@ namespace glm {
     return glm::all(glm::equal(x, y, MaxULPs));
   }
 
-  /* glm::any(glm::notEqual(...)) shorthand */
+  /* glm::any(glm::notEqual(...)) shorthand ; @TODO Optimize */
 
   template<typename T>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(T const &x, T const &y) {
@@ -158,6 +158,30 @@ namespace glm {
   template<length_t L, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(vec<L, T, Q> const &x, vec<L, T, Q> const &y, vec<L, int, Q> const &MaxULPs) {
     return glm::any(glm::notEqual(x, y, MaxULPs));
+  }
+
+  /* glm::any(glm::isinf(...)) shorthand */
+
+  template<typename T>
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_isinf(const T &x) {
+    return glm::isinf(x);
+  }
+
+  template<length_t L, typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_isinf(const vec<L, T, Q> &x) {
+    return glm::any(glm::isinf(x));
+  }
+
+  /* glm::any(glm::isnan(...)) shorthand */
+
+  template<typename T>
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_isnan(const T &x) {
+    return glm::isnan(x);
+  }
+
+  template<length_t L, typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_isnan(const vec<L, T, Q> &x) {
+    return glm::any(glm::isnan(x));
   }
 
   /* The other useful sign() implementation: where >= 0 returns +1 */
