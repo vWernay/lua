@@ -980,8 +980,8 @@ void luaH_wipetable (Table *t) {
 }
 
 void luaH_clonetable (lua_State *L, const Table *from, Table *to) {
-  const int from_realasize = luaH_realasize(from);
-  const int to_realasize = luaH_realasize(to);
+  const unsigned int from_realasize = luaH_realasize(from);
+  const unsigned int to_realasize = luaH_realasize(to);
 
   Table newt;  /* to keep the new hash part */
   newt.alimit = 0;

@@ -1183,7 +1183,7 @@ LUA_API void lua_pushvector (lua_State *L, lua_Float4 f4, int variant) {
   }
   else if (variant == LUA_VVECTOR1)  // Implicit vector1
     lua_pushnumber(L, cast_num(f4.x));
-  else if (variant == LUA_VQUAT)  // Support GLM_FORCE_QUAT_DATA_WXYZ
+  else if (variant == LUA_VQUAT)
     glm_pushquat_(L, glmVector(glm::qua<glm_Float>(f4.w, f4.x, f4.y, f4.z)));
   else
     glm_pushvec(L, glmVector(glm::vec<4, glm_Float>(f4.x, f4.y, f4.z, f4.w)), glm_dimensions(variant));
@@ -1255,25 +1255,28 @@ static glm::length_t PopulateVectorObject(lua_State *L, int idx, glm::vec<4, T> 
   if (glm_castvalue(value, vec[v_idx]))  // Primitive type: cast & store it.
     return 1;
   else if (ttisvector(value)) {  // Vector: concatenate components values.
-    const glmVector &v = glm_vvalue(value);
-    const glm::length_t length = glm_dimensions(ttypetag(value));
-    if ((v_idx + length) > v_desired)
-      return luaL_argerror(L, idx, INVALID_VECTOR_DIMENSIONS);
 
-#if defined(GLM_FORCE_QUAT_DATA_WXYZ)  // Support GLM_FORCE_QUAT_DATA_WXYZ (access by array)
+    // To handle 'GLM_FORCE_QUAT_DATA_WXYZ' it is much easier to force an
+    // explicit length rule for quaternion types. For other vector variants,
+    // copy the vector or a subset to satisfy 'v_desired'
+    const glmVector &v = glm_vvalue(value);
     if (ttisquat(value)) {
-      vec[v_idx++] = static_cast<T>(v.q[0]);
-      vec[v_idx++] = static_cast<T>(v.q[1]);
-      vec[v_idx++] = static_cast<T>(v.q[2]);
-      vec[v_idx++] = static_cast<T>(v.q[3]);
+      if ((v_idx + 4) > v_desired)
+        return luaL_argerror(L, idx, INVALID_VECTOR_DIMENSIONS);
+
+      vec[v_idx++] = static_cast<T>(v.q.x);
+      vec[v_idx++] = static_cast<T>(v.q.y);
+      vec[v_idx++] = static_cast<T>(v.q.z);
+      vec[v_idx++] = static_cast<T>(v.q.w);
+      return 4;
     }
-    else
-#endif
-    {
+    else {
+      const glm::length_t dims = glm_dimensions(ttypetag(value));
+      const glm::length_t length = std::min(dims, v_desired - v_idx);
       for (glm::length_t j = 0; j < length; ++j)
         vec[v_idx++] = static_cast<T>(v.v4[j]);
+      return length;
     }
-    return length;
   }
   else if (ttistable(value)) {  // Array: concatenate values.
     const glm::length_t t_len = i_glmlen(luaH_getn(hvalue(value)));

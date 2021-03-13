@@ -680,6 +680,13 @@ namespace glm {
     return tNear <= tFar;
   }
 
+  template<typename T, qualifier Q>
+  GLM_GEOM_QUALIFIER bool slabs(const AABB<3, T, Q> &aabb, const Ray<3, T, Q> &ray) {
+    const vec<3, T, Q> t0 = (aabb.minPoint - ray.pos) * /* INV */ ray.dir;
+    const vec<3, T, Q> t1 = (aabb.maxPoint - ray.pos) * /* INV */ ray.dir;
+    return compMax(min(t0, t1)) <= (compMin(max(t0, t1)) + epsilon<T>());
+  }
+
   /// <summary>
   /// GLM Convention: intersectLineAABB
   /// </summary>

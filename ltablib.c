@@ -451,9 +451,12 @@ static int treset (lua_State *L) {
 
 static int tclone (lua_State *L) {
   luaL_checktype(L, 1, LUA_TTABLE);
-  luaL_checktype(L, 2, LUA_TTABLE);
-  lua_clonetable(L, 1, 2);
+  if (lua_gettop(L) >= 2)  /* supplied sink */
+    luaL_checktype(L, 2, LUA_TTABLE);
+  else
+    lua_newtable(L);
 
+  lua_clonetable(L, 1, 2);
   lua_pushvalue(L, 2);
   return 1;
 }
@@ -472,8 +475,8 @@ static const luaL_Reg tab_funcs[] = {
   {"sort", sort},
 #if defined(GRIT_POWER_WOW)
   {"type", type},
-  {"create", tcreate},
-  {"wipe", treset},
+  {"create", tcreate}, {"new", tcreate},
+  {"wipe", treset}, {"clear", treset},
   {"clone", tclone},
 #endif
   {NULL, NULL}

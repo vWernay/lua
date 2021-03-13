@@ -1,12 +1,12 @@
 **Development Branch**: local working tree (RC).
 
 # LuaGLM
-A Lua runtime providing vector, quaternion, and matrix data types with a (near-)complete binding to [GLM 0.9.9.9](https://github.com/g-truc/glm), a C++ mathematics library based on the [OpenGL Shading Language (GLSL)](https://www.opengl.org/registry/doc/GLSLangSpec.4.50.diff.pdf) specifications.
+A Lua 5.4.3 runtime providing vector, quaternion, and matrix data types with a (near-)complete binding to [GLM 0.9.9.9](https://github.com/g-truc/glm), a C++ mathematics library based on the [OpenGL Shading Language (GLSL)](https://www.opengl.org/registry/doc/GLSLangSpec.4.50.diff.pdf) specifications.
 
 > A significantly less efficient shared-library implementation, using tables and/or userdata instead of first-class types, for Lua5.1, Lua5.2, Lua5.3, Lua5.4, and [LuaJIT](https://github.com/LuaJIT/LuaJIT), can be found [TBD](https://github.com/gottfriedleibniz/...).
 
 ## Vectors/Quaternions
-Vectors and quaternions are first-class entities and are viewed (both syntactically and semantically) as **immutable** tables of floats and only accessible by keys `1, 2, 3, 4`, `x, y, z, w`, and `r, g, b, a`:
+Vectors and quaternions are basic types (following nil, boolean, number, string, function, userdata, thread, and tables) and are viewed as **immutable** tables of floats that are accessible by keys `1, 2, 3, 4`, `x, y, z, w`, and `r, g, b, a`:
 ```lua
 -- Generic vector constructor;
 > v = vec(math.pi, math.exp(1), (1 + math.sqrt(5)) / 2)
@@ -83,13 +83,13 @@ Vector and quaternions values are represented by the `LUA_TVECTOR` tag. They are
 See [lglm.hpp](lglm.hpp), the external header for interfacing with ``glm`` defined structures within Lua. The deprecated grit-lua API can be referenced by [lgrit_lib.h](lgrit_lib.h).
 
 ## Matrices
-Matrices are **mutable** collections of **column**(-major) vectors that are only accessible by keys `1, 2, 3, 4`. They are **collectible** objects and beholden to the garbage collector.
+Matrices are another of basic type and represent **mutable** collections of **column**(-major) vectors that are only accessible by keys `1, 2, 3, 4`. They are **collectible** objects and beholden to the garbage collector.
 
 ```lua
 -- Create a matrix;
 > m = mat(vec(1.0, 0.0, 0.0), vec(0.0, 0.819152, 0.573576), vec(0.0, -0.573576, 0.819152))
 
--- matrices are first-class types;
+-- matrices are basic types;
 > type(m)
 matrix
 
@@ -127,7 +127,7 @@ mat2x3((1.000000, 2.000000, 3.000000), (4.000000, 5.000000, 6.000000))
 ```
 
 #### C API
-Matrices are objects and represented by the `LUA_TMATRIX` tag. On an API level, they are effectively tables (more specifically arrays) and accessing/modifying their components can be done with same Lua API functions:
+Matrix objects are represented by the `LUA_TMATRIX` tag. On an API level, they are effectively tables (more specifically arrays) and accessing/modifying their components can be done with same Lua API functions:
 - [`lua_gettable`](https://www.lua.org/manual/5.4/manual.html#lua_gettable), [`lua_settable`](https://www.lua.org/manual/5.4/manual.html#lua_settable);
 - [`lua_geti`](https://www.lua.org/manual/5.4/manual.html#lua_geti), [`lua_seti`](https://www.lua.org/manual/5.4/manual.html#lua_seti);
 - [`lua_rawget`](https://www.lua.org/manual/5.4/manual.html#lua_rawget), [`lua_rawset`](https://www.lua.org/manual/5.4/manual.html#lua_rawset);
@@ -180,10 +180,10 @@ The binding library also extends GLM to:
 1. Alias (e.g., length vs. magnitude), emulate, and port useful and common functions from other popular vector-math libraries (listed in **Sources & Acknowledgments**);
 1. Be a complete superset of Lua's [lmathlib](https://www.lua.org/manual/5.4/manual.html#6.7). Meaning `_G.math` can be replaced by the binding library without compatibility concerns. Note, `math.random` and `math.randomseed` are copied from `lmathlib` when the library is loaded rather than extending/maintaining another pseudorandom-state (see `glm/gtc/random.hpp`).
 
-See **EXTENDED.md** for a list of additional functions.
+See [EXTENDED.md](EXTENDED.md) for a list of additional functions.
 
 #### Casting Rules
-As vector/quaternion types are represented by float-point values, some additional type-inferencing rules are required when casting values to and from float point values (see sections [4.6-4.9] in your favorite `ISO/IEC 14882` document):
+As vector/quaternion types are represented by float-point values, some additional type-inferencing rules are required when casting values to and from floating point values (see sections [4.6-4.9] in your favorite `ISO/IEC 14882` document):
 
 1. A `glm::vec<1, ...>` structure is represented by `lua_Integer`, `lua_Number`, or `bool` Lua value and all `glm::vec<1, ...>` bindings are templated to those Lua types;
 1. All other `glm::vec` structures are float-casted (and/or bound to float-templated functions). Consequently, bitfield and integer operations, e.g., [packUnorm](http://glm.g-truc.net/0.9.9/api/a00716.html#gaccd3f27e6ba5163eb7aa9bc8ff96251a) and [floatBitsToInt](http://glm.g-truc.net/0.9.9/api/a00662.html#ga99f7d62f78ac5ea3b49bae715c9488ed), are considered unsafe when operating on multi-dimensional vectors (consider inexact IEEE754);
@@ -345,7 +345,7 @@ t = {1,2,3}
 for k,v in each(t) do print(k, v) end
 ```
 
-which defaults to a ``pairs`` implementation that supports the fourth return variable (to-be-closed) when no `__iter` metamethod exists. ... This patch is inspired by the Self-iterating Objects patch; see commit logs for reasoning behind deviation.
+which defaults to a ``pairs`` implementation that supports a fourth return variable (to-be-closed) when no `__iter` metamethod exists. ... This patch is inspired by the Self-iterating Objects patch; see commit logs for reasoning behind deviation.
 
 #### String Blobs
 Introduce a `LUA_TSTRING` variant that is effectively a `LUA_VLNGSTR` but without the hash caching mechanism. Values of this variant are stored in tables by reference.
@@ -404,7 +404,7 @@ t = table.create(narr, nrec)
 t = table.wipe(t)
 
 -- An efficient (implemented using memcpy) table shallow-copy implementation;
-t2 = table.clone(t)
+t2 = table.clone(t[, t2]) -- t2 is a preallocated destination table
 
 -- Return the type of table being used. Note, this function only measures the
 -- size of the "array part" of a Lua table and the "root" node of its
@@ -586,6 +586,7 @@ For all GLM preprocessor flags, reference the [GLM manual](https://github.com/g-
 1. `glmMat_set` support for tables, e.g., `mat[i] = { ... }`, by using `glmH_tovector`;
 1. Improve support for `glm::mat3x4` and `glm::mat4x3`;
 1. Support for two-dimensional geometrical structures (AABB2D, LineSegment2D, Circle2D, etc);
+1. `glm-binding/geom`: SIMD support (or at the very least, the most commonly used functions);
 
 ## Benchmarking
 **TODO**: Finish comparisons to...
