@@ -386,7 +386,7 @@ const char *lua_pushblob(lua_State *L, size_t len);
 const char *lua_tostringblob(lua_State *L, int idx, size_t *len);
 ```
 
-At some point an API similar to [DataView](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView) that interface with Luas built in facilities, e.g., string.pack, string.unpack, and table.concat, will be implemented.
+A [DataView](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView) API that interfaces with Luas built in facilities, e.g., string.pack, string.unpack, and table.concat, is located in `libs/scripts/examples`.
 
 The current solution simply allows byte data to still be beholden to the garbage collector while not requiring the allocation of intermediate data when going to and from the Lua API.
 
@@ -564,7 +564,7 @@ For all GLM preprocessor flags, reference the [GLM manual](https://github.com/g-
 1. Support for integer vectors/matrices. Either by introducing an additional type, e.g., `LUA_TVECTORI`, or splitting the vector tag `LUA_TVECTOR` into `LUA_TVECTOR2`, `LUA_TVECTOR3`, `LUA_TVECTOR4`, and `LUA_TQUAT` and use variant bits for the primitive type;
 1. A LINQ-style library that takes advantage of `__iter/__pairs`;
 1. Replace `glm/gtc/random.{inl,hpp}` with a variant that takes advantage of CXX11's [Pseudo-random number generation](https://en.cppreference.com/w/cpp/numeric/random) facilities. Or one that unifies this API and `math.random()`;
-1. Include spatial indexing scripts (k-d tree, octree, etc.) or other scripting examples that take advantage of the integrated vector and geometry APIs;
+1. Basic support for triangles and meshes, retrofit current spatial indexing structures for triangles, and consider BSPs;
 1. Initial support for frustums (both orthographic and perspective) and OBBs, or, at minimum, the more computationally complex parts of these structures;
 1. UNARY\_EACH: Allow some binding functions to be independently applied to each value or structure on the call stack. If disabled, only operate on the minimum number of required objects (following lmathlib). For example:
     ``` lua
