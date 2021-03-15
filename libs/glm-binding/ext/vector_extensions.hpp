@@ -78,6 +78,11 @@ namespace glm {
 
   /* glm::all(glm::equal(...)) shorthand ; @TODO Optimize */
 
+  template<typename genIUType>
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool equal(genIUType x, genIUType y) {
+    return x == y;
+  }
+
   template<typename T>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(T const &x, T const &y) {
     return glm::equal(x, y);
@@ -119,6 +124,11 @@ namespace glm {
   }
 
   /* glm::any(glm::notEqual(...)) shorthand ; @TODO Optimize */
+
+  template<typename genIUType>
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool notEqual(genIUType x, genIUType y) {
+    return x != y;
+  }
 
   template<typename T>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(T const &x, T const &y) {
@@ -827,11 +837,6 @@ namespace glm {
   template<typename genIUType>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool greaterThanEqual(genIUType x, genIUType y) {
     return x >= y;
-  }
-
-  template<typename genIUType>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool equal(genIUType x, genIUType y) {
-    return x == y;
   }
 
   template<typename genIUType>

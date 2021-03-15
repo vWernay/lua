@@ -64,15 +64,15 @@
 */
 #if !defined(LUA_NUMTIME)	/* { */
 
-#define l_timet			lua_Integer
-#define l_pushtime(L,t)		lua_pushinteger(L,(lua_Integer)(t))
-#define l_gettime(L,arg)	luaL_checkinteger(L, arg)
+#define l_timet          lua_Integer
+#define l_pushtime(L,t)  lua_pushinteger(L, (lua_Integer)(t))
+#define l_gettime(L,arg) luaL_checkinteger(L, arg)
 
 #else				/* }{ */
 
-#define l_timet			lua_Number
-#define l_pushtime(L,t)		lua_pushnumber(L,(lua_Number)(t))
-#define l_gettime(L,arg)	luaL_checknumber(L, arg)
+#define l_timet          lua_Number
+#define l_pushtime(L,t)  lua_pushnumber(L, (lua_Number)(t))
+#define l_gettime(L,arg) luaL_checknumber(L, arg)
 
 #endif				/* } */
 
@@ -182,8 +182,13 @@ static int os_nanotime(lua_State *L) {
 #if defined(__cplusplus) && __cplusplus >= 201103L
   namespace sc = std::chrono;
   auto since_epoch = sc::high_resolution_clock::now().time_since_epoch();
+  #if LUA_32BITS
+  auto micros = sc::duration_cast<sc::microseconds>(since_epoch);
+  l_pushtime(L, micros.count());
+  #else
   auto nanos = sc::duration_cast<sc::nanoseconds>(since_epoch);
   l_pushtime(L, nanos.count());
+  #endif
 #elif defined(_WIN32)
   static int init = 1;
   static LARGE_INTEGER info;
@@ -193,20 +198,34 @@ static int os_nanotime(lua_State *L) {
     QueryPerformanceFrequency(&info);
   }
 
-  (void)QueryPerformanceCounter(&now);
-  l_pushtime(L, ((1000000000L * now.QuadPart) / info.QuadPart));
+  if (QueryPerformanceCounter(&now)) {
+#if LUA_32BITS
+    l_pushtime(L, ((1000000L * now.QuadPart) / info.QuadPart));
 #else
-  #if defined(HAVE_CLOCK_GETTIME)
+    l_pushtime(L, ((1000000000L * now.QuadPart) / info.QuadPart));
+#endif
+  }
+  else {
+    l_pushtime(L, 0);
+  }
+#elif defined(HAVE_CLOCK_GETTIME)
   struct timespec spec;
   if (clock_gettime(CLOCK_MONOTONIC, &spec) != 0)
     return luaL_error(L, "clock_gettime() failed:%s", strerror(errno));
 
-  l_pushtime(L, (spec.tv_sec * 1000000000L) + spec.tv_nsec);
+  #if LUA_32BITS
+  l_pushtime(L, (spec.tv_sec * 1000000L) + (spec.tv_nsec / 1000L));
   #else
+  l_pushtime(L, (spec.tv_sec * 1000000000L) + spec.tv_nsec);
+  #endif
+#else
   struct timeval spec;
   if (gettimeofday(&spec, NULL) < 0)
     return luaL_error(L, "gettimeofday() failed!:%s", strerror(errno));
 
+  #if LUA_32BITS
+  l_pushtime(L, (spec.tv_sec * 1000000L) + spec.tv_usec);
+  #else
   l_pushtime(L, (spec.tv_sec * 1000000000L) + (spec.tv_usec * 1000L));
   #endif
 #endif
@@ -513,7 +532,9 @@ static const luaL_Reg syslib[] = {
   {"time",      os_time},
   {"tmpname",   os_tmpname},
 #if defined(GRIT_POWER_CHRONO)
-  #if defined(LUA_SYS_CLOCK)
+  #if LUA_32BITS && defined(LUA_SYS_CLOCK)
+  { "microtime", os_nanotime },
+  #elif defined(LUA_SYS_CLOCK)
   { "nanotime", os_nanotime },
   #endif
   #if defined(LUA_SYS_RDTSC)

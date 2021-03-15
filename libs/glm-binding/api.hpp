@@ -156,7 +156,7 @@
   switch (ttypetag(_tv)) {                                                    \
     case LUA_VFALSE: case LUA_VTRUE:                                          \
     case LUA_VNUMINT:                                                         \
-      TRAITS_FUNC(LB, F, gLuaInteger, gLuaInteger, gLuaInteger);              \
+      TRAITS_FUNC(LB, F, gLuaInteger, gLuaInteger);                           \
       break;                                                                  \
     case LUA_VSHRSTR: case LUA_VLNGSTR: /* string coercion */                 \
     case LUA_VNUMFLT:                                                         \

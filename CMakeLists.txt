@@ -139,7 +139,12 @@ ELSE()
 
   SET(glm_nativeFlags "-O3 -DNDEBUG")
   IF( LUA_BIT32 )
-    ADD_REQUIRED_C_COMPILER_FLAG(-m32)
+    # ADD_REQUIRED_C_COMPILER_FLAG(-m32)
+    ADD_COMPILE_DEFINITIONS(LUA_32BITS=1)
+    IF( "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU" OR CMAKE_COMPILER_IS_CLANG )
+      SET(CMAKE_C_FLAGS "-m32 ${CMAKE_C_FLAGS}")
+      SET(CMAKE_CXX_FLAGS "-m32 ${CMAKE_CXX_FLAGS}")
+    ENDIF()
   ENDIF()
 
   # Compile everything, or lglm.cpp, or nothing with -ffast-math
