@@ -214,7 +214,7 @@ namespace glm {
   /// </summary>
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool isDegenerate(const AABB<L, T, Q> &aabb) {
-    bool result = true;
+    bool result = false;
     for (length_t i = 0; i < L; ++i)
       result |= aabb.minPoint[i] >= aabb.maxPoint[i];
     return result;
@@ -307,6 +307,14 @@ namespace glm {
   /// Compute an extreme point along the AABB, i.e., the farthest point in a
   /// given direction.
   /// </summary>
+  template<length_t L, typename T, qualifier Q>
+  GLM_GEOM_QUALIFIER vec<L, T, Q> extremePoint(const AABB<L, T, Q> &aabb, const vec<L, T, Q> &direction) {
+    vec<L, T, Q> result(T(0));
+    for (length_t i = 0; i < L; ++i)
+      result[i] = direction[i] >= T(0) ? aabb.maxPoint[i] : aabb.minPoint[i];
+    return result;
+  }
+
   template<typename T, qualifier Q>
   GLM_GEOM_QUALIFIER vec<3, T, Q> extremePoint(const AABB<3, T, Q> &aabb, const vec<3, T, Q> &direction) {
     return vec<3, T, Q>(
@@ -482,8 +490,8 @@ namespace glm {
     const vec<L, T, Q> c = (aabb.minPoint + aabb.maxPoint) * T(0.5);
     const vec<L, T, Q> e = aabb.maxPoint - c;
 
-    T r = abs(e.x * abs(axis.x) + e.y * abs(axis.y) + e.z * abs(axis.z));
-    T s = dot(axis, c);  // distance center/plane.
+    const T r = abs(dot(e, abs(axis)));
+    const T s = dot(axis, c);  // distance center/plane.
     dMin = s - r;
     dMax = s + r;
   }
@@ -632,7 +640,6 @@ namespace glm {
   /// </summary>
   /// <param name="tNear">The distance to intersect (enter) the AABB</param>
   /// <param name="tFar">The distance to exit the AABB</param>
-  /// <returns></returns>
   template<typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool intersectLineAABB(const AABB<3, T, Q> &aabb, const Line<3, T, Q> &line, T &tNear, T &tFar) {
     if (!equal(line.dir.x, T(0), epsilon<T>())) {  // test each cardinal plane: X, Y and Z.
@@ -717,8 +724,6 @@ namespace glm {
     return intersects(aabb, ray, dNear, dFar);
   }
 
-  /// <summary>
-  /// </summary>
   template<glm::length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool intersects(const AABB<3, T, Q> &aabb, const LineSegment<L, T, Q> &lineSegment, T &dNear, T &dFar) {
     const vec<L, T, Q> dir = lineSegment.dir2();
@@ -735,7 +740,7 @@ namespace glm {
 
   template<glm::length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool intersects(const AABB<L, T, Q> &aabb, const LineSegment<L, T, Q> &lineSegment) {
-    T near, far;
+    T near(0), far(0);
     return intersects(aabb, lineSegment, near, far);
   }
 
@@ -750,7 +755,7 @@ namespace glm {
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool intersects(const AABB<L, T, Q> &aabb, const Sphere<L, T, Q> &sphere) {
     const vec<L, T, Q> pt = closestPoint(aabb, sphere.pos);
-    return distance2(sphere.pos, pt) <= sphere.r * sphere.r;
+    return distance2(sphere.pos, pt) <= sphere.r * sphere.r; // + epsilon<T>() ?
   }
 
   template<length_t L, typename T, qualifier Q>
@@ -777,6 +782,14 @@ namespace glm {
            && aabb.minPoint.y < other.maxPoint.y
            && other.minPoint.x < aabb.maxPoint.x
            && other.minPoint.y < aabb.maxPoint.y;
+  }
+
+  /// <summary>
+  /// Return the intersection of two AABBs, i.e., the AABB that is contained in both.
+  /// </summary>
+  template<typename T, qualifier Q>
+  GLM_GEOM_QUALIFIER AABB<3, T, Q> intersection(const AABB<3, T, Q> &aabb, const AABB<3, T, Q> &other) {
+    return AABB<3, T, Q>(max(aabb.minPoint, other.minPoint), min(aabb.maxPoint, other.maxPoint));
   }
 
   namespace detail {

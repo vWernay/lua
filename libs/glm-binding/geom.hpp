@@ -264,6 +264,7 @@ TRAITS_DEFN(aabb_intersectPlane, glm::intersects, gLuaAABB<>, gLuaPlane<>)
 TRAITS_LAYOUT_DEFN(aabb_intersectLine, glm::intersects, GEOM_INTERSECTS_RH, gLuaAABB<>, gLuaLine<>)
 TRAITS_LAYOUT_DEFN(aabb_intersectSegment, glm::intersects, GEOM_INTERSECTS_RH, gLuaAABB<>, gLuaSegment<>)
 TRAITS_LAYOUT_DEFN(aabb_intersectRay, glm::intersects, GEOM_INTERSECTS_RH, gLuaAABB<>, gLuaRay<>)
+TRAITS_DEFN(aabb_intersection, glm::intersection, gLuaAABB<>, gLuaAABB<>)
 TRAITS_DEFN(aabb_slabs, glm::slabs, gLuaAABB<>, gLuaRay<>)
 TRAITS_LAYOUT_DEFN(aabb_projectToAxis, glm::projectToAxis, GEOM_PROJECTION, gLuaAABB<>, gLuaVec3<>)
 
@@ -283,6 +284,7 @@ static const luaL_Reg luaglm_aabblib[] = {
   { "isfinite", glm_aabb_isfinite },
   { "isDegenerate", glm_aabb_isDegenerate },
   { "centerPoint", glm_aabb_centerPoint },
+  { "centroid", glm_aabb_centerPoint },
   { "pointInside", glm_aabb_pointInside },
   { "minimalEnclosingSphere", glm_aabb_minimalEnclosingSphere },
   { "maximalContainedSphere", glm_aabb_maximalContainedSphere },
@@ -320,6 +322,7 @@ static const luaL_Reg luaglm_aabblib[] = {
   { "intersectLine", glm_aabb_intersectLine },
   { "intersectSegment", glm_aabb_intersectSegment },
   { "intersectRay", glm_aabb_intersectRay },
+  { "intersection", glm_aabb_intersection },
   { "slabs", glm_aabb_slabs },
   { "projectToAxis", glm_aabb_projectToAxis },
   { GLM_NULLPTR, GLM_NULLPTR }
@@ -513,6 +516,7 @@ static const luaL_Reg luaglm_segmentlib[] = {
   { "isfinite", glm_segment_isfinite },
   { "getPoint", glm_segment_getPoint },
   { "centerPoint", glm_segment_centerPoint },
+  { "centroid", glm_segment_centerPoint },
   { "reverse", glm_segment_reverse },
   { "dir", glm_segment_dir },
   { "extremePoint", glm_segment_extremePoint },

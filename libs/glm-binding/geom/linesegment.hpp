@@ -255,7 +255,7 @@ namespace glm {
       d = (d < T(0)) ? T(0) : T(1);
       d2 = (d2 < T(0)) ? T(0) : T(1);
 
-      T dt, dt2;
+      T dt(0), dt2(0);
       const vec<L, T, Q> pt = closestPoint(line, p2, dt);
       const vec<L, T, Q> pt2 = closestPoint(other, p, dt2);
       if (distance2(pt, p2) <= distance2(pt2, p)) {
@@ -409,7 +409,7 @@ namespace glm {
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool intersects(const LineSegment<L, T, Q> &line, const LineSegment<L, T, Q> &other, T eps = epsilon<T>()) {
-    T d, d2;
+    T d(0), d2(0);
     return distance(line, other, d, d2) <= eps;
   }
 

@@ -1072,6 +1072,7 @@ bool = aabb.isDegenerate(...)
 
 ### aabb.centerPoint
 ```lua
+-- @ALIAS: aabb.centroid
 -- Return the center point of the AABB
 vec3 = aabb.centerPoint(...)
 ```
@@ -1234,6 +1235,12 @@ result = aabb.intersectPlane(..., planeNormal --[[ vec3 ]], planeOffset --[[ num
 result,dNear,dFar = aabb.intersectLine(..., linePos --[[ vec3 ]], lineDir --[[ vec3 ]], [dNear, dFar])
 result,dNear,dFar = aabb.intersectRay(..., rayPos --[[ vec3 ]], rayDir --[[ vec3 ]], [dNear, dFar])
 result,dNear,dFar = aabb.intersectSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]], [dNear, dFar])
+```
+
+### aabb.intersection
+```lua
+-- Return the intersection of two AABBs, i.e., the AABB that is contained in both.
+aabbMin,aabbMax = aabb.intersectAABB(..., otherMin --[[ vec3 ]], otherMax --[[ vec3 ]])
 ```
 
 ## Line
@@ -1597,6 +1604,7 @@ vec3 = line.getPoint(..., distance --[[ number ]])
 
 ### segment.centerPoint
 ```lua
+-- @ALIAS: segment.centroid
 -- Returns the center point of the line segment: getPoint(line, T(0.5))
 vec3 = centerPoint(...)
 ```

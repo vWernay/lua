@@ -282,7 +282,7 @@ namespace glm {
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool contains(const Ray<L, T, Q> &ray, const vec<L, T, Q> &point, T distanceThreshold) {
-    T ignore;
+    T ignore(0);
     return distance2(closestPoint(ray, point, ignore), point) <= distanceThreshold;
   }
 
@@ -364,19 +364,19 @@ namespace glm {
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool intersects(const Ray<L, T, Q> &ray, const Sphere<L, T, Q> &sphere) {
-    T d, d2;
+    T d(0), d2(0);
     return intersects(sphere, ray, d, d2) > 0;
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool intersects(const Ray<L, T, Q> &ray, const AABB<L, T, Q> &aabb) {
-    T d, d2;
+    T d(0), d2(0);
     return intersects(aabb, ray, d, d2) > 0;
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool intersects(const Ray<L, T, Q> &ray, const Plane<L, T, Q> &plane) {
-    T d;
+    T d(0);
     return intersects(plane, ray, d);
   }
 

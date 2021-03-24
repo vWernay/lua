@@ -545,7 +545,7 @@ namespace glm {
     const vec<3, T, Q> ab = b - a;
     const vec<3, T, Q> ac = c - a;
 
-    T s, t;
+    T s(0), t(0);
     if (fitSphereThroughPoints(ab, ac, s, t)) {
       const vec<3, T, Q> center = s * ab + t * ac;
       sphere.r = length(center);
@@ -565,7 +565,7 @@ namespace glm {
   GLM_GEOM_QUALIFIER Sphere<3, T, Q> fitThroughPoints(const vec<3, T, Q> &a, const vec<3, T, Q> &b, const vec<3, T, Q> &c, const vec<3, T, Q> &d) {
     Sphere<3, T, Q> sphere;
 
-    T s, t, u;
+    T s(0), t(0), u(0);
     const vec<3, T, Q> ab = b - a;
     const vec<3, T, Q> ac = c - a;
     const vec<3, T, Q> ad = d - a;
@@ -641,7 +641,7 @@ namespace glm {
   /// </summary>
   template<typename T, qualifier Q>
   GLM_GEOM_QUALIFIER_NOINLINE Sphere<3, T, Q> optimalEnclosingSphere(const vec<3, T, Q> &a, const vec<3, T, Q> &b, const vec<3, T, Q> &c, const vec<3, T, Q> &d) {
-    T s, t, u;
+    T s(0), t(0), u(0);
     Sphere<3, T, Q> sphere;
 
     const vec<3, T, Q> ab = b - a;
@@ -738,7 +738,7 @@ namespace glm {
       // If the next point (pts[i]) does not fit inside the currently computed
       // minimal sphere, compute a new minimal sphere that also contains pts[i].
       if (distance2(pts[i], s.pos) > rSq) {
-        int redundant;
+        int redundant = 0;
         s = optimalEnclosingSphere(pts[sp[0]], pts[sp[1]], pts[sp[2]], pts[sp[3]], pts[i], redundant);
         rSq = s.r * s.r + epsilon<T>();
 

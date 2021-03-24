@@ -245,7 +245,7 @@ namespace glm {
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER vec<L, T, Q> extremePoint(const Polygon<L, T, Q> &polygon, const vec<L, T, Q> &direction) {
-    T projectionDistance;
+    T projectionDistance(0);
     return extremePoint(polygon, direction, projectionDistance);
   }
 
@@ -761,14 +761,14 @@ namespace glm {
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool intersects(const Polygon<L, T, Q> &polygon, const Line<L, T, Q> &line) {
-    T d;
+    T d(0);
     const Plane<L, T, Q> plane = planeCCW(polygon);
     return intersects(plane, line, d) ? contains(polygon, getPoint(line, d)) : false;
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool intersects(const Polygon<L, T, Q> &polygon, const Ray<L, T, Q> &ray) {
-    T d;
+    T d(0);
     const Plane<L, T, Q> plane = planeCCW(polygon);
     return intersects(plane, ray, d) ? contains(polygon, getPoint(ray, d)) : false;
   }

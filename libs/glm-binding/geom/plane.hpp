@@ -275,7 +275,7 @@ namespace glm {
   /// </summary>
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool clip(const Plane<L, T, Q> &plane, vec<L, T, Q> &a, vec<L, T, Q> &b) {
-    T t;
+    T t(0);
     bool intersects = intersectLinePlane(plane.normal, plane.d, a, b - a, t);
     if (!intersects || t <= T(0) || t >= T(1))
       return signedDistance(plane, a) > T(0);  // Within the positive/negative halfspace
@@ -309,7 +309,7 @@ namespace glm {
   /// </returns>
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER int clip(const Plane<L, T, Q> &plane, const Line<L, T, Q> &line, Ray<L, T, Q> &outRay) {
-    T t;
+    T t(0);
     if (!intersectLinePlane(plane.normal, plane.d, line.pos, line.dir, t)) {
       outRay.pos = line.pos;
       outRay.dir = line.dir;
@@ -381,7 +381,7 @@ namespace glm {
 
   template<length_t L, typename T, qualifier Q, typename Object>
   GLM_GEOM_QUALIFIER T signedDistance(const Plane<L, T, Q> &plane, const Object &object) {
-    T pMin, pMax;
+    T pMin(0), pMax(0);
     projectToAxis(object, plane.normal, pMin, pMax);
     pMin -= plane.d;
     pMax -= plane.d;
