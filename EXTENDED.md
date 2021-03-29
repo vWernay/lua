@@ -1,7 +1,10 @@
 **Automatically Generated**
+
+Extensions to [GLM](https://github.com/g-truc/glm). Functions reside in the base `glm` library table unless stated otherwise.
+
 # Extended Functions:
 ## Constructors
-All functions declared in the global table (`_G`).
+Functions declared in the global table (`_G`).
 ### vec
 ```lua
 -- Generic vector constructor; infers dimensionality based on the number of
@@ -12,7 +15,7 @@ All functions declared in the global table (`_G`).
 --   2. A vector/quaternions (of N dimensions) will have its contents stored
 --      at v[X], v[X + 1], ..., v[X + N] following x, y, z, w ordering;
 --   3. Otherwise, a lua_error is thrown.
-vector = vec(...)
+fvec = vec(...)
 
 -- Applies integer-casting rules to the input values
 ivec = ivec(...)
@@ -22,7 +25,7 @@ bvec = bvec(...)
 
 --[[
     vec#(value) - Create a vector of specific dimensionality with the value
-      for each dimension.
+      for each dimension, e.g., vec3(0).
 
     vec#(...) that ensures two, three, four numeric arguments respectively:
       - vec2(...) / ivec2(...) / bvec2(...)
@@ -53,12 +56,11 @@ vec3(1.000000, 2.000000, 3.000000)
 -- Note: This function will call vec(...) for each column.
 matrix = mat(...)
 
--- Matrix constructor that recycles p_matrix.
-matrix = mat(p_matrix, ...)
+-- Matrix constructor that recycles r_mat.
+matrix = mat(r_mat, ...)
 
 --[[
-    Ensures dimensionality based on the "NxM" suffix (each accepting an optional
-    p_matrix):
+    Ensures dimensionality based on the "NxM" suffix (each accepting an optional r_mat):
     mat2x2(...), mat2x3(...), mat2x4(...),
     mat3x2(...), mat3x3(...), mat3x4(...),
     mat4x2(...), mat4x3(...), mat4x4(...)
@@ -138,14 +140,15 @@ quat = slerp(x --[[ quat ]], y --[[ quat ]], t --[[ number ]])
 ```
 
 ## Constants
-See [glm/gtc/constants.hpp][http://glm.g-truc.net/0.9.9/api/a00708.html]:
+See [glm/gtc/constants.hpp](http://glm.g-truc.net/0.9.9/api/a00708.html):
 - `feps`: vector-float epsilon;
 - `huge`: lmathlib compatibility;
 - `maxinteger`: lmathlib compatibility;
 - `mininteger`: lmathlib compatibility;
-- `FP_NORMAL, FP_SUBNORMAL, FP_ZERO, FP_INFINITE, FP_NAN`: [Floating Point Categories][https://en.cppreference.com/w/cpp/numeric/math/FP_categories];
+- `FP_NORMAL, FP_SUBNORMAL, FP_ZERO, FP_INFINITE, FP_NAN`: [Floating Point Categories](https://en.cppreference.com/w/cpp/numeric/math/FP_categories);
 
 ## Base:
+
 ### hash
 ```lua
 -- std::hash wrapper
@@ -153,7 +156,6 @@ integer = hash(v --[[ vecN ]])
 integer = hash(q --[[ quat ]])
 integer = hash(m --[[ matNxM ]])
 ```
-
 
 ### unpack
 ```lua
@@ -2021,11 +2023,8 @@ vec3 = plane.refract(..., incident --[[[ vec3 ]], negativeSideRefraction --[[ nu
 ```lua
 -- Orthographically projects the given object onto the plane
 vec3 = plane.project(..., point --[[ vec3 ]])
-
 linePos --[[ vec3 ]], lineDir --[[ vec3 ]] = plane.projectLine(..., linePos --[[ vec3 ]], lineDir --[[ vec3 ]])
-
 segStart --[[ vec3 ]], segEnd --[[ vec3 ]] = plane.projectSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
-
 rayPos --[[ vec3 ]], rayDir --[[ vec3 ]] = plane.projectRay(..., rayPos --[[ vec3 ]], rayDir --[[ vec3 ]])
 ```
 
@@ -2466,6 +2465,8 @@ bool = polygon.intersectsSegment2D(..., segStart --[[ vec3 ]], segEnd --[[ vec3 
 ```
 
 # Preprocessor Header Definitions:
+Preprocessor definitions used to enable/disable bundling specific GLM headers. All functions are bundled with the `LUA_GLM_INCLUDE_ALL` preprocessor flag. Note, functions of the same, but with different parameterizations, will not be included iff no header that declares that function is defined. Template arguments are resolved at call-time when parsing values from the Lua stack.
+
 * COMMON_HPP
 * EXPONENTIAL_HPP
 * EXT_MATRIX_CLIP_SPACE_HPP

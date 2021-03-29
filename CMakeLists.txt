@@ -415,9 +415,9 @@ OPTION(GLM_LUA_APICHECK
   keys/key-types. Otherwise, follow tables and set the result to nil" OFF
 )
 
-OPTION(GRIT_DEFER "Import func2close from ltests.h into the base library." ON)
-OPTION(GRIT_POWER_JOAAT "Enable compile time Jenkins' one-at-a-time hashing" ON)
 OPTION(GRIT_COMPAT_IPAIRS "Reintroduce compatibility for the ``__ipairs`` metamethod that was deprecated in 5.3 and removed in 5.4" ON)
+OPTION(GRIT_POWER_DEFER "Import func2close from ltests.h into the base library." ON)
+OPTION(GRIT_POWER_JOAAT "Enable compile time Jenkins' one-at-a-time hashing" ON)
 OPTION(GRIT_POWER_PRELOADLIBS "Allow the preloading of libraries via command line arguments." ON)
 OPTION(GRIT_POWER_COMPOUND "Add compound operators (+=, -=, *=, /=, <<=, >>=, &=, |=, and ^=) to the language." ON)
 OPTION(GRIT_POWER_INTABLE "Support for unpacking named values from tables using the in keyword" ON)
@@ -452,8 +452,8 @@ IF( GLM_LUA_APICHECK )
   ADD_COMPILE_DEFINITIONS(GLM_LUA_APICHECK)
 ENDIF()
 
-IF( GRIT_DEFER )
-  ADD_COMPILE_DEFINITIONS(GRIT_DEFER)
+IF( GRIT_POWER_DEFER )
+  ADD_COMPILE_DEFINITIONS(GRIT_POWER_DEFER)
 ENDIF()
 
 IF( GRIT_POWER_JOAAT )

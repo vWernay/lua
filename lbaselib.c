@@ -556,7 +556,7 @@ static int luaB_tostring (lua_State *L) {
 }
 
 
-#if defined(GRIT_DEFER)
+#if defined(GRIT_POWER_DEFER)
 /* func2close */
 static int luaB_defer (lua_State *L) {
   luaL_checktype(L, 1, LUA_TFUNCTION);  /* check defer function */
@@ -628,7 +628,7 @@ static const luaL_Reg base_funcs[] = {
   {"tostring", luaB_tostring},
   {"type", luaB_type},
   {"xpcall", luaB_xpcall},
-#if defined(GRIT_DEFER)
+#if defined(GRIT_POWER_DEFER)
   {"defer", luaB_defer},
 #endif
 #if defined(GRIT_POWER_JOAAT)
