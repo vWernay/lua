@@ -1532,7 +1532,6 @@ GLM_BINDING_QUALIFIER(components) {  // An optimized variant of glm::components
     default:
       return gLuaBase::Push(LB, 1);
   }
-  return 0;
   GLM_BINDING_END
 }
 #endif

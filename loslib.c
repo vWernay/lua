@@ -174,7 +174,6 @@
   #include <x86intrin.h>
 #else
   #undef LUA_SYS_RDTSC
-  #warning "Read Time-Stamp Counter is not available."
 #endif
 
 #if defined(LUA_SYS_CLOCK)
