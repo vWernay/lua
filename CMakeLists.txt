@@ -13,7 +13,9 @@ ENABLE_LANGUAGE(CXX)
 SET(CMAKE_CXX_STANDARD 11)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 SET(CXX_EXTENSIONS OFF)
-SET(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE) # CMake 3.9.0; support flto
+IF( _CMAKE_CXX_IPO_MAY_BE_SUPPORTED_BY_COMPILER )
+  SET(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE) # CMake 3.9.0; support flto
+ENDIF()
 
 INCLUDE(CheckCXXCompilerFlag)
 IF( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
@@ -164,9 +166,15 @@ ELSE()
 
   # Compile everything, lglm.cpp, or nothing with common performance tweaks
   IF( LUA_NATIVE_ARCH )
-    ADD_COMPILE_OPTIONS(-fno-plt -fno-stack-protector -flto)
+    ADD_COMPILE_OPTIONS(-fno-stack-protector -flto)
+    IF (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+        ADD_COMPILE_OPTIONS(-fno-plt)
+    ENDIF()
   ELSEIF( GLM_NATIVE_ARCH )
-    SET(glm_nativeFlags "${glm_nativeFlags} -fno-plt -fno-stack-protector -flto")
+    SET(glm_nativeFlags "${glm_nativeFlags} --fno-stack-protector -flto")
+    IF (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+        SET(glm_nativeFlags "${glm_nativeFlags} -fno-plt")
+    ENDIF()
   ENDIF()
 
   # Compile everything, or lglm.cpp, or nothing with -march=native
@@ -194,15 +202,20 @@ ELSE()
   # Compiler options taken from Lua: lua/blob/master/makefile
   ADD_COMPILE_OPTIONS(
     -Wall -Wextra -Wshadow -Wsign-compare -Wundef -Wwrite-strings
-    -Wredundant-decls -Wdisabled-optimization -Wdouble-promotion -Wno-inline
-    -Wdouble-promotion -Wunused-parameter -Wno-comment -Wno-unused-function
-    -Wno-array-bounds -Wno-sign-conversion -Wstrict-overflow=2 -Wformat=2
-    -Wno-format-nonliteral
+    -Wdisabled-optimization -Wno-inline -Wunused-parameter -Wno-comment
+    -Wno-unused-function -Wno-array-bounds -Wno-sign-conversion -Wformat=2
     # -Werror
     # -Wconversion
     # -Wsign-conversion
     # -Wcast-qual
   )
+
+  IF (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+    ADD_COMPILE_OPTIONS(
+        -Wredundant-decls -Wdouble-promotion -Wstrict-overflow=2
+        -Wno-format-nonliteral
+    )
+  ENDIF()
 
   IF( CMAKE_COMPILER_IS_CLANG )
     ADD_COMPILE_OPTIONS(-ferror-limit=5 -fno-common -Wno-deprecated

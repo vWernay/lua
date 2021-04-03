@@ -240,9 +240,9 @@ struct gLuaBase {
   /// Pull(gLuaBase) wrapper
   /// </summary>
   template<typename T>
-  LUA_TRAIT_QUALIFIER int Pull(lua_State *L, int idx, T &v) {
+  LUA_TRAIT_QUALIFIER int Pull(lua_State *L, int idx_, T &v) {
     gLuaBase _LB(L, _gettop(L) + 1);
-    return gLuaBase::Pull(_LB, idx, v);
+    return gLuaBase::Pull(_LB, idx_, v);
   }
 
   /* scalar types */
@@ -261,15 +261,15 @@ struct gLuaBase {
   /// Returns true if the value at the given index is a boolean, and 0 otherwise.
   /// </summary>
   template<typename T>
-  LUA_TRAIT_QUALIFIER typename std::enable_if<std::is_same<T, bool>::value, bool>::type Is(const gLuaBase &LB, int idx) {
-    return lua_isboolean(LB.L, idx);
+  LUA_TRAIT_QUALIFIER typename std::enable_if<std::is_same<T, bool>::value, bool>::type Is(const gLuaBase &LB, int idx_) {
+    return lua_isboolean(LB.L, idx_);
   }
 
   /// <summary>
   /// Converts the Lua value at the given index to a C boolean value (0 or 1).
   /// </summary>
-  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx, bool &v) {
-    v = static_cast<bool>(lua_toboolean(LB.L, idx));
+  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, bool &v) {
+    v = static_cast<bool>(lua_toboolean(LB.L, idx_));
     return 1;
   }
 
@@ -287,15 +287,15 @@ struct gLuaBase {
   /// lua_tointeger with additional rules for casting booleans.
   /// </summary>
   template<typename T>
-  static int tointegerx(lua_State *L, int idx, T &v) {
-    const TValue *o = glm_i2v(L, idx);
+  static int tointegerx(lua_State *L_, int idx_, T &v) {
+    const TValue *o = glm_i2v(L_, idx_);
     switch (ttypetag(o)) {
       case LUA_VTRUE: v = static_cast<T>(1); break;
       case LUA_VFALSE: v = static_cast<T>(0); break;
       case LUA_VNUMINT: v = static_cast<T>(ivalue(o)); break;
       case LUA_VNUMFLT: v = static_cast<T>(fltvalue(o)); break;
       default: {
-        v = static_cast<T>(luaL_checkinteger(L, idx));
+        v = static_cast<T>(luaL_checkinteger(L_, idx_));
         break;
       }
     }
@@ -306,16 +306,16 @@ struct gLuaBase {
   /// Returns true if the value at the given index is an integer (i.e., a number
   /// and is represented as an integer); false otherwise.
   /// </summary>
-  LUA_TRAIT_INT(Is, bool)(const gLuaBase &LB, int idx) {
-    return lua_isinteger(LB.L, idx);
+  LUA_TRAIT_INT(Is, bool)(const gLuaBase &LB, int idx_) {
+    return lua_isinteger(LB.L, idx_);
   }
 
   /// <summary>
   /// Converts the value at the given index to a lua_Integer. Afterwards, that
   /// value is casted into the integer declaration.
   /// </summary>
-  LUA_TRAIT_INT(Pull, int)(const gLuaBase &LB, int idx, T &v) {
-    return tointegerx<T>(LB.L, idx, v);
+  LUA_TRAIT_INT(Pull, int)(const gLuaBase &LB, int idx_, T &v) {
+    return tointegerx<T>(LB.L, idx_, v);
   }
 
   /// <summary>
@@ -332,15 +332,15 @@ struct gLuaBase {
   /// lua_tonumber with additional rules for casting booleans
   /// </summary>
   template<typename T>
-  static int tonumberx(lua_State *L, int idx, T &v) {
-    const TValue *o = glm_i2v(L, idx);
+  static int tonumberx(lua_State *L_, int idx_, T &v) {
+    const TValue *o = glm_i2v(L_, idx_);
     switch (ttypetag(o)) {
       case LUA_VTRUE: v = static_cast<T>(1); break;
       case LUA_VFALSE: v = static_cast<T>(0); break;
       case LUA_VNUMINT: v = static_cast<T>(ivalue(o)); break;
       case LUA_VNUMFLT: v = static_cast<T>(fltvalue(o)); break;
       default: {
-        v = static_cast<T>(luaL_checknumber(L, idx));
+        v = static_cast<T>(luaL_checknumber(L_, idx_));
         break;
       }
     }
@@ -351,16 +351,16 @@ struct gLuaBase {
   /// Returns true if the value at the given index is a number, or a string
   /// convertible to a number; false otherwise.
   /// </summary>
-  LUA_TRAIT_FLOAT(Is, bool)(const gLuaBase &LB, int idx) {
-    return lua_isnumber(LB.L, idx);
+  LUA_TRAIT_FLOAT(Is, bool)(const gLuaBase &LB, int idx_) {
+    return lua_isnumber(LB.L, idx_);
   }
 
   /// <summary>
   /// Converts the value at the given index to a lua_Number. Afterwards, that
   /// value is casted into the float declaration.
   /// </summary>
-  LUA_TRAIT_FLOAT(Pull, int)(const gLuaBase &LB, int idx, T &v) {
-    return tonumberx<T>(LB.L, idx, v);
+  LUA_TRAIT_FLOAT(Pull, int)(const gLuaBase &LB, int idx_, T &v) {
+    return tonumberx<T>(LB.L, idx_, v);
   }
 
   /// <summary>
@@ -402,8 +402,8 @@ struct gLuaBase {
   /// desired for this API.
   /// </summary>
   template<typename T>
-  LUA_TRAIT_QUALIFIER typename std::enable_if<std::is_same<T, const char *>::value, bool>::type Is(const gLuaBase &LB, int idx) {
-    return lua_type(LB.L, idx) == LUA_TSTRING;
+  LUA_TRAIT_QUALIFIER typename std::enable_if<std::is_same<T, const char *>::value, bool>::type Is(const gLuaBase &LB, int idx_) {
+    return lua_type(LB.L, idx_) == LUA_TSTRING;
   }
 
   /// <summary>
@@ -411,8 +411,8 @@ struct gLuaBase {
   /// NULL, this function will also set *len with the strings length.
   /// </summary>
   /// <returns></returns>
-  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx, const char *&v, size_t *len = GLM_NULLPTR) {
-    v = lua_tolstring(LB.L, idx, len);
+  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, const char *&v, size_t *len = GLM_NULLPTR) {
+    v = lua_tolstring(LB.L, idx_, len);
     return 1;
   }
 
@@ -426,18 +426,18 @@ struct gLuaBase {
 
   /* vec<, float, > */
 
-  LUA_TRAIT_FLOAT(Pull, int)(const gLuaBase &LB, int idx, glm::vec<1, T> &v) {
-    v.x = static_cast<T>(luaL_checknumber(LB.L, idx));
+  LUA_TRAIT_FLOAT(Pull, int)(const gLuaBase &LB, int idx_, glm::vec<1, T> &v) {
+    v.x = static_cast<T>(luaL_checknumber(LB.L, idx_));
     return 1;
   }
 
-  LUA_TRAIT_INT(Pull, int)(const gLuaBase &LB, int idx, glm::vec<1, T> &v) {
-    v.x = static_cast<T>(luaL_checkinteger(LB.L, idx));
+  LUA_TRAIT_INT(Pull, int)(const gLuaBase &LB, int idx_, glm::vec<1, T> &v) {
+    v.x = static_cast<T>(luaL_checkinteger(LB.L, idx_));
     return 1;
   }
 
-  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx, glm::vec<1, bool> &v) {
-    v.x = static_cast<bool>(lua_toboolean(LB.L, idx));
+  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::vec<1, bool> &v) {
+    v.x = static_cast<bool>(lua_toboolean(LB.L, idx_));
     return 1;
   }
 
@@ -461,64 +461,64 @@ struct gLuaBase {
   /// vector.
   /// </summary>
 
-  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx, glm::vec<2, glm_Float> &v) {
-    const TValue *o = glm_i2v(LB.L, idx);
+  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::vec<2, glm_Float> &v) {
+    const TValue *o = glm_i2v(LB.L, idx_);
     if (l_likely(ttisvector2(o))) {
       v = glm_vecvalue(o).v2;
       return 1;
     }
-    return luaL_typeerror(LB.L, idx, LABEL_VECTOR2);
+    return luaL_typeerror(LB.L, idx_, LABEL_VECTOR2);
   }
 
-  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx, glm::vec<3, glm_Float> &v) {
-    const TValue *o = glm_i2v(LB.L, idx);
+  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::vec<3, glm_Float> &v) {
+    const TValue *o = glm_i2v(LB.L, idx_);
     if (l_likely(ttisvector3(o))) {
       v = glm_vecvalue(o).v3;
       return 1;
     }
-    return luaL_typeerror(LB.L, idx, LABEL_VECTOR3);
+    return luaL_typeerror(LB.L, idx_, LABEL_VECTOR3);
   }
 
-  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx, glm::vec<4, glm_Float> &v) {
-    const TValue *o = glm_i2v(LB.L, idx);
+  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::vec<4, glm_Float> &v) {
+    const TValue *o = glm_i2v(LB.L, idx_);
     if (l_likely(ttisvector4(o))) {
       v = glm_vecvalue(o).v4;
       return 1;
     }
-    return luaL_typeerror(LB.L, idx, LABEL_VECTOR4);
+    return luaL_typeerror(LB.L, idx_, LABEL_VECTOR4);
   }
 
   template<typename T>
-  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx, glm::vec<2, T> &v) {
-    const TValue *o = glm_i2v(LB.L, idx);
+  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::vec<2, T> &v) {
+    const TValue *o = glm_i2v(LB.L, idx_);
     if (l_likely(ttisvector2(o))) {
       const glm::vec<2, glm_Float> &_v = glm_vecvalue(o).v2;
       v = cast_vec2(_v, T);
       return 1;
     }
-    return luaL_typeerror(LB.L, idx, LABEL_VECTOR2);
+    return luaL_typeerror(LB.L, idx_, LABEL_VECTOR2);
   }
 
   template<typename T>
-  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx, glm::vec<3, T> &v) {
-    const TValue *o = glm_i2v(LB.L, idx);
+  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::vec<3, T> &v) {
+    const TValue *o = glm_i2v(LB.L, idx_);
     if (l_likely(ttisvector3(o))) {
       const glm::vec<3, glm_Float> &_v = glm_vecvalue(o).v3;
       v = cast_vec3(_v, T);
       return 1;
     }
-    return luaL_typeerror(LB.L, idx, LABEL_VECTOR3);
+    return luaL_typeerror(LB.L, idx_, LABEL_VECTOR3);
   }
 
   template<typename T>
-  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx, glm::vec<4, T> &v) {
-    const TValue *o = glm_i2v(LB.L, idx);
+  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::vec<4, T> &v) {
+    const TValue *o = glm_i2v(LB.L, idx_);
     if (l_likely(ttisvector4(o))) {
       const glm::vec<4, glm_Float> &_v = glm_vecvalue(o).v4;
       v = cast_vec4(_v, T);
       return 1;
     }
-    return luaL_typeerror(LB.L, idx, LABEL_VECTOR4);
+    return luaL_typeerror(LB.L, idx_, LABEL_VECTOR4);
   }
 
   template<glm::length_t L, typename T>
@@ -532,13 +532,13 @@ struct gLuaBase {
   /// Convert one-or-more Lua values starting at idx into a suitable glm::qua<>
   /// structure.
   /// </summary>
-  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase LB, int idx, glm::qua<glm_Float> &q) {
-    const TValue *o = glm_i2v(LB.L, idx);
+  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase LB, int idx_, glm::qua<glm_Float> &q) {
+    const TValue *o = glm_i2v(LB.L, idx_);
     if (l_likely(ttisquat(o))) {
       q = gm_drift(glm_quatvalue(o).q);
       return 1;
     }
-    return luaL_typeerror(LB.L, idx, LABEL_QUATERN);
+    return luaL_typeerror(LB.L, idx_, LABEL_QUATERN);
   }
 
   /// <summary>
@@ -551,8 +551,8 @@ struct gLuaBase {
   /* mat<C, ?> */
 
   template<glm::length_t C, glm::length_t R>
-  static int Pull(const gLuaBase &LB, int idx, glm::mat<C, R, glm_Float> &m) {
-    const TValue *o = glm_i2v(LB.L, idx);
+  static int Pull(const gLuaBase &LB, int idx_, glm::mat<C, R, glm_Float> &m) {
+    const TValue *o = glm_i2v(LB.L, idx_);
     if (l_likely(ttismatrix(o))) {
       const glmMatrix &mat = glm_mvalue(o);
       if (lua_matrix_cols(mat.size, mat.secondary) == C && lua_matrix_rows(mat.size, mat.secondary) == R)
@@ -564,20 +564,20 @@ struct gLuaBase {
   template<glm::length_t C, glm::length_t R>
   static int Push(gLuaBase &LB, const glm::mat<C, R, glm_Float> &m) {
     if (LB.can_recycle()) {
-      lua_State *L = LB.L;
+      lua_State *L_ = LB.L;
 
-      lua_lock(L);
-      const TValue *o = glm_i2v(L, LB.idx);
+      lua_lock(L_);
+      const TValue *o = glm_i2v(L_, LB.idx);
       if (ttismatrix(o)) {
         LB.idx++;
 
         glm_mat_boundary(mvalue_ref(o)) = m;
-        setobj2s(L, L->top, o); // lua_pushvalue
-        api_incr_top(L);
-        lua_unlock(L);
+        setobj2s(L_, L_->top, o); // lua_pushvalue
+        api_incr_top(L_);
+        lua_unlock(L_);
         return 1;
       }
-      lua_unlock(L);
+      lua_unlock(L_);
     }
 
 #if defined(LUA_GLM_FORCED_RECYCLE)
@@ -590,9 +590,9 @@ struct gLuaBase {
 
 #if defined(LUA_GLM_GEOM_EXTENSIONS)
   template<glm::length_t D, typename T>
-  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx, glm::AABB<D, T> &v) {
-    Pull(LB, idx, v.minPoint);
-    Pull(LB, idx + 1, v.maxPoint);
+  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::AABB<D, T> &v) {
+    Pull(LB, idx_, v.minPoint);
+    Pull(LB, idx_ + 1, v.maxPoint);
     return 2;
   }
 
@@ -604,9 +604,9 @@ struct gLuaBase {
   }
 
   template<glm::length_t D, typename T>
-  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx, glm::Line<D, T> &l) {
-    Pull(LB, idx, l.pos);
-    Pull(LB, idx + 1, l.dir);
+  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::Line<D, T> &l) {
+    Pull(LB, idx_, l.pos);
+    Pull(LB, idx_ + 1, l.dir);
 #if defined(LUA_GLM_DRIFT)
     l.dir = gm_drift(l.dir);
 #endif
@@ -621,9 +621,9 @@ struct gLuaBase {
   }
 
   template<glm::length_t D, typename T>
-  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx, glm::LineSegment<D, T> &l) {
-    Pull(LB, idx, l.a);
-    Pull(LB, idx + 1, l.b);
+  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::LineSegment<D, T> &l) {
+    Pull(LB, idx_, l.a);
+    Pull(LB, idx_ + 1, l.b);
     return 2;
   }
 
@@ -635,9 +635,9 @@ struct gLuaBase {
   }
 
   template<glm::length_t D, typename T>
-  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx, glm::Ray<D, T> &r) {
-    Pull(LB, idx, r.pos);
-    Pull(LB, idx + 1, r.dir);
+  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::Ray<D, T> &r) {
+    Pull(LB, idx_, r.pos);
+    Pull(LB, idx_ + 1, r.dir);
 #if defined(LUA_GLM_DRIFT)
     r.dir = gm_drift(r.dir);
 #endif
@@ -652,9 +652,9 @@ struct gLuaBase {
   }
 
   template<glm::length_t D, typename T>
-  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx, glm::Sphere<D, T> &s) {
-    Pull(LB, idx, s.pos);
-    Pull(LB, idx + 1, s.r);
+  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::Sphere<D, T> &s) {
+    Pull(LB, idx_, s.pos);
+    Pull(LB, idx_ + 1, s.r);
     return 2;
   }
 
@@ -666,9 +666,9 @@ struct gLuaBase {
   }
 
   template<glm::length_t D, typename T>
-  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx, glm::Plane<D, T> &p) {
-    Pull(LB, idx, p.normal);
-    Pull(LB, idx + 1, p.d);
+  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::Plane<D, T> &p) {
+    Pull(LB, idx_, p.normal);
+    Pull(LB, idx_ + 1, p.d);
     return 2;
   }
 
@@ -680,15 +680,15 @@ struct gLuaBase {
   }
 
   template<typename T>
-  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx, glm::Polygon<3, T> &p) {
+  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::Polygon<3, T> &p) {
     void *ptr = GLM_NULLPTR;
-    if (idx <= 0)
+    if (idx_ <= 0)
       return luaL_error(LB.L, "Invalid PolygonPull operation; incorrect API usage");
-    else if ((ptr = luaL_checkudata(LB.L, idx, LUA_GLM_POLYGON_META)) == GLM_NULLPTR)
+    else if ((ptr = luaL_checkudata(LB.L, idx_, LUA_GLM_POLYGON_META)) == GLM_NULLPTR)
       return luaL_error(LB.L, "Invalid PolygonPull operation; not userdata");
 
     p = *(reinterpret_cast<glm::Polygon<3, T> *>(ptr));
-    p.stack_idx = idx;
+    p.stack_idx = idx_;
     return 1;
   }
 

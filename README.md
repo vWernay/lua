@@ -473,7 +473,8 @@ A CMake project that builds the stand-alone interpreter (`lua`), a compiler (`lu
 # Create build directory
 └> mkdir -p build ; cd build
 
-# Compile with icpx: -DCMAKE_CXX_COMPILER=/opt/intel/[...]/bin/icpx
+# Compile with icc: -DCMAKE_C_COMPILER=icc -DCMAKE_CXX_COMPILER=icpc
+# Ensure LD_LIBRARY_PATH contains a reference to: libimf.a
 └> cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release ..
 
 # Build
