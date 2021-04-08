@@ -291,7 +291,7 @@ struct glmMatrix {
 /// <summary>
 /// External userdata definition.
 ///
-/// TODO: The vector dimensionality can/should be packed into the type field
+/// @TODO: The vector dimensionality can/should be packed into the type field
 /// similar to how types & variants are define in Lua.
 /// </summary>
 struct glmUserdata {

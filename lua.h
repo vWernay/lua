@@ -80,9 +80,8 @@ typedef struct lua_State lua_State;
 ** vector variants exposed in the library to simplify the internal/external
 ** translation between vector-types. (gritLua compatibility)
 **
-** NOTE: LUA_VVECTOR1 is the implicit vector-type (not enough variant bits) that
-** is functionally equivalent to a LUA_TNUMBER. Therefore, ensure LUA_VVECTOR1
-** is be equivalent to LUA_VNUMFLT internally.
+** @NOTE: LUA_VVECTOR1 is an implicit vector type. Internally this value must
+** map to LUA_VNUMFLT.
 */
 #define LUA_VVECTOR1 (LUA_TNUMBER | (1 << 4))
 #define LUA_VVECTOR2 (LUA_TVECTOR | (0 << 4))
