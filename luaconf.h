@@ -845,7 +845,7 @@
 
 /*
 ** {==================================================================
-** (DEPRECATED) gritLua vector API
+** @DEPRECATED gritLua vector API
 **
 ** @NOTE: GRIT_LONG_FLOAT has been deprecated and replaced by GLM_LUA_NUMBER_TYPE
 **
