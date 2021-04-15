@@ -179,6 +179,9 @@ GLM_LUA_REG(distance),
 GLM_LUA_REG(faceforward),
 GLM_LUA_REG(reflect),
 GLM_LUA_REG(refract),
+#if defined(LUA_GLM_ALIASES)
+{ "distance_to", GLM_NAME(distance) },
+#endif
 #endif
 
 #if defined(GEOMETRIC_HPP) || defined(EXT_QUATERNION_GEOMETRIC_HPP)
@@ -187,9 +190,11 @@ GLM_LUA_REG(length),
 GLM_LUA_REG(normalize),
 GLM_LUA_REG(clampLength), /* LUA_VECTOR_EXTENSIONS */
 GLM_LUA_REG(scaleLength),
+GLM_LUA_REG(direction),
 #if defined(LUA_GLM_ALIASES)
 { "norm", GLM_NAME(normalize) },
 { "magnitude", GLM_NAME(length) },
+{ "direction_to", GLM_NAME(direction) },
 { "clampMagnitude", GLM_NAME(clampLength) },
 { "scaleMagnitude", GLM_NAME(scaleLength) },
 #endif
@@ -297,6 +302,7 @@ GLM_LUA_REG(floorMultiple),
 GLM_LUA_REG(floorPowerOfTwo),
 GLM_LUA_REG(roundMultiple),
 GLM_LUA_REG(roundPowerOfTwo),
+GLM_LUA_REG(snap), /* LUA_VECTOR_EXTENSIONS */
 #endif
 
 #if defined(GTC_COLOR_SPACE_HPP) && !defined(GLM_FORCE_XYZW_ONLY)
@@ -443,6 +449,9 @@ GLM_LUA_REG(erfc),
 GLM_LUA_REG(lgamma),
 GLM_LUA_REG(tgamma),
 #endif
+#if defined(LUA_GLM_ALIASES)
+{ "move_toward", GLM_NAME(moveTowards) },
+#endif
 #endif
 
 #if defined(GTX_GRADIENT_PAINT_HPP)
@@ -483,7 +492,9 @@ GLM_LUA_REG(lMaxNorm),
 { "sqrLength", GLM_NAME(length2) },
 { "sqrMagnitude", GLM_NAME(length2) },
 { "lengthSquared", GLM_NAME(length2) },
+{ "length_squared", GLM_NAME(length2) },
 { "distanceSquared", GLM_NAME(distance2) },
+{ "distance_squared_to", GLM_NAME(distance2) },
 #endif
 #endif
 
@@ -519,6 +530,7 @@ GLM_LUA_REG(perpendicularBasis),
 GLM_LUA_REG(perpendicularFast),
 #if defined(LUA_GLM_ALIASES)
 { "basis", GLM_NAME(perpendicularBasis) },
+{ "from_z", GLM_NAME(perpendicularFast) },
 #endif
 #endif
 
@@ -564,6 +576,9 @@ GLM_LUA_REG(rotateFromTo), /* LUA_QUATERNION_EXTENSIONS */
 GLM_LUA_REG(catmullRom),
 GLM_LUA_REG(cubic),
 GLM_LUA_REG(hermite),
+#if defined(LUA_GLM_ALIASES)
+{ "cubic_interpolate", GLM_NAME(catmullRom) },
+#endif
 #endif
 
 #if defined(GTX_TEXTURE_HPP)
@@ -580,7 +595,9 @@ GLM_LUA_REG(trs), /* LUA_MATRIX_EXTENSIONS */
 GLM_LUA_REG(angle),
 GLM_LUA_REG(orientedAngle),
 #if defined(LUA_GLM_ALIASES)
+{ "angle_to", GLM_NAME(angle) },
 { "signedAngle", GLM_NAME(orientedAngle) },
+{ "signed_angle_to", GLM_NAME(orientedAngle) },
 #endif
 #endif
 
@@ -598,6 +615,7 @@ GLM_LUA_REG(isUniform), /* LUA_VECTOR_EXTENSIONS */
 #if defined(LUA_GLM_ALIASES)
 { "isZero", GLM_NAME(isNull) },
 { "isEmpty", GLM_NAME(isNull) },
+{ "is_normalized", GLM_NAME(isNormalized) },
 #endif
 #endif
 

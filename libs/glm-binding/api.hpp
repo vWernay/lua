@@ -413,21 +413,34 @@ QUAT_DEFN(conjugate, glm::conjugate, LAYOUT_UNARY)
 GLM_BINDING_QUALIFIER(inverse) {
   GLM_BINDING_BEGIN
   const TValue *_tv = glm_i2v(LB.L, LB.idx);
-  if (ttisquat(_tv))
-    TRAITS_FUNC(LB, glm::inverse, gLuaQuat<>);
-  else if (ttismatrix(_tv)) {  /* glm/matrix.hpp */
-    const glmMatrix &mat = glm_mvalue(_tv);
-    if (mat.size == mat.secondary) {
-      switch (lua_matrix_cols(mat.size, mat.secondary)) {
-        case 2: TRAITS_FUNC(LB, glm::inverse, gLuaMat2x2<>); break;
-        case 3: TRAITS_FUNC(LB, glm::inverse, gLuaMat3x3<>); break;
-        case 4: TRAITS_FUNC(LB, glm::inverse, gLuaMat4x4<>); break;
-        default:
-          return luaL_typeerror(LB.L, LB.idx, GLM_INVALID_MAT_DIMENSIONS);
+  // @TODO: Simplify switch logic by using preprocessor definitions for subcases
+  // within a switch block, e.g., CASE_VECTOR(LB, Layout). This will simplify
+  // functions that require unique handling.
+  switch (ttypetag(_tv)) {
+    case LUA_VFALSE: case LUA_VTRUE:
+    case LUA_VNUMINT: /* integer to number */
+    case LUA_VNUMFLT: TRAITS_FUNC(LB, glm::inverse, gLuaNumber); break;
+    case LUA_VVECTOR2: TRAITS_FUNC(LB, glm::inverse, gLuaVec2<>); break;
+    case LUA_VVECTOR3: TRAITS_FUNC(LB, glm::inverse, gLuaVec3<>); break;
+    case LUA_VVECTOR4: TRAITS_FUNC(LB, glm::inverse, gLuaVec4<>); break;
+    case LUA_VQUAT: TRAITS_FUNC(LB, glm::inverse, gLuaQuat<>); break;
+    case LUA_VMATRIX: {
+      const glmMatrix &mat = glm_mvalue(_tv);
+      if (mat.size == mat.secondary) {
+        switch (lua_matrix_cols(mat.size, mat.secondary)) {
+          case 2: TRAITS_FUNC(LB, glm::inverse, gLuaMat2x2<>); break;
+          case 3: TRAITS_FUNC(LB, glm::inverse, gLuaMat3x3<>); break;
+          case 4: TRAITS_FUNC(LB, glm::inverse, gLuaMat4x4<>); break;
+          default:
+            return luaL_typeerror(LB.L, LB.idx, GLM_INVALID_MAT_DIMENSIONS);
+        }
       }
+      return luaL_typeerror(LB.L, LB.idx, LABEL_NUMBER " or " LABEL_SYMMETRIC_MATRIX);
     }
+    default:
+      break;
   }
-  return luaL_typeerror(LB.L, LB.idx, LABEL_QUATERN " or " LABEL_MATRIX);
+  return luaL_typeerror(LB.L, LB.idx, LABEL_NUMBER " or " LABEL_VECTOR " or " LABEL_MATRIX);
   GLM_BINDING_END
 }
 SYMMETRIC_MATRIX_DEFN(invertible, glm::invertible, LAYOUT_UNARY) /* LUA_MATRIX_EXTENSIONS */
@@ -1129,6 +1142,7 @@ NUMBER_VECTOR_DEFN(length, glm::length, LAYOUT_UNARY)
 NUMBER_VECTOR_DEFN(normalize, glm::normalize, LAYOUT_UNARY)
 NUMBER_VECTOR_DEFN(clampLength, glm::clampLength, LAYOUT_BINARY_SCALAR) /* LUA_VECTOR_EXTENSIONS */
 NUMBER_VECTOR_DEFN(scaleLength, glm::scaleLength, LAYOUT_BINARY_SCALAR)
+NUMBER_VECTOR_DEFN(direction, glm::direction, LAYOUT_BINARY)
 #endif
 
 /* glm/vector_relational.hpp */
@@ -1221,6 +1235,7 @@ INTEGER_NUMBER_VECTOR_DEFNS(roundMultiple, glm::roundMultiple, LAYOUT_BINARY_INT
 INTEGER_VECTOR_DEFN(ceilPowerOfTwo, glm::ceilPowerOfTwo, LAYOUT_UNARY, LUA_UNSIGNED)
 INTEGER_VECTOR_DEFN(floorPowerOfTwo, glm::floorPowerOfTwo, LAYOUT_UNARY, LUA_UNSIGNED)
 INTEGER_VECTOR_DEFN(roundPowerOfTwo, glm::roundPowerOfTwo, LAYOUT_UNARY, LUA_UNSIGNED)
+NUMBER_VECTOR_DEFN(snap, glm::snap, LAYOUT_BINARY)
 #endif
 
 #if defined(GTC_COLOR_SPACE_HPP) && !defined(GLM_FORCE_XYZW_ONLY)

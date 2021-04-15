@@ -483,6 +483,14 @@ namespace glm {
   }
 
   /// <summary>
+  /// Grow an AABB by the given size.
+  /// </summary>
+  template<length_t L, typename T, qualifier Q>
+  GLM_GEOM_QUALIFIER AABB<L, T, Q> grow(const AABB<L, T, Q> &aabb, const T amount) {
+    return AABB<L, T, Q>(aabb.minPoint - (T(0.5) * amount), aabb.maxPoint + (T(0.5) * amount));
+  }
+
+  /// <summary>
   /// Project the AABB onto the provided axis.
   /// </summary>
   template<length_t L, typename T, qualifier Q>
@@ -600,14 +608,14 @@ namespace glm {
   // Functions to expand the AABB to enclose the given objects.
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER AABB<L, T, Q> enclose(const AABB<L, T, Q> &aabb, const vec<3, T, Q> &point) {
+  GLM_GEOM_QUALIFIER AABB<L, T, Q> enclose(const AABB<L, T, Q> &aabb, const vec<L, T, Q> &point) {
     AABB<L, T, Q> result(aabb);
     result.enclose(point);
     return result;
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER AABB<L, T, Q> enclose(const AABB<L, T, Q> &aabb, const vec<3, T, Q> &aabbMinPoint, const vec<3, T, Q> &aabbMaxPoint) {
+  GLM_GEOM_QUALIFIER AABB<L, T, Q> enclose(const AABB<L, T, Q> &aabb, const vec<L, T, Q> &aabbMinPoint, const vec<L, T, Q> &aabbMaxPoint) {
     AABB<L, T, Q> result(aabb);
     result.enclose(aabbMinPoint);
     result.enclose(aabbMaxPoint);

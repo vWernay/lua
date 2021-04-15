@@ -253,6 +253,7 @@ TRAITS_DEFN(aabb_containsAABB, glm::contains, gLuaAABB<>, gLuaAABB<>)
 TRAITS_DEFN(aabb_containsSegment, glm::contains, gLuaAABB<>, gLuaSegment<>)
 TRAITS_DEFN(aabb_containsSphere, glm::contains, gLuaAABB<>, gLuaSphere<>)
 TRAITS_DEFN(aabb_containsPolygon, glm::contains, gLuaAABB<>, gLuaPolygon<>)
+TRAITS_DEFN(aabb_grow, glm::grow, gLuaAABB<>, gLuaFloat)
 TRAITS_DEFN(aabb_enclose, glm::enclose, gLuaAABB<>, gLuaVec3<>)
 TRAITS_DEFN(aabb_encloseSegment, glm::enclose, gLuaAABB<>, gLuaSegment<>)
 TRAITS_DEFN(aabb_encloseSphere, glm::enclose, gLuaAABB<>, gLuaSphere<>)
@@ -311,6 +312,7 @@ static const luaL_Reg luaglm_aabblib[] = {
   { "containsSegment", glm_aabb_containsSegment },
   { "containsSphere", glm_aabb_containsSphere },
   { "containsPolygon", glm_aabb_containsPolygon },
+  { "grow", glm_aabb_grow },
   { "enclose", glm_aabb_enclose },
   { "encloseSegment", glm_aabb_encloseSegment },
   { "encloseSphere", glm_aabb_encloseSphere },
@@ -743,6 +745,19 @@ GLM_BINDING_QUALIFIER(plane_clipLine) {
   GLM_BINDING_END
 }
 
+GLM_BINDING_QUALIFIER(plane_intersectsPlane) {
+  GLM_BINDING_BEGIN
+  gLuaPlane<>::Point::type result;
+  const gLuaPlane<>::type a = gLuaPlane<>::Next(LB);
+  const gLuaPlane<>::type b = gLuaPlane<>::Next(LB);
+  const gLuaPlane<>::type c = gLuaPlane<>::Next(LB);
+  if (glm::intersects(a, b, c, result))
+    TRAITS_PUSH(LB, true, result);
+  else
+    TRAITS_PUSH(LB, false);
+  GLM_BINDING_END
+}
+
 static const luaL_Reg luaglm_planelib[] = {
   { "operator_negate", glm_plane_operator_negate },
   { "operator_equals", glm_plane_operator_equals },
@@ -796,6 +811,7 @@ static const luaL_Reg luaglm_planelib[] = {
   { "intersectsSegment", glm_plane_intersectsSegment },
   { "intersectsSphere", glm_plane_intersectsSphere },
   { "intersectsAABB", glm_plane_intersectsAABB },
+  { "intersectsPlane", glm_plane_intersectsPlane },
   { "clipSegment", glm_plane_clipSegment },
   { "clipLine", glm_plane_clipLine },
   { GLM_NULLPTR, GLM_NULLPTR },

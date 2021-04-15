@@ -224,7 +224,7 @@ namespace glm {
   template<length_t L, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER bool isUniform(vec<L, T, Q> const &v) {
     bool result = true;
-    for (length_t i = 1 ; i < L; ++i)
+    for (length_t i = 1 ; i < L; ++i)  // @TODO: detail::compute_isuniform_vector
       result &= (v[i] == v[0]);
     return result;
   }
@@ -241,7 +241,7 @@ namespace glm {
   template<length_t L, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER vec<L, T, Q> reverse(vec<L, T, Q> const &v) {
     vec<L, T, Q> result;
-    for (length_t i = 0 ; i < L; ++i)
+    for (length_t i = 0 ; i < L; ++i)  // @TODO: detail::compute_reverse_vector
       result[i] = v[L - i - 1];
     return result;
   }
@@ -290,15 +290,12 @@ namespace glm {
     GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'scaleLength' only accept floating-point inputs");
 
     const T sqlen = length2(v);
-    vec<L, T, Q> result(T(0));
-    if (sqlen < epsilon<T>())
+    if (sqlen < epsilon<T>()) {
+      vec<L, T, Q> result(T(0));
       result[0] = newLength;
-    else {
-      const T scalar = newLength / sqrt(sqlen);
-      for (length_t i = 0; i < L; ++i)
-        result[i] = v[i] / scalar;
+      return result;
     }
-    return result;
+    return v * (newLength / sqrt(sqlen));
   }
 
   template<typename genType>
@@ -563,7 +560,7 @@ namespace glm {
     GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'lerpAngle' only accept floating-point inputs");
 
     vec<L, T, Q> Result(T(0));
-    for (length_t i = 0; i < L; ++i)
+    for (length_t i = 0; i < L; ++i)  // @TODO: detail::compute_mixangle_vector
       Result[i] = lerpAngle<T>(x[i], y[i], t);
     return Result;
   }
@@ -573,7 +570,7 @@ namespace glm {
     GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'lerpAngle' only accept floating-point inputs");
 
     vec<L, T, Q> Result(T(0));
-    for (length_t i = 0; i < L; ++i)
+    for (length_t i = 0; i < L; ++i)  // @TODO: detail::compute_mixangle_vector
       Result[i] = lerpAngle<T>(x[i], y[i], t[i]);
     return Result;
   }
@@ -1007,6 +1004,44 @@ namespace glm {
     return mix(x, y, a);
   }
 
+  template<typename genType>
+  GLM_FUNC_QUALIFIER genType snap(const genType value, const genType step) {
+    if (step != genType(0))
+      return glm::floor((value / step) + genType(0.5)) * step;
+    return value;
+  }
+
+  template<length_t L, typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER vec<L, T, Q> snap(const vec<L, T, Q> &x, const vec<L, T, Q> &y) {
+    return detail::functor2<vec, L, T, Q>::call(snap, x, y);
+  }
+
+  /// <summary>
+  /// Inverse of each vector component
+  /// </summary>
+  template<length_t L, typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR vec<L, T, Q> inverse(const vec<L, T, Q> &x) {
+    return vec<L, T, Q>(T(1)) / x;
+  }
+
+  template<typename T>
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR T inverse(const T &x) {
+    return T(1) / x;
+  }
+
+  /// <summary>
+  /// Returns the normalized vector pointing to "y" from "x".
+  /// </summary>
+  template<length_t L, typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR vec<L, T, Q> direction(const vec<L, T, Q> &x, const vec<L, T, Q> &y) {
+    return glm::normalize(y - x);
+  }
+
+  template<typename T>
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR T direction(const T x, const T y) {
+    return glm::normalize(y - x);
+  }
+
   /* C++-11/C99 wrappers. */
 
 #if GLM_HAS_CXX11_STL
@@ -1117,7 +1152,7 @@ namespace glm {
   GLM_FUNC_QUALIFIER vec<L, bool, Q> isunordered(vec<L, T, Q> const &v, vec<L, T, Q> const &v2) {
     GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'isunordered' only accept floating-point inputs.");
     vec<L, bool, Q> Result(false);
-    for (length_t i = 0; i < L; ++i)
+    for (length_t i = 0; i < L; ++i)  // @TODO: detail::compute_isunordered_vector
       Result[i] = std::isunordered(v[i], v2[i]);
     return Result;
   }
@@ -1219,7 +1254,7 @@ namespace glm {
   GLM_FUNC_QUALIFIER vec<L, T, Q> scalbn(vec<L, T, Q> const &v, vec<L, int, Q> const &v2) {
     GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'scalbn' only accept floating-point inputs.");
     vec<L, T, Q> Result(T(0));
-    for (length_t i = 0; i < L; ++i)
+    for (length_t i = 0; i < L; ++i)  // @TODO: detail::compute_scalebn_vector
       Result[i] = std::scalbn(v[i], v2[i]);
     return Result;
   }

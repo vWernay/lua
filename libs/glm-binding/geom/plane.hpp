@@ -324,6 +324,15 @@ namespace glm {
     return 1;
   }
 
+  /// <summary>
+  /// @TODO: Clip a polygon against a plane, i.e., remove part(s) of the polygon
+  /// that lie in the negative halfspace of the plane and returning a new
+  /// polygon.
+  /// </summary>
+  //template<length_t L, typename T, qualifier Q>
+  //GLM_GEOM_QUALIFIER Polygon<L, T, Q> clip(const Plane<L, T, Q> &plane, const Polygon<L, T, Q> &polygon) {
+  //}
+
   /// Orthographically projects the given object onto the plane.
 
   template<length_t L, typename T, qualifier Q>
@@ -613,6 +622,16 @@ namespace glm {
   GLM_GEOM_QUALIFIER bool intersects(const Plane<L, T, Q> &plane, const LineSegment<L, T, Q> &lineSegment) {
     T t(0);
     return intersects(plane, lineSegment, t);
+  }
+
+  template<length_t L, typename T, qualifier Q>
+  GLM_GEOM_QUALIFIER bool intersects(const Plane<L, T, Q> &a, const Plane<L, T, Q> &b, const Plane<L, T, Q> &c, vec<L, T, Q> &result) {
+    const T denom = dot(cross(a.normal, b.normal), c.normal);
+    if (denom >= epsilon<T>()) {
+      result = ((cross(b.normal, c.normal) * a.d) + (cross(c.normal, a.normal) * b.d) + (cross(a.normal, b.normal) * c.d)) / denom;
+      return true;
+    }
+    return false;
   }
 
   namespace detail {

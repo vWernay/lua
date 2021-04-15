@@ -600,6 +600,7 @@ See [libs/scripts](libs/scripts) for a collection of example/test scripts using 
 1. [grit-lua](https://github.com/grit-engine/grit-lua): Original implementation and inspiration.
 1. [MathGeoLib](https://github.com/juj/MathGeoLib/): [Geometry API](libs/glm-binding/geom) is distributed under [Apache License](http://www.apache.org/licenses/LICENSE-2.0.html).
 1. [SharpDX](https://github.com/sharpdx/SharpDX): Reference for Extended API (aliases).
+1. [Godot Engine](https://docs.godotengine.org/en/stable/classes/): Reference for Extended API (aliases).
 1. [Unity](https://docs.unity3d.com/ScriptReference/UnityEngine.CoreModule.html): Reference for Extended API (aliases and emulation of some [mathf](https://docs.unity3d.com/ScriptReference/Mathf.html) functions).
 
 ## License
