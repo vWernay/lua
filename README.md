@@ -1,5 +1,5 @@
 # LuaGLM
-A Lua 5.4.3 runtime providing vector, quaternion, and matrix data types with a (near-)complete binding to [GLM 0.9.9.9](https://github.com/g-truc/glm), a C++ mathematics library based on the [OpenGL Shading Language (GLSL)](https://www.opengl.org/registry/doc/GLSLangSpec.4.50.diff.pdf) specifications.
+A Lua 5.4.4 runtime providing vector, quaternion, and matrix data types with a (near-)complete binding to [GLM 0.9.9.9](https://github.com/g-truc/glm), a C++ mathematics library based on the [OpenGL Shading Language (GLSL)](https://www.opengl.org/registry/doc/GLSLangSpec.4.50.diff.pdf) specifications.
 
 > A significantly less efficient shared-library implementation, using tables and/or userdata instead of first-class types, for Lua5.1, Lua5.2, Lua5.3, Lua5.4, and [LuaJIT](https://github.com/LuaJIT/LuaJIT), can be found [TBD](https://github.com/gottfriedleibniz/...).
 

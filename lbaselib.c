@@ -295,6 +295,11 @@ static int luaB_pairs (lua_State *L) {
 
 
 #if defined(GRIT_POWER_EACH)
+static int eachcont (lua_State *L, int status, lua_KContext k) {
+  (void)L; (void)status; (void)k;  /* unused */
+  return 4;
+}
+
 static int luaB_each (lua_State *L) {
   luaL_checkany(L, 1);
   if (luaL_getmetafield(L, 1, "__iter") == LUA_TNIL) {  /* no metamethod? */
@@ -307,7 +312,7 @@ static int luaB_each (lua_State *L) {
   }
 
   lua_pushvalue(L, 1);  /* argument 'self' to metamethod */
-  lua_call(L, 1, 4);  /* get 4 values from metamethod */
+  lua_callk(L, 1, 4, 0, eachcont);  /* get 4 values from metamethod */
   return 4;
 }
 #endif
