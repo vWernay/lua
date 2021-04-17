@@ -48,10 +48,14 @@ vec3(1.000000, 2.000000, 3.000000)
 
 ### mat
 ```lua
--- Generic matrix population/construction function: this function will iterate
--- over the current Lua stack, expecting a component vector for each dimension
--- of the matrix. If there is only one argument passed to the function and it
--- is an array, it will be iterated over instead.
+-- Generic matrix population/construction function. Iterate over the current Lua
+-- stack and produce a matrix type according to the rules:
+--   1. If the first and only object is a number: populate the diagonal of a matrix.
+--   2. If the first and only object is a quaternion: cast it to the arbitrarily
+--      sized matrix. This logic follows glm::toMat3 and glm::toMat4 and uses
+--      constructors to down/up-cast the matrix.
+--   3. If the first object (second if recycling matrices) is a matrix: down/up-cast it.
+--   4. Otherwise, expect a column vector for each dimension of the matrix.
 --
 -- Note: This function will call vec(...) for each column.
 matrix = mat(...)
@@ -71,6 +75,16 @@ matrix = mat(r_mat, ...)
 ```lua
 > mat3x3(vec3(glm.e, glm.e, glm.e), vec3(math.pi, math.pi, math.pi), vec3(1,1,1))
 mat3x3((2.718282, 2.718282, 2.718282), (3.141593, 3.141593, 3.141593), (1.000000, 1.000000, 1.000000))
+
+-- Infer matrix dimensionality based on arguments
+> mat(vec3(glm.e, glm.e, glm.e), vec3(math.pi, math.pi, math.pi), vec3(1,1,1))
+mat3x3((2.718282, 2.718282, 2.718282), (3.141593, 3.141593, 3.141593), (1.000000, 1.000000, 1.000000))
+
+> mat4x2(math.pi)
+mat4x2((3.141593, 0.000000), (0.000000, 3.141593), (0.000000, 0.000000), (0.000000, 0.000000))
+
+> mat3x3(quat(35.0, vec3(0,0,1)))
+mat3x3((0.819152, 0.573576, 0.000000), (-0.573576, 0.819152, 0.000000), (0.000000, 0.000000, 1.000000))
 ```
 
 ### qua

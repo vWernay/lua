@@ -1312,33 +1312,39 @@ static glm::length_t PopulateVectorObject(lua_State *L, int idx, glm::vec<4, T> 
 }
 
 /// <summary>
-/// Generic matrix population/construction function: this function will iterate
-/// over the current Lua stack, expecting a column vector for each dimension of
-/// the matrix.
+/// Generic matrix population/construction function. Iterate over the current
+/// Lua stack and produce a matrix type according to the rules:
+///   1. If the first and only object is a number: populate the diagonal of a
+///     matrix.
+///   2. If the first and only object is a quaternion: cast it to the
+///     arbitrarily sized matrix. This logic follows glm::toMat3 and glm::toMat4
+///     and uses constructors to down/up-cast the matrix.
+///   3. If the first object is a matrix: down/up-cast it.
+///   4. Otherwise, expect a column vector for each dimension of the matrix.
 ///
-/// A desired/expected dimensionality of the matrix can also be passed to this
-/// function, or, have those parameters be equal to -1 and have its dimensions
-/// inferred from (1) the number of supplied column vectors; and (2) the
-/// dimensionality of each column vector.
+/// A "desired" or "expected" dimensionality may be specified within 'm'.
+/// Otherwise, this function will infer the dimensions of matrix according to
+/// supplied columns vectors and their dimensionality.
 /// </summary>
 static bool PopulateMatrix(lua_State *L, int idx, bool fixed_size, glmMatrix &m, glm::length_t &outSize, glm::length_t &outSecondary) {
   glm::length_t size = 0, secondary = 0;
 
-  // Maximum number of stack values to parse from the starting "idx" idx = lua_absindex(L, idx);
+  // Maximum number of stack values to parse from the starting "idx"
+  // idx = lua_absindex(L, idx); @NOTE: Assume 'idx' is positive.
   const int stack_count = (_gettop(L) - idx + 1);
   const TValue *o = glm_index2value(L, idx);
 
-  // If the first object is a quaternion, cast it to the arbitrarily sized
-  // matrix. This logic follows glm::toMat3 and glm::toMat4 and uses the
-  // constructors to down/up-cast the matrix
-  if (stack_count == 1 && ttisquat(o)) {
+  if (stack_count == 1 && ttisnumber(o)) {
+    size = m.size;
+    secondary = m.secondary;
+    m.m44 = glm::mat<4, 4, glm_Float>(cast_glmfloat(nvalue(o)));
+  }
+  else if (stack_count == 1 && ttisquat(o)) {
     size = m.size;
     secondary = m.secondary;
     m.m44 = glm::mat4_cast<glm_Float, glm::defaultp>(glm_quatvalue(o).q);
   }
-
-  // If the first object is a matrix, down/up-cast it.
-  if (stack_count == 1 && ttismatrix(o)) {
+  else if (stack_count == 1 && ttismatrix(o)) {
     const glmMatrix &_m = glm_mvalue(o);
 
     size = fixed_size ? m.size : _m.size;
@@ -1487,7 +1493,7 @@ static int glm_createMatrix(lua_State *L, glm::length_t C, glm::length_t R) {
   result.size = (C == 0) ? 4 : C;
   result.secondary = (R == 0) ? 4 : R;
 
-  if (top == 0) {  // If there are no elements, return the identity matri
+  if (top == 0) {  // If there are no elements, return the identity matrix
     success = true;
     result.m44 = glm::identity<glm::mat<4, 4, T>>();
   }
