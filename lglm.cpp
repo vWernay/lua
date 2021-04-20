@@ -70,9 +70,6 @@ extern LUA_API_LINKAGE {
 #define glm_typeError(L, O, M) (luaG_typeerror((L), (O), (M)), 0)
 #define glm_finishset(L, T, K, V) (luaV_finishset((L), (T), (K), (V), GLM_NULLPTR), 1)
 
-/* convert an object to an integer (without string coercion) */
-#define glm_tointeger(o) (ttisinteger(o) ? ivalue(o) : glm_flttointeger(o))
-
 #define _gettop(L) (cast_int((L)->top - ((L)->ci->func + 1)))
 #define _isvalid(L, o) (!ttisnil(o) || o != &G(L)->nilvalue)
 #define _ispseudo(i) ((i) <= LUA_REGISTRYINDEX)
@@ -125,6 +122,12 @@ static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
 ** Object Conversion
 ** ===================================================================
 */
+
+/* nvalue */
+#define glm_toflt(obj) cast_glmfloat(nvalue(obj))
+
+/* convert an object to an integer (without string coercion) */
+#define glm_tointeger(o) (ttisinteger(o) ? ivalue(o) : glm_flttointeger(o))
 
 /* raw object fields */
 #define glm_vvalue_raw(o) glm_constvec_boundary(&vvalue_raw(o))
@@ -1478,55 +1481,57 @@ static int glm_createVector(lua_State *L, glm::length_t desiredSize = 0) {
 
 /// <summary>
 /// Generalized create matrix.
-///
-/// @TODO: Only operate on glm::mat<4, 4> to reduce template function/logic
-/// duplication (i.e., one for each glm::mat pairing)
 /// </summary>
 template<typename T>
 static int glm_createMatrix(lua_State *L, glm::length_t C, glm::length_t R) {
   const int top = _gettop(L);
-
-  int start_idx = 0;
   bool success = false;
 
-  glmMatrix result(glm::mat<4, 4, T>(T(0)));
+  glmMatrix result;
   result.size = (C == 0) ? 4 : C;
   result.secondary = (R == 0) ? 4 : R;
 
   if (top == 0) {  // If there are no elements, return the identity matrix
     success = true;
-    result.m44 = glm::identity<glm::mat<4, 4, T>>();
-  }
-  else {  // If the first element is a matrix, recycle the collectible
-    const TValue *o = glm_index2value(L, 1);
-    start_idx = (top > 1 && ttismatrix(o)) ? 2 : 1;
-    success = PopulateMatrix(L, start_idx, (C != 0 || R != 0), result, result.size, result.secondary);
-  }
-
-  if (success) {
-    // Realign column-vectors, ensuring the matrix can be faithfully represented
-    // by its m.mCR union value.
     switch (result.secondary) {
-      case 2: result.m42 = glm::mat<4, 2, glm_Float>(result.m44); break;
-      case 3: result.m43 = glm::mat<4, 3, glm_Float>(result.m44); break;
-      case 4: result.m44 = glm::mat<4, 4, glm_Float>(result.m44); break;
+      case 2: result.m42 = glm::identity<glm::mat<4, 2, T>>(); break;
+      case 3: result.m43 = glm::identity<glm::mat<4, 3, T>>(); break;
+      case 4: result.m44 = glm::identity<glm::mat<4, 4, T>>(); break;
       default:
         break;
     }
-
-    if (start_idx > 1) { // Recycle the matrix
-      const TValue *o = GLM_NULLPTR;
-
-      lua_pushvalue(L, 1);
-      lua_lock(L);
-      o = glm_index2value(L, -1);
-      glm_mat_boundary(mvalue_ref(o)) = result;
-      lua_unlock(L);
-      return 1;
-    }
-    return glm_pushmat(L, result);
   }
-  return luaL_error(L, INVALID_MATRIX_STRUCTURE);
+  else {  // Parse the contents of the stack and populate 'result'
+    const TValue *o = glm_index2value(L, 1);
+    const int start_idx = (top > 1 && ttismatrix(o)) ? 2 : 1;
+    if (PopulateMatrix(L, start_idx, (C != 0 || R != 0), result, result.size, result.secondary)) {
+      success = true;
+
+      // Realign column-vectors, ensuring the matrix can be faithfully
+      // represented by its m.mCR union value.
+      switch (result.secondary) {
+        case 2: result.m42 = glm::mat<4, 2, glm_Float>(result.m44); break;
+        case 3: result.m43 = glm::mat<4, 3, glm_Float>(result.m44); break;
+        case 4: result.m44 = glm::mat<4, 4, glm_Float>(result.m44); break;
+        default:
+          break;
+      }
+
+      // The first argument was a 'matrix' intended to be recycled.
+      if (start_idx > 1) {
+        const TValue *orec = GLM_NULLPTR;
+
+        lua_pushvalue(L, 1);
+        lua_lock(L);
+        orec = glm_index2value(L, -1);
+        glm_mat_boundary(mvalue_ref(orec)) = result;
+        lua_unlock(L);
+        return 1;
+      }
+    }
+  }
+  return success ? glm_pushmat(L, result)
+                 : luaL_error(L, INVALID_MATRIX_STRUCTURE);
 }
 
 LUA_API int glmVec_vec(lua_State *L) { return glm_createVector<glm_Float>(L); }
@@ -1615,40 +1620,21 @@ LUA_API int glmVec_qua(lua_State *L) {
 ** ===================================================================
 */
 
-#define glm_newmvalue(L, obj, x)      \
-  LUA_MLM_BEGIN                       \
-  GCMatrix *mat = glmMat_new(L);      \
-  glm_mat_boundary(&mat->mat4) = (x); \
-  glm_setmvalue2s(L, obj, mat);       \
-  luaC_checkGC(L);                    \
-  LUA_MLM_END
-
-#define SCALAR(p1) (ttisinteger(p1) ? cast_glmfloat(ivalue(p1)) : cast_glmfloat(fltvalue(p1)))
-
-/* F(vecN, vecN), e.g., vecN * vecN */
-#define VECTOR_OPERATION(F, res, v, p2)                                              \
-  LUA_MLM_BEGIN                                                                      \
-  const glmVector &v2 = glm_vvalue((p2));                                            \
-  switch (tt_p1) {                                                                   \
-    case LUA_VVECTOR2: glm_setvvalue2s(res, F(v.v2, v2.v2), LUA_VVECTOR2); return 1; \
-    case LUA_VVECTOR3: glm_setvvalue2s(res, F(v.v3, v2.v3), LUA_VVECTOR3); return 1; \
-    case LUA_VVECTOR4: glm_setvvalue2s(res, F(v.v4, v2.v4), LUA_VVECTOR4); return 1; \
-    default:                                                                         \
-      break;                                                                         \
-  }                                                                                  \
-  LUA_MLM_END
-
-/* F(vecN, value), e.g., vecN * 3 */
-#define VECTOR_SCALAR_OPERATION(F, res, v, p2)                                   \
-  LUA_MLM_BEGIN                                                                  \
-  const glm_Float s = SCALAR((p2));                                              \
-  switch (tt_p1) {                                                               \
-    case LUA_VVECTOR2: glm_setvvalue2s(res, F(v.v2, s), LUA_VVECTOR2); return 1; \
-    case LUA_VVECTOR3: glm_setvvalue2s(res, F(v.v3, s), LUA_VVECTOR3); return 1; \
-    case LUA_VVECTOR4: glm_setvvalue2s(res, F(v.v4, s), LUA_VVECTOR4); return 1; \
-    default:                                                                     \
-      break;                                                                     \
-  }                                                                              \
+/*
+** Create a new matrix collectible and set it to the stack.
+**
+** A dimensionality override is included to simplify the below logic for
+** operations that operate on a per-value basis. Allowing the use of more
+** generalized operations instead of logic for all nine matrix types.
+*/
+#define glm_newmvalue(L, obj, x, nsize, nsecondary) \
+  LUA_MLM_BEGIN                                     \
+  GCMatrix *mat = glmMat_new(L);                    \
+  glm_mat_boundary(&(mat->mat4)) = (x);             \
+  mat->mat4.size = nsize;                           \
+  mat->mat4.secondary = nsecondary;                 \
+  glm_setmvalue2s(L, obj, mat);                     \
+  luaC_checkGC(L);                                  \
   LUA_MLM_END
 
 /*
@@ -1656,186 +1642,110 @@ LUA_API int glmVec_qua(lua_State *L) {
 **
 ** @TODO: Once int-vectors become natively supported, this will require a rewrite
 */
-#define INT_VECTOR_OPERATION(F, res, v, p2)                                    \
-  LUA_MLM_BEGIN                                                                \
-  if (tt_p1 == tt_p2) {                                                        \
-    const glmVector &v2 = glm_vecvalue(p2);                                    \
-    switch (tt_p1) {                                                           \
-      case LUA_VVECTOR2: glm_setvvalue2s(res, F(cast_vec2(v.v2, lua_Integer), cast_vec2(v2.v2, lua_Integer)), LUA_VVECTOR2); return 1; \
-      case LUA_VVECTOR3: glm_setvvalue2s(res, F(cast_vec3(v.v3, lua_Integer), cast_vec3(v2.v3, lua_Integer)), LUA_VVECTOR3); return 1; \
-      case LUA_VVECTOR4: glm_setvvalue2s(res, F(cast_vec4(v.v4, lua_Integer), cast_vec4(v2.v4, lua_Integer)), LUA_VVECTOR4); return 1; \
-      default:                                                                 \
-        break;                                                                 \
-    }                                                                          \
-  }                                                                            \
-  else if (ttisinteger(p2)) {                                                  \
-    const lua_Integer v2 = ivalue(p2);                                         \
-    switch (tt_p1) {                                                           \
-      case LUA_VVECTOR2: glm_setvvalue2s(res, F(cast_vec2(v.v2, lua_Integer), v2), LUA_VVECTOR2); return 1; \
-      case LUA_VVECTOR3: glm_setvvalue2s(res, F(cast_vec3(v.v3, lua_Integer), v2), LUA_VVECTOR3); return 1; \
-      case LUA_VVECTOR4: glm_setvvalue2s(res, F(cast_vec4(v.v4, lua_Integer), v2), LUA_VVECTOR4); return 1; \
-      default:                                                                 \
-        break;                                                                 \
-    }                                                                          \
-  }                                                                            \
+#define INT_VECTOR_OPERATION(F, res, v, p2)                                                      \
+  LUA_MLM_BEGIN                                                                                  \
+  if (tt_p1 == tt_p2) {                                                                          \
+    const glmVector &v2 = glm_vecvalue(p2);                                                      \
+    glm_setvvalue2s(res, F(cast_vec4(v.v4, lua_Integer), cast_vec4(v2.v4, lua_Integer)), tt_p1); \
+    return 1;                                                                                    \
+  }                                                                                              \
+  else if (tt_p2 == LUA_VNUMINT) {                                                               \
+    glm_setvvalue2s(res, F(cast_vec4(v.v4, lua_Integer), ivalue(p2)), tt_p1);                    \
+    return 1;                                                                                    \
+  }                                                                                              \
   LUA_MLM_END
 
-/*
-** F(matNxM, matNxM): e.g., matNxM + matNxM.
-**
-** @NOTE: This logic assumes all values are independently operated on, e.g.,
-**  m[2][2] = m1[2][2] + m2[2][2]. Therefore, the mat4xM matrix operation can be
-**  used.
-*/
-#define MATRIX_OPERATION(L, F, res, m, p2)                         \
-  LUA_MLM_BEGIN                                                    \
-  const glmMatrix &m2 = glm_mvalue((p2));                          \
-  switch (m.size) {                                                \
-    case 2: {                                                      \
-      switch (m.secondary) {                                       \
-        case 2: glm_newmvalue(L, res, F(m.m22, m2.m22)); return 1; \
-        case 3: glm_newmvalue(L, res, F(m.m23, m2.m23)); return 1; \
-        case 4: glm_newmvalue(L, res, F(m.m24, m2.m24)); return 1; \
-        default:                                                   \
-          break;                                                   \
-      }                                                            \
-      break;                                                       \
-    }                                                              \
-    case 3: {                                                      \
-      switch (m.secondary) {                                       \
-        case 2: glm_newmvalue(L, res, F(m.m32, m2.m32)); return 1; \
-        case 3: glm_newmvalue(L, res, F(m.m33, m2.m33)); return 1; \
-        case 4: glm_newmvalue(L, res, F(m.m34, m2.m34)); return 1; \
-        default:                                                   \
-          break;                                                   \
-      }                                                            \
-      break;                                                       \
-    }                                                              \
-    case 4: {                                                      \
-      switch (m.secondary) {                                       \
-        case 2: glm_newmvalue(L, res, F(m.m42, m2.m42)); return 1; \
-        case 3: glm_newmvalue(L, res, F(m.m43, m2.m43)); return 1; \
-        case 4: glm_newmvalue(L, res, F(m.m44, m2.m44)); return 1; \
-        default:                                                   \
-          break;                                                   \
-      }                                                            \
-      break;                                                       \
-    }                                                              \
-    default:                                                       \
-      break;                                                       \
-  }                                                                \
+/* F(matNxM, matNxM): e.g., matNxM + matNxM. */
+#define INDEP_MATRIX_OPERATION(L, F, res, m, p2)                                    \
+  LUA_MLM_BEGIN                                                                     \
+  const glmMatrix &m2 = glm_mvalue((p2));                                           \
+  switch (m.size) {                                                                 \
+    case 2: glm_newmvalue(L, res, F(m.m24, m2.m24), m.size, m.secondary); return 1; \
+    case 3: glm_newmvalue(L, res, F(m.m34, m2.m34), m.size, m.secondary); return 1; \
+    case 4: glm_newmvalue(L, res, F(m.m44, m2.m44), m.size, m.secondary); return 1; \
+    default:                                                                        \
+      break;                                                                        \
+  }                                                                                 \
   LUA_MLM_END
 
 /* F(value, matNxM): e.g., 3 * matNxM */
-#define SCALAR_MATRIX_OPERATION(L, F, res, s, p2)             \
-  LUA_MLM_BEGIN                                               \
-  const glmMatrix &m = glm_mvalue((p2));                      \
-  switch (m.size) {                                           \
-    case 2: {                                                 \
-      switch (m.secondary) {                                  \
-        case 2: glm_newmvalue(L, res, F(s, m.m22)); return 1; \
-        case 3: glm_newmvalue(L, res, F(s, m.m23)); return 1; \
-        case 4: glm_newmvalue(L, res, F(s, m.m24)); return 1; \
-        default:                                              \
-          break;                                              \
-      }                                                       \
-      break;                                                  \
-    }                                                         \
-    case 3: {                                                 \
-      switch (m.secondary) {                                  \
-        case 2: glm_newmvalue(L, res, F(s, m.m32)); return 1; \
-        case 3: glm_newmvalue(L, res, F(s, m.m33)); return 1; \
-        case 4: glm_newmvalue(L, res, F(s, m.m34)); return 1; \
-        default:                                              \
-          break;                                              \
-      }                                                       \
-      break;                                                  \
-    }                                                         \
-    case 4: {                                                 \
-      switch (m.secondary) {                                  \
-        case 2: glm_newmvalue(L, res, F(s, m.m42)); return 1; \
-        case 3: glm_newmvalue(L, res, F(s, m.m43)); return 1; \
-        case 4: glm_newmvalue(L, res, F(s, m.m44)); return 1; \
-        default:                                              \
-          break;                                              \
-      }                                                       \
-      break;                                                  \
-    }                                                         \
-    default:                                                  \
-      break;                                                  \
-  }                                                           \
+#define INDEP_SCALAR_MATRIX_OPERATION(L, F, res, s, p2)                           \
+  LUA_MLM_BEGIN                                                                   \
+  const glmMatrix &m2 = glm_mvalue(p2);                                           \
+  switch (m2.size) {                                                              \
+    case 2: glm_newmvalue(L, res, F(s, m2.m24), m2.size, m2.secondary); return 1; \
+    case 3: glm_newmvalue(L, res, F(s, m2.m34), m2.size, m2.secondary); return 1; \
+    case 4: glm_newmvalue(L, res, F(s, m2.m44), m2.size, m2.secondary); return 1; \
+    default:                                                                      \
+      break;                                                                      \
+  }                                                                               \
   LUA_MLM_END
 
 /* F(matNxM, value): e.g., matNxM * 3 */
-#define MATRIX_SCALAR_OPERATION(L, F, res, m, p2)             \
-  LUA_MLM_BEGIN                                               \
-  const glm_Float s = SCALAR(p2);                             \
-  switch (m.size) {                                           \
-    case 2: {                                                 \
-      switch (m.secondary) {                                  \
-        case 2: glm_newmvalue(L, res, F(m.m22, s)); return 1; \
-        case 3: glm_newmvalue(L, res, F(m.m23, s)); return 1; \
-        case 4: glm_newmvalue(L, res, F(m.m24, s)); return 1; \
-        default:                                              \
-          break;                                              \
-      }                                                       \
-      break;                                                  \
-    }                                                         \
-    case 3: {                                                 \
-      switch (m.secondary) {                                  \
-        case 2: glm_newmvalue(L, res, F(m.m32, s)); return 1; \
-        case 3: glm_newmvalue(L, res, F(m.m33, s)); return 1; \
-        case 4: glm_newmvalue(L, res, F(m.m34, s)); return 1; \
-        default:                                              \
-          break;                                              \
-      }                                                       \
-      break;                                                  \
-    }                                                         \
-    case 4: {                                                 \
-      switch (m.secondary) {                                  \
-        case 2: glm_newmvalue(L, res, F(m.m42, s)); return 1; \
-        case 3: glm_newmvalue(L, res, F(m.m43, s)); return 1; \
-        case 4: glm_newmvalue(L, res, F(m.m44, s)); return 1; \
-        default:                                              \
-          break;                                              \
-      }                                                       \
-      break;                                                  \
-    }                                                         \
-    default:                                                  \
-      break;                                                  \
-  }                                                           \
+#define MATRIX_SCALAR_OPERATION(L, F, res, m, p2)                              \
+  LUA_MLM_BEGIN                                                                \
+  const glm_Float s = glm_toflt(p2);                                           \
+  switch (m.size) {                                                            \
+    case 2: glm_newmvalue(L, res, F(m.m24, s), m.size, m.secondary); return 1; \
+    case 3: glm_newmvalue(L, res, F(m.m34, s), m.size, m.secondary); return 1; \
+    case 4: glm_newmvalue(L, res, F(m.m44, s), m.size, m.secondary); return 1; \
+    default:                                                                   \
+      break;                                                                   \
+  }                                                                            \
   LUA_MLM_END
 
 #define MATRIX_DIMS(A, B) m##A##B
-#define MATRIX_MULTIPLICATION_OPERATION(L, res, m1, m2, C, R)                               \
-  LUA_MLM_BEGIN                                                                             \
-  switch (m2.size) {                                                                        \
-    case 2: glm_newmvalue(L, res, (m1.MATRIX_DIMS(C, R) * m2.MATRIX_DIMS(2, C))); return 1; \
-    case 3: glm_newmvalue(L, res, (m1.MATRIX_DIMS(C, R) * m2.MATRIX_DIMS(3, C))); return 1; \
-    case 4: glm_newmvalue(L, res, (m1.MATRIX_DIMS(C, R) * m2.MATRIX_DIMS(4, C))); return 1; \
-    default:                                                                                \
-      break;                                                                                \
-  }                                                                                         \
+#define MATRIX_MULTIPLICATION_OPERATION(L, res, m1, m2, C, R)                                     \
+  LUA_MLM_BEGIN                                                                                   \
+  switch (m2.size) {                                                                              \
+    case 2: glm_newmvalue(L, res, (m1.MATRIX_DIMS(C, R) * m2.MATRIX_DIMS(2, C)), 2, R); return 1; \
+    case 3: glm_newmvalue(L, res, (m1.MATRIX_DIMS(C, R) * m2.MATRIX_DIMS(3, C)), 3, R); return 1; \
+    case 4: glm_newmvalue(L, res, (m1.MATRIX_DIMS(C, R) * m2.MATRIX_DIMS(4, C)), 4, R); return 1; \
+    default:                                                                                      \
+      break;                                                                                      \
+  }                                                                                               \
   LUA_MLM_END
 
 static int num_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId res, TMS event) {
-  const glm_Float s = SCALAR(p1);
+  const glm_Float s = glm_toflt(p1);
   switch (event) {
     case TM_ADD: {
-      switch (ttypetag(p2)) {
-        case LUA_VVECTOR2: glm_setvvalue2s(res, s + glm_vecvalue(p2).v2, LUA_VVECTOR2); return 1;
-        case LUA_VVECTOR3: glm_setvvalue2s(res, s + glm_vecvalue(p2).v3, LUA_VVECTOR3); return 1;
-        case LUA_VVECTOR4: glm_setvvalue2s(res, s + glm_vecvalue(p2).v4, LUA_VVECTOR4); return 1;
+      switch (ttype(p2)) {
+        case LUA_TVECTOR: glm_setvvalue2s(res, s + glm_vecvalue(p2).v4, ttypetag(p2)); return 1;
+        case LUA_TMATRIX: {
+          const glmMatrix &m2 = glm_mvalue(p2);
+          if (m2.size == m2.secondary) {
+            switch (m2.size) {
+              case 2: glm_newmvalue(L, res, s + m2.m22, 2, 2); return 1;
+              case 3: glm_newmvalue(L, res, s + m2.m33, 3, 3); return 1;
+              case 4: glm_newmvalue(L, res, s + m2.m44, 4, 4); return 1;
+              default:
+                break;
+            }
+          }
+          break;
+        }
         default:
           break;
       }
       break;
     }
     case TM_SUB: {
-      switch (ttypetag(p2)) {
-        case LUA_VVECTOR2: glm_setvvalue2s(res, s - glm_vecvalue(p2).v2, LUA_VVECTOR2); return 1;
-        case LUA_VVECTOR3: glm_setvvalue2s(res, s - glm_vecvalue(p2).v3, LUA_VVECTOR3); return 1;
-        case LUA_VVECTOR4: glm_setvvalue2s(res, s - glm_vecvalue(p2).v4, LUA_VVECTOR4); return 1;
+      switch (ttype(p2)) {
+        case LUA_TVECTOR: glm_setvvalue2s(res, s - glm_vecvalue(p2).v4, ttypetag(p2)); return 1;
+        case LUA_TMATRIX: {
+          const glmMatrix &m2 = glm_mvalue(p2);
+          if (m2.size == m2.secondary) {
+            switch (m2.size) {
+              case 2: glm_newmvalue(L, res, s - m2.m22, 2, 2); return 1;
+              case 3: glm_newmvalue(L, res, s - m2.m33, 3, 3); return 1;
+              case 4: glm_newmvalue(L, res, s - m2.m44, 4, 4); return 1;
+              default:
+                break;
+            }
+          }
+          break;
+        }
         default:
           break;
       }
@@ -1843,11 +1753,11 @@ static int num_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
     }
     case TM_MUL: {
       switch (ttypetag(p2)) {
-        case LUA_VVECTOR2: glm_setvvalue2s(res, s * glm_vecvalue(p2).v2, LUA_VVECTOR2); return 1;
-        case LUA_VVECTOR3: glm_setvvalue2s(res, s * glm_vecvalue(p2).v3, LUA_VVECTOR3); return 1;
-        case LUA_VVECTOR4: glm_setvvalue2s(res, s * glm_vecvalue(p2).v4, LUA_VVECTOR4); return 1;
+        case LUA_VVECTOR2:
+        case LUA_VVECTOR3:
+        case LUA_VVECTOR4: glm_setvvalue2s(res, s * glm_vecvalue(p2).v4, ttypetag(p2)); return 1;
         case LUA_VQUAT: glm_setvvalue2s(res, s * glm_quatvalue(p2).q, LUA_VQUAT); return 1;
-        case LUA_VMATRIX: SCALAR_MATRIX_OPERATION(L, operator*, res, s, p2); break;
+        case LUA_VMATRIX: INDEP_SCALAR_MATRIX_OPERATION(L, operator*, res, s, p2); break;
         default:
           break;
       }
@@ -1855,11 +1765,11 @@ static int num_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
     }
     case TM_DIV: {
       switch (ttypetag(p2)) {
-        case LUA_VVECTOR2: glm_setvvalue2s(res, s / glm_vecvalue(p2).v2, LUA_VVECTOR2); return 1;
-        case LUA_VVECTOR3: glm_setvvalue2s(res, s / glm_vecvalue(p2).v3, LUA_VVECTOR3); return 1;
-        case LUA_VVECTOR4: glm_setvvalue2s(res, s / glm_vecvalue(p2).v4, LUA_VVECTOR4); return 1;
+        case LUA_VVECTOR2:
+        case LUA_VVECTOR3:
+        case LUA_VVECTOR4: glm_setvvalue2s(res, s / glm_vecvalue(p2).v4, ttypetag(p2)); return 1;
         case LUA_VQUAT: glm_setvvalue2s(res, s * glm::inverse(glm_quatvalue(p2).q), LUA_VQUAT); return 1;
-        case LUA_VMATRIX: SCALAR_MATRIX_OPERATION(L, operator/, res, s, p2); break;
+        case LUA_VMATRIX: INDEP_SCALAR_MATRIX_OPERATION(L, operator/, res, s, p2); break;
         default:
           break;
       }
@@ -1877,25 +1787,37 @@ static int vec_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
   const int tt_p1 = ttypetag(p1), tt_p2 = ttypetag(p2);
   switch (event) {
     case TM_ADD: {
-      if (tt_p1 == tt_p2)
-        VECTOR_OPERATION(operator+, res, v, p2);
-      if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT)
-        VECTOR_SCALAR_OPERATION(operator+, res, v, p2);
+      if (tt_p1 == tt_p2) {
+        glm_setvvalue2s(res, operator+(v.v4, glm_vvalue(p2).v4), tt_p1);
+        return 1;
+      }
+      else if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT) {
+        glm_setvvalue2s(res, operator+(v.v4, glm_toflt(p2)), tt_p1);
+        return 1;
+      }
       break;
     }
     case TM_SUB: {
-      if (tt_p1 == tt_p2)
-        VECTOR_OPERATION(operator-, res, v, p2);
-      if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT)
-        VECTOR_SCALAR_OPERATION(operator-, res, v, p2);
+      if (tt_p1 == tt_p2) {
+        glm_setvvalue2s(res, operator-(v.v4, glm_vvalue(p2).v4), tt_p1);
+        return 1;
+      }
+      else if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT) {
+        glm_setvvalue2s(res, operator-(v.v4, glm_toflt(p2)), tt_p1);
+        return 1;
+      }
       break;
     }
     case TM_MUL: {
-      if (tt_p1 == tt_p2)
-        VECTOR_OPERATION(operator*, res, v, p2);
-      if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT)
-        VECTOR_SCALAR_OPERATION(operator*, res, v, p2);
-      if (tt_p2 == LUA_VQUAT) {
+      if (tt_p1 == tt_p2) {
+        glm_setvvalue2s(res, operator*(v.v4, glm_vvalue(p2).v4), tt_p1);
+        return 1;
+      }
+      else if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT) {
+        glm_setvvalue2s(res, operator*(v.v4, glm_toflt(p2)), tt_p1);
+        return 1;
+      }
+      else if (tt_p2 == LUA_VQUAT) {
         switch (tt_p1) {
           case LUA_VVECTOR3: glm_setvvalue2s(res, v.v3 * glm_quatvalue(p2).q, LUA_VVECTOR3); return 1;
           case LUA_VVECTOR4: glm_setvvalue2s(res, v.v4 * glm_quatvalue(p2).q, LUA_VVECTOR4); return 1;
@@ -1951,11 +1873,15 @@ static int vec_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
       break;
     }
     case TM_DIV: {
-      if (tt_p1 == tt_p2)
-        VECTOR_OPERATION(operator/, res, v, p2);
-      if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT)
-        VECTOR_SCALAR_OPERATION(operator/, res, v, p2);
-      if (tt_p2 == LUA_VMATRIX) {
+      if (tt_p1 == tt_p2) {
+        glm_setvvalue2s(res, operator/(v.v4, glm_vvalue(p2).v4), tt_p1);
+        return 1;
+      }
+      else if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT) {
+        glm_setvvalue2s(res, operator/(v.v4, glm_toflt(p2)), tt_p1);
+        return 1;
+      }
+      else if (tt_p2 == LUA_VMATRIX) {
         const glmMatrix &m2 = glm_mvalue(p2);
         if (m2.size == m2.secondary && tt_p2 == glm_variant(m2.size)) {
           switch (m2.size) {
@@ -1971,31 +1897,43 @@ static int vec_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
       break;
     }
     case TM_IDIV: {
-      if (tt_p1 == tt_p2)
-        VECTOR_OPERATION(glm::__objFloorDivide, res, v, p2);
-      if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT)
-        VECTOR_SCALAR_OPERATION(glm::__objFloorDivide, res, v, p2);
+      if (tt_p1 == tt_p2) {
+        glm_setvvalue2s(res, glm::__objFloorDivide(v.v4, glm_vvalue(p2).v4), tt_p1);
+        return 1;
+      }
+      else if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT) {
+        glm_setvvalue2s(res, glm::__objFloorDivide(v.v4, glm_toflt(p2)), tt_p1);
+        return 1;
+      }
       break;
     }
     case TM_MOD: {  // Using fmod for the same reasons described in llimits.h
-      if (tt_p1 == tt_p2)
-        VECTOR_OPERATION(glm::fmod, res, v, p2);
-      if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT)
-        VECTOR_SCALAR_OPERATION(glm::fmod, res, v, p2);
+      if (tt_p1 == tt_p2) {
+        glm_setvvalue2s(res, glm::fmod(v.v4, glm_vvalue(p2).v4), tt_p1);
+        return 1;
+      }
+      else if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT) {
+        glm_setvvalue2s(res, glm::fmod(v.v4, glm_toflt(p2)), tt_p1);
+        return 1;
+      }
       break;
     }
     case TM_POW: {
-      if (tt_p1 == tt_p2)
-        VECTOR_OPERATION(glm::pow, res, v, p2);
-      if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT)
-        VECTOR_SCALAR_OPERATION(glm::__objPow, res, v, p2);
+      if (tt_p1 == tt_p2) {
+        glm_setvvalue2s(res, glm::pow(v.v4, glm_vvalue(p2).v4), tt_p1);
+        return 1;
+      }
+      else if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT) {
+        glm_setvvalue2s(res, glm::__objPow(v.v4, glm_toflt(p2)), tt_p1);
+        return 1;
+      }
       break;
     }
     case TM_UNM: {
       switch (tt_p1) {
-        case LUA_VVECTOR2: glm_setvvalue2s(res, -v.v2, LUA_VVECTOR2); return 1;
-        case LUA_VVECTOR3: glm_setvvalue2s(res, -v.v3, LUA_VVECTOR3); return 1;
-        case LUA_VVECTOR4: glm_setvvalue2s(res, -v.v4, LUA_VVECTOR4); return 1;
+        case LUA_VVECTOR2:
+        case LUA_VVECTOR3:
+        case LUA_VVECTOR4: glm_setvvalue2s(res, -v.v4, tt_p1); return 1;
         default:
           break;
       }
@@ -2034,7 +1972,7 @@ static int quat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId
     }
     case TM_POW: {
       if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT) {
-        glm_setvvalue2s(res, glm::pow(v.q, SCALAR(p2)), LUA_VQUAT);
+        glm_setvvalue2s(res, glm::pow(v.q, glm_toflt(p2)), LUA_VQUAT);
         return 1;
       }
       break;
@@ -2053,7 +1991,8 @@ static int quat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId
     }
     case TM_DIV: {
       if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT) {
-        const glm_Float s = SCALAR(p2);
+        const glm_Float s = glm_toflt(p2);
+
         glm::qua<glm_Float> result = glm::identity<glm::qua<glm_Float>>();
         if (glm::notEqual(s, cast_glmfloat(0), glm::epsilon<glm_Float>()))
           result = v.q / s;
@@ -2075,22 +2014,22 @@ static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
   switch (event) {
     case TM_ADD: {
       if (tt_p2 == LUA_VMATRIX && m.size == mvalue(p2).size && m.secondary == mvalue(p2).secondary)
-        MATRIX_OPERATION(L, operator+, res, m, p2);
-      if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT)
+        INDEP_MATRIX_OPERATION(L, operator+, res, m, p2);
+      else if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT)
         MATRIX_SCALAR_OPERATION(L, operator+, res, m, p2);
       break;
     }
     case TM_SUB: {
       if (tt_p2 == LUA_VMATRIX && m.size == mvalue(p2).size && m.secondary == mvalue(p2).secondary)
-        MATRIX_OPERATION(L, operator-, res, m, p2);
-      if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT)
+        INDEP_MATRIX_OPERATION(L, operator-, res, m, p2);
+      else if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT)
         MATRIX_SCALAR_OPERATION(L, operator-, res, m, p2);
       break;
     }
     case TM_MUL: {
       if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT)
         MATRIX_SCALAR_OPERATION(L, operator*, res, m, p2);
-      if (tt_p2 == LUA_VVECTOR3 && m.size == 4 && m.secondary == 4) {
+      else if (tt_p2 == LUA_VVECTOR3 && m.size == 4 && m.secondary == 4) {
         const typename glm::mat<4, 4, glm_Float>::col_type &r =
 #if defined(GLM_LUA_ROTATE_DIRECTION)
           // Transforms the given direction vector by this matrix m: M * (x, y, z, 0).
@@ -2183,9 +2122,9 @@ static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
         const glmMatrix &m2 = glm_mvalue(p2);
         if (m.size == m2.size && m2.size == m2.secondary) {
           switch (m.size) {
-            case 2: glm_newmvalue(L, res, m.m22 / m2.m22); return 1;
-            case 3: glm_newmvalue(L, res, m.m33 / m2.m33); return 1;
-            case 4: glm_newmvalue(L, res, m.m44 / m2.m44); return 1;
+            case 2: glm_newmvalue(L, res, m.m22 / m2.m22, 2, 2); return 1;
+            case 3: glm_newmvalue(L, res, m.m33 / m2.m33, 3, 3); return 1;
+            case 4: glm_newmvalue(L, res, m.m44 / m2.m44, 4, 4); return 1;
             default:
               break;
           }
@@ -2207,36 +2146,9 @@ static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
     }
     case TM_UNM: {
       switch (m.size) {
-        case 2: {
-          switch (m.secondary) {
-            case 2: glm_newmvalue(L, res, -m.m22); return 1;
-            case 3: glm_newmvalue(L, res, -m.m23); return 1;
-            case 4: glm_newmvalue(L, res, -m.m24); return 1;
-            default:
-              break;
-          }
-          break;
-        }
-        case 3: {
-          switch (m.secondary) {
-            case 2: glm_newmvalue(L, res, -m.m32); return 1;
-            case 3: glm_newmvalue(L, res, -m.m33); return 1;
-            case 4: glm_newmvalue(L, res, -m.m34); return 1;
-            default:
-              break;
-          }
-          break;
-        }
-        case 4: {
-          switch (m.secondary) {
-            case 2: glm_newmvalue(L, res, -m.m42); return 1;
-            case 3: glm_newmvalue(L, res, -m.m43); return 1;
-            case 4: glm_newmvalue(L, res, -m.m44); return 1;
-            default:
-              break;
-          }
-          break;
-        }
+        case 2: glm_newmvalue(L, res, -m.m24, m.size, m.secondary); return 1;
+        case 3: glm_newmvalue(L, res, -m.m34, m.size, m.secondary); return 1;
+        case 4: glm_newmvalue(L, res, -m.m44, m.size, m.secondary); return 1;
         default:
           break;
       }

@@ -84,7 +84,7 @@ KDTree = setmetatable({
 })
 KDTree.__index = KDTree
 
---[[ --]]
+--[[ Initialize an empty KdTree instance --]]
 function KDTree.New()
     return setmetatable({
         leafSize = KDTree.DefaultLeafSize,
@@ -728,8 +728,7 @@ function KDTree:GenericQuery(stack, F, arg0, arg1, yield)
             local leafObjects = objects[-node]
             for i=1,#leafObjects do
                 local object = leafObjects[i]
-                local leafMin = minBounds[object]
-                if F(leafMin, maxBounds[object] or leafMin, arg0, arg1) then
+                if F(minBounds[object], maxBounds[object] or minBounds[object], arg0, arg1) then
                     yield(object)
                 end
             end

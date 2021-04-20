@@ -732,8 +732,7 @@ function Octree:GenericQuery(cache, F, arg0, arg1, yield)
                 local objs,childs = objects[node],children[node]
                 for i=1,#objs do
                     local object = objs[i]
-                    local minB = minBounds[object]
-                    if F(minB, maxBounds[object] or minB, arg0, arg1) then
+                    if F(minBounds[object], maxBounds[object] or minBounds[object], arg0, arg1) then
                         yield(object)
                     end
                 end
