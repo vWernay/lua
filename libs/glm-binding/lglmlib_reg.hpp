@@ -49,6 +49,12 @@ GLM_LUA_REG(forwardRH),
 GLM_LUA_REG(allEqual),
 GLM_LUA_REG(anyNotEqual),
 
+/* Functional Operators */
+GLM_LUA_REG(mat_add),
+GLM_LUA_REG(mat_sub),
+GLM_LUA_REG(mat_mul),
+GLM_LUA_REG(mat_negate),
+
 /* Constants */
 #if defined(CONSTANTS_HPP) || defined(EXT_SCALAR_CONSTANTS_HPP)
 { "cos_one_over_two", GLM_NULLPTR },

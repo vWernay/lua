@@ -240,6 +240,284 @@ GLM_BINDING_QUALIFIER(unpack) {
 
 /*
 ** {==================================================================
+** Functional Operators
+** ===================================================================
+*/
+
+#define ADDITION_OPERATOR(LB, F, Tr, type)             \
+  LUA_MLM_BEGIN                                        \
+  if (type == LUA_TNUMBER)                             \
+    TRAITS_FUNC(LB, F, Tr, gLuaTrait<Tr::value_type>); \
+  TRAITS_FUNC(LB, F, Tr, Tr);                          \
+  LUA_MLM_END
+
+#define MULTIPLICATION_OPERATOR(LB, F, Tr, type)                                \
+  LUA_MLM_BEGIN                                                                 \
+  switch (type) {                                                               \
+    case LUA_TNUMBER: TRAITS_FUNC(LB, F, Tr, gLuaTrait<Tr::value_type>); break; \
+    case LUA_TVECTOR: TRAITS_FUNC(LB, F, Tr, Tr::row_type); break;              \
+    case LUA_TMATRIX: {                                                         \
+      switch (gm_rows(_tv)) {                                                   \
+        case 2: TRAITS_FUNC(LB, F, Tr, Tr::mul_type<2>); break;                 \
+        case 3: TRAITS_FUNC(LB, F, Tr, Tr::mul_type<3>); break;                 \
+        case 4: TRAITS_FUNC(LB, F, Tr, Tr::mul_type<4>); break;                 \
+        default:                                                                \
+          break;                                                                \
+      }                                                                         \
+    }                                                                           \
+    default:                                                                    \
+      break;                                                                    \
+  }                                                                             \
+  break;                                                                        \
+  LUA_MLM_END
+
+/// <summary>
+/// A matrix addition function intended to allow the recycling of preallocated
+/// matrix structures (for the function result). Any operations that result in
+/// vector/numeric types should use the arithmetic operator.
+/// </summary>
+GLM_BINDING_QUALIFIER(mat_add) {
+  GLM_BINDING_BEGIN
+  const TValue *_tv = glm_i2v(LB.L, LB.idx);
+  const TValue *_tv2 = glm_i2v(LB.L, LB.idx + 1);
+  switch (ttypetag(_tv)) {
+    case LUA_VMATRIX: {
+      switch (gm_cols(_tv)) {
+        case 2: {
+          switch (gm_rows(_tv)) {
+            case 2: ADDITION_OPERATOR(LB, operator+, gLuaMat2x2<>, ttype(_tv2)); break;
+            case 3: ADDITION_OPERATOR(LB, operator+, gLuaMat2x3<>, ttype(_tv2)); break;
+            case 4: ADDITION_OPERATOR(LB, operator+, gLuaMat2x4<>, ttype(_tv2)); break;
+            default:
+              break;
+          }
+          break;
+        }
+        case 3: {
+          switch (gm_rows(_tv)) {
+            case 2: ADDITION_OPERATOR(LB, operator+, gLuaMat3x2<>, ttype(_tv2)); break;
+            case 3: ADDITION_OPERATOR(LB, operator+, gLuaMat3x3<>, ttype(_tv2)); break;
+            case 4: ADDITION_OPERATOR(LB, operator+, gLuaMat3x4<>, ttype(_tv2)); break;
+            default:
+              break;
+          }
+          break;
+        }
+        case 4: {
+          switch (gm_rows(_tv)) {
+            case 2: ADDITION_OPERATOR(LB, operator+, gLuaMat4x2<>, ttype(_tv2)); break;
+            case 3: ADDITION_OPERATOR(LB, operator+, gLuaMat4x3<>, ttype(_tv2)); break;
+            case 4: ADDITION_OPERATOR(LB, operator+, gLuaMat4x4<>, ttype(_tv2)); break;
+            default:
+              break;
+          }
+          break;
+        }
+        default:
+          break;
+      }
+    }
+    default:
+      break;
+  }
+  return luaL_typeerror(LB.L, LB.idx, LABEL_NUMBER " or " LABEL_VECTOR " or " LABEL_MATRIX);
+  GLM_BINDING_END
+}
+
+GLM_BINDING_QUALIFIER(mat_sub) {
+  GLM_BINDING_BEGIN
+  const TValue *_tv = glm_i2v(LB.L, LB.idx);
+  const TValue *_tv2 = glm_i2v(LB.L, LB.idx + 1);
+  switch (ttypetag(_tv)) {
+    case LUA_VMATRIX: {
+      switch (gm_cols(_tv)) {
+        case 2: {
+          switch (gm_rows(_tv)) {
+            case 2: ADDITION_OPERATOR(LB, operator-, gLuaMat2x2<>, ttype(_tv2)); break;
+            case 3: ADDITION_OPERATOR(LB, operator-, gLuaMat2x3<>, ttype(_tv2)); break;
+            case 4: ADDITION_OPERATOR(LB, operator-, gLuaMat2x4<>, ttype(_tv2)); break;
+            default:
+              break;
+          }
+          break;
+        }
+        case 3: {
+          switch (gm_rows(_tv)) {
+            case 2: ADDITION_OPERATOR(LB, operator-, gLuaMat3x2<>, ttype(_tv2)); break;
+            case 3: ADDITION_OPERATOR(LB, operator-, gLuaMat3x3<>, ttype(_tv2)); break;
+            case 4: ADDITION_OPERATOR(LB, operator-, gLuaMat3x4<>, ttype(_tv2)); break;
+            default:
+              break;
+          }
+          break;
+        }
+        case 4: {
+          switch (gm_rows(_tv)) {
+            case 2: ADDITION_OPERATOR(LB, operator-, gLuaMat4x2<>, ttype(_tv2)); break;
+            case 3: ADDITION_OPERATOR(LB, operator-, gLuaMat4x3<>, ttype(_tv2)); break;
+            case 4: ADDITION_OPERATOR(LB, operator-, gLuaMat4x4<>, ttype(_tv2)); break;
+            default:
+              break;
+          }
+          break;
+        }
+        default:
+          break;
+      }
+    }
+    default:
+      break;
+  }
+  return luaL_typeerror(LB.L, LB.idx, LABEL_NUMBER " or " LABEL_VECTOR " or " LABEL_MATRIX);
+  GLM_BINDING_END
+}
+
+/// <summary>
+/// A matrix multiplication function intended to allow the recycling of
+/// preallocated matrix structures (for the function result). Any operations
+/// that result in vector/numeric types should use the arithmetic operator.
+/// </summary>
+GLM_BINDING_QUALIFIER(mat_mul) {
+  GLM_BINDING_BEGIN
+  const TValue *_tv = glm_i2v(LB.L, LB.idx);
+  const TValue *_tv2 = glm_i2v(LB.L, LB.idx + 1);
+  switch (ttypetag(_tv)) {
+    case LUA_VFALSE: case LUA_VTRUE:
+    case LUA_VNUMINT:
+    case LUA_VNUMFLT: {  // number * matrix
+      switch (gm_cols(_tv2)) {
+        case 2: {
+          switch (gm_rows(_tv2)) {
+            case 2: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat2x2<>); break;
+            case 3: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat2x3<>); break;
+            case 4: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat2x4<>); break;
+            default:
+              break;
+          }
+          break;
+        }
+        case 3: {
+          switch (gm_rows(_tv2)) {
+            case 2: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat3x2<>); break;
+            case 3: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat3x3<>); break;
+            case 4: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat3x4<>); break;
+            default:
+              break;
+          }
+          break;
+        }
+        case 4: {
+          switch (gm_rows(_tv2)) {
+            case 2: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat4x2<>); break;
+            case 3: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat4x3<>); break;
+            case 4: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat4x4<>); break;
+            default:
+              break;
+          }
+          break;
+        }
+        default:
+          break;
+      }
+      break;
+    }
+    case LUA_VVECTOR2: MULTIPLICATION_OPERATOR(LB, operator*, gLuaVec2<>, ttype(_tv2)); break;
+    case LUA_VVECTOR3: MULTIPLICATION_OPERATOR(LB, operator*, gLuaVec3<>, ttype(_tv2)); break;
+    case LUA_VVECTOR4: MULTIPLICATION_OPERATOR(LB, operator*, gLuaVec4<>, ttype(_tv2)); break;
+    case LUA_VMATRIX: {
+      switch (gm_cols(_tv)) {
+        case 2: {
+          switch (gm_rows(_tv)) {
+            case 2: MULTIPLICATION_OPERATOR(LB, operator*, gLuaMat2x2<>, ttype(_tv2)); break;
+            case 3: MULTIPLICATION_OPERATOR(LB, operator*, gLuaMat2x3<>, ttype(_tv2)); break;
+            case 4: MULTIPLICATION_OPERATOR(LB, operator*, gLuaMat2x4<>, ttype(_tv2)); break;
+            default:
+              break;
+          }
+          break;
+        }
+        case 3: {
+          switch (gm_rows(_tv)) {
+            case 2: MULTIPLICATION_OPERATOR(LB, operator*, gLuaMat3x2<>, ttype(_tv2)); break;
+            case 3: MULTIPLICATION_OPERATOR(LB, operator*, gLuaMat3x3<>, ttype(_tv2)); break;
+            case 4: MULTIPLICATION_OPERATOR(LB, operator*, gLuaMat3x4<>, ttype(_tv2)); break;
+            default:
+              break;
+          }
+          break;
+        }
+        case 4: {
+          switch (gm_rows(_tv)) {
+            case 2: MULTIPLICATION_OPERATOR(LB, operator*, gLuaMat4x2<>, ttype(_tv2)); break;
+            case 3: MULTIPLICATION_OPERATOR(LB, operator*, gLuaMat4x3<>, ttype(_tv2)); break;
+            case 4: MULTIPLICATION_OPERATOR(LB, operator*, gLuaMat4x4<>, ttype(_tv2)); break;
+            default:
+              break;
+          }
+          break;
+        }
+        default:
+          break;
+      }
+    }
+    default:
+      break;
+  }
+  return luaL_typeerror(LB.L, LB.idx, LABEL_NUMBER " or " LABEL_VECTOR " or " LABEL_MATRIX);
+  GLM_BINDING_END
+}
+
+GLM_BINDING_QUALIFIER(mat_negate) {
+  GLM_BINDING_BEGIN
+  const TValue *_tv = glm_i2v(LB.L, LB.idx);
+  switch (ttypetag(_tv)) {
+    case LUA_VMATRIX: {
+      switch (gm_cols(_tv)) {
+        case 2: {
+          switch (gm_rows(_tv)) {
+            case 2: TRAITS_FUNC(LB, operator-, gLuaMat2x2<>); break;
+            case 3: TRAITS_FUNC(LB, operator-, gLuaMat2x3<>); break;
+            case 4: TRAITS_FUNC(LB, operator-, gLuaMat2x4<>); break;
+            default:
+              break;
+          }
+          break;
+        }
+        case 3: {
+          switch (gm_rows(_tv)) {
+            case 2: TRAITS_FUNC(LB, operator-, gLuaMat3x2<>); break;
+            case 3: TRAITS_FUNC(LB, operator-, gLuaMat3x3<>); break;
+            case 4: TRAITS_FUNC(LB, operator-, gLuaMat3x4<>); break;
+            default:
+              break;
+          }
+          break;
+        }
+        case 4: {
+          switch (gm_rows(_tv)) {
+            case 2: TRAITS_FUNC(LB, operator-, gLuaMat4x2<>); break;
+            case 3: TRAITS_FUNC(LB, operator-, gLuaMat4x3<>); break;
+            case 4: TRAITS_FUNC(LB, operator-, gLuaMat4x4<>); break;
+            default:
+              break;
+          }
+          break;
+        }
+        default:
+          break;
+      }
+    }
+    default:
+      break;
+  }
+  return luaL_typeerror(LB.L, LB.idx, LABEL_MATRIX);
+  GLM_BINDING_END
+}
+
+/* }================================================================== */
+
+/*
+** {==================================================================
 ** Scalar Specific
 ** ===================================================================
 */

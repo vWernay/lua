@@ -786,7 +786,12 @@ struct gLuaTrait : gLuaTraitCommon<T, T> {
 
 template<glm::length_t D, typename T>
 struct gLuaTrait<glm::vec<D, T>> : gLuaTraitCommon<T, glm::vec<D, T>> {
-  template<typename Type = T> using as_type = gLuaTrait<glm::vec<D, Type>>;
+  template<typename Type = T>
+  using as_type = gLuaTrait<glm::vec<D, Type>>;
+
+  template<glm::length_t R>
+  using mul_type = gLuaTrait<glm::mat<R, D, T>>;
+  using row_type = gLuaTrait<glm::vec<D, T>>;
 
   LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::vec<D, T> zero() { return glm::vec<D, T>(T(0)); }
   LUA_TRAIT_QUALIFIER bool Is(const gLuaBase &LB, int idx) { return glm_vector_length(LB.L, idx) == D; }
@@ -812,7 +817,10 @@ struct gLuaTrait<glm::qua<T>> : gLuaTraitCommon<T, glm::qua<T>> {
 
 template<glm::length_t C, glm::length_t R, typename T>
 struct gLuaTrait<glm::mat<C, R, T>> : gLuaTraitCommon<T, glm::mat<C, R, T>> {
-  template<typename Type = T> using as_type = gLuaTrait<glm::mat<C, R, Type>>;
+  template<glm::length_t RNext>
+  using mul_type = gLuaTrait<glm::mat<RNext, C, T>>;
+  using col_type = gLuaTrait<glm::vec<R, T>>;
+  using row_type = gLuaTrait<glm::vec<C, T>>;
 
   LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::mat<C, R, T> zero() { return glm::mat<C, R, T>(T(0)); }
   LUA_TRAIT_QUALIFIER bool Is(const gLuaBase &LB, int idx) {
