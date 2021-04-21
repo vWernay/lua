@@ -1902,8 +1902,14 @@ static int vec_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
         return 1;
       }
       else if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT) {
-        glm_setvvalue2s(res, glm::__objFloorDivide(v.v4, glm_toflt(p2)), tt_p1);
-        return 1;
+        const glm_Float s = glm_toflt(p2);
+        switch (tt_p1) {
+          case LUA_VVECTOR2: glm_setvvalue2s(res, glm::__objFloorDivide(v.v2, s), LUA_VVECTOR2); return 1;
+          case LUA_VVECTOR3: glm_setvvalue2s(res, glm::__objFloorDivide(v.v3, s), LUA_VVECTOR3); return 1;
+          case LUA_VVECTOR4: glm_setvvalue2s(res, glm::__objFloorDivide(v.v4, s), LUA_VVECTOR4); return 1;
+          default:
+            break;
+        }
       }
       break;
     }
