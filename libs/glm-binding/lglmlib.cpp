@@ -99,6 +99,11 @@ static const luaL_Reg luaglm_lib[] = {
   { "sphere", GLM_NULLPTR },
   { "plane", GLM_NULLPTR },
   { "polygon", GLM_NULLPTR },
+#if 0
+  { "aabb2d", GLM_NULLPTR },
+  { "segment2d", GLM_NULLPTR },
+  { "circle", GLM_NULLPTR },
+#endif
 #endif
   /* Library Details */
   { "_NAME", GLM_NULLPTR },
@@ -124,6 +129,11 @@ extern "C" {
     luaL_newlib(L, luaglm_segmentlib); lua_setfield(L, -2, "segment");
     luaL_newlib(L, luaglm_spherelib); lua_setfield(L, -2, "sphere");
     luaL_newlib(L, luaglm_planelib); lua_setfield(L, -2, "plane");
+#if 0
+    luaL_newlib(L, luaglm_aabb2dlib); lua_setfield(L, -2, "aabb2d");
+    luaL_newlib(L, luaglm_segment2dlib); lua_setfield(L, -2, "segment2d");
+    luaL_newlib(L, luaglm_circlelib); lua_setfield(L, -2, "circle");
+#endif
     // The "polygon" API is a reference to the polygon metatable stored in the registry.
     glm_newmetatable(L, LUA_GLM_POLYGON_META, "polygon", luaglm_polylib);
 #endif

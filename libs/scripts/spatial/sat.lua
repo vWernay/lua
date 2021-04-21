@@ -262,13 +262,10 @@ end
     that siblings type is converted to NodeType.Point.
 --]]
 function Interval:Remove(index)
-    local values = self.values
-    local objects = self.objects
-    local nodeType = self.nodeType
-    local objectLookup = self.objectLookup
-    local siblingIndex = self.siblingIndex
+    local values,objects,nodeType,objectLookup,siblingIndex = self.values,
+        self.objects,self.nodeType,self.objectLookup,self.siblingIndex
 
-    --[[ de-link siblings. --]]
+    -- Remove sibling links
     local sibling = siblingIndex[index]
     if sibling ~= -1 then
         siblingIndex[sibling] = -1

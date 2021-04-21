@@ -334,6 +334,117 @@ static const luaL_Reg luaglm_aabblib[] = {
 
 /*
 ** {==================================================================
+** AABB2D
+** ===================================================================
+*/
+
+GLM_BINDING_QUALIFIER(aabb2d_new) {
+  GLM_BINDING_BEGIN
+  if (lua_istable(LB.L, LB.idx)) {
+    using Iterator = glmLuaArray::Iterator<gLuaVec2<>>;
+    return gLuaBase::Push(LB, glm::minimalEnclosingAABB<Iterator, 2, gLuaVec2<>::value_type>(
+                              glmLuaArray::begin<gLuaVec2<>>(LB.L, LB.idx),
+                              glmLuaArray::end<gLuaVec2<>>(LB.L)));
+  }
+  else {
+    using Iterator = glmLuaStack::Iterator<gLuaVec2<>>;
+    return gLuaBase::Push(LB, glm::minimalEnclosingAABB<Iterator, 2, gLuaVec2<>::value_type>(
+                              glmLuaStack::begin<gLuaVec2<>>(LB.L, LB.idx),
+                              glmLuaStack::end<gLuaVec2<>>(LB.L)));
+  }
+  GLM_BINDING_END
+}
+
+/* Create an AABB from a coordinate & radius. */
+TRAITS_LAYOUT_DEFN(aabb2d_fromCenterAndSize, glm::aabbFromCenterAndSize, LAYOUT_BINARY_OPTIONAL, gLuaVec2<>)
+TRAITS_DEFN(aabb2d_fromSphere, glm::aabbFromSphere, gLuaSphere<2>)
+TRAITS_DEFN(aabb2d_operator_negate, operator-, gLuaAABB<2>)
+TRAITS_DEFN(aabb2d_operator_equals, operator==, gLuaAABB<2>, gLuaAABB<2>)
+TRAITS_DEFN(aabb2d_operator_add, operator+, gLuaAABB<2>, gLuaVec2<>)
+TRAITS_DEFN(aabb2d_operator_sub, operator-, gLuaAABB<2>, gLuaVec2<>)
+ROTATION_MATRIX_DEFN(aabb2d_operator_mul, operator*, LAYOUT_UNARY, gLuaAABB<2>)
+TRAITS_LAYOUT_DEFN(aabb2d_equal, glm::equal, GEOM_EQUALS, gLuaAABB<2>)
+TRAITS_LAYOUT_DEFN(aabb2d_notEqual, glm::notEqual, GEOM_EQUALS, gLuaAABB<2>)
+TRAITS_DEFN(aabb2d_isinf, glm::isinf, gLuaAABB<2>)
+TRAITS_DEFN(aabb2d_isnan, glm::isnan, gLuaAABB<2>)
+TRAITS_DEFN(aabb2d_isfinite, glm::isfinite, gLuaAABB<2>)
+TRAITS_DEFN(aabb2d_isDegenerate, glm::isDegenerate, gLuaAABB<2>)
+TRAITS_DEFN(aabb2d_centerPoint, glm::centerPoint, gLuaAABB<2>)
+TRAITS_DEFN(aabb2d_pointInside, glm::pointInside, gLuaAABB<2>, gLuaVec2<>)
+TRAITS_DEFN(aabb2d_edge, glm::edge, gLuaAABB<2>, gLuaTrait<int>)
+TRAITS_DEFN(aabb2d_cornerPoint, glm::cornerPoint, gLuaAABB<2>, gLuaTrait<int>)
+TRAITS_DEFN(aabb2d_extremePoint, glm::extremePoint, gLuaAABB<2>, gLuaVec2<>)
+TRAITS_DEFN(aabb2d_faceNormal, glm::faceNormalAABB<gLuaFloat::value_type>, gLuaTrait<int>)
+TRAITS_DEFN(aabb2d_size, glm::size, gLuaAABB<2>)
+TRAITS_DEFN(aabb2d_halfSize, glm::halfSize, gLuaAABB<2>)
+TRAITS_DEFN(aabb2d_volume, glm::volume, gLuaAABB<2>)
+TRAITS_DEFN(aabb2d_scale, glm::scale, gLuaAABB<2>, gLuaVec2<>, gLuaFloat)
+TRAITS_DEFN(aabb2d_closestPoint, glm::closestPoint, gLuaAABB<2>, gLuaVec2<>)
+TRAITS_DEFN(aabb2d_distance, glm::distance, gLuaAABB<2>, gLuaVec2<>)
+TRAITS_DEFN(aabb2d_distanceSphere, glm::distance, gLuaAABB<2>, gLuaSphere<2>)
+TRAITS_DEFN(aabb2d_contains, glm::contains, gLuaAABB<2>, gLuaVec2<>)
+TRAITS_DEFN(aabb2d_containsAABB, glm::contains, gLuaAABB<2>, gLuaAABB<2>)
+TRAITS_DEFN(aabb2d_containsSegment, glm::contains, gLuaAABB<2>, gLuaSegment<2>)
+TRAITS_DEFN(aabb2d_containsSphere, glm::contains, gLuaAABB<2>, gLuaSphere<2>)
+TRAITS_DEFN(aabb2d_grow, glm::grow, gLuaAABB<2>, gLuaFloat)
+TRAITS_DEFN(aabb2d_enclose, glm::enclose, gLuaAABB<2>, gLuaVec2<>)
+TRAITS_DEFN(aabb2d_encloseSegment, glm::enclose, gLuaAABB<2>, gLuaSegment<2>)
+TRAITS_DEFN(aabb2d_encloseSphere, glm::enclose, gLuaAABB<2>, gLuaSphere<2>)
+TRAITS_DEFN(aabb2d_encloseAABB, glm::enclose, gLuaAABB<2>, gLuaAABB<2>)
+TRAITS_DEFN(aabb2d_intersectAABB, glm::intersects, gLuaAABB<2>, gLuaAABB<2>)
+TRAITS_DEFN(aabb2d_intersection, glm::intersection, gLuaAABB<2>, gLuaAABB<2>)
+TRAITS_LAYOUT_DEFN(aabb2d_projectToAxis, glm::projectToAxis, GEOM_PROJECTION, gLuaAABB<2>, gLuaVec2<>)
+
+static const luaL_Reg luaglm_aabb2dlib[] = {
+  { "new", glm_aabb2d_new },
+  { "fromCenterAndSize", glm_aabb2d_fromCenterAndSize },
+  { "aabbFromSphere", glm_aabb2d_fromSphere },
+  { "operator_negate", glm_aabb2d_operator_negate },
+  { "operator_equals", glm_aabb2d_operator_equals },
+  { "operator_add", glm_aabb2d_operator_add },
+  { "operator_sub", glm_aabb2d_operator_sub },
+  { "operator_mul", glm_aabb2d_operator_mul },
+  { "equal", glm_aabb2d_equal },
+  { "notEqual", glm_aabb2d_notEqual },
+  { "isinf", glm_aabb2d_isinf },
+  { "isnan", glm_aabb2d_isnan },
+  { "isfinite", glm_aabb2d_isfinite },
+  { "isDegenerate", glm_aabb2d_isDegenerate },
+  { "centerPoint", glm_aabb2d_centerPoint },
+  { "centroid", glm_aabb2d_centerPoint },
+  { "pointInside", glm_aabb2d_pointInside },
+  { "edge", glm_aabb2d_edge },
+  { "cornerPoint", glm_aabb2d_cornerPoint },
+  { "extremePoint", glm_aabb2d_extremePoint },
+  { "faceNormal", glm_aabb2d_faceNormal },
+  { "size", glm_aabb2d_size },
+  { "halfSize", glm_aabb2d_halfSize },
+  { "diagonal", glm_aabb2d_size },
+  { "halfDiagonal", glm_aabb2d_halfSize },
+  { "volume", glm_aabb2d_volume },
+  { "scale", glm_aabb2d_scale },
+  { "closestPoint", glm_aabb2d_closestPoint },
+  { "distance", glm_aabb2d_distance },
+  { "distanceSphere", glm_aabb2d_distanceSphere },
+  { "contains", glm_aabb2d_contains },
+  { "containsAABB", glm_aabb2d_containsAABB },
+  { "containsSegment", glm_aabb2d_containsSegment },
+  { "containsSphere", glm_aabb2d_containsSphere },
+  { "grow", glm_aabb2d_grow },
+  { "enclose", glm_aabb2d_enclose },
+  { "encloseSegment", glm_aabb2d_encloseSegment },
+  { "encloseSphere", glm_aabb2d_encloseSphere },
+  { "encloseAABB", glm_aabb2d_encloseAABB },
+  { "intersectAABB", glm_aabb2d_intersectAABB },
+  { "intersection", glm_aabb2d_intersection },
+  { "projectToAxis", glm_aabb2d_projectToAxis },
+  { GLM_NULLPTR, GLM_NULLPTR }
+};
+
+/* }================================================================== */
+
+/*
+** {==================================================================
 ** Line
 ** ===================================================================
 */
@@ -546,6 +657,78 @@ static const luaL_Reg luaglm_segmentlib[] = {
 
 /*
 ** {==================================================================
+** LineSegment2D
+** ===================================================================
+*/
+
+TRAITS_DEFN(segment2d_operator_negate, operator-, gLuaSegment<2>)
+TRAITS_DEFN(segment2d_operator_equals, operator==, gLuaSegment<2>, gLuaSegment<2>)
+TRAITS_DEFN(segment2d_operator_add, operator+, gLuaSegment<2>, gLuaVec2<>)
+TRAITS_DEFN(segment2d_operator_sub, operator-, gLuaSegment<2>, gLuaVec2<>)
+TRAITS_LAYOUT_DEFN(segment2d_equal, glm::equal, GEOM_EQUALS, gLuaSegment<2>)
+TRAITS_LAYOUT_DEFN(segment2d_notEqual, glm::notEqual, GEOM_EQUALS, gLuaSegment<2>)
+TRAITS_DEFN(segment2d_length, glm::length, gLuaSegment<2>)
+TRAITS_DEFN(segment2d_length2, glm::length2, gLuaSegment<2>)
+TRAITS_DEFN(segment2d_isfinite, glm::isfinite, gLuaSegment<2>)
+TRAITS_DEFN(segment2d_getPoint, glm::getPoint, gLuaSegment<2>, gLuaFloat)
+TRAITS_DEFN(segment2d_centerPoint, glm::centerPoint, gLuaSegment<2>)
+TRAITS_DEFN(segment2d_reverse, glm::reverse, gLuaSegment<2>)
+TRAITS_DEFN(segment2d_dir, glm::dir, gLuaSegment<2>)
+TRAITS_DEFN(segment2d_extremePoint, glm::extremePoint, gLuaSegment<2>, gLuaVec2<>)
+TRAITS_LAYOUT_DEFN(segment2d_closestPoint, glm::closestPoint, GEOM_DISTANCE, gLuaSegment<2>, gLuaVec2<>)
+TRAITS_LAYOUT_DEFN(segment2d_closestRay, glm::closestPoint, GEOM_INTERSECTS, gLuaSegment<2>, gLuaRay<2>)
+TRAITS_LAYOUT_DEFN(segment2d_closestLine, glm::closestPoint, GEOM_INTERSECTS, gLuaSegment<2>, gLuaLine<2>)
+TRAITS_LAYOUT_DEFN(segment2d_closestSegment, glm::closestPoint, GEOM_INTERSECTS, gLuaSegment<2>, gLuaSegment<2>)
+TRAITS_DEFN(segment2d_containsPoint, glm::contains, gLuaSegment<2>, gLuaVec2<>, gLuaEps<>)
+TRAITS_DEFN(segment2d_containsSegment, glm::contains, gLuaSegment<2>, gLuaSegment<2>, gLuaEps<>)
+TRAITS_LAYOUT_DEFN(segment2d_distance2, glm::distance2, GEOM_DISTANCE, gLuaSegment<2>, gLuaVec2<>)
+TRAITS_LAYOUT_DEFN(segment2d_distanceSegment2, glm::distance2, GEOM_INTERSECTS, gLuaSegment<2>, gLuaSegment<2>)
+TRAITS_LAYOUT_DEFN(segment2d_distance, glm::distance, GEOM_DISTANCE, gLuaSegment<2>, gLuaVec2<>)
+TRAITS_LAYOUT_DEFN(segment2d_distanceRay, glm::distance, GEOM_INTERSECTS, gLuaSegment<2>, gLuaRay<2>)
+TRAITS_LAYOUT_DEFN(segment2d_distanceLine, glm::distance, GEOM_INTERSECTS, gLuaSegment<2>, gLuaLine<2>)
+TRAITS_LAYOUT_DEFN(segment2d_distanceSegment, glm::distance, GEOM_INTERSECTS, gLuaSegment<2>, gLuaSegment<2>)
+TRAITS_DEFN(segment2d_distancePlane, glm::distance, gLuaSegment<2>, gLuaPlane<2>)
+TRAITS_LAYOUT_DEFN(segment2d_intersectsAABB, glm::intersects, GEOM_INTERSECTS, gLuaSegment<2>, gLuaAABB<2>)
+TRAITS_LAYOUT_DEFN(segment2d_intersectsSegment, glm::intersects, GEOM_INTERSECTS, gLuaSegment<2>, gLuaSegment<2>)
+
+static const luaL_Reg luaglm_segment2dlib[] = {
+  { "operator_negate", glm_segment2d_operator_negate },
+  { "operator_equals", glm_segment2d_operator_equals },
+  { "operator_add", glm_segment2d_operator_add },
+  { "operator_sub", glm_segment2d_operator_sub },
+  { "equal", glm_segment2d_equal },
+  { "notEqual", glm_segment2d_notEqual },
+  { "length", glm_segment2d_length },
+  { "length2", glm_segment2d_length2 },
+  { "isfinite", glm_segment2d_isfinite },
+  { "getPoint", glm_segment2d_getPoint },
+  { "centerPoint", glm_segment2d_centerPoint },
+  { "centroid", glm_segment2d_centerPoint },
+  { "reverse", glm_segment2d_reverse },
+  { "dir", glm_segment2d_dir },
+  { "extremePoint", glm_segment2d_extremePoint },
+  { "closestPoint", glm_segment2d_closestPoint },
+  { "closestRay", glm_segment2d_closestRay },
+  { "closestLine", glm_segment2d_closestLine },
+  { "closestSegment", glm_segment2d_closestSegment },
+  { "containsPoint", glm_segment2d_containsPoint },
+  { "containsSegment", glm_segment2d_containsSegment },
+  { "distance2", glm_segment2d_distance2 },
+  { "distanceSegment2", glm_segment2d_distanceSegment2 },
+  { "distance", glm_segment2d_distance },
+  { "distanceRay", glm_segment2d_distanceRay },
+  { "distanceLine", glm_segment2d_distanceLine },
+  { "distanceSegment", glm_segment2d_distanceSegment },
+  { "distancePlane", glm_segment2d_distancePlane },
+  { "intersectsAABB", glm_segment2d_intersectsAABB },
+  { "intersectsSegment", glm_segment2d_intersectsSegment },
+  { GLM_NULLPTR, GLM_NULLPTR }
+};
+
+/* }================================================================== */
+
+/*
+** {==================================================================
 ** Sphere
 ** ===================================================================
 */
@@ -663,6 +846,93 @@ static const luaL_Reg luaglm_spherelib[] = {
   { "fitThroughPoints", glm_sphere_fitThroughPoints },
   { "optimalEnclosingSphere", glm_sphere_optimalEnclosingSphere },
   { "projectToAxis", glm_sphere_projectToAxis },
+  { GLM_NULLPTR, GLM_NULLPTR }
+};
+
+/* }================================================================== */
+
+/*
+** {==================================================================
+** Circle
+** ===================================================================
+*/
+
+TRAITS_DEFN(circle_operator_negate, operator-, gLuaSphere<2>)
+TRAITS_DEFN(circle_operator_equals, operator==, gLuaSphere<2>, gLuaSphere<2>)
+TRAITS_DEFN(circle_operator_add, operator+, gLuaSphere<2>, gLuaVec2<>)
+TRAITS_DEFN(circle_operator_sub, operator-, gLuaSphere<2>, gLuaVec2<>)
+TRAITS_LAYOUT_DEFN(circle_equal, glm::equal, GEOM_EQUALS, gLuaSphere<2>)
+TRAITS_LAYOUT_DEFN(circle_notEqual, glm::notEqual, GEOM_EQUALS, gLuaSphere<2>)
+TRAITS_DEFN(circle_area, glm::area, gLuaSphere<2>)
+TRAITS_DEFN(circle_isinf, glm::isinf, gLuaSphere<2>)
+TRAITS_DEFN(circle_isnan, glm::isnan, gLuaSphere<2>)
+TRAITS_DEFN(circle_isfinite, glm::isfinite, gLuaSphere<2>)
+TRAITS_DEFN(circle_isDegenerate, glm::isDegenerate, gLuaSphere<2>)
+TRAITS_DEFN(circle_extremePoint, glm::extremePoint, gLuaSphere<2>, gLuaVec2<>)
+TRAITS_DEFN(circle_contains, glm::contains, gLuaSphere<2>, gLuaVec2<>, gLuaEps<>)
+TRAITS_DEFN(circle_containsSegment, glm::contains, gLuaSphere<2>, gLuaSegment<2>)
+TRAITS_DEFN(circle_containsCircle, glm::contains, gLuaSphere<2>, gLuaSphere<2>, gLuaEps<>)
+TRAITS_DEFN(circle_containsAABB, glm::contains, gLuaSphere<2>, gLuaAABB<2>)
+TRAITS_DEFN(circle_distance, glm::distance, gLuaSphere<2>, gLuaVec2<>)
+TRAITS_DEFN(circle_distanceSphere, glm::distance, gLuaSphere<2>, gLuaSphere<2>)
+TRAITS_DEFN(circle_distanceAABB, glm::distance, gLuaSphere<2>, gLuaAABB<2>)
+TRAITS_DEFN(circle_distanceRay, glm::distance, gLuaSphere<2>, gLuaRay<2>)
+TRAITS_DEFN(circle_distanceSegment, glm::distance, gLuaSphere<2>, gLuaSegment<2>)
+TRAITS_DEFN(circle_distanceLine, glm::distance, gLuaSphere<2>, gLuaLine<2>)
+TRAITS_DEFN(circle_closestPoint, glm::closestPoint, gLuaSphere<2>, gLuaVec2<>)
+TRAITS_DEFN(circle_intersectCircle, glm::intersects, gLuaSphere<2>, gLuaSphere<2>)
+TRAITS_DEFN(circle_intersectAABB, glm::intersects, gLuaSphere<2>, gLuaAABB<2>)
+TRAITS_DEFN(circle_intersectPlane, glm::intersects, gLuaSphere<2>, gLuaPlane<2>)
+TRAITS_LAYOUT_DEFN(circle_intersectLine, glm::intersects, GEOM_INTERSECTS_RH, gLuaSphere<2>, gLuaLine<2>)
+TRAITS_LAYOUT_DEFN(circle_intersectSegment, glm::intersects, GEOM_INTERSECTS_RH, gLuaSphere<2>, gLuaSegment<2>)
+TRAITS_LAYOUT_DEFN(circle_intersectRay, glm::intersects, GEOM_INTERSECTS_RH, gLuaSphere<2>, gLuaRay<2>)
+TRAITS_DEFN(circle_enclose, glm::enclose, gLuaSphere<2>, gLuaVec2<>)
+TRAITS_DEFN(circle_encloseSegment, glm::enclose, gLuaSphere<2>, gLuaSegment<2>)
+TRAITS_DEFN(circle_encloseSphere, glm::enclose, gLuaSphere<2>, gLuaSphere<2>)
+TRAITS_DEFN(circle_encloseAABB, glm::enclose, gLuaSphere<2>, gLuaAABB<2>)
+TRAITS_DEFN(circle_extendRadiusToContain, glm::extendRadiusToContain, gLuaSphere<2>, gLuaVec2<>, gLuaEps<>)
+TRAITS_DEFN(circle_extendRadiusToContainSphere, glm::extendRadiusToContain, gLuaSphere<2>, gLuaSphere<2>, gLuaEps<>)
+TRAITS_DEFN(circle_maximalContainedAABB, glm::maximalContainedAABB, gLuaSphere<2>)
+TRAITS_LAYOUT_DEFN(circle_projectToAxis, glm::projectToAxis, GEOM_PROJECTION, gLuaSphere<2>, gLuaVec2<>)
+
+static const luaL_Reg luaglm_circlelib[] = {
+  { "operator_negate", glm_circle_operator_negate },
+  { "operator_equals", glm_circle_operator_equals },
+  { "operator_add", glm_circle_operator_add },
+  { "operator_sub", glm_circle_operator_sub },
+  { "equal", glm_circle_equal },
+  { "notEqual", glm_circle_notEqual },
+  { "area", glm_circle_area },
+  { "isinf", glm_circle_isinf },
+  { "isnan", glm_circle_isnan },
+  { "isfinite", glm_circle_isfinite },
+  { "isDegenerate", glm_circle_isDegenerate },
+  { "extremePoint", glm_circle_extremePoint },
+  { "contains", glm_circle_contains },
+  { "containsSegment", glm_circle_containsSegment },
+  { "containsCircle", glm_circle_containsCircle },
+  { "containsAABB", glm_circle_containsAABB },
+  { "distance", glm_circle_distance },
+  { "distanceSphere", glm_circle_distanceSphere },
+  { "distanceAABB", glm_circle_distanceAABB },
+  { "distanceRay", glm_circle_distanceRay },
+  { "distanceSegment", glm_circle_distanceSegment },
+  { "distanceLine", glm_circle_distanceLine },
+  { "closestPoint", glm_circle_closestPoint },
+  { "intersectCircle", glm_circle_intersectCircle },
+  { "intersectAABB", glm_circle_intersectAABB },
+  { "intersectLine", glm_circle_intersectLine },
+  { "intersectSegment", glm_circle_intersectSegment },
+  { "intersectRay", glm_circle_intersectRay },
+  { "intersectPlane", glm_circle_intersectPlane },
+  { "enclose", glm_circle_enclose },
+  { "encloseSegment", glm_circle_encloseSegment },
+  { "encloseSphere", glm_circle_encloseSphere },
+  { "encloseAABB", glm_circle_encloseAABB },
+  { "extendRadiusToContain", glm_circle_extendRadiusToContain },
+  { "extendRadiusToContainSphere", glm_circle_extendRadiusToContainSphere },
+  { "maximalContainedAABB", glm_circle_maximalContainedAABB },
+  { "projectToAxis", glm_circle_projectToAxis },
   { GLM_NULLPTR, GLM_NULLPTR }
 };
 

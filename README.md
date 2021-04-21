@@ -587,8 +587,9 @@ See [libs/scripts](libs/scripts) for a collection of example/test scripts using 
 1. Fix/improve MSVC portions of CMakeLists.
 1. `glmMat_set` support for tables, e.g., `mat[i] = { ... }`, by using `glmH_tovector`.
 1. Improve support for `glm::mat3x4` and `glm::mat4x3`.
-1. Support for two-dimensional geometrical structures (AABB2D, LineSegment2D, Circle2D, etc).
+1. Finish support for two-dimensional geometrical structures (AABB2D, LineSegment2D, Circle2D, etc).
 1. [geom](libs/glm-binding/geom): SIMD support (at the very least for the most commonly used functions).
+1. Features/configurations to reduce size of binding library.
 
 ## Benchmarking
 **TODO**: Finish comparisons to...

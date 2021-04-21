@@ -210,6 +210,11 @@ namespace glm {
     return T(4) * pi<T>() * sphere.r * sphere.r;
   }
 
+  template<typename T, qualifier Q>
+  GLM_GEOM_QUALIFIER T area(const Sphere<2, T, Q> &sphere) {
+    return pi<T>() * sphere.r * sphere.r;
+  }
+
   /// <summary>
   /// Compute an extreme point along the sphere, i.e., the furthest point in a
   /// given direction.
@@ -352,7 +357,7 @@ namespace glm {
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool intersects(const Sphere<L, T, Q> &sphere, const Sphere<L, T, Q> &other) {
-    return length2(sphere.pos - other.pos) <= ((sphere.r + other.r) * (sphere.r + other.r));
+    return distance2(sphere.pos, other.pos) <= ((sphere.r + other.r) * (sphere.r + other.r));
   }
 
   template<length_t L, typename T, qualifier Q>

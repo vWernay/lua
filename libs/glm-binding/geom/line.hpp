@@ -370,7 +370,7 @@ namespace glm {
     if (glm::isNull(v1, epsilon<T>()) || glm::isNull(v3, epsilon<T>()))
       return false;
 
-    const vec<3, T, Q> v4 = v0 - v2;
+    const vec<L, T, Q> v4 = v0 - v2;
     const T d43 = dot(v4, v3);
     const T d31 = dot(v3, v1);
     const T d33 = dot(v3, v3);

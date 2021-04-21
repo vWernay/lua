@@ -1133,7 +1133,7 @@ vec3 = aabb.extremePoint(..., direction --[[ vec3 ]])
 
 ### aabb.pointOnEdge
 ```lua
--- Computes a point along an edge of the AABB
+-- Computes a point along an edge of the AABB: [0, 11]
 vec3 = aabb.pointOnEdge(..., edgeIndex --[[ integer ]], u --[[ number ]])
 ```
 
