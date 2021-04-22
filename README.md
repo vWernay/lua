@@ -365,8 +365,10 @@ blob = string.blob(string.rep('\0', 80))
 -- not of sufficient size, a (byte-)copy of the blob is made and returned.
 _blob = string.blob_pack(blob, pos --[[ optional ]], fmt, v1, v2, ···)
 
--- An alias to string.unpack
-... = string.blob_unpack (fmt, s [, pos])
+-- string.unpack where the "fmt" and "s" parameters have swapped order. It is
+-- possible to still use string.unpack on blobs. This function exists for
+-- API consistency.
+... = string.blob_unpack(blob, pos --[[ optional ]], fmt)
 ```
 
 With included C API functions:

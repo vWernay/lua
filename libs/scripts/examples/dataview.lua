@@ -6,7 +6,8 @@ API:
     DataView.ArrayBuffer(byteCount)
 
     -- Returns a value according to <Type>. An optional 'offset' marks where
-    -- to start reading within the DataView buffer.
+    -- to start reading within the DataView buffer. Note, all offsets are zero
+    -- based.
     --
     -- Available Functions:
     --  DataView.GetInt8  DataView.GetUint8
@@ -53,7 +54,6 @@ API:
 
 @NOTES:
       (1) Endianness changed from JS API: defaults to little endian.
-      (2) {Get|Set|Next} offsets are zero-based.
 
 @EXAMPLES:
     local view = DataView.ArrayBuffer(512)
@@ -109,28 +109,23 @@ DataView = {
 }
 DataView.__index = DataView
 
---[[ Return the Endianness format character --]]
-local function ef(big) return (big and DataView.EndBig) or DataView.EndLittle end
-
---[[ Helper function for setting fixed datatypes within a buffer --]]
-local function packblob(self, offset, value, code)
-    self.blob = string.blob_pack(self.blob, offset, code, value)
-    self.length = (self.cangrow and self.blob:len()) or self.length
-end
-
 --[[ Create an ArrayBuffer with a size in bytes --]]
 function DataView.ArrayBuffer(length)
     return setmetatable({
-        blob = string.blob(length), length = length,
-        offset = 1, cangrow = true,
+        blob = string.blob(length),
+        length = length,
+        offset = 1,
+        cangrow = true,
     }, DataView)
 end
 
 --[[ Wrap a non-internalized string --]]
 function DataView.Wrap(blob)
     return setmetatable({
-        blob = blob, length = blob:len(),
-        offset = 1, cangrow = true,
+        blob = blob,
+        length = blob:len(),
+        offset = 1,
+        cangrow = true,
     }, DataView)
 end
 
@@ -147,6 +142,24 @@ function DataView:SubView(offset, length)
     }, DataView)
 end
 
+--[[ Return the Endianness format character --]]
+local function ef(big) return (big and DataView.EndBig) or DataView.EndLittle end
+
+--[[ Helper function for setting fixed datatypes within a buffer --]]
+local function packblob(self, offset, value, code)
+    -- If cangrow is false the dataview represents a subview, i.e., a subset
+    -- of some other string view. Ensure the references are the same before
+    -- updating the subview
+    local packed = self.blob:blob_pack(offset, code, value)
+    if self.cangrow or packed == self.blob then
+        self.blob = packed
+        self.length = packed:len()
+        return true
+    else
+        return false
+    end
+end
+
 --[[
     Create the API by using DataView.Types
 --]]
@@ -160,9 +173,10 @@ for label,datatype in pairs(DataView.Types) do
     end
 
     DataView["Get" .. label] = function(self, offset, endian)
+        offset = offset or 0
         if offset >= 0 then
             local o = self.offset + offset
-            local v,_ = string.unpack(ef(endian) .. datatype.code, self.blob, o)
+            local v,_ = self.blob:blob_unpack(o, ef(endian) .. datatype.code)
             return v
         end
         return nil
@@ -173,7 +187,9 @@ for label,datatype in pairs(DataView.Types) do
             local o = self.offset + offset
             local v_size = (datatype.size < 0 and value:len()) or datatype.size
             if self.cangrow or ((o + (v_size - 1)) <= self.length) then
-                packblob(self, o, value, ef(endian) .. datatype.code)
+                if not packblob(self, o, value, ef(endian) .. datatype.code) then
+                    error("cannot grow subview")
+                end
             else
                 error("cannot grow dataview")
             end
@@ -190,7 +206,7 @@ for label,datatype in pairs(DataView.FixedTypes) do
             local o = self.offset + offset
             if (o + (typelen - 1)) <= self.length then
                 local code = ef(endian) .. "c" .. tostring(typelen)
-                local v,_ = string.blob_unpack(code, self.blob, o)
+                local v,_ = self.blob:blob_unpack(o, code)
                 return v
             end
         end
@@ -202,7 +218,9 @@ for label,datatype in pairs(DataView.FixedTypes) do
             local o = self.offset + offset
             if self.cangrow or ((o + (typelen - 1)) <= self.length) then
                 local code = ef(endian) .. "c" .. tostring(typelen)
-                packblob(self, o, value, code)
+                if not packblob(self, o, value, code) then
+                    error("cannot grow subview")
+                end
             else
                 error("cannot grow dataview")
             end
