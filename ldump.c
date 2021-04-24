@@ -96,23 +96,23 @@ static void dumpInteger (DumpState *D, lua_Integer x) {
 }
 
 
-static void dumpVectorType(DumpState *D, lua_Float4 v, int t) {
+static void dumpVectorType(DumpState *D, const lua_Float4 *v, int t) {
   switch (t) {
     case LUA_VVECTOR2:
-      dumpVar(D, v.x);
-      dumpVar(D, v.y);
+      dumpVar(D, v->x);
+      dumpVar(D, v->y);
       break;
     case LUA_VVECTOR3:
-      dumpVar(D, v.x);
-      dumpVar(D, v.y);
-      dumpVar(D, v.z);
+      dumpVar(D, v->x);
+      dumpVar(D, v->y);
+      dumpVar(D, v->z);
       break;
     case LUA_VVECTOR4:
     case LUA_VQUAT:
-      dumpVar(D, v.x);
-      dumpVar(D, v.y);
-      dumpVar(D, v.z);
-      dumpVar(D, v.w);
+      dumpVar(D, v->x);
+      dumpVar(D, v->y);
+      dumpVar(D, v->z);
+      dumpVar(D, v->w);
       break;
     default:
       break;
@@ -163,7 +163,7 @@ static void dumpConstants (DumpState *D, const Proto *f) {
       case LUA_VVECTOR3:
       case LUA_VVECTOR4:
       case LUA_VQUAT:
-        dumpVectorType(D, vvalue(o), tt);
+        dumpVectorType(D, vvalue_ref(o), tt);
         break;
       case LUA_VSHRSTR:
 #if defined(GRIT_POWER_BLOB)

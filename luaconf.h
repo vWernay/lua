@@ -847,19 +847,21 @@
 ** {==================================================================
 ** @DEPRECATED gritLua vector API
 **
-** @NOTE: GRIT_LONG_FLOAT has been deprecated and replaced by GLM_LUA_NUMBER_TYPE
+** Libraries linked against this runtime that use any GLM/vector feature will
+** require knowledge of changes to:
 **
-** @NOTE: GLM_FORCE_QUAT_DATA_WXYZ needs to be considered for quaternions when
-**  operating within the C boundary.
+**    1. GLM_LUA_NUMBER_TYPE
+**    2. GLM_FORCE_SIZE_T_LENGTH
+**    3. GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
 **
-** @NOTE: GLM_FORCE_SIZE_T_LENGTH is requires synchronization across the C and
-**  CPP boundaries as lglm.hpp operates on glm::length_t instead of explicitly
-**  forcing a length type.
+** In addition GLM_FORCE_QUAT_DATA_WXYZ needs to be considered for quaternions
+** when operating within the C boundary.
 ** ===================================================================
 */
 
 #define LUA_GRIT_API
 
+/* @NOTE: GRIT_LONG_FLOAT has been deprecated and replaced by GLM_LUA_NUMBER_TYPE */
 #if defined(GRIT_LONG_FLOAT) && !defined(GLM_LUA_NUMBER_TYPE)
   #define GLM_LUA_NUMBER_TYPE
 #endif
@@ -873,8 +875,30 @@
 #endif
 
 /*
-** When GLM_FORCE_SIZE_T_LENGTH is defined, length_t is a typedef of size_t
-** otherwise length_t is a typedef of int like GLSL defines it.
+** @EXPERIMENT Alignment macro for improved compiler intrinsics. This macro is
+** temporary and will likely change in future commits.
+*/
+#if !defined(RC_INVOKED) /* ignore MSVC resource compiler issues */
+#if defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
+  #if LUA_VEC_TYPE == LUA_FLOAT_DOUBLE
+    #define LUA_GLM_ALIGN LUA_ALIGNED_(32)
+  #else
+    #define LUA_GLM_ALIGN LUA_ALIGNED_(16)
+  #endif
+#endif
+#endif
+
+/* Helper macro for defining aligned types; see GLM_ALIGNED_TYPEDEF */
+#if defined(LUA_GLM_ALIGN)
+  #define LUA_GLM_ALIGNED_TYPE(type, name) LUA_GLM_ALIGN type name
+#else
+  #define LUA_GLM_ALIGNED_TYPE(type, name) type name
+#endif
+
+/*
+** GLM_FORCE_SIZE_T_LENGTH forces length_t to be size_t. Otherwise it is
+** defined as an int (as GLSL declares it). This type requires synchronization
+** across the C and CPP boundaries.
 */
 #if defined(GLM_FORCE_SIZE_T_LENGTH)
   typedef size_t grit_length_t;
@@ -882,31 +906,32 @@
   typedef int grit_length_t;
 #endif
 
-/* type of numbers in Lua */
+/* vector/matrix floating point type */
 typedef LUA_VEC_NUMBER lua_VecF;
+typedef struct lua_CFloat4 { lua_VecF x, y, z, w; } lua_CFloat4;
+typedef struct lua_CFloat3 { lua_VecF x, y, z; } lua_CFloat3;
+typedef struct lua_CFloat2 { lua_VecF x, y; } lua_CFloat2;
 
 /*
-** gritLua: vector and quat extension
-**
-** @NOTE: This structure is intended to be a byte-wise equivalent to glmVector
-**    within lglm.hpp but without the glm dependencies.
+** gritLua vector and quat extension. This structure is intended to be a
+** byte-wise equivalent/alias to glmVector in lglm.hpp and operates within the C
+** boundaries of the Lua runtime.
 */
-typedef struct lua_Float4 { lua_VecF x, y, z, w; } lua_Float4;
+typedef LUA_GLM_ALIGNED_TYPE(struct, lua_CFloat4) lua_Float4;
 
 /*
-** gritLua: column-oriented matrix extension.
-**
-** @NOTE: This structure is intended to be a byte-wise equivalent to glmMatrix
-**  within lglm.hpp without the glm dependencies.
+** gritLua column-oriented matrix extension. This structure is intended to be a
+** byte-wise equivalent to glmMatrix in lglm.hpp and operates within the C
+** boundaries of the Lua runtime.
 */
 typedef struct lua_Mat4 {
   grit_length_t size;
   grit_length_t secondary;  /* Number of columns & size of each column vector */
   union Columns {
-    struct lua_Float2 { lua_VecF x, y; } m2[4];  /* Aligned X-by-2 matrix */
-    struct lua_Float3 { lua_VecF x, y, z; } m3[4];  /* Aligned X-by-3 matrix */
-    lua_Float4 m4[4];  /* Aligned X-by-4 matrix */
-  } cols;
+    LUA_GLM_ALIGNED_TYPE(lua_CFloat2, m2[4]);  /* Aligned 2-by-X matrix */
+    LUA_GLM_ALIGNED_TYPE(lua_CFloat3, m3[4]);  /* Aligned 3-by-X matrix */
+    LUA_GLM_ALIGNED_TYPE(lua_CFloat4, m4[4]);  /* Aligned 4-by-X matrix */
+  } m;
 } lua_Mat4;
 
 /* }================================================================== */

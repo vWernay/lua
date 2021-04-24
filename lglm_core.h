@@ -156,16 +156,16 @@ static LUA_INLINE int matgeti (const TValue *obj, lua_Integer n, StkId res) {
   if (l_likely(gidx >= 1 && gidx <= m->size)) {
     switch (m->secondary) {
       case 2: {
-        lua_Float4 f4 = luaMat_cast_m2(m->cols.m2[gidx - 1]);
+        lua_Float4 f4 = luaMat_cast_m2(m->m.m2[gidx - 1]);
         setvvalue(s2v(res), f4, LUA_VVECTOR2);
         return LUA_VVECTOR2;
       }
       case 3: {
-        lua_Float4 f4 = luaMat_cast_m3(m->cols.m3[gidx - 1]);
+        lua_Float4 f4 = luaMat_cast_m3(m->m.m3[gidx - 1]);
         setvvalue(s2v(res), f4, LUA_VVECTOR3);
         return LUA_VVECTOR3;
       }
-      case 4: setvvalue(s2v(res), m->cols.m4[gidx - 1], LUA_VVECTOR4); return LUA_VVECTOR4;
+      case 4: setvvalue(s2v(res), m->m.m4[gidx - 1], LUA_VVECTOR4); return LUA_VVECTOR4;
       default:
         break;
     }
