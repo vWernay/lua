@@ -21,6 +21,7 @@
 #include <glm/gtx/orthonormalize.hpp>
 #include <glm/gtx/projection.hpp>
 #include <glm/gtx/spline.hpp>
+#include <glm/gtx/vector_angle.hpp>
 
 namespace glm {
 
@@ -198,7 +199,7 @@ namespace glm {
 
   template<length_t L, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER vec<L, T, Q> signP(const vec<L, T, Q> &x) {
-			return vec<L, T, Q>(glm::lessThanEqual(vec<L, T, Q>(0), x)) - vec<L, T, Q>(glm::lessThan(x, vec<L, T, Q>(0)));
+    return vec<L, T, Q>(glm::lessThanEqual(vec<L, T, Q>(0), x)) - vec<L, T, Q>(glm::lessThan(x, vec<L, T, Q>(0)));
   }
 
   template<typename genType>
@@ -208,7 +209,7 @@ namespace glm {
 
   template<length_t L, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER vec<L, T, Q> signN(const vec<L, T, Q> &x) {
-			return vec<L, T, Q>(glm::lessThan(vec<L, T, Q>(0), x)) - vec<L, T, Q>(glm::lessThanEqual(x, vec<L, T, Q>(0)));
+    return vec<L, T, Q>(glm::lessThan(vec<L, T, Q>(0), x)) - vec<L, T, Q>(glm::lessThanEqual(x, vec<L, T, Q>(0)));
   }
 
   template<typename genType>
@@ -224,7 +225,7 @@ namespace glm {
   template<length_t L, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER bool isUniform(vec<L, T, Q> const &v) {
     bool result = true;
-    for (length_t i = 1 ; i < L; ++i)  // @TODO: detail::compute_isuniform_vector
+    for (length_t i = 1; i < L; ++i)  // @TODO: detail::compute_isuniform_vector
       result &= (v[i] == v[0]);
     return result;
   }
@@ -241,7 +242,7 @@ namespace glm {
   template<length_t L, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER vec<L, T, Q> reverse(vec<L, T, Q> const &v) {
     vec<L, T, Q> result;
-    for (length_t i = 0 ; i < L; ++i)  // @TODO: detail::compute_reverse_vector
+    for (length_t i = 0; i < L; ++i)  // @TODO: detail::compute_reverse_vector
       result[i] = v[L - i - 1];
     return result;
   }
@@ -459,6 +460,25 @@ namespace glm {
   template<typename genType>
   GLM_FUNC_QUALIFIER genType barycentric(genType value1, genType value2, genType value3, genType amount1, genType amount2) {
     return barycentric(vec<1, genType>(value1), vec<1, genType>(value2), vec<1, genType>(value3), amount1, amount2).x;
+  }
+
+  /// <summary>
+  /// A implementation of glm::angle that's numerically stable at all angles.
+  /// </summary>
+  template<length_t L, typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER T angle_atan(const vec<L, T, Q> &x, const vec<L, T, Q> &y) {
+    GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'angle' only accept floating-point inputs");
+    const vec<L, T, Q> xyl = x * length(y);
+    const vec<L, T, Q> yxl = y * length(x);
+    const T n = length(xyl - yxl);
+    if (epsilonNotEqual(n, T(0), epsilon<T>()))
+      return T(2) * atan2<T, Q>(n, length(xyl + yxl));
+    return T(0);
+  }
+
+  template<typename genType>
+  GLM_FUNC_QUALIFIER genType angle_atan(const genType &x, const genType &y) {
+    return angle<genType>(x, y);
   }
 
   /// <summary>

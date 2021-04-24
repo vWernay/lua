@@ -22,6 +22,7 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/fast_square_root.hpp>
 #include <glm/gtx/euler_angles.hpp>
+#include <glm/ext/quaternion_geometric.hpp>
 
 #include "vector_extensions.hpp"
 #include "matrix_extensions.hpp"
@@ -276,16 +277,32 @@ namespace glm {
   /// </summary>
   template<typename T, qualifier Q>
   GLM_FUNC_QUALIFIER T angle(const qua<T, Q> &x, const qua<T, Q> &y) {
-    return angle(normalize(y * inverse(x)));
+    return angle(y * conjugate(x));
   }
 
   /// <summary>
   /// Return the oriented angle between two quaternions based on a reference axis.
   /// </summary>
   template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER T orientedAngle(const qua<T, Q> &x, const qua<T, Q> &y, vec<3, T, Q> const &ref) {
-    const qua<T, Q> rot = normalize(y * inverse(x));
+  GLM_FUNC_QUALIFIER T orientedAngle(const qua<T, Q> &x, const qua<T, Q> &y, const vec<3, T, Q> &ref) {
+    const qua<T, Q> rot = y * conjugate(x);
     return angle(rot) * sign(dot(ref, axis(rot)));
+  }
+
+  /// <summary>
+  /// API completeness for vector_extensions.
+  /// </summary>
+  template<typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER T angle_atan(qua<T, Q> const &q) {
+    const T n = length(vec<3, T, Q>(q.x, q.y, q.z));
+    if (epsilonNotEqual(n, T(0), epsilon<T>()))
+      return T(2) * atan2(n, abs(q.w));
+    return T(0);
+  }
+
+  template<typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER T angle_atan(const qua<T, Q> &x, const qua<T, Q> &y) {
+    return angle_atan(y * conjugate(x));
   }
 
   /// <summary>
