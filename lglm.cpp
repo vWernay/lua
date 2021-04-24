@@ -180,7 +180,7 @@ static void vec_finishget(lua_State *L, const TValue *obj, TValue *key, StkId re
         glm_setvvalue2s(res, out, LUA_VVECTOR3);
       }
       else {
-#if defined(GLM_LUA_APICHECK)
+#if defined(LUA_GLM_APICHECK)
         luaG_runerror(L, "invalid " LABEL_QUATERN " field: '%s'", svalue(key));
 #else
         setnilvalue(s2v(res));
@@ -188,7 +188,7 @@ static void vec_finishget(lua_State *L, const TValue *obj, TValue *key, StkId re
       }
     }
     else {
-#if defined(GLM_LUA_APICHECK)
+#if defined(LUA_GLM_APICHECK)
       luaG_runerror(L, "invalid " LABEL_VECTOR " field: '%s'", svalue(key));
 #else
       setnilvalue(s2v(res));
@@ -2037,7 +2037,7 @@ static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
         MATRIX_SCALAR_OPERATION(L, operator*, res, m, p2);
       else if (tt_p2 == LUA_VVECTOR3 && m.size == 4 && m.secondary == 4) {
         const typename glm::mat<4, 4, glm_Float>::col_type &r =
-#if defined(GLM_LUA_ROTATE_DIRECTION)
+#if defined(LUA_GLM_ROTATE_DIRECTION)
           // Transforms the given direction vector by this matrix m: M * (x, y, z, 0).
           m.m44 * glm::vec<4, glm_Float>(glm_vvalue(p2).v3, glm_Float(0));
 #else

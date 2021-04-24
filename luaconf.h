@@ -850,7 +850,7 @@
 ** Libraries linked against this runtime that use any GLM/vector feature will
 ** require knowledge of changes to:
 **
-**    1. GLM_LUA_NUMBER_TYPE
+**    1. LUA_GLM_NUMBER_TYPE
 **    2. GLM_FORCE_SIZE_T_LENGTH
 **    3. GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
 **
@@ -861,12 +861,12 @@
 
 #define LUA_GRIT_API
 
-/* @NOTE: GRIT_LONG_FLOAT has been deprecated and replaced by GLM_LUA_NUMBER_TYPE */
-#if defined(GRIT_LONG_FLOAT) && !defined(GLM_LUA_NUMBER_TYPE)
-  #define GLM_LUA_NUMBER_TYPE
+/* @NOTE: GRIT_LONG_FLOAT has been deprecated and replaced by LUA_GLM_NUMBER_TYPE */
+#if defined(GRIT_LONG_FLOAT) && !defined(LUA_GLM_NUMBER_TYPE)
+  #define LUA_GLM_NUMBER_TYPE
 #endif
 
-#if defined(GLM_LUA_NUMBER_TYPE) && LUA_FLOAT_TYPE != LUA_FLOAT_LONGDOUBLE
+#if defined(LUA_GLM_NUMBER_TYPE) && LUA_FLOAT_TYPE != LUA_FLOAT_LONGDOUBLE
   #define LUA_VEC_TYPE LUA_FLOAT_TYPE
   #define LUA_VEC_NUMBER LUA_NUMBER
 #else

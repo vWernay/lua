@@ -27,7 +27,7 @@
 ** By enabling "GLM_USE_LUA_TYPE", the primitive type of each vector becomes
 ** lua_Number, the default Lua floating point type.
 */
-#if defined(GLM_LUA_NUMBER_TYPE) && LUA_FLOAT_TYPE != LUA_FLOAT_LONGDOUBLE
+#if defined(LUA_GLM_NUMBER_TYPE) && LUA_FLOAT_TYPE != LUA_FLOAT_LONGDOUBLE
   #define GLM_FLOAT_TYPE LUA_NUMBER
   #define GLM_INT_TYPE LUA_INTEGER
 #else
@@ -71,7 +71,7 @@ typedef GLM_INT_TYPE glm_Integer;
 #define cast_quat(Q, T) glm::qua<T>(static_cast<T>((Q).w), static_cast<T>((Q).x), static_cast<T>((Q).y), static_cast<T>((Q).z))
 
 /* @NOTE equal objects must have equal hashes; use with caution. */
-#if defined(GLM_LUA_EPS_EQUAL)
+#if defined(LUA_GLM_EPS_EQUAL)
   #define _glmeq(a, b) (glm::all(glm::equal((a), (b), glm::epsilon<glm_Float>())))
 #else
   #define _glmeq(a, b) ((a) == (b))

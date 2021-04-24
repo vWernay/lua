@@ -544,6 +544,7 @@ For all GLM preprocessor flags, see the [GLM manual](https://github.com/g-truc/g
 - **GLM\_FORCE\_Z\_UP**: Unit "up" vector is along the Z-axis (Y-axis otherwise).
 - **GLM\_INCLUDE\_ALL**: Create bindings for all declared GLM headers. To create module-only, extension-only, or header-only bindings see **EXTENDED.md** for a list of all headers.
 - **GLM\_GEOM\_EXTENSIONS**: Include support for geometric structures.
+- **LUA\_GLM\_NUMBER\_TYPE**: Use lua_Number as the vector primitive; float otherwise.
 - **LUA\_GLM\_ALIASES**: Create aliases for common (alternate) names when registering the library.
 - **LUA\_GLM\_REPLACE\_MATH**: Replace the global math table with the glm binding library on loading.
 - **LUA\_GLM\_DRIFT**: Implicitly normalize all direction vector parameters (experiment to avoid floating-point drift).

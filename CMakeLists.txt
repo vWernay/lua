@@ -441,10 +441,10 @@ OPTION(LUA_NO_PARSER "Compile the Lua core so it does not contain the parsing \
   with luac, can be loaded." OFF
 )
 
-OPTION(GLM_LUA_NUMBER_TYPE "Use lua_Number as the vector primitive; float otherwise" OFF)
-OPTION(GLM_LUA_EPS_EQUAL "luaV_equalobj uses approximately equal (within glm::epsilon) for vector/matrix types (beware of hashing caveats)" OFF)
-OPTION(GLM_LUA_ROTATE_DIRECTION "How operator*(glm::mat4x4, glm::vec3) is handled" OFF)
-OPTION(GLM_LUA_APICHECK
+OPTION(LUA_GLM_NUMBER_TYPE "Use lua_Number as the vector primitive; float otherwise" OFF)
+OPTION(LUA_GLM_EPS_EQUAL "luaV_equalobj uses approximately equal (within glm::epsilon) for vector/matrix types (beware of hashing caveats)" OFF)
+OPTION(LUA_GLM_ROTATE_DIRECTION "How operator*(glm::mat4x4, glm::vec3) is handled" OFF)
+OPTION(LUA_GLM_APICHECK
   "Throw runtime errors when accessing matrices/vectors with invalid \
   keys/key-types. Otherwise, follow tables and set the result to nil" OFF
 )
@@ -474,16 +474,16 @@ IF( LUA_SANDBOX )
   ADD_COMPILE_DEFINITIONS(LUA_SANDBOX)
 ENDIF()
 
-IF( GLM_LUA_NUMBER_TYPE )
-  ADD_COMPILE_DEFINITIONS(GLM_LUA_NUMBER_TYPE)
+IF( LUA_GLM_NUMBER_TYPE )
+  ADD_COMPILE_DEFINITIONS(LUA_GLM_NUMBER_TYPE)
 ENDIF()
 
-IF( GLM_LUA_EPS_EQUAL )
-  ADD_COMPILE_DEFINITIONS(GLM_LUA_EPS_EQUAL)
+IF( LUA_GLM_EPS_EQUAL )
+  ADD_COMPILE_DEFINITIONS(LUA_GLM_EPS_EQUAL)
 ENDIF()
 
-IF( GLM_LUA_APICHECK )
-  ADD_COMPILE_DEFINITIONS(GLM_LUA_APICHECK)
+IF( LUA_GLM_APICHECK )
+  ADD_COMPILE_DEFINITIONS(LUA_GLM_APICHECK)
 ENDIF()
 
 IF( GRIT_POWER_DEFER )
