@@ -30,21 +30,21 @@
 namespace glm {
 
   /* EulerAngles -> Quaternion; @TODO: Optimize to avoid intermediate matrix creation */
-  template<typename T> GLM_FUNC_QUALIFIER qua<T, defaultp> quatEulerAngleX(T angleX) { return toQuat(eulerAngleX(angleX)); }
-  template<typename T> GLM_FUNC_QUALIFIER qua<T, defaultp> quatEulerAngleY(T angleY) { return toQuat(eulerAngleY(angleY)); }
-  template<typename T> GLM_FUNC_QUALIFIER qua<T, defaultp> quatEulerAngleZ(T angleZ) { return toQuat(eulerAngleZ(angleZ)); }
-  template<typename T> GLM_FUNC_QUALIFIER qua<T, defaultp> quatEulerAngleXY(T angleX, T angleY) { return toQuat(eulerAngleXY(angleX, angleY)); }
-  template<typename T> GLM_FUNC_QUALIFIER qua<T, defaultp> quatEulerAngleXZ(T angleX, T angleZ) { return toQuat(eulerAngleXZ(angleX, angleZ)); }
-  template<typename T> GLM_FUNC_QUALIFIER qua<T, defaultp> quatEulerAngleYX(T angleY, T angleX) { return toQuat(eulerAngleYX(angleY, angleX)); }
-  template<typename T> GLM_FUNC_QUALIFIER qua<T, defaultp> quatEulerAngleYZ(T angleY, T angleZ) { return toQuat(eulerAngleYZ(angleY, angleZ)); }
-  template<typename T> GLM_FUNC_QUALIFIER qua<T, defaultp> quatEulerAngleZX(T angleZ, T angleX) { return toQuat(eulerAngleZX(angleZ, angleX)); }
-  template<typename T> GLM_FUNC_QUALIFIER qua<T, defaultp> quatEulerAngleZY(T angleZ, T angleY) { return toQuat(eulerAngleZY(angleZ, angleY)); }
-  template<typename T> GLM_FUNC_QUALIFIER qua<T, defaultp> quatEulerAngleXYX(T t1, T t2, T t3) { return toQuat(eulerAngleXYX(t1, t2, t3)); }
-  template<typename T> GLM_FUNC_QUALIFIER qua<T, defaultp> quatEulerAngleXZX(T t1, T t2, T t3) { return toQuat(eulerAngleXZX(t1, t2, t3)); }
-  template<typename T> GLM_FUNC_QUALIFIER qua<T, defaultp> quatEulerAngleYXY(T t1, T t2, T t3) { return toQuat(eulerAngleYXY(t1, t2, t3)); }
-  template<typename T> GLM_FUNC_QUALIFIER qua<T, defaultp> quatEulerAngleYZY(T t1, T t2, T t3) { return toQuat(eulerAngleYZY(t1, t2, t3)); }
-  template<typename T> GLM_FUNC_QUALIFIER qua<T, defaultp> quatEulerAngleZXZ(T t1, T t2, T t3) { return toQuat(eulerAngleZXZ(t1, t2, t3)); }
-  template<typename T> GLM_FUNC_QUALIFIER qua<T, defaultp> quatEulerAngleZYZ(T t1, T t2, T t3) { return toQuat(eulerAngleZYZ(t1, t2, t3)); }
+  template<typename T, qualifier Q = defaultp> GLM_FUNC_QUALIFIER qua<T, Q> quatEulerAngleX(T angleX) { return toQuat(eulerAngleX(angleX)); }
+  template<typename T, qualifier Q = defaultp> GLM_FUNC_QUALIFIER qua<T, Q> quatEulerAngleY(T angleY) { return toQuat(eulerAngleY(angleY)); }
+  template<typename T, qualifier Q = defaultp> GLM_FUNC_QUALIFIER qua<T, Q> quatEulerAngleZ(T angleZ) { return toQuat(eulerAngleZ(angleZ)); }
+  template<typename T, qualifier Q = defaultp> GLM_FUNC_QUALIFIER qua<T, Q> quatEulerAngleXY(T angleX, T angleY) { return toQuat(eulerAngleXY(angleX, angleY)); }
+  template<typename T, qualifier Q = defaultp> GLM_FUNC_QUALIFIER qua<T, Q> quatEulerAngleXZ(T angleX, T angleZ) { return toQuat(eulerAngleXZ(angleX, angleZ)); }
+  template<typename T, qualifier Q = defaultp> GLM_FUNC_QUALIFIER qua<T, Q> quatEulerAngleYX(T angleY, T angleX) { return toQuat(eulerAngleYX(angleY, angleX)); }
+  template<typename T, qualifier Q = defaultp> GLM_FUNC_QUALIFIER qua<T, Q> quatEulerAngleYZ(T angleY, T angleZ) { return toQuat(eulerAngleYZ(angleY, angleZ)); }
+  template<typename T, qualifier Q = defaultp> GLM_FUNC_QUALIFIER qua<T, Q> quatEulerAngleZX(T angleZ, T angleX) { return toQuat(eulerAngleZX(angleZ, angleX)); }
+  template<typename T, qualifier Q = defaultp> GLM_FUNC_QUALIFIER qua<T, Q> quatEulerAngleZY(T angleZ, T angleY) { return toQuat(eulerAngleZY(angleZ, angleY)); }
+  template<typename T, qualifier Q = defaultp> GLM_FUNC_QUALIFIER qua<T, Q> quatEulerAngleXYX(T t1, T t2, T t3) { return toQuat(eulerAngleXYX(t1, t2, t3)); }
+  template<typename T, qualifier Q = defaultp> GLM_FUNC_QUALIFIER qua<T, Q> quatEulerAngleXZX(T t1, T t2, T t3) { return toQuat(eulerAngleXZX(t1, t2, t3)); }
+  template<typename T, qualifier Q = defaultp> GLM_FUNC_QUALIFIER qua<T, Q> quatEulerAngleYXY(T t1, T t2, T t3) { return toQuat(eulerAngleYXY(t1, t2, t3)); }
+  template<typename T, qualifier Q = defaultp> GLM_FUNC_QUALIFIER qua<T, Q> quatEulerAngleYZY(T t1, T t2, T t3) { return toQuat(eulerAngleYZY(t1, t2, t3)); }
+  template<typename T, qualifier Q = defaultp> GLM_FUNC_QUALIFIER qua<T, Q> quatEulerAngleZXZ(T t1, T t2, T t3) { return toQuat(eulerAngleZXZ(t1, t2, t3)); }
+  template<typename T, qualifier Q = defaultp> GLM_FUNC_QUALIFIER qua<T, Q> quatEulerAngleZYZ(T t1, T t2, T t3) { return toQuat(eulerAngleZYZ(t1, t2, t3)); }
 
   /* Euler Conversions; @TODO: Optimize to avoid intermediate matrix creation */
   template<typename T, qualifier Q> GLM_FUNC_QUALIFIER void extractEulerAngleXYX(const qua<T, Q> &q, T &t1, T &t2, T &t3) { extractEulerAngleXYX(toMat3(q), t1, t2, t3); }

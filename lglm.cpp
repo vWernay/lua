@@ -1866,7 +1866,7 @@ static int vec_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
       else if (tt_p1 == LUA_VVECTOR3 && tt_p2 == LUA_VMATRIX) {
         const glmMatrix &m2 = glm_mvalue(p2);
         if (tt_p1 == LUA_VVECTOR3 && tt_p2 == LUA_VMATRIX && m2.size == 4 && m2.secondary == 4) {
-          glm_setvvalue2s(res, (glm::vec<4, glm_Float>(v.v3, glm_Float(1)) * m2.m44), LUA_VVECTOR4);
+          glm_setvvalue2s(res, (glm::mat<4, 4, glm_Float>::col_type(v.v3, glm_Float(1)) * m2.m44), LUA_VVECTOR4);
           return 1;
         }
       }
@@ -2039,10 +2039,10 @@ static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
         const typename glm::mat<4, 4, glm_Float>::col_type &r =
 #if defined(LUA_GLM_ROTATE_DIRECTION)
           // Transforms the given direction vector by this matrix m: M * (x, y, z, 0).
-          m.m44 * glm::vec<4, glm_Float>(glm_vvalue(p2).v3, glm_Float(0));
+          m.m44 * glm::mat<4, 4, glm_Float>::col_type(glm_vvalue(p2).v3, glm_Float(0));
 #else
           // Transforms the given point vector by this matrix M: M * (x, y, z, 1).
-          m.m44 * glm::vec<4, glm_Float>(glm_vvalue(p2).v3, glm_Float(1));
+          m.m44 * glm::mat<4, 4, glm_Float>::col_type(glm_vvalue(p2).v3, glm_Float(1));
 #endif
         glm_setvvalue2s(res, (glm::vec<3, glm_Float>(r.x, r.y, r.z)), LUA_VVECTOR3);
         return 1;
