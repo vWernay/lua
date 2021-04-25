@@ -360,9 +360,7 @@ LUA_API int glm_pushmat(lua_State *L, const glmMatrix &m);
 #if GLM_HAS_STATIC_ASSERT
 
   // Additional defensive checks around the aliasing and alignment of lua_Mat4
-  // and glmMatrix. With support for GLM_FORCE_DEFAULT_ALIGNED_GENTYPES and
-  // compiler intrinsics there are (potential) edge-cases surrounding compiler
-  // dependent align implementations.
+  // and glmMatrix.
 
   GLM_STATIC_ASSERT(true
     && sizeof(lua_Float4) == sizeof(glmVector)
@@ -375,8 +373,10 @@ LUA_API int glm_pushmat(lua_State *L, const glmMatrix &m);
   );
 
   GLM_STATIC_ASSERT(true
+    && sizeof(grit_length_t) == sizeof(glm::length_t)
     && sizeof(lua_Mat4) == sizeof(glmMatrix)
-    && sizeof(lua_Mat4::Columns) == sizeof(glmMatrix::m44)
+    // @TODO: Name the anonymous union in glmMatrix similar to lua_Mat4.
+    && sizeof(lua_Mat4::Columns) == (sizeof(glmMatrix) - offsetof(glmMatrix, m44))
     && sizeof(lua_Mat4::Columns::m2) == sizeof(glmMatrix::m24)
     && sizeof(lua_Mat4::Columns::m3) == sizeof(glmMatrix::m34)
     && sizeof(lua_Mat4::Columns::m4) == sizeof(glmMatrix::m44)

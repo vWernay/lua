@@ -291,7 +291,7 @@ void glmVec_get(lua_State *L, const TValue *obj, TValue *key, StkId res) {
       glmVector out;  // Allow runtime swizzle operations prior to metamethod access.
 
       const glmVector &v = glm_vvalue(obj);
-      const int count = ttisquat(obj) ? swizzle(v.q, str, out.v4) : swizzle(v.v4, str, out.v4);
+      const glm::length_t count = ttisquat(obj) ? swizzle(v.q, str, out.v4) : swizzle(v.v4, str, out.v4);
       switch (count) {
         case 1: setfltvalue(s2v(res), cast_num(out.v4.x)); return;
         case 2: glm_setvvalue2s(res, out, LUA_VVECTOR2); return;
@@ -996,7 +996,7 @@ lua_Integer luaO_HashString(const char* string, size_t length, int ignore_case) 
 /// @NOTE: Function considered deprecated. The previous idea that tables can be
 /// implicit vector types does not "mesh" well with the glm binding library.
 /// </summary>
-static glm::length_t glmH_tovector(lua_State *L, const TValue *o, glmVector *v) {
+static lu_byte glmH_tovector(lua_State *L, const TValue *o, glmVector *v) {
   static const char *const dims[] = { "x", "y", "z", "w" };
 
   glm::length_t count = 0;
@@ -1141,7 +1141,7 @@ LUA_API int luaVec_dimensions (int rtt) {
 
 LUA_API int lua_isvector (lua_State *L, int idx, int flags) {
   const TValue *o = glm_index2value(L, idx);
-  int variant = LUA_TNIL;
+  lu_byte variant = LUA_TNIL;
   if (ttisvector(o))
     variant = ttypetag(o);
   else if (ttisnumber(o) && (flags & V_NONUMBER) == 0)
@@ -1157,7 +1157,7 @@ LUA_API int lua_isvector (lua_State *L, int idx, int flags) {
 LUA_API int lua_tovector (lua_State *L, int idx, int flags, lua_Float4 *f4) {
   const TValue *o = glm_index2value(L, idx);
   glmVector v;
-  int variant = LUA_TNIL;
+  lu_byte variant = LUA_TNIL;
   if (ttisvector(o)) {
     v = glm_vvalue(o);
     variant = ttypetag(o);
@@ -1181,7 +1181,7 @@ LUA_API int lua_tovector (lua_State *L, int idx, int flags, lua_Float4 *f4) {
 
     // @TODO: Use GLM_FORCE_QUAT_DATA_WXYZ preprocessor directive to avoid the
     // runtime ternary operations. However, this API is deprecated and will
-    // recieve little attention.
+    // receive little attention.
     else if (novariant(variant) == LUA_TVECTOR) {
       f4->x = ((variant == LUA_VQUAT) ? v.q.x : v.v4.x);
       f4->y = ((variant == LUA_VQUAT) ? v.q.y : v.v4.y);
