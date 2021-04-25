@@ -797,7 +797,7 @@
 ** without modifying the main part of the file.
 */
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER)
   #define LUA_INLINE __forceinline
 #elif __has_attribute(__always_inline__)
   #define LUA_INLINE inline __attribute__((__always_inline__))
@@ -830,7 +830,7 @@
 #endif
 
 /* Compiler-specific multi-line macro definitions */
-#ifdef _MSC_VER
+#if defined(_MSC_VER)
   #define LUA_MLM_BEGIN do {
   #define LUA_MLM_END                 \
     __pragma(warning(push))           \
@@ -875,6 +875,31 @@
 #endif
 
 /*
+** @EXPERIMENT Alignment macro for improved compiler intrinsics. This macro is
+** temporary and will likely change in future commits.
+**
+** @TODO: Technically should follow GLM and only allow alignment when:
+**    1. GLM_CONFIG_XYZW_ONLY is not enabled; and
+**    2. GLM_CONFIG_ANONYMOUS_STRUCT == GLM_ENABLE
+*/
+#if !defined(RC_INVOKED) /* ignore MSVC resource compiler issues */
+#if defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
+  #if LUA_VEC_TYPE == LUA_FLOAT_DOUBLE
+    #error "__m256 advanced vector extnesions are not supported!"
+  #else
+    #define LUA_GLM_ALIGN LUA_ALIGNED_(16)
+  #endif
+#endif
+#endif
+
+/* Helper macro for defining aligned types; see GLM_ALIGNED_TYPEDEF */
+#if defined(LUA_GLM_ALIGN)
+  #define LUA_GLM_ALIGNED_TYPE(type, name) LUA_GLM_ALIGN type name
+#else
+  #define LUA_GLM_ALIGNED_TYPE(type, name) type name
+#endif
+
+/*
 ** GLM_FORCE_SIZE_T_LENGTH forces length_t to be size_t. Otherwise it is
 ** defined as an int (as GLSL declares it). This type requires synchronization
 ** across the C and CPP boundaries.
@@ -896,7 +921,7 @@ typedef struct lua_CFloat2 { lua_VecF x, y; } lua_CFloat2;
 ** byte-wise equivalent/alias to glmVector in lglm.hpp and operates within the C
 ** boundaries of the Lua runtime.
 */
-typedef struct lua_CFloat4 lua_Float4;
+typedef LUA_GLM_ALIGNED_TYPE(struct, lua_CFloat4) lua_Float4;
 
 /*
 ** gritLua column-oriented matrix extension. This structure is intended to be a
@@ -907,9 +932,9 @@ typedef struct lua_Mat4 {
   grit_length_t size;
   grit_length_t secondary;  /* Number of columns & size of each column vector */
   union Columns {
-    lua_CFloat2 m2[4];  /* Aligned 2-by-X matrix */
-    lua_CFloat3 m3[4];  /* Aligned 3-by-X matrix */
-    lua_CFloat4 m4[4];  /* Aligned 4-by-X matrix */
+    LUA_GLM_ALIGNED_TYPE(lua_CFloat2, m2[4]);  /* Aligned 2-by-X matrix */
+    LUA_GLM_ALIGNED_TYPE(lua_CFloat3, m3[4]);  /* Aligned 3-by-X matrix */
+    LUA_GLM_ALIGNED_TYPE(lua_CFloat4, m4[4]);  /* Aligned 4-by-X matrix */
   } m;
 } lua_Mat4;
 

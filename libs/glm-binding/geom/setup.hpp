@@ -13,6 +13,9 @@
 #include <glm/gtx/vector_query.hpp>
 #include <glm/ext/scalar_relational.hpp>
 #include <glm/ext/vector_relational.hpp>
+#if GLM_CONFIG_ALIGNED_GENTYPES == GLM_ENABLE
+  #include <glm/simd/platform.h>
+#endif
 
 #include "allocator.hpp"
 #include "ext/vector_extensions.hpp"
@@ -36,6 +39,15 @@
     } while (0)
 #else
   #define GLM_GEOM_ASSUME(x, onError)
+#endif
+
+#if GLM_CONFIG_ALIGNED_GENTYPES == GLM_ENABLE && (GLM_ARCH & GLM_ARCH_SSE41_BIT)
+  /*
+  ** True if the x,y,z components of the component vector are all zero. Note "v"
+  ** should be the result to some binary operation, e.g., _mm_xor_ps, _mm_or_ps,
+  ** _mm_and_ps, etc.
+  */
+  #define _mm_vec3_allzero(v) _mm_testz_si128(_mm_castps_si128(v), _mm_set_epi32(0, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU))
 #endif
 
 /* Forward declare all structures. */
