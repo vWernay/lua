@@ -238,9 +238,7 @@ union glmVector {
 /// <summary>
 /// Internal matrix definition.
 /// </summary>
-struct glmMatrix {
-  glm::length_t size;
-  glm::length_t secondary;
+LUA_GLM_ALIGNED_TYPE(struct, glmMatrix) {
   union {
     glm::mat<2, 2, glm_Float> m22;
     glm::mat<2, 3, glm_Float> m23;
@@ -252,17 +250,19 @@ struct glmMatrix {
     glm::mat<4, 3, glm_Float> m43;
     glm::mat<4, 4, glm_Float> m44;
   };
+  glm::length_t size;
+  glm::length_t secondary;
 
   glmMatrix() GLM_DEFAULT_CTOR;
-  glmMatrix(const glm::mat<2, 2, glm_Float> &_m) : size(2), secondary(2), m22(_m) { }
-  glmMatrix(const glm::mat<2, 3, glm_Float> &_m) : size(2), secondary(3), m23(_m) { }
-  glmMatrix(const glm::mat<2, 4, glm_Float> &_m) : size(2), secondary(4), m24(_m) { }
-  glmMatrix(const glm::mat<3, 2, glm_Float> &_m) : size(3), secondary(2), m32(_m) { }
-  glmMatrix(const glm::mat<3, 3, glm_Float> &_m) : size(3), secondary(3), m33(_m) { }
-  glmMatrix(const glm::mat<3, 4, glm_Float> &_m) : size(3), secondary(4), m34(_m) { }
-  glmMatrix(const glm::mat<4, 2, glm_Float> &_m) : size(4), secondary(2), m42(_m) { }
-  glmMatrix(const glm::mat<4, 3, glm_Float> &_m) : size(4), secondary(3), m43(_m) { }
-  glmMatrix(const glm::mat<4, 4, glm_Float> &_m) : size(4), secondary(4), m44(_m) { }
+  glmMatrix(const glm::mat<2, 2, glm_Float> &_m) : m22(_m), size(2), secondary(2) { }
+  glmMatrix(const glm::mat<2, 3, glm_Float> &_m) : m23(_m), size(2), secondary(3) { }
+  glmMatrix(const glm::mat<2, 4, glm_Float> &_m) : m24(_m), size(2), secondary(4) { }
+  glmMatrix(const glm::mat<3, 2, glm_Float> &_m) : m32(_m), size(3), secondary(2) { }
+  glmMatrix(const glm::mat<3, 3, glm_Float> &_m) : m33(_m), size(3), secondary(3) { }
+  glmMatrix(const glm::mat<3, 4, glm_Float> &_m) : m34(_m), size(3), secondary(4) { }
+  glmMatrix(const glm::mat<4, 2, glm_Float> &_m) : m42(_m), size(4), secondary(2) { }
+  glmMatrix(const glm::mat<4, 3, glm_Float> &_m) : m43(_m), size(4), secondary(3) { }
+  glmMatrix(const glm::mat<4, 4, glm_Float> &_m) : m44(_m), size(4), secondary(4) { }
 
   // Assignment Operators
 
@@ -376,7 +376,6 @@ LUA_API int glm_pushmat(lua_State *L, const glmMatrix &m);
     && sizeof(grit_length_t) == sizeof(glm::length_t)
     && sizeof(lua_Mat4) == sizeof(glmMatrix)
     // @TODO: Name the anonymous union in glmMatrix similar to lua_Mat4.
-    && sizeof(lua_Mat4::Columns) == (sizeof(glmMatrix) - offsetof(glmMatrix, m44))
     && sizeof(lua_Mat4::Columns::m2) == sizeof(glmMatrix::m24)
     && sizeof(lua_Mat4::Columns::m3) == sizeof(glmMatrix::m34)
     && sizeof(lua_Mat4::Columns::m4) == sizeof(glmMatrix::m44)

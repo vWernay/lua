@@ -894,9 +894,11 @@
 
 /* Helper macro for defining aligned types; see GLM_ALIGNED_TYPEDEF */
 #if defined(LUA_GLM_ALIGN)
-  #define LUA_GLM_ALIGNED_TYPE(type, name) LUA_GLM_ALIGN type name
+  #define LUA_GLM_ALIGNED_TYPE(type, name) type LUA_GLM_ALIGN name
+  #define LUA_GLM_ALIGNED_TYPEDEF(type, name) typedef LUA_GLM_ALIGN type name
 #else
   #define LUA_GLM_ALIGNED_TYPE(type, name) type name
+  #define LUA_GLM_ALIGNED_TYPEDEF(type, name) typedef type name
 #endif
 
 /*
@@ -921,21 +923,35 @@ typedef struct lua_CFloat2 { lua_VecF x, y; } lua_CFloat2;
 ** byte-wise equivalent/alias to glmVector in lglm.hpp and operates within the C
 ** boundaries of the Lua runtime.
 */
-typedef LUA_GLM_ALIGNED_TYPE(struct, lua_CFloat4) lua_Float4;
+LUA_GLM_ALIGNED_TYPEDEF(struct, lua_CFloat4) lua_Float4;
 
 /*
 ** gritLua column-oriented matrix extension. This structure is intended to be a
 ** byte-wise equivalent to glmMatrix in lglm.hpp and operates within the C
 ** boundaries of the Lua runtime.
+**
+** @NOTE: When GLM_FORCE_DEFAULT_ALIGNED_GENTYPES is enabled (attempt to) mirror
+** the alignment specified in glm/detail/qualifier.hpp. Note GLM uses unions to
+** implicitly load and store values instead of explicit _mm_loadu_ps and
+** _mm_storeu_ps calls.
+**
+** The current lua_Mat4 definition minimizes the number of changes required to
+** make alignment consistent across different compilers (and minimizes the
+** number of changes when this inevitably gets reverted). Avoiding issues of
+** aligned loads, unaligned loads, auto-aligning, etc.
+*
+** These safeguards will not be required if LuaGLM ever becomes a strictly C++
+** compiled runtime. As the "C" parts of this runtime can use the structs
+** defined in lglm.hpp
 */
-typedef struct lua_Mat4 {
-  grit_length_t size;
-  grit_length_t secondary;  /* Number of columns & size of each column vector */
+LUA_GLM_ALIGNED_TYPEDEF(struct, lua_Mat4) {
   union Columns {
     LUA_GLM_ALIGNED_TYPE(lua_CFloat2, m2[4]);  /* Aligned 2-by-X matrix */
     LUA_GLM_ALIGNED_TYPE(lua_CFloat3, m3[4]);  /* Aligned 3-by-X matrix */
     LUA_GLM_ALIGNED_TYPE(lua_CFloat4, m4[4]);  /* Aligned 4-by-X matrix */
   } m;
+  grit_length_t size;  /* Number of columns */
+  grit_length_t secondary;  /* Size of each column vector */
 } lua_Mat4;
 
 /* }================================================================== */
