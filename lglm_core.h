@@ -43,13 +43,11 @@ static LUA_INLINE grit_length_t glm_dimensions (int rtt) {
 #define glmVec_fastgets(T, K, S) \
   ((tsslen((K)) == 1) && (vecgets((T), getstr((K)), (S)) != LUA_TNONE))
 
-/// <summary>
-/// Helper function for generalized vector int-access.
-/// </summary>
+/* Helper function for generalized vector int-access. */
 static LUA_INLINE int vecgeti (const TValue *obj, lua_Integer n, StkId res) {
   grit_length_t _n = cast(grit_length_t, n);
-  if (l_likely(_n >= 1 && _n <= glm_dimensions(ttypetag(obj)))) {  // Accessing vectors is 0-based
-#if defined(GLM_FORCE_QUAT_DATA_WXYZ)  // Support GLM_FORCE_QUAT_DATA_WXYZ
+  if (l_likely(_n >= 1 && _n <= glm_dimensions(ttypetag(obj)))) {  /* Accessing vectors is 0-based */
+#if defined(GLM_FORCE_QUAT_DATA_WXYZ)  /* Support GLM_FORCE_QUAT_DATA_WXYZ */
     if (ttypetag(obj) == LUA_VQUAT) _n = (_n % 4) + 1;
 #endif
     setfltvalue(s2v(res), cast_num((&vvalue_(obj).x)[_n - 1]));
@@ -58,9 +56,7 @@ static LUA_INLINE int vecgeti (const TValue *obj, lua_Integer n, StkId res) {
   return LUA_TNONE;
 }
 
-/// <summary>
-/// Helper function for generalized vector string-access.
-/// </summary>
+/* Helper function for generalized vector string-access. */
 static LUA_INLINE int vecgets (const TValue *obj, const char *k, StkId res) {
   const grit_length_t _d = glm_dimensions(ttypetag(obj));
   grit_length_t _n = 0;
@@ -69,7 +65,7 @@ static LUA_INLINE int vecgets (const TValue *obj, const char *k, StkId res) {
     case 'y': case 'g': case '2': _n = 2; break;
     case 'z': case 'b': case '3': _n = 3; break;
     case 'w': case 'a': case '4': _n = 4; break;
-    case 'n': {  // Dimension fields takes priority over metamethods
+    case 'n': {  /* Dimension fields takes priority over metamethods */
       setivalue(s2v(res), (lua_Integer)_d);
       return LUA_TNUMBER;
     }
@@ -78,7 +74,7 @@ static LUA_INLINE int vecgets (const TValue *obj, const char *k, StkId res) {
   }
 
   if (l_likely(_n >= 1 && _n <= _d)) {
-#if defined(GLM_FORCE_QUAT_DATA_WXYZ)  // Support GLM_FORCE_QUAT_DATA_WXYZ
+#if defined(GLM_FORCE_QUAT_DATA_WXYZ)  /* Support GLM_FORCE_QUAT_DATA_WXYZ */
     if (ttypetag(obj) == LUA_VQUAT) _n = (_n % 4) + 1;
 #endif
     setfltvalue(s2v(res), cast_num((&(vvalue_ref(obj)->x))[_n - 1]));
@@ -147,9 +143,7 @@ LUAI_FUNC int glm_trybinTM  (lua_State *L, const TValue *p1, const TValue *p2, S
 /* Fast path equivalent macros. */
 #define glmMat_fastgeti(T, I, S) (matgeti((T), (I), (S)) != LUA_TNONE)
 
-/// <summary>
-/// Helper function for generalized matrix int-access.
-/// </summary>
+/* Helper function for generalized matrix int-access. */
 static LUA_INLINE int matgeti (const TValue *obj, lua_Integer n, StkId res) {
   const grit_length_t gidx = (grit_length_t)n;
   const lua_Mat4 *m = mvalue_ref(obj);
