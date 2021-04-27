@@ -24,8 +24,8 @@
 ** primitive to each vector/quaternion is float. This increases the minimum size
 ** to a Value/TaggedValue to 16-bytes (or 4 x float).
 **
-** By enabling "GLM_USE_LUA_TYPE", the primitive type of each vector becomes
-** lua_Number, the default Lua floating point type.
+** By enabling "LUA_GLM_NUMBER_TYPE", the primitive type of each vector becomes
+** lua_Number.
 */
 #if defined(LUA_GLM_NUMBER_TYPE) && LUA_FLOAT_TYPE != LUA_FLOAT_LONGDOUBLE
   #define GLM_FLOAT_TYPE LUA_NUMBER
@@ -289,39 +289,6 @@ LUA_GLM_ALIGNED_TYPE(struct, glmMatrix) {
   inline int Get(glm::mat<4, 4, glm_Float> &_m) const { _m = m44; return 1; }
 };
 
-/// <summary>
-/// External userdata definition.
-///
-/// @TODO: The vector dimensionality can/should be packed into the type field
-/// similar to how types & variants are define in Lua.
-/// </summary>
-struct glmUserdata {
-  unsigned char type = 0;  // glm type identifier/variant identifier.
-  union {
-    struct {
-      glm::length_t size;
-      glmVector v;
-    } vec;
-    glmMatrix mat;
-  };
-
-  /// <summary>
-  /// Create a new matrix userdata of the specified type.
-  /// </summary>
-  glmUserdata(const glmMatrix &_m, unsigned char _t)
-    : type(_t), mat(_m) {
-  }
-
-  /// <summary>
-  /// Create a new vector userdata of the specified type.
-  /// </summary>
-  glmUserdata(const glmVector &_v, glm::length_t _s, unsigned char _t)
-    : type(_t), mat() {
-    vec.v = _v;
-    vec.size = _s;
-  }
-};
-
 /*
 ** Pushes a vector of dimensionality of 'd' represented by 'v' onto the stack.
 ** Returning one on success (i.e., valid dimension argument), zero otherwise.
@@ -338,7 +305,7 @@ LUA_API int glm_pushvec(lua_State *L, const glmVector &v, glm::length_t d);
 ** @NOTE This function is identical to glm_pushquat, but without the (implicit)
 **  conversion.
 */
-LUA_API int glm_pushquat_(lua_State *L, const glmVector &q);
+LUA_API int glm_pushvec_quat(lua_State *L, const glmVector &q);
 
 /*
 ** Creates a new Matrix object, represented by 'm', and places it onto the stack.
@@ -389,8 +356,8 @@ LUA_API int glm_pushmat(lua_State *L, const glmMatrix &m);
 
 /// <summary>
 /// A union for aliasing the Lua vector definition (lua_Float4) with the GLM
-/// vector definition. As these structures *should* be byte-wise identical and
-/// no alignment issues should exist.
+/// vector definition. As these structures are byte-wise identical, no alignment
+/// or strict-aliasing issues should exist.
 /// </summary>
 union glmVectorBoundary {
   glmVector glm;

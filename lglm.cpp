@@ -291,14 +291,13 @@ void glmVec_get(lua_State *L, const TValue *obj, TValue *key, StkId res) {
       glmVector out;  // Allow runtime swizzle operations prior to metamethod access.
 
       const glmVector &v = glm_vvalue(obj);
-      const glm::length_t count = ttisquat(obj) ? swizzle(v.q, str, out.v4) : swizzle(v.v4, str, out.v4);
+      const glm::length_t count = ttisquat(obj) ? swizzle(v.q, str, out.v4)
+                                                : swizzle(v.v4, str, out.v4);
       switch (count) {
         case 1: setfltvalue(s2v(res), cast_num(out.v4.x)); return;
         case 2: glm_setvvalue2s(res, out, LUA_VVECTOR2); return;
         case 3: glm_setvvalue2s(res, out, LUA_VVECTOR3); return;
         case 4: {
-          // @TODO: Document this:
-          // If swizzling a quaternion generates a unit vector, the object remains a quaternion.
           if (ttisquat(obj) && glm::isNormalized(out.v4, glm::epsilon<glm_Float>()))
             glm_setvvalue2s(res, glm::qua<glm_Float>(out.v4.w, out.v4.x, out.v4.y, out.v4.z), LUA_VQUAT);
           else
@@ -804,7 +803,7 @@ LUA_API int glm_pushvec(lua_State *L, const glmVector &v, glm::length_t dimensio
   return 1;
 }
 
-LUA_API int glm_pushquat_(lua_State *L, const glmVector &q) {
+LUA_API int glm_pushvec_quat(lua_State *L, const glmVector &q) {
   lua_lock(L);
   glm_setvvalue2s(L->top, q, LUA_VQUAT);
   api_incr_top(L);
@@ -813,6 +812,7 @@ LUA_API int glm_pushquat_(lua_State *L, const glmVector &q) {
 }
 
 LUA_API int glm_pushmat(lua_State *L, const glmMatrix &m) {
+  GCMatrix *mat = GLM_NULLPTR;
   if (m.size < 2 || m.size > 4 || m.secondary < 2 || m.secondary > 4) {
 #if defined(LUA_USE_APICHECK)
     luaG_runerror(L, INVALID_MATRIX_DIMENSIONS);
@@ -821,7 +821,7 @@ LUA_API int glm_pushmat(lua_State *L, const glmMatrix &m) {
   }
 
   lua_lock(L);
-  GCMatrix *mat = glmMat_new(L);
+  mat = glmMat_new(L);
   glm_mat_boundary(&mat->mat4) = m;
   glm_setmvalue2s(L, L->top, mat);
   api_incr_top(L);
@@ -862,7 +862,7 @@ LUA_API int glm_pushvec1(lua_State *L, const glm::vec<1, glm_Float> &v) { lua_pu
 LUA_API int glm_pushvec2(lua_State *L, const glm::vec<2, glm_Float> &v) { return glm_pushvec(L, glmVector(v), 2); }
 LUA_API int glm_pushvec3(lua_State *L, const glm::vec<3, glm_Float> &v) { return glm_pushvec(L, glmVector(v), 3); }
 LUA_API int glm_pushvec4(lua_State *L, const glm::vec<4, glm_Float> &v) { return glm_pushvec(L, glmVector(v), 4); }
-LUA_API int glm_pushquat(lua_State *L, const glm::qua<glm_Float> &q) { return glm_pushquat_(L, glmVector(q)); }
+LUA_API int glm_pushquat(lua_State *L, const glm::qua<glm_Float> &q) { return glm_pushvec_quat(L, glmVector(q)); }
 
 LUA_API glm::vec<1, glm_Float> glm_tovec1(lua_State *L, int idx) { return glm::vec<1, glm_Float>(cast_glmfloat(lua_tonumber(L, idx))); }
 LUA_API glm::vec<2, glm_Float> glm_tovec2(lua_State *L, int idx) { return glm_tovec<2, glm_Float>(L, idx); }
@@ -1141,6 +1141,7 @@ LUA_API int luaVec_dimensions (int rtt) {
 
 LUA_API int lua_isvector (lua_State *L, int idx, int flags) {
   const TValue *o = glm_index2value(L, idx);
+
   lu_byte variant = LUA_TNIL;
   if (ttisvector(o))
     variant = ttypetag(o);
@@ -1156,6 +1157,7 @@ LUA_API int lua_isvector (lua_State *L, int idx, int flags) {
 
 LUA_API int lua_tovector (lua_State *L, int idx, int flags, lua_Float4 *f4) {
   const TValue *o = glm_index2value(L, idx);
+
   glmVector v;
   lu_byte variant = LUA_TNIL;
   if (ttisvector(o)) {
@@ -1193,20 +1195,20 @@ LUA_API int lua_tovector (lua_State *L, int idx, int flags, lua_Float4 *f4) {
 }
 
 LUA_API void lua_pushvector (lua_State *L, lua_Float4 f4, int variant) {
-  variant = withvariant(variant);
-  if (novariant(variant) != LUA_TVECTOR) {
+  const lu_byte b_variant = cast_byte(withvariant(variant));
+  if (novariant(b_variant) != LUA_TVECTOR) {
 #if defined(LUA_USE_APICHECK)
     luaG_runerror(L, INVALID_VECTOR_TYPE);
 #else
     lua_pushnil(L);
 #endif
   }
-  else if (variant == LUA_VVECTOR1)  // Implicit vector1
+  else if (b_variant == LUA_VVECTOR1)  // Implicit vector1
     lua_pushnumber(L, cast_num(f4.x));
-  else if (variant == LUA_VQUAT)
-    glm_pushquat_(L, glmVector(glm::qua<glm_Float>(f4.w, f4.x, f4.y, f4.z)));
+  else if (b_variant == LUA_VQUAT)
+    glm_pushvec_quat(L, glmVector(glm::qua<glm_Float>(f4.w, f4.x, f4.y, f4.z)));
   else
-    glm_pushvec(L, glmVector(glm::vec<4, glm_Float>(f4.x, f4.y, f4.z, f4.w)), glm_dimensions(variant));
+    glm_pushvec(L, glmVector(glm::vec<4, glm_Float>(f4.x, f4.y, f4.z, f4.w)), glm_dimensions(b_variant));
 }
 
 LUA_API int lua_ismatrix (lua_State *L, int idx, int *size, int *secondary) {
@@ -1784,7 +1786,8 @@ static int num_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
 static int vec_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId res, TMS event) {
   UNUSED(L);
   const glmVector &v = glm_vvalue(p1);
-  const int tt_p1 = ttypetag(p1), tt_p2 = ttypetag(p2);
+  const lu_byte tt_p1 = ttypetag(p1);
+  const lu_byte tt_p2 = ttypetag(p2);
   switch (event) {
     case TM_ADD: {
       if (tt_p1 == tt_p2) {
@@ -1959,7 +1962,7 @@ static int vec_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
 static int quat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId res, TMS event) {
   UNUSED(L);
   const glmVector &v = glm_vvalue(p1);
-  const int tt_p2 = ttypetag(p2);
+  const lu_byte tt_p2 = ttypetag(p2);
   switch (event) {
     case TM_UNM: glm_setvvalue2s(res, -v.q, LUA_VQUAT); return 1;
     case TM_ADD: {
@@ -2016,7 +2019,7 @@ static int quat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId
 
 static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId res, TMS event) {
   const glmMatrix &m = glm_mvalue(p1);
-  const int tt_p2 = ttypetag(p2);
+  const lu_byte tt_p2 = ttypetag(p2);
   switch (event) {
     case TM_ADD: {
       if (tt_p2 == LUA_VMATRIX && m.size == mvalue(p2).size && m.secondary == mvalue(p2).secondary)

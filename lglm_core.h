@@ -19,16 +19,20 @@
 #define GLM_STRING_BUFFER 1024
 
 /*
-** Return a vector variant given the number of vector dimensions. Note, this
-** function does not sanitize the input dimensions
+** Return the vector variant (tag) associated with 'dimensions'. Note, this
+** function does not sanitize the input: assumes [1, 4].
 */
 static LUA_INLINE lu_byte glm_variant (grit_length_t dimensions) {
   return l_unlikely(dimensions == 1) ? LUA_VVECTOR1 : cast_byte(LUA_TVECTOR | ((((dimensions - 2) & 0x3)) << 4));
 }
 
-/* Number of dimensions associated with the vector object */
-static LUA_INLINE grit_length_t glm_dimensions (int rtt) {
-  const grit_length_t dims = (grit_length_t)((rtt & 0x30) >> 4); /* variant bits 4-5 */
+/*
+** Return the vector dimensions associated with the variant (tag). Note, this
+** function does not sanitize the input: 'rtt' must be equal to
+* makevariant(LUA_TVECTOR, X) for some 'X'
+*/
+static LUA_INLINE grit_length_t glm_dimensions (lu_byte rtt) {
+  const grit_length_t dims = cast(grit_length_t, (rtt & 0x30) >> 4); /* variant bits 4-5 */
   return (rtt == LUA_VQUAT) ? 4 : (2 + dims); /* quat uses 3rd bit. */
 }
 
@@ -50,6 +54,11 @@ static LUA_INLINE int vecgeti (const TValue *obj, lua_Integer n, StkId res) {
 #if defined(GLM_FORCE_QUAT_DATA_WXYZ)  /* Support GLM_FORCE_QUAT_DATA_WXYZ */
     if (ttypetag(obj) == LUA_VQUAT) _n = (_n % 4) + 1;
 #endif
+
+    /*
+    ** @NOTE: This approach assumes a packed x,y,z,w struct. This was changed
+    ** from a switch statement after profiling access times.
+    */
     setfltvalue(s2v(res), cast_num((&vvalue_(obj).x)[_n - 1]));
     return LUA_TNUMBER;
   }
@@ -126,7 +135,7 @@ LUAI_FUNC size_t glmcVec_hash (const Value *kvl, int ktt);
 LUAI_FUNC int glmVec_next (const TValue *obj, StkId key);
 
 /* trybinTM handler for GLM objects */
-LUAI_FUNC int glm_trybinTM  (lua_State *L, const TValue *p1, const TValue *p2, StkId res, TMS event);
+LUAI_FUNC int glm_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, StkId res, TMS event);
 
 /* }================================================================== */
 
@@ -136,30 +145,35 @@ LUAI_FUNC int glm_trybinTM  (lua_State *L, const TValue *p1, const TValue *p2, S
 ** ===================================================================
 */
 
-#define luaMat_cast_m2(m2) { m2.x, m2.y, 0, 0 }
-#define luaMat_cast_m3(m3) { m3.x, m3.y, m3.z, 0 }
-#define luaMat_cast_m4(m4) m4
+#define luaMat_cast_m2(M) { (M)->x, (M)->y, 0, 0 }
+#define luaMat_cast_m3(M) { (M)->x, (M)->y, (M)->z, 0 }
+#define luaMat_cast_m4(M) M
 
 /* Fast path equivalent macros. */
 #define glmMat_fastgeti(T, I, S) (matgeti((T), (I), (S)) != LUA_TNONE)
 
 /* Helper function for generalized matrix int-access. */
 static LUA_INLINE int matgeti (const TValue *obj, lua_Integer n, StkId res) {
-  const grit_length_t gidx = (grit_length_t)n;
+  const grit_length_t gidx = cast(grit_length_t, n);
   const lua_Mat4 *m = mvalue_ref(obj);
   if (l_likely(gidx >= 1 && gidx <= m->size)) {
     switch (m->secondary) {
       case 2: {
-        lua_Float4 f4 = luaMat_cast_m2(m->m.m2[gidx - 1]);
+        const lua_CFloat2 *col = &m->m.m2[gidx - 1];
+        lua_Float4 f4 = luaMat_cast_m2(col);
         setvvalue(s2v(res), f4, LUA_VVECTOR2);
         return LUA_VVECTOR2;
       }
       case 3: {
-        lua_Float4 f4 = luaMat_cast_m3(m->m.m3[gidx - 1]);
+        const lua_CFloat3 *col = &m->m.m3[gidx - 1];
+        lua_Float4 f4 = luaMat_cast_m3(col);
         setvvalue(s2v(res), f4, LUA_VVECTOR3);
         return LUA_VVECTOR3;
       }
-      case 4: setvvalue(s2v(res), m->m.m4[gidx - 1], LUA_VVECTOR4); return LUA_VVECTOR4;
+      case 4: {
+        setvvalue(s2v(res), m->m.m4[gidx - 1], LUA_VVECTOR4);
+        return LUA_VVECTOR4;
+      }
       default:
         break;
     }

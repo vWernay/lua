@@ -64,6 +64,7 @@ Hello, World!
 
 When vectors/quaternions are accessed by other values/types some additional rules exist prior to a `__index` metamethod lookup:
 1. If a string key has less-than-or-equal-to four characters it is first passed through a swizzling filter. Returning a vector if all characters are valid fields, e.g., `v.zyx == vec3(v.z, v.y, v.x)`.
+	* Note: If swizzling a quaternion results in a four dimensional unit vector, the object remains a quaternion.
 1. The `angle` and `axis` strings are reserved for the angle (in degrees) and normalized axis of rotation for quaternion types (grit-lua compatibility).
 1. The dimensionality of a vector/quaternion can be accessed by the `n` and `dim` strings as the length operator returns the vector magnitude (grit-lua compatibility).
 
@@ -568,7 +569,7 @@ See [libs/scripts](libs/scripts) for a collection of example/test scripts using 
 1. One downside to vectors/quaternions being an explicit `Value` is that they increase the minimum Value size to at least 16 bytes. Given that types in Lua are fairly transparent, it may be beneficial to introduce, or at least experiment with, a compile-time option to make vector/quaternion types collectible.
 1. Support for integer vectors/matrices. Either by introducing an additional type, e.g., `LUA_TVECTORI`, or splitting the vector tag `LUA_TVECTOR` into `LUA_TVECTOR2`, `LUA_TVECTOR3`, `LUA_TVECTOR4`, and `LUA_TQUAT` and use variant bits for the primitive type.
 1. Replace `glm/gtc/random.{inl,hpp}` with a variant that takes advantage of CXX11's [Pseudo-random number generation](https://en.cppreference.com/w/cpp/numeric/random) facilities (and unify it with `math.random`).
-1. Basic support for triangles and meshes, retrofit current spatial indexing structures for triangles, and consider BSPs.
+1. Support for triangles and meshes, retrofit current spatial indexing structures for triangles, and consider BSPs.
 1. Include broad phase collision scripting examples, e.g., dynamic AABB tree and/or multibox sweep-and-prune.
 1. Initial support for frustums (both orthographic and perspective) and OBBs, or, at minimum, the more computationally complex parts of these structures.
 1. Allow some binding functions to be independently applied to each value or structure on the call stack. If disabled, only operate on the minimum number of required objects (following lmathlib). For example:
@@ -586,13 +587,13 @@ See [libs/scripts](libs/scripts) for a collection of example/test scripts using 
     0.61086523819802 0.61086523819802
     ```
 
-#### Tweaks:
+#### Tweaks/TODO:
 1. Fix/improve MSVC portions of CMakeLists.
-1. `glmMat_set` support for tables, e.g., `mat[i] = { ... }`, by using `glmH_tovector`.
-1. Improve support for `glm::mat3x4` and `glm::mat4x3`.
 1. Finish support for two-dimensional geometrical structures (AABB2D, LineSegment2D, Circle2D, etc).
 1. [geom](libs/glm-binding/geom): SIMD support (at the very least for the most commonly used functions).
 1. Features/configurations to reduce size of binding library.
+1. Improve support for `glm::mat3x4` and `glm::mat4x3`.
+1. `glmMat_set` support for tables, e.g., `mat[i] = { ... }`, by using `glmH_tovector`.
 
 ## Benchmarking
 **TODO**: Finish comparisons to...

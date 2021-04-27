@@ -751,7 +751,10 @@ GLM_BINDING_QUALIFIER(sphere_optimalEnclosingSphere) {
     case 4: TRAITS_FUNC(LB, glm::optimalEnclosingSphere, gLuaVec3<>, gLuaVec3<>, gLuaVec3<>, gLuaVec3<>); break;
     default: {
       LuaCrtAllocator<gLuaVec3<>::type> allocator(LB.L);
-      glm::List<gLuaVec3<>::type> pts(allocator);  // @TODO: This implementation is UNSAFE
+
+      // @TODO: This implementation is UNSAFE. Create a glm::List userdata that
+      // is temporarily anchored onto the stack for the duration of the function
+      glm::List<gLuaVec3<>::type> pts(allocator);
       auto push_back = [&pts](const gLuaVec3<>::type &v) { pts.push_back(v); };
 
       if (lua_istable(LB.L, LB.idx))

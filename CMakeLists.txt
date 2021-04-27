@@ -52,15 +52,15 @@ SET(CMAKE_INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installa
 # Compiler Setup
 ################################################################################
 
-# Enables the use of Intel AVX2 if/when possible
-OPTION(LUA_NATIVE_ARCH "Enable compiler optimizations for the native processor architecture" ON)
+# Linux: Enable all instruction subsets supported by host.
+# MSVC: Enables the use of Intel AVX2 if/when possible; @TODO: Follow Linux.
+OPTION(LUA_NATIVE_ARCH "Enable compiler optimizations for the native processor architecture" OFF)
 
 # Include additional optimizations for glm-specific vector and matrix operations;
 OPTION(LUA_FAST_MATH "Enable fast math optimizations" OFF)
 
-# Enables the use of Intel AVX2 if/when possible
-# This option is intended to be a subset of LUA_NATIVE_ARCH
-OPTION(GLM_NATIVE_ARCH "Enable compiler optimizations for the native processor architecture" ON)
+# A subset of LUA_NATIVE_ARCH for only the GLM bindings
+OPTION(GLM_NATIVE_ARCH "Enable compiler optimizations for the native processor architecture" OFF)
 
 # Include additional optimizations for glm-specific vector and matrix operations;
 # This option is intended to be a subset of LUA_FAST_MATH
