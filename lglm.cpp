@@ -1514,7 +1514,7 @@ static int glm_createMatrix(lua_State *L, glm::length_t C, glm::length_t R) {
       switch (result.secondary) {
         case 2: result.m42 = glm::mat<4, 2, glm_Float>(result.m44); break;
         case 3: result.m43 = glm::mat<4, 3, glm_Float>(result.m44); break;
-        case 4: result.m44 = glm::mat<4, 4, glm_Float>(result.m44); break;
+        case 4: /* result.m44 = glm::mat<4, 4, glm_Float>(result.m44); */ break;
         default:
           break;
       }
