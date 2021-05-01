@@ -201,31 +201,27 @@ static void vec_finishget(lua_State *L, const TValue *obj, TValue *key, StkId re
 }
 
 /// <summary>
-/// Runtime swizzle operation
+/// Runtime swizzle operation. Returning the number of copied vector elements;
+/// zero on failure.
 /// </summary>
-/// <param name="key">A null-terminated string.</param>
-/// <returns>The number of copied vector elements; zero on failure.</returns>
-template<glm::length_t L, typename T, glm::qualifier Q, glm::length_t LOut>
-static glm::length_t swizzle(const glm::vec<L, T, Q> &v, const char *key, glm::vec<LOut, T, Q> &out) {
-  glm::length_t counter = 0;
-  if (key == GLM_NULLPTR)
-    return counter;
-
-  while (key[counter] != '\0' && counter <= LOut) {
-    switch (key[counter]) {
-      case 'x': GLM_IF_CONSTEXPR (L < 1) return 0; out[counter++] = static_cast<T>(v[0]); break;
-      case 'y': GLM_IF_CONSTEXPR (L < 2) return 0; out[counter++] = static_cast<T>(v[1]); break;
-      case 'z': GLM_IF_CONSTEXPR (L < 3) return 0; out[counter++] = static_cast<T>(v[2]); break;
-      case 'w': GLM_IF_CONSTEXPR (L < 4) return 0; out[counter++] = static_cast<T>(v[3]); break;
+template<glm::length_t L, typename T, glm::qualifier Q>
+static glm::length_t swizzle(const glm::vec<L, T, Q> &v, const char *key, lua_Float4 &out) {
+  glm::length_t i = 0;
+  for (; i < 4 && key[i] != '\0'; ++i) {
+    switch (key[i]) {
+      case 'x': GLM_IF_CONSTEXPR (L < 1) { return 0; } (&out.x)[i] = static_cast<T>(v[0]); break;
+      case 'y': GLM_IF_CONSTEXPR (L < 2) { return 0; } (&out.x)[i] = static_cast<T>(v[1]); break;
+      case 'z': GLM_IF_CONSTEXPR (L < 3) { return 0; } (&out.x)[i] = static_cast<T>(v[2]); break;
+      case 'w': GLM_IF_CONSTEXPR (L < 4) { return 0; } (&out.x)[i] = static_cast<T>(v[3]); break;
       default:
         return 0;
     }
   }
-  return counter;
+  return i;
 }
 
-template<typename T, glm::qualifier Q, glm::length_t LOut>
-static glm::length_t swizzle(const glm::qua<T, Q> &q, const char *key, glm::vec<LOut, T, Q> &out) {
+template<typename T, glm::qualifier Q>
+static glm::length_t swizzle(const glm::qua<T, Q> &q, const char *key, lua_Float4 &out) {
 #if defined(GLM_FORCE_QUAT_DATA_WXYZ)
   const glm::vec<4, T, Q> v(q.w, q.x, q.y, q.z);
 #else
@@ -282,26 +278,35 @@ void glmVec_get(lua_State *L, const TValue *obj, TValue *key, StkId res) {
       return;
   }
   else if (ttisstring(key)) {
-    const char* str = svalue(key);
-    if (vslen(key) == 1) {  // hot-path single character access
+    const char *str = svalue(key);
+    const size_t str_len = vslen(key);
+    if (str_len == 1) {  // hot-path single character access
       if (vecgets(obj, str, res) != LUA_TNONE)
         return;
     }
-    else {
-      glmVector out;  // Allow runtime swizzle operations prior to metamethod access.
-
+    else if (str_len <= 4) {  // Allow runtime swizzle operations prior to metamethod access.
       const glmVector &v = glm_vvalue(obj);
-      const glm::length_t count = ttisquat(obj) ? swizzle(v.q, str, out.v4)
-                                                : swizzle(v.v4, str, out.v4);
+
+      lua_Float4 out;
+      glm::length_t count = 0;
+      switch (ttypetag(obj)) {
+        case LUA_VVECTOR2: count = swizzle(v.v2, str, out); break;
+        case LUA_VVECTOR3: count = swizzle(v.v3, str, out); break;
+        case LUA_VVECTOR4: count = swizzle(v.v4, str, out); break;
+        case LUA_VQUAT: count = swizzle(v.q, str, out); break;
+        default:
+          break;
+      }
+
       switch (count) {
-        case 1: setfltvalue(s2v(res), cast_num(out.v4.x)); return;
-        case 2: glm_setvvalue2s(res, out, LUA_VVECTOR2); return;
-        case 3: glm_setvvalue2s(res, out, LUA_VVECTOR3); return;
+        case 1: setfltvalue(s2v(res), cast_num(out.x)); return;
+        case 2: setvvalue(s2v(res), out, LUA_VVECTOR2); return;
+        case 3: setvvalue(s2v(res), out, LUA_VVECTOR3); return;
         case 4: {
-          if (ttisquat(obj) && glm::isNormalized(out.v4, glm::epsilon<glm_Float>()))
-            glm_setvvalue2s(res, glm::qua<glm_Float>(out.v4.w, out.v4.x, out.v4.y, out.v4.z), LUA_VQUAT);
+          if (ttisquat(obj) && glm::isNormalized(glm_vec_boundary(&out).v4, glm::epsilon<glm_Float>()))
+            setvvalue(s2v(res), out, LUA_VQUAT);
           else
-            glm_setvvalue2s(res, out, LUA_VVECTOR4);
+            setvvalue(s2v(res), out, LUA_VVECTOR4);
           return;
         }
         default: {  // gritLua compatibility: dimension field takes priority over tag methods
@@ -314,6 +319,7 @@ void glmVec_get(lua_State *L, const TValue *obj, TValue *key, StkId res) {
       }
     }
   }
+
   vec_finishget(L, obj, key, res);  // Metatable Access
 }
 
@@ -967,7 +973,7 @@ namespace glm {
   }
 }
 
-lua_Integer luaO_HashString(const char* string, size_t length, int ignore_case) {
+lua_Integer luaO_HashString(const char *string, size_t length, int ignore_case) {
   unsigned int hash = 0;
   for (size_t i = 0; i < length; ++i) {
     hash += (ignore_case ? string[i] : tolower(string[i]));
