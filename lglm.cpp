@@ -222,11 +222,7 @@ static glm::length_t swizzle(const glm::vec<L, T, Q> &v, const char *key, lua_Fl
 
 template<typename T, glm::qualifier Q>
 static glm::length_t swizzle(const glm::qua<T, Q> &q, const char *key, lua_Float4 &out) {
-#if defined(GLM_FORCE_QUAT_DATA_WXYZ)
-  const glm::vec<4, T, Q> v(q.w, q.x, q.y, q.z);
-#else
   const glm::vec<4, T, Q> v(q.x, q.y, q.z, q.w);
-#endif
   return swizzle(v, key, out);
 }
 
@@ -303,8 +299,16 @@ void glmVec_get(lua_State *L, const TValue *obj, TValue *key, StkId res) {
         case 2: setvvalue(s2v(res), out, LUA_VVECTOR2); return;
         case 3: setvvalue(s2v(res), out, LUA_VVECTOR3); return;
         case 4: {
-          if (ttisquat(obj) && glm::isNormalized(glm_vec_boundary(&out).v4, glm::epsilon<glm_Float>()))
+          if (ttisquat(obj) && glm::isNormalized(glm_vec_boundary(&out).v4, glm::epsilon<glm_Float>())) {
+#if defined(GLM_FORCE_QUAT_DATA_WXYZ)
+            lua_Float4 swap = out;
+            out.x = swap.w;
+            out.y = swap.x;
+            out.z = swap.y;
+            out.w = swap.z;
+#endif
             setvvalue(s2v(res), out, LUA_VQUAT);
+          }
           else
             setvvalue(s2v(res), out, LUA_VVECTOR4);
           return;
