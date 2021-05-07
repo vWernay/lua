@@ -600,7 +600,10 @@ OPTION(GLM_FORCE_DEPTH_ZERO_TO_ONE "Force the use of a clip space between 0 to 1
 OPTION(GLM_FORCE_SIZE_T_LENGTH "length_t is a typedef of size_t, otherwise length_t is a typedef of int like GLSL defines it." OFF)
 OPTION(GLM_FORCE_UNRESTRICTED_GENTYPE "Removing genType restriction" OFF)
 OPTION(GLM_FORCE_SILENT_WARNINGS "Silent C++ warnings from language extensions" OFF)
-OPTION(GLM_FORCE_QUAT_DATA_WXYZ "Removing genType restriction" OFF)
+
+# Formerly known as 'GLM_FORCE_QUAT_DATA_WXYZ', however, changed without support
+# for backwards compatibility in-mind; must be compensated for in source.
+OPTION(GLM_FORCE_QUAT_DATA_XYZW "Force GLM to store quat data as x,y,z,w instead of w,x,y,z" ON)
 # GLM_FORCE_PRECISION_{ LOWP_FLOAT, MEDIUMP_FLOAT, HIGHP_FLOAT }
 
 ADD_COMPILE_DEFINITIONS(GLM_ENABLE_EXPERIMENTAL)
@@ -669,8 +672,8 @@ IF( GLM_FORCE_SILENT_WARNINGS )
   ADD_COMPILE_DEFINITIONS(GLM_FORCE_SILENT_WARNINGS)
 ENDIF()
 
-IF( GLM_FORCE_QUAT_DATA_WXYZ )
-  ADD_COMPILE_DEFINITIONS(GLM_FORCE_QUAT_DATA_WXYZ)
+IF( GLM_FORCE_QUAT_DATA_XYZW )
+  ADD_COMPILE_DEFINITIONS(GLM_FORCE_QUAT_DATA_XYZW)
 ENDIF()
 
 IF( LUA_GLM_INCLUDE_ALL )

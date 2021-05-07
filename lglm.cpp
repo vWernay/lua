@@ -300,12 +300,9 @@ void glmVec_get(lua_State *L, const TValue *obj, TValue *key, StkId res) {
         case 3: setvvalue(s2v(res), out, LUA_VVECTOR3); return;
         case 4: {
           if (ttisquat(obj) && glm::isNormalized(glm_vec_boundary(&out).v4, glm::epsilon<glm_Float>())) {
-#if defined(GLM_FORCE_QUAT_DATA_WXYZ)
+#if !defined(GLM_FORCE_QUAT_DATA_XYZW)  // quaternion has WXYZ layout
             lua_Float4 swap = out;
-            out.x = swap.w;
-            out.y = swap.x;
-            out.z = swap.y;
-            out.w = swap.z;
+            out = { swap.w, swap.x, swap.y, swap.z };
 #endif
             setvvalue(s2v(res), out, LUA_VQUAT);
           }
@@ -533,7 +530,7 @@ static int glmMat_auxset(lua_State *L, const TValue *obj, TValue *key, TValue *v
       case 2: m.m42[dim - 1] = glm_vecvalue(val).v2; break;
       case 3: m.m43[dim - 1] = glm_vecvalue(val).v3; break;
       case 4: {
-#if defined(GLM_FORCE_QUAT_DATA_WXYZ)  // Support GLM_FORCE_QUAT_DATA_WXYZ
+#if !defined(GLM_FORCE_QUAT_DATA_XYZW)  // quaternion has WXYZ layout
         if (ttisquat(val)) {
           const glm::qua<glm_Float> &q = glm_quatvalue(val).q;
           m.m44[dim - 1] = glm::vec<4, glm_Float>(q.x, q.y, q.z, q.w);
@@ -1191,7 +1188,7 @@ LUA_API int lua_tovector (lua_State *L, int idx, int flags, lua_Float4 *f4) {
     if (variant == LUA_VVECTOR1)
       f4->x = v.v4.x;
 
-    // @TODO: Use GLM_FORCE_QUAT_DATA_WXYZ preprocessor directive to avoid the
+    // @TODO: Use GLM_FORCE_QUAT_DATA_XYZW preprocessor directive to avoid the
     // runtime ternary operations. However, this API is deprecated and will
     // receive little attention.
     else if (novariant(variant) == LUA_TVECTOR) {
@@ -1288,7 +1285,7 @@ static glm::length_t PopulateVectorObject(lua_State *L, int idx, glm::vec<4, T> 
     return 1;
   else if (ttisvector(value)) {  // Vector: concatenate components values.
 
-    // To handle 'GLM_FORCE_QUAT_DATA_WXYZ' it is much easier to force an
+    // To handle (not) 'GLM_FORCE_QUAT_DATA_XYZW' it is much easier to force an
     // explicit length rule for quaternion types. For other vector variants,
     // copy the vector or a subset to satisfy 'v_desired'
     const glmVector &v = glm_vvalue(value);

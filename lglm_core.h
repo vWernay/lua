@@ -12,6 +12,11 @@
 #include "lobject.h"
 #include "ltm.h"
 
+/* Handle should-be-deprecated-instead-of-removed GLM macro GLM_FORCE_QUAT_DATA_WXYZ */
+#if defined(GLM_FORCE_QUAT_DATA_WXYZ)
+  #undef GLM_FORCE_QUAT_DATA_XYZW
+#endif
+
 /*
 ** This value should be greater than: (MAXNUMBER2STR * 16) + 64:
 **  [d]mat4x4((%f, %f, %f, %f), (%f, %f, %f, %f), (%f, %f, %f, %f), (%f, %f, %f, %f))
@@ -51,7 +56,7 @@ static LUA_INLINE grit_length_t glm_dimensions (lu_byte rtt) {
 static LUA_INLINE int vecgeti (const TValue *obj, lua_Integer n, StkId res) {
   grit_length_t _n = cast(grit_length_t, n);
   if (l_likely(_n >= 1 && _n <= glm_dimensions(ttypetag(obj)))) {  /* Accessing vectors is 0-based */
-#if defined(GLM_FORCE_QUAT_DATA_WXYZ)  /* Support GLM_FORCE_QUAT_DATA_WXYZ */
+#if !defined(GLM_FORCE_QUAT_DATA_XYZW)  /* quaternion has WXYZ layout */
     if (ttypetag(obj) == LUA_VQUAT) _n = (_n % 4) + 1;
 #endif
 
@@ -83,7 +88,7 @@ static LUA_INLINE int vecgets (const TValue *obj, const char *k, StkId res) {
   }
 
   if (l_likely(_n >= 1 && _n <= _d)) {
-#if defined(GLM_FORCE_QUAT_DATA_WXYZ)  /* Support GLM_FORCE_QUAT_DATA_WXYZ */
+#if !defined(GLM_FORCE_QUAT_DATA_XYZW)  /* quaternion has WXYZ layout */
     if (ttypetag(obj) == LUA_VQUAT) _n = (_n % 4) + 1;
 #endif
     setfltvalue(s2v(res), cast_num((&(vvalue_ref(obj)->x))[_n - 1]));

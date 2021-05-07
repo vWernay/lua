@@ -594,6 +594,7 @@ See [libs/scripts](libs/scripts) for a collection of example/test scripts using 
 1. Optimize `glm_createMatrix`. Profiling case '4x4 matrix creation (lua_Alloc)' is the one of the slowest operations in the added vector/matrix API. Worse when using the default Windows allocator.
 1. Improve build scripts for linking against custom allocators. [rpmalloc](https://github.com/mjansson/rpmalloc) has shown significant upsides for cases of tight loops that allocate many matrix objects. For example, the profiling case '4x4 matrix - 4 component matrix * matrix' (using TM_MUL; generational GC enabled) halved its execution time.
 1. Features/configurations to reduce size of binding library.
+1. Include version control (GLM_VERSION_MAJOR/GLM_VERSION_MINOR/GLM_VERSION_PATCH/GLM_VERSION_REVISION) in binding library to support older GLM versions.
 1. Improve support for `glm::mat3x4` and `glm::mat4x3`.
 1. `glmMat_set` support for tables, e.g., `mat[i] = { ... }`, by using `glmH_tovector`.
 

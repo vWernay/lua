@@ -854,8 +854,8 @@
 **    2. GLM_FORCE_SIZE_T_LENGTH
 **    3. GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
 **
-** In addition GLM_FORCE_QUAT_DATA_WXYZ needs to be considered for quaternions
-** when operating within the C boundary.
+** In addition GLM_FORCE_QUAT_DATA_XYZW (formerly GLM_FORCE_QUAT_DATA_WXYZ)
+** needs to be considered for quaternions when operating within the C boundary.
 ** ===================================================================
 */
 
