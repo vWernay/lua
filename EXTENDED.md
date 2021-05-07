@@ -991,6 +991,11 @@ An Axis-Aligned Bounding Box. All operators (non-constructors) are of the form:
 -- aabbMax --[[ vec3 ]]: The maximum extent of the AABB in world space,
 -- ...: vardiac function parameters
 result = aabb.function(aabbMin, aabbMax, ...)
+
+-- aabbMin --[[ vec2 ]]: The minimum extent of the AABB in world space,
+-- aabbMax --[[ vec2 ]]: The maximum extent of the AABB in world space,
+-- ...: vardiac function parameters
+result = aabb2d.function(aabbMin, aabbMax, ...)
 ```
 
 ### aabb.new
@@ -998,6 +1003,7 @@ result = aabb.function(aabbMin, aabbMax, ...)
 -- Create a new AABB that encloses all coordinates on the Lua stack (or within a
 -- table if it is the first argument)
 aabbMin,aabbMax = aabb.new(...)
+aabbMin,aabbMax = aabb2d.new(...)
 ```
 
 ### aabb.fromCenterAndSize:
@@ -1011,21 +1017,25 @@ aabbMin,aabbMax = aabb.fromCenterAndSize(center --[[ vec3 ]], size --[[ number ]
 -- Create the smallest possible AABB, in terms of volume, that contains the
 -- provided sphere
 aabbMin,aabbMax = aabb.aabbFromSphere(spherePos --[[ vec3 ]], sphereRad --[[ number ]])
+aabbMin,aabbMax = aabb2d.fromCenterAndSize(center --[[ vec2 ]], size --[[ number ]])
 ```
 
 ### aabb.operator\_negate
 ```lua
 aabbMin,aabbMax = aabb.operator_negate(...)
+aabbMin,aabbMax = aabb2d.operator_negate(...)
 ```
 
 ### aabb.operator\_add
 ```lua
 aabbMin,aabbMax = aabb.operator_add(..., point --[[ vec3 ]])
+aabbMin,aabbMax = aabb2d.operator_add(..., point --[[ vec2 ]])
 ```
 
 ### aabb.operator\_sub
 ```lua
 aabbMin,aabbMax = aabb.operator_sub(..., point --[[ vec3 ]])
+aabbMin,aabbMax = aabb2d.operator_sub(..., point --[[ vec2 ]])
 ```
 
 ### aabb.operator\_mul
@@ -1034,6 +1044,11 @@ aabbMin,aabbMax = aabb.operator_mul(matrix3x3, ...)
 aabbMin,aabbMax = aabb.operator_mul(matrix4x3, ...)
 aabbMin,aabbMax = aabb.operator_mul(matrix4x4, ...)
 aabbMin,aabbMax = aabb.operator_mul(quat, ...)
+
+aabbMin,aabbMax = aabb2d.operator_mul(matrix3x3, ...)
+aabbMin,aabbMax = aabb2d.operator_mul(matrix4x3, ...)
+aabbMin,aabbMax = aabb2d.operator_mul(matrix4x4, ...)
+aabbMin,aabbMax = aabb2d.operator_mul(quat, ...)
 ```
 
 ### aabb.equal
@@ -1043,8 +1058,14 @@ bool = aabb.equal(..., otherMin --[[ vec3 ]], otherMax --[[ vec3 ]], eps --[[ nu
 bool = aabb.equal(..., otherMin --[[ vec3 ]], otherMax --[[ vec3 ]], eps --[[ vec3 ]])
 bool = aabb.equal(..., otherMin --[[ vec3 ]], otherMax --[[ vec3 ]], ULPs --[[ integer ]])
 
+bool = aabb2d.equal(..., otherMin --[[ vec2 ]], otherMax --[[ vec2 ]])
+bool = aabb2d.equal(..., otherMin --[[ vec2 ]], otherMax --[[ vec2 ]], eps --[[ number ]])
+bool = aabb2d.equal(..., otherMin --[[ vec2 ]], otherMax --[[ vec2 ]], eps --[[ vec2 ]])
+bool = aabb2d.equal(..., otherMin --[[ vec2 ]], otherMax --[[ vec2 ]], ULPs --[[ integer ]])
+
 -- explicit operator==(AABB, AABB)
 bool = aabb.operator_equals(..., otherMin --[[ vec3 ]], otherMax --[[ vec3 ]])
+bool = aabb2d.operator_equals(..., otherMin --[[ vec2 ]], otherMax --[[ vec2 ]])
 ```
 
 ### aabb.notEqual
@@ -1053,30 +1074,39 @@ bool = aabb.notEqual(..., otherMin --[[ vec3 ]], otherMax --[[ vec3 ]])
 bool = aabb.notEqual(..., otherMin --[[ vec3 ]], otherMax --[[ vec3 ]], eps --[[ number ]])
 bool = aabb.notEqual(..., otherMin --[[ vec3 ]], otherMax --[[ vec3 ]], eps --[[ vec3 ]])
 bool = aabb.notEqual(..., otherMin --[[ vec3 ]], otherMax --[[ vec3 ]], ULPs --[[ integer ]])
+
+bool = aabb2d.notEqual(..., otherMin --[[ vec2 ]], otherMax --[[ vec2 ]])
+bool = aabb2d.notEqual(..., otherMin --[[ vec2 ]], otherMax --[[ vec2 ]], eps --[[ number ]])
+bool = aabb2d.notEqual(..., otherMin --[[ vec2 ]], otherMax --[[ vec2 ]], eps --[[ vec2 ]])
+bool = aabb2d.notEqual(..., otherMin --[[ vec2 ]], otherMax --[[ vec2 ]], ULPs --[[ integer ]])
 ```
 
 ### aabb.to\_string
 ```lua
 -- @TODO: Not implemented
 string = aabb.to_string(...)
+string = aabb2d.to_string(...)
 ```
 
 ### aabb.isinf
 ```lua
 -- Tests if any component of the AABB is infinite
 bool = aabb.isinf(...)
+bool = aabb2d.isinf(...)
 ```
 
 ### aabb.isnan
 ```lua
 -- Tests if any component of the AABB is NaN
 bool = aabb.isnan(...)
+bool = aabb2d.isnan(...)
 ```
 
 ### aabb.isfinite
 ```lua
 -- Test if all components of the AABB are finite
 bool = aabb.isfinite(...)
+bool = aabb2d.isfinite(...)
 ```
 
 ### aabb.isDegenerate
@@ -1084,6 +1114,7 @@ bool = aabb.isfinite(...)
 -- Return true if the AABB is degenerate, i.e., does not span in a strictly
 -- positive volume
 bool = aabb.isDegenerate(...)
+bool = aabb2d.isDegenerate(...)
 ```
 
 ### aabb.centerPoint
@@ -1091,6 +1122,7 @@ bool = aabb.isDegenerate(...)
 -- @ALIAS: aabb.centroid
 -- Return the center point of the AABB
 vec3 = aabb.centerPoint(...)
+vec2 = aabb2d.centerPoint(...)
 ```
 
 ### aabb.pointInside
@@ -1098,6 +1130,7 @@ vec3 = aabb.centerPoint(...)
 -- Generates a point inside the AABB where "p" is a vector of normalized values
 -- (i.e., between [0, 1]) along each axis relative to the AABB minpoint
 vec3 = aabb.pointInside(..., p --[[ vec3 ]])
+vec2 = aabb2d.pointInside(..., p --[[ vec2 ]])
 ```
 
 ### aabb.minimalEnclosingSphere
@@ -1116,12 +1149,16 @@ spherePos --[[ vec3 ]], sphereRad --[[ number ]] = aabb.maximalContainedSphere(.
 ```lua
 -- Return an edge (segment) of the AABB: [0, 11]
 segStart --[[ vec3 ]], segEnd --[[ vec3 ]] = aabb.edge(..., index --[[ integer ]])
+segStart --[[ vec2 ]], segEnd --[[ vec2 ]] = aabb2d.edge(..., index --[[ integer ]])
 ```
 
 ### aabb.cornerPoint
 ```lua
 -- Return a corner point of the AABB: [0, 7]
 vec3 = aabb.cornerPoint(..., index --[[ integer ]])
+
+-- Return a corner point of the AABB: [0, 4]
+vec2 = aabb2d.cornerPoint(..., index --[[ integer ]])
 ```
 
 ### aabb.extremePoint
@@ -1129,6 +1166,7 @@ vec3 = aabb.cornerPoint(..., index --[[ integer ]])
 -- Compute an extreme point along the AABB, i.e., the furthest point in a given
 -- direction
 vec3 = aabb.extremePoint(..., direction --[[ vec3 ]])
+vec2 = aabb2d.extremePoint(..., direction --[[ vec2 ]])
 ```
 
 ### aabb.pointOnEdge
@@ -1171,18 +1209,21 @@ planeNormal --[[ vec3 ]], planeOffset --[[ number ]] = aabb.facePlane(...,
 ```lua
 -- Return the length of the AABB along each dimension
 vec3 = aabb.size(...)
+vec2 = aabb2d.size(...)
 ```
 
 ### aabb.halfSize
 ```lua
 -- Return the radius of the AABB along each dimension
 vec3 = aabb.halfSize(...)
+vec2 = aabb2d.halfSize(...)
 ```
 
 ### aabb.volume
 ```lua
 -- Compute the volume of the AABB
 number = aabb.volume(...)
+number = aabb2d.volume(...)
 ```
 
 ### aabb.surfaceArea
@@ -1195,18 +1236,21 @@ number = aabb.surfaceArea(...)
 ```lua
 -- Apply a uniform scale to the AABB
 aabbMin,aabbMax = aabb.scale(..., centerPoint --[[ vec3 --]], factor --[[ number ]])
+aabbMin,aabbMax = aabb2d.scale(..., centerPoint --[[ vec2 --]], factor --[[ number ]])
 ```
 
 ### aabb.projectToAxis
 ```lua
 -- Project the AABB onto the provided axis
 parametricMin --[[ number ]], parametricMax --[[ number ]] = aabb.projectToAxis(, axis --[[ vec3 ]])
+parametricMin --[[ number ]], parametricMax --[[ number ]] = aabb2d.projectToAxis(, axis --[[ vec2 ]])
 ```
 
 ### aabb.closestPoint
 ```lua
 -- Computes the closest point inside the AABB to the given point
 vec3 = aabb.closestPoint(..., point --[[ vec3 ]])
+vec2 = aabb2d.closestPoint(..., point --[[ vec2 ]])
 ```
 
 ### aabb.distance
@@ -1214,15 +1258,26 @@ vec3 = aabb.closestPoint(..., point --[[ vec3 ]])
 -- Computes the distance between the AABB and the given objects
 number = aabb.distance(..., point --[[ vec3 ]])
 number = aabb.distanceSphere(..., spherePos --[[ vec3 ]], sphereRad --[[ number ]])
+
+number = aabb2d.distance(..., point --[[ vec2 ]])
+number = aabb2d.distanceSphere(..., spherePos --[[ vec2 ]], sphereRad --[[ number ]])
 ```
 
 ### aabb.contains
 ```lua
 -- Tests for if the given objects are fully contained inside the AABB
 bool = aabb.contains(..., point --[[ vec3 ]])
+bool = aabb2d.contains(..., point --[[ vec2 ]])
+
 bool = aabb.containsAABB(..., aabbMin --[[ vec3 ]], aabbMax --[[ vec3 ]])
+bool = aabb2d.containsAABB(..., aabbMin --[[ vec2 ]], aabbMax --[[ vec2 ]])
+
 bool = aabb.containsSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+bool = aabb2d.containsSegment(..., segStart --[[ vec2 ]], segEnd --[[ vec2 ]])
+
 bool = aabb.containsSphere(..., spherePos --[[ vec3 ]], sphereRad --[[ number ]])
+bool = aabb2d.containsSphere(..., spherePos --[[ vec2 ]], sphereRad --[[ number ]])
+
 bool = aabb.containsPolygon(..., polygon --[[ polygon ]])
 ```
 
@@ -1234,6 +1289,11 @@ aabbMin,aabbMax = aabb.encloseSegment(..., segStart --[[ vec3 ]], segEnd --[[ ve
 aabbMin,aabbMax = aabb.encloseSphere(..., spherePos --[[ vec3 ]], sphereRad --[[ number ]])
 aabbMin,aabbMax = aabb.encloseAABB(..., otherMin --[[ vec3 ]], otherMax --[[ vec3 ]])
 aabbMin,aabbMax = aabb.enclosePolygon(..., polygon --[[ polygon ]])
+
+aabbMin,aabbMax = aabb2d.enclose(..., point --[[ vec2 ]])
+aabbMin,aabbMax = aabb2d.encloseSegment(..., segStart --[[ vec2 ]], segEnd --[[ vec2 ]])
+aabbMin,aabbMax = aabb2d.encloseSphere(..., spherePos --[[ vec2 ]], sphereRad --[[ number ]])
+aabbMin,aabbMax = aabb2d.encloseAABB(..., otherMin --[[ vec2 ]], otherMax --[[ vec2 ]])
 ```
 
 ### aabb.intersect
@@ -1245,18 +1305,28 @@ aabbMin,aabbMax = aabb.enclosePolygon(..., polygon --[[ polygon ]])
 --           : test, e.g., absolute distances (-100, 100) for lines/rays and
 --           : relative distances (0.25, 0.75) for segments.
 result = aabb.intersectAABB(..., otherMin --[[ vec3 ]], otherMax --[[ vec3 ]])
+result = aabb2d.intersectAABB(..., otherMin --[[ vec2 ]], otherMax --[[ vec2 ]])
+
 result = aabb.intersectSphere(..., spherePos --[[ vec3 ]], sphereRad --[[ number ]])
+result = aabb2d.intersectSphere(..., spherePos --[[ vec2 ]], sphereRad --[[ number ]])
+
 result = aabb.intersectPlane(..., planeNormal --[[ vec3 ]], planeOffset --[[ number]])
 
 result,dNear,dFar = aabb.intersectLine(..., linePos --[[ vec3 ]], lineDir --[[ vec3 ]], [dNear, dFar])
+result,dNear,dFar = aabb2d.intersectLine(..., linePos --[[ vec2 ]], lineDir --[[ vec2 ]], [dNear, dFar])
+
 result,dNear,dFar = aabb.intersectRay(..., rayPos --[[ vec3 ]], rayDir --[[ vec3 ]], [dNear, dFar])
+result,dNear,dFar = aabb2d.intersectRay(..., rayPos --[[ vec2 ]], rayDir --[[ vec2 ]], [dNear, dFar])
+
 result,dNear,dFar = aabb.intersectSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]], [dNear, dFar])
+result,dNear,dFar = aabb2d.intersectSegment(..., segStart --[[ vec2 ]], segEnd --[[ vec2 ]], [dNear, dFar])
 ```
 
 ### aabb.intersection
 ```lua
 -- Return the intersection of two AABBs, i.e., the AABB that is contained in both.
-aabbMin,aabbMax = aabb.intersectAABB(..., otherMin --[[ vec3 ]], otherMax --[[ vec3 ]])
+aabbMin,aabbMax = aabb.intersection(..., otherMin --[[ vec3 ]], otherMax --[[ vec3 ]])
+aabbMin,aabbMax = aabb2d.intersection(..., otherMin --[[ vec2 ]], otherMax --[[ vec2 ]])
 ```
 
 ## Line
@@ -1550,25 +1620,28 @@ result = segment.function(segStart, segEnd, ...)
 
 ### segment.operator\_negate
 ```lua
-segStart,segEnd = line.operator_negate(...)
+segStart,segEnd = segment.operator_negate(...)
+segStart,segEnd = segment2d.operator_negate(...)
 ```
 
 ### segment.operator\_add
 ```lua
-segStart,segEnd = line.operator_add(..., point --[[ vec3 ]])
+segStart,segEnd = segment.operator_add(..., point --[[ vec3 ]])
+segStart,segEnd = segment2d.operator_add(..., point --[[ vec2 ]])
 ```
 
 ### segment.operator\_sub
 ```lua
-segStart,segEnd = line.operator_sub(..., point --[[ vec3 ]])
+segStart,segEnd = segment.operator_sub(..., point --[[ vec3 ]])
+segStart,segEnd = segment2d.operator_sub(..., point --[[ vec2 ]])
 ```
 
 ### segment.operator\_mul
 ```lua
-segStart,segEnd = line.operator_mul(matrix3x3, ...)
-segStart,segEnd = line.operator_mul(matrix4x3, ...)
-segStart,segEnd = line.operator_mul(matrix4x4, ...)
-segStart,segEnd = line.operator_mul(quat, ...)
+segStart,segEnd = segment.operator_mul(matrix3x3, ...)
+segStart,segEnd = segment.operator_mul(matrix4x3, ...)
+segStart,segEnd = segment.operator_mul(matrix4x4, ...)
+segStart,segEnd = segment.operator_mul(quat, ...)
 ```
 
 ### segment.equal
@@ -1577,10 +1650,14 @@ bool = segment.equal(..., otherStart --[[ vec3 ]], otherEnd --[[ vec3 ]])
 bool = segment.equal(..., otherStart --[[ vec3 ]], otherEnd --[[ vec3 ]], eps --[[ number ]])
 bool = segment.equal(..., otherStart --[[ vec3 ]], otherEnd --[[ vec3 ]], eps --[[ vec3 ]])
 bool = segment.equal(..., otherStart --[[ vec3 ]], otherEnd --[[ vec3 ]], ULPs --[[ integer ]])
+bool = segment2d.equal(..., otherStart --[[ vec2 ]], otherEnd --[[ vec2 ]])
+bool = segment2d.equal(..., otherStart --[[ vec2 ]], otherEnd --[[ vec2 ]], eps --[[ number ]])
+bool = segment2d.equal(..., otherStart --[[ vec2 ]], otherEnd --[[ vec2 ]], eps --[[ vec2 ]])
+bool = segment2d.equal(..., otherStart --[[ vec2 ]], otherEnd --[[ vec2 ]], ULPs --[[ integer ]])
 
 -- explicit operator==(Segment, Segment)
 bool = segment.operator_equals(..., otherStart --[[ vec3 ]], otherEnd --[[ vec3 ]])
-
+bool = segment2d.operator_equals(..., otherStart --[[ vec2 ]], otherEnd --[[ vec2 ]])
 ```
 
 ### segment.notEqual
@@ -1589,59 +1666,73 @@ bool = segment.notEqual(..., otherStart --[[ vec3 ]], otherEnd --[[ vec3 ]])
 bool = segment.notEqual(..., otherStart --[[ vec3 ]], otherEnd --[[ vec3 ]], eps --[[ number ]])
 bool = segment.notEqual(..., otherStart --[[ vec3 ]], otherEnd --[[ vec3 ]], eps --[[ vec3 ]])
 bool = segment.notEqual(..., otherStart --[[ vec3 ]], otherEnd --[[ vec3 ]], ULPs --[[ integer ]])
+
+bool = segment2d.notEqual(..., otherStart --[[ vec2 ]], otherEnd --[[ vec2 ]])
+bool = segment2d.notEqual(..., otherStart --[[ vec2 ]], otherEnd --[[ vec2 ]], eps --[[ number ]])
+bool = segment2d.notEqual(..., otherStart --[[ vec2 ]], otherEnd --[[ vec2 ]], eps --[[ vec2 ]])
+bool = segment2d.notEqual(..., otherStart --[[ vec2 ]], otherEnd --[[ vec2 ]], ULPs --[[ integer ]])
 ```
 
 ### segment.to\_string
 ```lua
 -- @TODO: Not implemented
-string = to_string(...)
+string = segment.to_string(...)
+string = segment2d.to_string(...)
 ```
 
 ### segment.length
 ```lua
 -- Return the length of this line segment
-number = length(...)
+number = segment.length(...)
+number = segment2d.length(...)
 
 -- Return the squared length of this line segment
-number = length2(...)
+number = segment.length2(...)
+number = segment2d.length2(...)
 ```
 
 ### segment.isfinite
 ```lua
 -- Tests if any component of the segment is infinite
-bool = isfinite(...)
+number = segment.length2(...)
+number = segment2d.length2(...)
 ```
 
 ### segment.getPoint
 ```lua
 -- Get a point along the line at a given distance (parametric point)
-vec3 = line.getPoint(..., distance --[[ number ]])
+vec3 = segment.getPoint(..., distance --[[ number ]])
+vec2 = segment2d.getPoint(..., distance --[[ number ]])
 ```
 
 ### segment.centerPoint
 ```lua
 -- @ALIAS: segment.centroid
 -- Returns the center point of the line segment: getPoint(line, T(0.5))
-vec3 = centerPoint(...)
+vec3 = segment.centerPoint(...)
+vec2 = segment2d.centerPoint(...)
 ```
 
 ### segment.reverse
 ```lua
 -- Reverses the direction of the line segment
-segEnd,segStart = reverse(...)
+segEnd,segStart = segment.reverse(...)
+segEnd,segStart = segment2d.reverse(...)
 ```
 
 ### segment.dir
 ```lua
 -- Returns the (normalized) direction vector that points from segStart to segEnd
-vec3 = dir(...)
+vec3 = segment.dir(...)
+vec2 = segment2d.dir(...)
 ```
 
 ### segment.extremePoint
 ```lua
 -- Compute an extreme point along the segment, i.e., the furthest point in a
 -- given direction
-vec3 = extremePoint(..., direction --[[ vec3 ]])
+vec3 = segment.extremePoint(..., direction --[[ vec3 ]])
+vec2 = segment2d.extremePoint(..., direction --[[ vec2 ]])
 ```
 
 ### segment.closest
@@ -1650,17 +1741,25 @@ vec3 = extremePoint(..., direction --[[ vec3 ]])
 -- d --[[ number ]]: Parametric distance along along the line,
 -- d2 -- [[ number ]]: Parametric distance along the other object,
 -- p --[[ vec3 ]]: Closest point
-p,d = closestPoint(..., point --[[ vec3 ]])
-p,d,d2 = closestRay(..., rayPos --[[ vec3 ]], rayDir --[[ vec3 ]])
-p,d,d2 = closestLine(..., linePos --[[ vec3 ]], lineDir --[[ vec3 ]])
-p,d,d2 = closestSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+p,d = segment.closestPoint(..., point --[[ vec3 ]])
+p,d,d2 = segment.closestRay(..., rayPos --[[ vec3 ]], rayDir --[[ vec3 ]])
+p,d,d2 = segment.closestLine(..., linePos --[[ vec3 ]], lineDir --[[ vec3 ]])
+p,d,d2 = segment.closestSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+
+p,d = segment2d.closestPoint(..., point --[[ vec2 ]])
+p,d,d2 = segment2d.closestRay(..., rayPos --[[ vec2 ]], rayDir --[[ vec2 ]])
+p,d,d2 = segment2d.closestLine(..., linePos --[[ vec2 ]], lineDir --[[ vec2 ]])
+p,d,d2 = segment2d.closestSegment(..., segStart --[[ vec2 ]], segEnd --[[ vec2 ]])
 ```
 
 ### segment.contains
 ```lua
 -- Tests if the given object is fully contained on the segment
-bool = containsPoint(..., point --[[ vec3 ]], epsilon --[[ number ]])
-bool = containsSegment(... segStart --[[ vec3 ]], segEnd --[[ vec3 ]], epsilon --[[ number ]])
+bool = segment.containsPoint(..., point --[[ vec3 ]], epsilon --[[ number ]])
+bool = segment2d.containsPoint(..., point --[[ vec2 ]], epsilon --[[ number ]])
+
+bool = segment.containsSegment(... segStart --[[ vec3 ]], segEnd --[[ vec3 ]], epsilon --[[ number ]])
+bool = segment2d.containsSegment(... segStart --[[ vec2 ]], segEnd --[[ vec2 ]], epsilon --[[ number ]])
 ```
 
 ### segment.distance
@@ -1669,15 +1768,27 @@ bool = containsSegment(... segStart --[[ vec3 ]], segEnd --[[ vec3 ]], epsilon -
 -- d --[[ number ]]: Parametric distance along along the segment,
 -- d2 --[[ number ]]: Parametric distance along the other object,
 -- dist --[[ number ]]: Distance between the two objects
-dist,d = distance(..., point --[[ vec3 ]])
-dist,d,d2 = distanceRay(..., rayPos --[[ vec3 ]], rayDir --[[ vec3 ]])
-dist,d,d2 = distanceLine(..., linePos --[[ vec3 ]], lineDir --[[ vec3 ]])
-dist,d,d2 = distanceSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
-dist = distancePlane(..., planeNormal --[[ vec3 ]], planeOffset --[[ number ]])
+dist,d = segment.distance(..., point --[[ vec3 ]])
+dist,d = segment2d.distance(..., point --[[ vec2 ]])
+
+dist,d,d2 = segment.distanceRay(..., rayPos --[[ vec3 ]], rayDir --[[ vec3 ]])
+dist,d,d2 = segment2d.distanceRay(..., rayPos --[[ vec2 ]], rayDir --[[ vec2 ]])
+
+dist,d,d2 = segment.distanceLine(..., linePos --[[ vec3 ]], lineDir --[[ vec3 ]])
+dist,d,d2 = segment2d.distanceLine(..., linePos --[[ vec2 ]], lineDir --[[ vec2 ]])
+
+dist,d,d2 = segment.distanceSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+dist,d,d2 = segment2d.distanceSegment(..., segStart --[[ vec2 ]], segEnd --[[ vec2 ]])
+
+dist = segment.distancePlane(..., planeNormal --[[ vec3 ]], planeOffset --[[ number ]])
+dist = segment2d.distancePlane(..., planeNormal --[[ vec2 ]], planeOffset --[[ number ]])
 
 -- Squared distanced
-dist,d = distance2(..., point --[[ vec3 ]])
-dist,d,d2 = distanceSegment2(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+dist,d = segment.distance2(..., point --[[ vec3 ]])
+dist,d = segment2d.distance2(..., point --[[ vec2 ]])
+
+dist,d,d2 = segment.distanceSegment2(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+dist,d,d2 = segment2d.distanceSegment2(..., segStart --[[ vec2 ]], segEnd --[[ vec2 ]])
 ```
 
 ### segment.intersect
@@ -1688,7 +1799,11 @@ dist,d,d2 = distanceSegment2(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
 -- count --[[ integer ]]: Number of intersection points between the line and
 --                      : sphere: 0, 1 (dNear), or 2 (dNear & dFar)
 bool,d,d2 = segment.intersectsAABB(..., aabbMin --[[ vec3 ]], aabbMax --[[ vec3 ]])
+bool,d,d2 = segment2d.intersectsAABB(..., aabbMin --[[ vec2 ]], aabbMax --[[ vec2 ]])
+
 bool,d,d2 = segment.intersectsSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]], epsilon --[[ number ]])
+bool,d,d2 = segment2d.intersectsSegment(..., segStart --[[ vec2 ]], segEnd --[[ vec2 ]], epsilon --[[ number ]])
+
 bool,d = segment.intersectsPlane(..., planeNormal --[[ vec3 ]], planeOffset --[[ number ]])
 count,dNear,dFar = segment.intersectsSphere(..., spherePos --[[ vec3 ]], sphereRad --[[ number ]])
 ```
@@ -1696,25 +1811,29 @@ count,dNear,dFar = segment.intersectsSphere(..., spherePos --[[ vec3 ]], sphereR
 ## Sphere:
 A Sphere. All operators (non-constructors) are of the form:
 ```lua
--- spherePos: The centroid of the sphere,
--- sphereRad: The radius of the sphere,
+-- spherePos: The centroid of the sphere (or circle),
+-- sphereRad: The radius of the sphere (or circle),
 -- ...: vardiac function parameters
 result = sphere.function(spherePos --[[ vec3 ]], sphereRad --[[ number ]], ...)
+result = circle.function(circlePos --[[ vec2 ]], circleRad --[[ number ]], ...)
 ```
 
 ### sphere.operator\_negate
 ```lua
 spherePos,sphereRad = sphere.operator_negate(...)
+circlePos,circleRad = circle.operator_negate(...)
 ```
 
 ### sphere.operator\_add
 ```lua
 spherePos,sphereRad = sphere.operator_add(..., offset --[[ vec3 ]])
+circlePos,circleRad = circle.operator_add(..., offset --[[ vec2 ]])
 ```
 
 ### sphere.operator\_sub
 ```lua
 spherePos,sphereRad = sphere.operator_sub(..., offset --[[ vec3 ]])
+circlePos,circleRad = circle.operator_sub(..., offset --[[ vec2 ]])
 ```
 
 ### sphere.operator\_mul
@@ -1732,8 +1851,14 @@ bool = sphere.equal(..., otherPos --[[ vec3 ]], otherRad --[[ number ]], eps --[
 bool = sphere.equal(..., otherPos --[[ vec3 ]], otherRad --[[ number ]], eps --[[ vec3 ]])
 bool = sphere.equal(..., otherPos --[[ vec3 ]], otherRad --[[ number ]], ULPs --[[ integer ]])
 
+bool = circle.equal(..., otherPos --[[ vec2 ]], otherRad --[[ number ]])
+bool = circle.equal(..., otherPos --[[ vec2 ]], otherRad --[[ number ]], eps --[[ number ]])
+bool = circle.equal(..., otherPos --[[ vec2 ]], otherRad --[[ number ]], eps --[[ vec2 ]])
+bool = circle.equal(..., otherPos --[[ vec2 ]], otherRad --[[ number ]], ULPs --[[ integer ]])
+
 -- explicit operator==(Sphere, Sphere)
 bool = sphere.operator_equals(..., otherPos --[[ vec3 ]], otherRad --[[ number ]])
+bool = circle.operator_equals(..., otherPos --[[ vec2 ]], otherRad --[[ number ]])
 ```
 
 ### sphere.notEqual
@@ -1742,37 +1867,46 @@ bool = sphere.notEqual(..., otherPos --[[ vec3 ]], otherRad --[[ number ]])
 bool = sphere.notEqual(..., otherPos --[[ vec3 ]], otherRad --[[ number ]], eps --[[ number ]])
 bool = sphere.notEqual(..., otherPos --[[ vec3 ]], otherRad --[[ number ]], eps --[[ vec3 ]])
 bool = sphere.notEqual(..., otherPos --[[ vec3 ]], otherRad --[[ number ]], ULPs --[[ integer ]])
+
+bool = circle.notEqual(..., otherPos --[[ vec2 ]], otherRad --[[ number ]])
+bool = circle.notEqual(..., otherPos --[[ vec2 ]], otherRad --[[ number ]], eps --[[ number ]])
+bool = circle.notEqual(..., otherPos --[[ vec2 ]], otherRad --[[ number ]], eps --[[ vec2 ]])
+bool = circle.notEqual(..., otherPos --[[ vec2 ]], otherRad --[[ number ]], ULPs --[[ integer ]])
 ```
 
 ### sphere.to\_string
 ```lua
 -- @TODO: Not implemented
 string = sphere.to_string(...)
+string = circle.to_string(...)
 ```
 
 ### sphere.isinf
 ```lua
--- Tests if any component of the sphere is infinite
+-- Tests if any component of the sphere/circle is infinite
 bool = sphere.isinf(...)
+bool = circle.isinf(...)
 ```
 
 ### sphere.isnan
 ```lua
--- Tests if any component of the sphere is NaN
+-- Tests if any component of the sphere/circle is NaN
 bool = sphere.isnan(...)
+bool = circle.isnan(...)
 ```
 
 ### sphere.isfinite
 ```lua
--- Test if all components of the sphere are finite
+-- Test if all components of the sphere/circle are finite
 bool = sphere.isfinite(...)
 ```
 
 ### sphere.isDegenerate
 ```lua
--- Test whether the sphere is degenerate, i.e., not finite or if the radius is
--- less-or-equal to zero
+-- Test whether the sphere/circle is degenerate, i.e., not finite or if the
+-- radius is less-or-equal to zero
 bool = sphere.isDegenerate(...)
+bool = circle.isDegenerate(...)
 ```
 
 ### sphere.volume
@@ -1785,6 +1919,7 @@ number = sphere.volume(...)
 ```lua
 -- Return the surface area of the sphere
 number = sphere.surfaceArea(...)
+number = circle.area(...)
 ```
 
 ### sphere.extremePoint
@@ -1792,28 +1927,40 @@ number = sphere.surfaceArea(...)
 -- Return an extreme point along the sphere, i.e., the furthest point in a given
 -- direction
 vec3 = sphere.extremePoint(..., direction --[[ vec3 ]])
+vec2 = circle.extremePoint(..., direction --[[ vec2 ]])
 ```
 
 ### sphere.enclose
 ```lua
 -- Expands the sphere to enclose both the sphere and the given object(s)
 spherePos,sphereRad = sphere.enclose(..., point --[[ vec3 ]])
+circlePos,circleRad = circle.enclose(..., point --[[ vec2 ]])
+
 spherePos,sphereRad = sphere.encloseSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+circlePos,circleRad = circle.encloseSegment(..., segStart --[[ vec2 ]], segEnd --[[ vec2 ]])
+
 spherePos,sphereRad = sphere.encloseSphere(..., otherPos --[[ vec3 ]], otherRad --[[ number ]]))
+circlePos,circleRad = circle.encloseCircle(..., otherPos --[[ vec2 ]], otherRad --[[ number ]]))
+
 spherePos,sphereRad = sphere.encloseAABB(..., aabbMin --[[ vec3 ]], aabbMax --[[ vec3 ]])
+circlePos,circleRad = circle.encloseAABB(..., aabbMin --[[ vec2 ]], aabbMax --[[ vec2 ]])
 ```
 
 ### sphere.extendRadiusToContain
 ```lua
 -- Expands the radius of the Sphere until it encloses the given object(s)
 spherePos,sphereRad = sphere.extendRadiusToContain(..., point --[[ vec3 ]])
+circlePos,circleRad = circle.extendRadiusToContain(..., point --[[ vec2 ]])
+
 spherePos,sphereRad = sphere.extendRadiusToContainSphere(..., otherPos --[[ vec3 ]], otherRad --[[ number ]])
+circlePos,circleRad = circle.extendRadiusToContainCircle(..., otherPos --[[ vec2 ]], otherRad --[[ number ]])
 ```
 
 ### sphere.maximalContainedAABB
 ```lua
--- Return the smallest AABB that encloses the sphere
+-- Return the smallest AABB that encloses the sphere/circle
 aabbMin --[[ vec3 ]], aabbMax --[[ vec3 ]] = sphere.maximalContainedAABB(...)
+aabbMin --[[ vec2 ]], aabbMax --[[ vec2 ]] = circle.maximalContainedAABB(...)
 ```
 
 ### sphere.optimalEnclosingSphere
@@ -1834,7 +1981,8 @@ spherePos,sphereRad = sphere.optimalEnclosingSphere(array --[[ table ]])
 ### sphere.closestPoint
 ```lua
 -- Return point on the sphere closest to the given point
-vec3 = sphere.closestPoint(...)
+vec3 = sphere.closestPoint(..., point --[[ vec3 ]])
+vec2 = circle.closestPoint(..., point --[[ vec2 ]])
 ```
 
 ### sphere.projectToAxis
@@ -1847,28 +1995,51 @@ parametricMin --[[ number ]], parametricMax --[[ number ]] = sphere.projectToAxi
 ```lua
 // Tests if the given object is fully contained within the sphere.
 bool = sphere.contains(..., point --[[ vec3 ]])
+bool = circle.contains(..., point --[[ vec2 ]])
+
 bool = sphere.containsSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+bool = circle.containsSegment(..., segStart --[[ vec2 ]], segEnd --[[ vec2 ]])
+
 bool = sphere.containsSphere(..., otherPos --[[ vec3 ]], otherRad --[[ number ]])
+bool = circle.containsCircle(..., otherPos --[[ vec2 ]], otherRad --[[ number ]])
+
 bool = sphere.containsAABB(..., aabbMin --[[ vec3 ]], aabbMax --[[ vec3 ]])
+bool = circle.containsAABB(..., aabbMin --[[ vec2 ]], aabbMax --[[ vec2 ]])
 ```
 
 ### sphere.distance
 ```lua
 -- Computes the distance between the sphere and the given object
 number = sphere.distance(..., point --[[ vec3 ]])
+number = circle.distance(..., point --[[ vec2 ]])
+
 number = sphere.distanceSphere(..., otherPos --[[ vec3 ]], otherRad --[[ number ]])
+number = circle.distanceCircle(..., otherPos --[[ vec2 ]], otherRad --[[ number ]])
+
 number = sphere.distanceAABB(..., aabbMin --[[ vec3 ]], aabbMax --[[ vec3 ]])
+number = circle.distanceAABB(..., aabbMin --[[ vec2 ]], aabbMax --[[ vec2 ]])
+
 number = sphere.distanceRay(..., rayPos --[[ vec3 ]], rayDir --[[ vec3 ]])
+number = circle.distanceRay(..., rayPos --[[ vec2 ]], rayDir --[[ vec2 ]])
+
 number = sphere.distanceSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]])
+number = circle.distanceSegment(..., segStart --[[ vec2 ]], segEnd --[[ vec2 ]])
+
 number = sphere.distanceLine(..., linePos --[[ vec3 ]], lineDir --[[ vec3 ]])
+number = circle.distanceLine(..., linePos --[[ vec2 ]], lineDir --[[ vec2 ]])
 ```
 
 ### sphere.intersect
 ```lua
 -- Tests whether the sphere and the given object intersect
 bool = sphere.intersectSphere(..., otherPos --[[ vec3 ]], otherRad --[[ number ]])
+bool = circle.intersectCircle(..., otherPos --[[ vec2 ]], otherRad --[[ number ]])
+
 bool = sphere.intersectAABB(..., aabbMin --[[ vec3 ]], aabbMax --[[ vec3 ]])
+bool = circle.intersectAABB(..., aabbMin --[[ vec2 ]], aabbMax --[[ vec2 ]])
+
 bool = sphere.intersectPlane(..., planeNormal --[[ vec3 ]], planeOffset --[[ number ]])
+bool = circle.intersectPlane(..., planeNormal --[[ vec2 ]], planeOffset --[[ number ]])
 
 -- count --[[ integer ]]: Number of intersection points between the ray and
 --                      : sphere: 0, 1 (dNear), or 2 (dFar).
@@ -1877,8 +2048,13 @@ bool = sphere.intersectPlane(..., planeNormal --[[ vec3 ]], planeOffset --[[ num
 --           : test, e.g., absolute distances (-100, 100) for lines/rays and
 --           : relative distances (0.25, 0.75) for segments.
 count,dNear,dFar = sphere.intersectLine(..., linePos --[[ vec3 ]], lineDir --[[ vec3 ]], [dNear, dFar])
+count,dNear,dFar = circle.intersectLine(..., linePos --[[ vec2 ]], lineDir --[[ vec2 ]], [dNear, dFar])
+
 count,dNear,dFar = sphere.intersectSegment(..., segStart --[[ vec3 ]], segEnd --[[ vec3 ]], [dNear, dFar])
+count,dNear,dFar = circle.intersectSegment(..., segStart --[[ vec2 ]], segEnd --[[ vec2 ]], [dNear, dFar])
+
 count,dNear,dFar = sphere.intersectRay(..., rayPos --[[ vec3 ]], rayDir --[[ vec3 ]], [dNear, dFar])
+count,dNear,dFar = circle.intersectRay(..., rayPos --[[ vec2 ]], rayDir --[[ vec2 ]], [dNear, dFar])
 ```
 
 ## Plane:

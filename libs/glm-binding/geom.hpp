@@ -374,7 +374,6 @@ TRAITS_DEFN(aabb2d_pointInside, glm::pointInside, gLuaAABB<2>, gLuaVec2<>)
 TRAITS_DEFN(aabb2d_edge, glm::edge, gLuaAABB<2>, gLuaTrait<int>)
 TRAITS_DEFN(aabb2d_cornerPoint, glm::cornerPoint, gLuaAABB<2>, gLuaTrait<int>)
 TRAITS_DEFN(aabb2d_extremePoint, glm::extremePoint, gLuaAABB<2>, gLuaVec2<>)
-TRAITS_DEFN(aabb2d_faceNormal, glm::faceNormalAABB<gLuaFloat::value_type>, gLuaTrait<int>)
 TRAITS_DEFN(aabb2d_size, glm::size, gLuaAABB<2>)
 TRAITS_DEFN(aabb2d_halfSize, glm::halfSize, gLuaAABB<2>)
 TRAITS_DEFN(aabb2d_volume, glm::volume, gLuaAABB<2>)
@@ -393,6 +392,9 @@ TRAITS_DEFN(aabb2d_encloseSphere, glm::enclose, gLuaAABB<2>, gLuaSphere<2>)
 TRAITS_DEFN(aabb2d_encloseAABB, glm::enclose, gLuaAABB<2>, gLuaAABB<2>)
 TRAITS_DEFN(aabb2d_intersectAABB, glm::intersects, gLuaAABB<2>, gLuaAABB<2>)
 TRAITS_DEFN(aabb2d_intersection, glm::intersection, gLuaAABB<2>, gLuaAABB<2>)
+TRAITS_LAYOUT_DEFN(aabb2d_intersectLine, glm::intersects, GEOM_INTERSECTS_RH, gLuaAABB<2>, gLuaLine<2>)
+TRAITS_LAYOUT_DEFN(aabb2d_intersectSegment, glm::intersects, GEOM_INTERSECTS_RH, gLuaAABB<2>, gLuaSegment<2>)
+TRAITS_LAYOUT_DEFN(aabb2d_intersectRay, glm::intersects, GEOM_INTERSECTS_RH, gLuaAABB<2>, gLuaRay<2>)
 TRAITS_LAYOUT_DEFN(aabb2d_projectToAxis, glm::projectToAxis, GEOM_PROJECTION, gLuaAABB<2>, gLuaVec2<>)
 
 static const luaL_Reg luaglm_aabb2dlib[] = {
@@ -416,7 +418,6 @@ static const luaL_Reg luaglm_aabb2dlib[] = {
   { "edge", glm_aabb2d_edge },
   { "cornerPoint", glm_aabb2d_cornerPoint },
   { "extremePoint", glm_aabb2d_extremePoint },
-  { "faceNormal", glm_aabb2d_faceNormal },
   { "size", glm_aabb2d_size },
   { "halfSize", glm_aabb2d_halfSize },
   { "diagonal", glm_aabb2d_size },
@@ -436,6 +437,9 @@ static const luaL_Reg luaglm_aabb2dlib[] = {
   { "encloseSphere", glm_aabb2d_encloseSphere },
   { "encloseAABB", glm_aabb2d_encloseAABB },
   { "intersectAABB", glm_aabb2d_intersectAABB },
+  { "intersectLine", glm_aabb2d_intersectLine },
+  { "intersectSegment", glm_aabb2d_intersectSegment },
+  { "intersectRay", glm_aabb2d_intersectRay },
   { "intersection", glm_aabb2d_intersection },
   { "projectToAxis", glm_aabb2d_projectToAxis },
   { GLM_NULLPTR, GLM_NULLPTR }
@@ -894,7 +898,7 @@ TRAITS_DEFN(circle_encloseSegment, glm::enclose, gLuaSphere<2>, gLuaSegment<2>)
 TRAITS_DEFN(circle_encloseSphere, glm::enclose, gLuaSphere<2>, gLuaSphere<2>)
 TRAITS_DEFN(circle_encloseAABB, glm::enclose, gLuaSphere<2>, gLuaAABB<2>)
 TRAITS_DEFN(circle_extendRadiusToContain, glm::extendRadiusToContain, gLuaSphere<2>, gLuaVec2<>, gLuaEps<>)
-TRAITS_DEFN(circle_extendRadiusToContainSphere, glm::extendRadiusToContain, gLuaSphere<2>, gLuaSphere<2>, gLuaEps<>)
+TRAITS_DEFN(circle_extendRadiusToContainCircle, glm::extendRadiusToContain, gLuaSphere<2>, gLuaSphere<2>, gLuaEps<>)
 TRAITS_DEFN(circle_maximalContainedAABB, glm::maximalContainedAABB, gLuaSphere<2>)
 TRAITS_LAYOUT_DEFN(circle_projectToAxis, glm::projectToAxis, GEOM_PROJECTION, gLuaSphere<2>, gLuaVec2<>)
 
@@ -933,7 +937,7 @@ static const luaL_Reg luaglm_circlelib[] = {
   { "encloseSphere", glm_circle_encloseSphere },
   { "encloseAABB", glm_circle_encloseAABB },
   { "extendRadiusToContain", glm_circle_extendRadiusToContain },
-  { "extendRadiusToContainSphere", glm_circle_extendRadiusToContainSphere },
+  { "extendRadiusToContainCircle", glm_circle_extendRadiusToContainCircle },
   { "maximalContainedAABB", glm_circle_maximalContainedAABB },
   { "projectToAxis", glm_circle_projectToAxis },
   { GLM_NULLPTR, GLM_NULLPTR }
