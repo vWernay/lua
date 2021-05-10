@@ -283,19 +283,6 @@ Support for C-style block comments: ``/* Comment */``, e.g.,
 print("Hello, World!") /* Comment */
 ```
 
-#### Parameterless Do:
-Syntactic sugar for ``function() ... end`` statements, e.g.,
-
-```lua
-do --[[ CodeBlock ]] end
-```
-
-is functionally equivalent to:
-
-```lua
-function() --[[ CodeBlock ]] end
-```
-
 #### Compile Time Jenkins' Hashes:
 String literals wrapped in back-ticks are Jenkins' one-at-a-time hashed when parsed.
 
@@ -328,12 +315,12 @@ Note: for compatibility reasons, all hashes returned are sign-extended:
 Reintroduce compatibility for the ``__ipairs`` metamethod that was deprecated in 5.3 and removed in 5.4.
 
 #### Defer:
-Import ``func2close`` from ltests.h into the base library. Initially, Lua 5.4 was designed so that functions could be treated as to-be-closed variables. However, that feature interacts poorly with sandboxing and coroutines (see: [No more to-be-closed functions](https://github.com/lua/lua/commit/4ace93ca6502dd1da38d5c06fa099d229e791ba8)).
+Import the defer statement from [Ravi](https://github.com/dibyendumajumdar/ravi/tree/master/patches) into the runtime. In addition `func2close` from ltests.h has been imported into the base library.
 
 ```lua
 -- closing function. Could also be used to supply a to-be-closed variable to a
 -- generic for loop
-local _ <close> = defer(function() numopen = numopen - 1 end)
+defer numopen = numopen - 1 end
 ```
 
 #### Each Iteration:
@@ -514,7 +501,6 @@ Note, not all Lua-specific options are listed.
   - **GRIT\_POWER\_INTABLE**
   - **GRIT\_POWER\_TABINIT**
   - **GRIT\_POWER\_CCOMMENT**
-  - **GRIT\_POWER\_ANONDO**
   - **GRIT\_POWER\_JOAAT**
   - **GRIT\_POWER\_EACH**
   - **GRIT\_POWER\_BLOB**

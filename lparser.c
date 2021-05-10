@@ -727,11 +727,23 @@ static Proto *addprototype (LexState *ls) {
 ** are in use at that time.
 
 */
+#if defined(GRIT_POWER_DEFER)
+static void codeclosure (LexState *ls, expdesc *v, int deferred) {
+  FuncState *fs = ls->fs->prev;
+  int pc = deferred ? luaK_codeABC(fs, OP_DEFER, 0, 0, 0) : -1;
+  init_exp(v, VRELOC, luaK_codeABx(fs, OP_CLOSURE, 0, fs->np - 1));
+  luaK_exp2nextreg(fs, v);  /* fix it at the last register */
+  if (deferred) {
+    SETARG_A(fs->f->code[pc], v->u.info);
+  }
+}
+#else
 static void codeclosure (LexState *ls, expdesc *v) {
   FuncState *fs = ls->fs->prev;
   init_exp(v, VRELOC, luaK_codeABx(fs, OP_CLOSURE, 0, fs->np - 1));
   luaK_exp2nextreg(fs, v);  /* fix it at the last register */
 }
+#endif
 
 
 static void open_func (LexState *ls, FuncState *fs, BlockCnt *bl) {
@@ -1033,34 +1045,27 @@ static void body (LexState *ls, expdesc *e, int ismethod, int line) {
   statlist(ls);
   new_fs.f->lastlinedefined = ls->linenumber;
   check_match(ls, TK_END, TK_FUNCTION, line);
+#if defined(GRIT_POWER_DEFER)
+  codeclosure(ls, e, 0);
+#else
   codeclosure(ls, e);
+#endif
   close_func(ls);
 }
 
 
-#if defined(GRIT_POWER_ANONDO)
-static void parlist_empty (LexState *ls) {
-  FuncState *fs = ls->fs;
-  Proto *f = fs->f;
-  adjustlocalvars(ls, 0 /*nparams*/);
-  f->is_vararg = 0;
-  f->numparams = cast_byte(fs->nactvar);
-  luaK_reserveregs(fs, fs->nactvar);  /* reserve register for parameters */
-}
-
-
-static void body_noparms (LexState *ls, expdesc *e, int line) {
+#if defined(GRIT_POWER_DEFER)
+static void body_noparms (LexState *ls, expdesc *e, int line, int deferred) {
   /* body -> chunk END */
   FuncState new_fs;
   BlockCnt bl;
   new_fs.f = addprototype(ls);
   new_fs.f->linedefined = line;
   open_func(ls, &new_fs, &bl);
-  parlist_empty(ls);
   statlist(ls);
   new_fs.f->lastlinedefined = ls->linenumber;
-  check_match(ls, TK_END, TK_DO, line); /* TK_FUNCTION */
-  codeclosure(ls, e);
+  check_match(ls, TK_END, TK_FUNCTION, line);
+  codeclosure(ls, e, deferred);
   close_func(ls);
 }
 #endif
@@ -1296,13 +1301,6 @@ static void simpleexp (LexState *ls, expdesc *v) {
       constructor(ls, v);
       return;
     }
-#if defined(GRIT_POWER_ANONDO)
-    case TK_DO: {
-      luaX_next(ls);
-      body_noparms(ls, v, ls->linenumber);
-      return;
-    }
-#endif
     case TK_FUNCTION: {
       luaX_next(ls);
       body(ls, v, 0, ls->linenumber);
@@ -1960,12 +1958,33 @@ static void ifstat (LexState *ls, int line) {
 }
 
 
+#if defined(GRIT_POWER_DEFER)
+static void localfunc (LexState *ls, int deferred) {
+#else
 static void localfunc (LexState *ls) {
+#endif
   expdesc b;
   FuncState *fs = ls->fs;
   int fvar = fs->nactvar;  /* function's variable index */
+#if defined(GRIT_POWER_DEFER)
+  if (deferred) {
+    static const char funcname[] = "(deferred function)";
+    new_localvar(ls, luaX_newstring(ls, funcname, sizeof(funcname) - 1)); /* new local variable */
+    markupval(fs, fs->nactvar);
+    fs->bl->insidetbc = 1; /* in the scope of a defer closure variable */
+  }
+  else {
+    new_localvar(ls, str_checkname(ls));  /* new local variable */
+  }
+#else
   new_localvar(ls, str_checkname(ls));  /* new local variable */
+#endif
   adjustlocalvars(ls, 1);  /* enter its scope */
+#if defined(GRIT_POWER_DEFER)
+  if (deferred)
+    body_noparms(ls, &b, ls->linenumber, deferred);
+  else
+#endif
   body(ls, &b, 0, ls->linenumber);  /* function created in next register */
   /* debug information will only see the variable after this point! */
   localdebuginfo(fs, fvar)->startpc = fs->pc;
@@ -2189,11 +2208,22 @@ static void statement (LexState *ls) {
     case TK_LOCAL: {  /* stat -> localstat */
       luaX_next(ls);  /* skip LOCAL */
       if (testnext(ls, TK_FUNCTION))  /* local function? */
+#if defined(GRIT_POWER_DEFER)
+        localfunc(ls, 0);
+#else
         localfunc(ls);
+#endif
       else
         localstat(ls);
       break;
     }
+#if defined(GRIT_POWER_DEFER)
+    case TK_DEFER: { /* stat -> deferstat */
+      luaX_next(ls); /* skip DEFER */
+      localfunc(ls, 1);
+      break;
+    }
+#endif
     case TK_DBCOLON: {  /* stat -> label */
       luaX_next(ls);  /* skip double colon */
       labelstat(ls, str_checkname(ls), line);

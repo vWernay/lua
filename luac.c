@@ -636,6 +636,13 @@ static void PrintCode(const Proto* f)
 	printf("%d %d %d",a,b,c);
 	if (isk) printf(COMMENT "%d",c+EXTRAARGC);
 	break;
+#if defined(GRIT_POWER_DEFER)
+   case OP_DEFER: {
+	  printf("%d %d",a,bx);
+	  printf(COMMENT "%p",VOID(f->p[bx]));
+	  break;
+   }
+#endif
    case OP_CLOSURE:
 	printf("%d %d",a,bx);
 	printf(COMMENT "%p",VOID(f->p[bx]));

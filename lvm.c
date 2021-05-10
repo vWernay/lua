@@ -1638,7 +1638,11 @@ LUA_JUMPTABLE_ATTRIBUTE void luaV_execute (lua_State *L, CallInfo *ci) {
       }
       vmcase(OP_TBC) {
         /* create new to-be-closed upvalue */
+#if defined(GRIT_POWER_DEFER)
+        halfProtect(luaF_newtbcupval(L, ra, 0));
+#else
         halfProtect(luaF_newtbcupval(L, ra));
+#endif
         vmbreak;
       }
       vmcase(OP_JMP) {
@@ -1850,7 +1854,11 @@ LUA_JUMPTABLE_ATTRIBUTE void luaV_execute (lua_State *L, CallInfo *ci) {
       }
       vmcase(OP_TFORPREP) {
         /* create to-be-closed upvalue (if needed) */
+#if defined(GRIT_POWER_DEFER)
+        halfProtect(luaF_newtbcupval(L, ra + 3, 0));
+#else
         halfProtect(luaF_newtbcupval(L, ra + 3));
+#endif
         pc += GETARG_Bx(i);
         i = *(pc++);  /* go to next instruction */
         lua_assert(GET_OPCODE(i) == OP_TFORCALL && ra == RA(i));
@@ -1909,6 +1917,12 @@ LUA_JUMPTABLE_ATTRIBUTE void luaV_execute (lua_State *L, CallInfo *ci) {
         checkGC(L, ra + 1);
         vmbreak;
       }
+#if defined(GRIT_POWER_DEFER)
+      vmcase(OP_DEFER) {
+        halfProtect(luaF_newtbcupval(L, ra, 1));
+        vmbreak;
+      }
+#endif
       vmcase(OP_VARARG) {
         int n = GETARG_C(i) - 1;  /* required results */
         Protect(luaT_getvarargs(L, ci, ra, n));

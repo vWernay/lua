@@ -97,6 +97,9 @@ LUAI_DDEF const lu_byte luaP_opmodes[NUM_OPCODES] = {
  ,opmode(0, 0, 0, 0, 1, iABx)		/* OP_TFORLOOP */
  ,opmode(0, 0, 1, 0, 0, iABC)		/* OP_SETLIST */
  ,opmode(0, 0, 0, 0, 1, iABx)		/* OP_CLOSURE */
+#if defined(GRIT_POWER_DEFER)
+ ,opmode(0, 0, 0, 0, 1, iABC)		/* OP_DEFER */
+#endif
  ,opmode(0, 1, 0, 0, 1, iABC)		/* OP_VARARG */
  ,opmode(0, 0, 1, 0, 1, iABC)		/* OP_VARARGPREP */
  ,opmode(0, 0, 0, 0, 0, iAx)		/* OP_EXTRAARG */

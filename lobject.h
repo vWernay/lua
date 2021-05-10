@@ -148,6 +148,9 @@ typedef union StackValue {
   TValue val;
   struct {
     TValuefields;
+#if defined(GRIT_POWER_DEFER)
+    lu_byte is_deferred;
+#endif
     unsigned short delta;
   } tbclist;
 } StackValue;

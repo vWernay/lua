@@ -105,6 +105,9 @@ static const void *const disptab[NUM_OPCODES] = {
 &&L_OP_TFORLOOP,
 &&L_OP_SETLIST,
 &&L_OP_CLOSURE,
+#if defined(GRIT_POWER_DEFER)
+&&L_OP_DEFER,
+#endif
 &&L_OP_VARARG,
 &&L_OP_VARARGPREP,
 &&L_OP_EXTRAARG

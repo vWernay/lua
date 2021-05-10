@@ -639,7 +639,7 @@ static const luaL_Reg base_funcs[] = {
   {"type", luaB_type},
   {"xpcall", luaB_xpcall},
 #if defined(GRIT_POWER_DEFER)
-  {"defer", luaB_defer},
+  {"func2close", luaB_defer},
 #endif
 #if defined(GRIT_POWER_JOAAT)
   {"joaat", luaB_joaat},
