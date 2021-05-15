@@ -2727,6 +2727,7 @@ Preprocessor definitions used to enable/disable bundling specific GLM headers. A
 * GTX_NORM_HPP
 * GTX_OPTIMUM_POW_HPP
 * GTX_ORTHONORMALIZE_HPP
+* GTX_PCA_HPP
 * GTX_PERPENDICULAR_HPP
 * GTX_POLAR_COORDINATES_HPP
 * GTX_PROJECTION_HPP

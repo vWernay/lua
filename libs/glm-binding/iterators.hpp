@@ -103,6 +103,14 @@ public:
     }
 
     /// <summary>
+    /// @HACK
+    /// </summary>
+    const Iterator<Tr> &operator++(int) {
+      gLuaBase::idx++;
+      return *this;
+    }
+
+    /// <summary>
     /// </summary>
     bool isEqual(const glmLuaIterator<Tr> &obj) const override {
       const Iterator<Tr> &other = static_cast<const Iterator<Tr> &>(obj);
@@ -177,6 +185,14 @@ public:
     /// Goto the next element in the array.
     /// </summary>
     const Iterator<Tr> &operator++() {
+      arrayIdx++;
+      return *this;
+    }
+
+    /// <summary>
+    /// @HACK
+    /// </summary>
+    const Iterator<Tr> &operator++(int) {
       arrayIdx++;
       return *this;
     }

@@ -55,7 +55,6 @@ extern LUA_API_LINKAGE {
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/common.hpp>
 #include <glm/gtx/exterior_product.hpp>
-#include <glm/gtx/hash.hpp>
 #include <glm/ext/matrix_relational.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
@@ -1308,16 +1307,14 @@ static glm::length_t PopulateVectorObject(lua_State *L, int idx, glm::vec<4, T> 
     }
   }
   else if (ttistable(value)) {  // Array: concatenate values.
-    const glm::length_t t_len = i_glmlen(luaH_getn(hvalue(value)));
-    if ((v_idx + t_len) > v_desired)
-      return luaL_argerror(L, idx, INVALID_VECTOR_DIMENSIONS);
-
-    for (glm::length_t j = 1; j <= t_len; ++j) {
+    const glm::length_t dims = i_glmlen(luaH_getn(hvalue(value)));
+    const glm::length_t length = std::min(dims, v_desired - v_idx);
+    for (glm::length_t j = 1; j <= length; ++j) {
       const TValue *t_val = luaH_getint(hvalue(value), i_luaint(j));
       if (!glm_castvalue(t_val, vec[v_idx++]))  // Primitive type: cast & store it.
         return luaL_argerror(L, idx, INVALID_VECTOR_TYPE);
     }
-    return t_len;
+    return length;
   }
 
   return luaL_argerror(L, idx, INVALID_VECTOR_TYPE);
@@ -1401,8 +1398,11 @@ static bool PopulateMatrix(lua_State *L, int idx, bool fixed_size, glmMatrix &m,
     // If there is only one element to be parsed and it is a table, assume the
     // matrix is packed within an array; otherwise, use the elements on the stack.
     const bool as_table = stack_count == 1 && ttistable(o);
-
     const glm::length_t column_limit = as_table ? m.size : std::min(m.size, i_glmlen(stack_count));
+    if (fixed_size && column_limit < m.size)
+      return false;
+
+    secondary = fixed_size ? m.secondary : secondary;
     for (; size < column_limit; ++size) {
       glm::length_t v_size = 0;
       if (as_table) {  // An array contains all of the elements of a matrix.

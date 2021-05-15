@@ -1063,3 +1063,8 @@ GLM_LUA_REG(shearZ3D),
 GLM_LUA_REG(shearX),
 GLM_LUA_REG(shearY),
 #endif
+
+#if defined(GTX_PCA_HPP)
+GLM_LUA_REG(findEigenvaluesSymReal),
+GLM_LUA_REG(computeCovarianceMatrix),
+#endif
