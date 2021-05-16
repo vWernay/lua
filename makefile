@@ -62,6 +62,10 @@ CWARNSC= -Wdeclaration-after-statement \
 # Your platform. See PLATS for possible values.
 PLAT= guess
 
+# See LUA_C_LINKAGE definition in source. If "CC" replaces gcc with g++, then 
+# LUA_LINKAGE needs to be undefined
+LUA_LINKAGE= -DLUA_C_LINKAGE
+
 CC= gcc -std=gnu99 $(CWARNSCPP) $(CWARNSC) $(CWARNGCC)
 CPP= g++ -std=c++11 $(CWARNSCPP) $(CWARNGCC)
 CFLAGS= -O2 -Wall -Wextra -DNDEBUG -DLUA_COMPAT_5_3 $(SYSCFLAGS) $(MYCFLAGS)
@@ -227,13 +231,13 @@ lglm.o: lglm.cpp lua.h luaconf.h lglm.hpp lua.hpp lualib.h \
  lauxlib.h lglm_core.h llimits.h ltm.h lobject.h lglm_string.hpp \
  lgrit_lib.h lapi.h lstate.h lzio.h lmem.h ldebug.h lfunc.h lgc.h \
  lstring.h ltable.h lvm.h ldo.h
-	$(CPP) -DLUA_C_LINKAGE $(CFLAGS) $(CPERF_FLAGS) $(TESTS) -c -o lglm.o lglm.cpp
+	$(CPP) $(LUA_LINKAGE) $(CFLAGS) $(CPERF_FLAGS) $(TESTS) -c -o lglm.o lglm.cpp
 
 # lua-glm binding
 GLM_A = glm.so
 
 lib-glm:
-	$(CPP) -DLUA_C_LINKAGE $(CFLAGS) $(CPERF_FLAGS) $(TESTS) -fPIC -I. -Ilibs/glm-binding -shared -o $(GLM_A) libs/glm-binding/lglmlib.cpp $(LIBS)
+	$(CPP) $(LUA_LINKAGE) $(CFLAGS) $(CPERF_FLAGS) $(TESTS) -fPIC -I. -Ilibs/glm-binding -shared -o $(GLM_A) libs/glm-binding/lglmlib.cpp $(LIBS)
 
 lib-glm-mingw:
 	$(MAKE) lib-glm SYSCFLAGS="-L . -DLUA_BUILD_AS_DLL" GLM_A="glm.dll" SYSLIBS="-llua" SYSLDFLAGS="-s"
