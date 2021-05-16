@@ -606,6 +606,9 @@ ADD_COMPILE_DEFINITIONS(GLM_ENABLE_EXPERIMENTAL)
 # lua-glm Options
 OPTION(GLM_FORCE_Z_UP "Unit up vector is along the Z-axis (Y-axis otherwise)" ON)
 OPTION(LUA_GLM_INCLUDE_ALL "Include all GLM modules, glm/gtc/gtx" ON)
+OPTION(LUA_GLM_INCLUDE_EXT "Include ext headers: Stable extensions not specified by GLSL specification " OFF)
+OPTION(LUA_GLM_INCLUDE_GTC "Include gtc headers: Recommended extensions not specified by GLSL specification" OFF)
+OPTION(LUA_GLM_INCLUDE_GTX "Include gtx headers: Experimental extensions not specified by GLSL specification" OFF)
 OPTION(LUA_GLM_ALIASES "Include all function aliases" ON)
 OPTION(LUA_GLM_REPLACE_MATH "Replace the global math library on library initialization" OFF)
 OPTION(LUA_GLM_GEOM_EXTENSIONS "Extend geometry API" ON)
@@ -671,7 +674,23 @@ IF( GLM_FORCE_QUAT_DATA_XYZW )
   ADD_COMPILE_DEFINITIONS(GLM_FORCE_QUAT_DATA_XYZW)
 ENDIF()
 
+IF( LUA_GLM_INCLUDE_EXT )
+  ADD_COMPILE_DEFINITIONS(LUA_GLM_INCLUDE_EXT)
+ENDIF()
+
+IF( LUA_GLM_INCLUDE_GTC )
+  ADD_COMPILE_DEFINITIONS(LUA_GLM_INCLUDE_GTC)
+ENDIF()
+
+IF( LUA_GLM_INCLUDE_GTX )
+  ADD_COMPILE_DEFINITIONS(LUA_GLM_INCLUDE_GTX)
+ENDIF()
+
 IF( LUA_GLM_INCLUDE_ALL )
+  # Future-proof by including the above options
+  ADD_COMPILE_DEFINITIONS(LUA_GLM_INCLUDE_EXT)
+  ADD_COMPILE_DEFINITIONS(LUA_GLM_INCLUDE_GTC)
+  ADD_COMPILE_DEFINITIONS(LUA_GLM_INCLUDE_GTX)
   ADD_COMPILE_DEFINITIONS(LUA_GLM_INCLUDE_ALL)
 ENDIF()
 

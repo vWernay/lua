@@ -643,18 +643,18 @@ GLM_LUA_REG(bitfieldInsert),
 GLM_LUA_REG(bitfieldReverse),
 GLM_LUA_REG(findLSB),
 GLM_LUA_REG(findMSB),
-GLM_LUA_REG(findNSB),
 //GLM_LUA_REG(imulExtended),
 //GLM_LUA_REG(uaddCarry),
 //GLM_LUA_REG(umulExtended),
 //GLM_LUA_REG(usubBorrow),
 #endif
 
-#if defined(EXT_SCALAR_INTEGER_HPP)
-GLM_LUA_REG(bitfieldDeinterleave),
+#if defined(EXT_SCALAR_INTEGER_HPP) || defined(EXT_VECTOR_INTEGER_HPP)
+GLM_LUA_REG(findNSB),
 #endif
 
 #if defined(GTC_BITFIELD_HPP)
+GLM_LUA_REG(bitfieldDeinterleave),
 GLM_LUA_REG(bitfieldFillOne),
 GLM_LUA_REG(bitfieldFillZero),
 GLM_LUA_REG(bitfieldInterleave),

@@ -2657,8 +2657,18 @@ bool = polygon.intersectsSegment2D(..., segStart --[[ vec3 ]], segEnd --[[ vec3 
 # Preprocessor Header Definitions:
 Preprocessor definitions used to enable/disable bundling specific GLM headers. All functions are bundled with the `LUA_GLM_INCLUDE_ALL` preprocessor flag. Note, functions of the same, but with different parameterizations, will not be included iff no header that declares that function is defined. Template arguments are resolved at call-time when parsing values from the Lua stack.
 
+# Default
 * COMMON_HPP
+* CONSTANTS_HPP
 * EXPONENTIAL_HPP
+* GEOMETRIC_HPP
+* INTEGER_HPP
+* MATRIX_HPP
+* TRIGONOMETRIC_HPP
+* VECTOR_RELATIONAL_HPP
+* PACKING_HPP
+
+## LUA\_GLM\_INCLUDE\_EXT
 * EXT_MATRIX_CLIP_SPACE_HPP
 * EXT_MATRIX_COMMON_HPP
 * EXT_MATRIX_PROJECTION_HPP
@@ -2670,6 +2680,7 @@ Preprocessor definitions used to enable/disable bundling specific GLM headers. A
 * EXT_QUATERNION_RELATIONAL_HPP
 * EXT_QUATERNION_TRIGONOMETRIC_HPP
 * EXT_SCALAR_COMMON_HPP
+* EXT_SCALAR_CONSTANTS_HPP
 * EXT_SCALAR_INTEGER_HPP
 * EXT_SCALAR_RELATIONAL_HPP
 * EXT_SCALAR_ULP_HPP
@@ -2677,7 +2688,8 @@ Preprocessor definitions used to enable/disable bundling specific GLM headers. A
 * EXT_VECTOR_INTEGER_HPP
 * EXT_VECTOR_RELATIONAL_HPP
 * EXT_VECTOR_ULP_HPP
-* GEOMETRIC_HPP
+
+## LUA\_GLM\_INCLUDE\_GTC
 * GTC_BITFIELD_HPP
 * GTC_COLOR_SPACE_HPP
 * GTC_EPSILON_HPP
@@ -2691,6 +2703,8 @@ Preprocessor definitions used to enable/disable bundling specific GLM headers. A
 * GTC_ROUND_HPP
 * GTC_TYPE_PRECISION_HPP
 * GTC_ULP_HPP
+
+## LUA\_GLM\_INCLUDE\_GTX
 * GTX_BIT_HPP
 * GTX_CLOSEST_POINT_HPP
 * GTX_COLOR_ENCODING_HPP
@@ -2743,10 +2757,3 @@ Preprocessor definitions used to enable/disable bundling specific GLM headers. A
 * GTX_VECTOR_ANGLE_HPP
 * GTX_VECTOR_QUERY_HPP
 * GTX_WRAP_HPP
-* INTEGER_HPP
-* MATRIX_HPP
-* PACKING_HPP
-* TRIGONOMETRIC_HPP
-* VECTOR_RELATIONAL_HPP
-* CONSTANTS_HPP
-* EXT_SCALAR_CONSTANTS_HPP

@@ -39,9 +39,19 @@
 ** ===================================================================
 */
 
+#define COMMON_HPP
+#define CONSTANTS_HPP
+#define EXPONENTIAL_HPP
+#define GEOMETRIC_HPP
+#define INTEGER_HPP
+#define MATRIX_HPP
+#define TRIGONOMETRIC_HPP
+#define VECTOR_RELATIONAL_HPP
 #if defined(LUA_GLM_INCLUDE_ALL)
-  #define COMMON_HPP
-  #define EXPONENTIAL_HPP
+  #define PACKING_HPP
+#endif
+
+#if defined(LUA_GLM_INCLUDE_ALL) || defined(LUA_GLM_INCLUDE_EXT)
   #define EXT_MATRIX_CLIP_SPACE_HPP
   #define EXT_MATRIX_COMMON_HPP
   #define EXT_MATRIX_PROJECTION_HPP
@@ -53,6 +63,7 @@
   #define EXT_QUATERNION_RELATIONAL_HPP
   #define EXT_QUATERNION_TRIGONOMETRIC_HPP
   #define EXT_SCALAR_COMMON_HPP
+  #define EXT_SCALAR_CONSTANTS_HPP
   #define EXT_SCALAR_INTEGER_HPP
   #define EXT_SCALAR_RELATIONAL_HPP
   #define EXT_SCALAR_ULP_HPP
@@ -60,7 +71,9 @@
   #define EXT_VECTOR_INTEGER_HPP
   #define EXT_VECTOR_RELATIONAL_HPP
   #define EXT_VECTOR_ULP_HPP
-  #define GEOMETRIC_HPP
+#endif
+
+#if defined(LUA_GLM_INCLUDE_ALL) || defined(LUA_GLM_INCLUDE_GTC)
   #define GTC_BITFIELD_HPP
   #define GTC_COLOR_SPACE_HPP
   #define GTC_EPSILON_HPP
@@ -74,6 +87,13 @@
   #define GTC_ROUND_HPP
   #define GTC_TYPE_PRECISION_HPP
   #define GTC_ULP_HPP
+#endif
+
+#if defined(LUA_GLM_INCLUDE_ALL) || defined(LUA_GLM_INCLUDE_GTX)
+  #if !defined(GLM_ENABLE_EXPERIMENTAL)
+    #error "GLM_ENABLE_EXPERIMENTAL not enabled!"
+  #endif
+
   #define GTX_BIT_HPP
   #define GTX_CLOSEST_POINT_HPP
   #define GTX_COLOR_ENCODING_HPP
@@ -126,13 +146,6 @@
   #define GTX_VECTOR_ANGLE_HPP
   #define GTX_VECTOR_QUERY_HPP
   #define GTX_WRAP_HPP
-  #define INTEGER_HPP
-  #define MATRIX_HPP
-  #define PACKING_HPP
-  #define TRIGONOMETRIC_HPP
-  #define VECTOR_RELATIONAL_HPP
-  #define CONSTANTS_HPP
-  #define EXT_SCALAR_CONSTANTS_HPP
 #endif
 
 /* }================================================================== */
@@ -537,7 +550,7 @@ INTEGER_VECTOR_DEFN(findMSB, glm::findMSB, LAYOUT_UNARY, LUA_UNSIGNED)
 // GLM_BINDING_DECL(usubBorrow);
 #endif
 
-#if defined(EXT_SCALAR_INTEGER_HPP)
+#if defined(EXT_SCALAR_INTEGER_HPP) || defined(EXT_VECTOR_INTEGER_HPP)
 INTEGER_VECTOR_DEFN(findNSB, glm::findNSB, LAYOUT_VECTOR_INT, LUA_UNSIGNED)
 #endif
 
