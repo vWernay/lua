@@ -485,7 +485,8 @@ OPTION(LUA_GLM_APICHECK
 )
 
 OPTION(GRIT_COMPAT_IPAIRS "Reintroduce compatibility for the ``__ipairs`` metamethod that was deprecated in 5.3 and removed in 5.4" ON)
-OPTION(GRIT_POWER_DEFER "Import func2close from ltests.h into the base library." ON)
+OPTION(GRIT_POWER_DEFER "Enable the defer statement" OFF)
+OPTION(GRIT_POWER_DEFER_OLD "Import func2close from ltests.h into the base library as `defer`" ON)
 OPTION(GRIT_POWER_JOAAT "Enable compile time Jenkins' one-at-a-time hashing" ON)
 OPTION(GRIT_POWER_PRELOADLIBS "Allow the preloading of libraries via command line arguments." ON)
 OPTION(GRIT_POWER_COMPOUND "Add compound operators (+=, -=, *=, /=, <<=, >>=, &=, |=, and ^=) to the language." ON)
@@ -522,6 +523,8 @@ ENDIF()
 
 IF( GRIT_POWER_DEFER )
   ADD_COMPILE_DEFINITIONS(GRIT_POWER_DEFER)
+ELSEIF( GRIT_POWER_DEFER_OLD )
+  ADD_COMPILE_DEFINITIONS(GRIT_POWER_DEFER_OLD)
 ENDIF()
 
 IF( GRIT_POWER_JOAAT )
