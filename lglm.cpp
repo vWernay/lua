@@ -93,11 +93,13 @@ static TValue *glm_index2value(lua_State *L, int idx) {
   else { /* upvalues */
     idx = LUA_REGISTRYINDEX - idx;
     api_check(L, idx <= MAXUPVAL + 1, "upvalue index too large");
-    if (ttislcf(s2v(ci->func)))  /* light C function? */
-      return &G(L)->nilvalue;  /* it has no upvalues */
-    else {
+    if (ttisCclosure(s2v(ci->func))) { /* C closure? */
       CClosure *func = clCvalue(s2v(ci->func));
       return (idx <= func->nupvalues) ? &func->upvalue[idx - 1] : &G(L)->nilvalue;
+    }
+    else { /* light C function or Lua function (through a hook)?) */
+      api_check(L, ttislcf(s2v(ci->func)), "caller not a C function");
+      return &G(L)->nilvalue; /* no upvalues */
     }
   }
 }

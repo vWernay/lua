@@ -106,10 +106,13 @@ extern LUA_API_LINKAGE {
 #define glm_quatvalue(o) check_exp(ttisquat(o), glm_constvec_boundary(&vvalue_(o)))
 #endif
 
-/* index2value ported from lapi.c; simplified to only operate on positive stack indices */
+/*
+** index2value ported from lapi.c. Simplified to only operate on positive stack
+** indices; see related function index2stack.
+*/
 static LUA_INLINE const TValue *glm_i2v(lua_State *L, int idx) {
   const StkId o = L->ci->func + idx;
-  api_check(L, idx <= L->ci->top - (L->ci->func + 1), "unacceptable index");
+  api_check(L, idx <= L->ci->top - (L->ci->func + 1), "invalid index");
   return (o >= L->top) ? &G(L)->nilvalue : s2v(o);
 }
 
