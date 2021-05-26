@@ -362,6 +362,16 @@ namespace glm {
     return quatbillboardRH<T, Q>(object, pos, up, forward);
 #endif
   }
+
+#if defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
+  /// <summary>
+  /// non-aligned implementation
+  /// </summary>
+  template<typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER vec<4, T, Q> __rotate(qua<T, Q> const &q, vec<4, T, Q> const &v) {
+    return detail::compute_quat_mul_vec4<T, Q, false>::call(q, v);
+  }
+#endif
 }
 
 #endif

@@ -687,6 +687,29 @@ namespace glm {
       Result[3] = m[3];
     return Result;
   }
+
+#if defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
+  /// <summary>
+  /// non-aligned implementation
+  /// </summary>
+  template<length_t C, length_t R, typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER mat<C, R, T, Q> __matrixCompMult(mat<C, R, T, Q> const &x, mat<C, R, T, Q> const &y) {
+    return detail::compute_matrixCompMult<C, R, T, Q, false>::call(x, y);
+  }
+
+  /// <summary>
+  /// non-aligned implementation
+  /// </summary>
+  template<length_t C, length_t R, typename T, typename U, qualifier Q>
+  GLM_FUNC_QUALIFIER mat<C, R, T, Q> __mix(mat<C, R, T, Q> const &x, mat<C, R, T, Q> const &y, U a) {
+    return mat<C, R, U, Q>(x) * (static_cast<U>(1) - a) + mat<C, R, U, Q>(y) * a;
+  }
+
+  template<length_t C, length_t R, typename T, typename U, qualifier Q>
+  GLM_FUNC_QUALIFIER mat<C, R, T, Q> __mix(mat<C, R, T, Q> const &x, mat<C, R, T, Q> const &y, mat<C, R, U, Q> const &a) {
+    return __matrixCompMult(mat<C, R, U, Q>(x), static_cast<U>(1) - a) + __matrixCompMult(mat<C, R, U, Q>(y), a);
+  }
+#endif
 }
 
 #endif

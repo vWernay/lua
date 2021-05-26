@@ -637,10 +637,14 @@ GLM_LUA_REG(lerpAngle),
 
 /* Bitfield */
 #if defined(INTEGER_HPP)
+#if LUA_INT_TYPE != LUA_INT_INT || !defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
 GLM_LUA_REG(bitCount),
+#endif
 GLM_LUA_REG(bitfieldExtract),
 GLM_LUA_REG(bitfieldInsert),
+#if LUA_INT_TYPE != LUA_INT_INT || !defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
 GLM_LUA_REG(bitfieldReverse),
+#endif
 GLM_LUA_REG(findLSB),
 GLM_LUA_REG(findMSB),
 //GLM_LUA_REG(imulExtended),

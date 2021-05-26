@@ -538,10 +538,14 @@ GLM_BINDING_QUALIFIER(mat_negate) {
 */
 
 #if defined(INTEGER_HPP)
+#if LUA_INT_TYPE != LUA_INT_INT || !defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
 INTEGER_VECTOR_DEFN(bitCount, glm::bitCount, LAYOUT_UNARY, LUA_UNSIGNED)
+#endif
 INTEGER_VECTOR_DEFN(bitfieldExtract, glm::bitfieldExtract, LAYOUT_UNARY, LUA_UNSIGNED, gLuaTrait<int>, gLuaTrait<int>)
 INTEGER_VECTOR_DEFN(bitfieldInsert, glm::bitfieldInsert, LAYOUT_BINARY, LUA_UNSIGNED, gLuaTrait<int>, gLuaTrait<int>)
+#if LUA_INT_TYPE != LUA_INT_INT || !defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
 INTEGER_VECTOR_DEFN(bitfieldReverse, glm::bitfieldReverse, LAYOUT_UNARY, LUA_UNSIGNED)
+#endif
 INTEGER_VECTOR_DEFN(findLSB, glm::findLSB, LAYOUT_UNARY, LUA_UNSIGNED)
 INTEGER_VECTOR_DEFN(findMSB, glm::findMSB, LAYOUT_UNARY, LUA_UNSIGNED)
 // GLM_BINDING_DECL(imulExtended);
@@ -790,7 +794,11 @@ ROTATION_MATRIX_DEFN(rotateNormalizedAxis, glm::rotateNormalizedAxis, LAYOUT_UNA
 
 #if defined(MATRIX_HPP)
 SYMMETRIC_MATRIX_DEFN(determinant, glm::determinant, LAYOUT_UNARY)
+#if defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
+MATRIX_DEFN(matrixCompMult, glm::__matrixCompMult, LAYOUT_BINARY)
+#else
 MATRIX_DEFN(matrixCompMult, glm::matrixCompMult, LAYOUT_BINARY)
+#endif
 MATRIX_DEFN(transpose, glm::transpose, LAYOUT_UNARY)
 GLM_BINDING_QUALIFIER(outerProduct) {
   GLM_BINDING_BEGIN
@@ -1383,7 +1391,11 @@ GLM_BINDING_QUALIFIER(mix) {
         switch (lua_matrix_cols(mat.size, mat.secondary)) {
           case 2: LAYOUT_TERNARY_OPTIONAL(LB, glm::mix, gLuaMat2x2<>); break;
           case 3: LAYOUT_TERNARY_OPTIONAL(LB, glm::mix, gLuaMat3x3<>); break;
+  #if defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
+          case 4: LAYOUT_TERNARY_OPTIONAL(LB, glm::__mix, gLuaMat4x4<>); break;
+  #else
           case 4: LAYOUT_TERNARY_OPTIONAL(LB, glm::mix, gLuaMat4x4<>); break;
+  #endif
           default:
             return luaL_typeerror(LB.L, LB.idx, GLM_INVALID_MAT_DIMENSIONS);
         }
@@ -1915,8 +1927,13 @@ GLM_BINDING_QUALIFIER(rotate) {
         TRAITS_FUNC(LB, glm::rotate, gLuaQuat<>, gLuaFloat, gLuaDir3<>); /* <quat, angle, axis> */
       else if (ttisvector3(_tv2)) /* glm/gtx/quaternion.hpp */
         TRAITS_FUNC(LB, glm::rotate, gLuaQuat<>, gLuaVec3<>);
+#if defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
+      else if (ttisvector4(_tv2))
+        TRAITS_FUNC(LB, glm::__rotate, gLuaQuat<>, gLuaVec4<>);
+#else
       else if (ttisvector4(_tv2)) /* glm/gtx/quaternion.hpp */
         TRAITS_FUNC(LB, glm::rotate, gLuaQuat<>, gLuaVec4<>);
+#endif
       return luaL_error(LB.L, "quat-rotate expects: {quat, angle:radians, axis:vec3}, {quat, dir:vec3}, {quat, point:vec4}");
     }
     case LUA_VMATRIX: {
