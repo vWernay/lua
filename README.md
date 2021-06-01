@@ -554,9 +554,9 @@ Inspired by `LLVM_INTEGRATED_CRT_ALLOC`, the CMake project includes the ability 
 See [libs/scripts](libs/scripts) for a collection of example/test scripts using these added features.
 
 #### Planned Features:
-1. One downside to vectors/quaternions being an explicit `Value` is that they increase the minimum Value size to at least 16 bytes. Given that types in Lua are fairly transparent, it may be beneficial to introduce, or at least experiment with, a compile-time option to make vector/quaternion types collectible.
 1. Support for integer vectors/matrices. Either by introducing an additional type, e.g., `LUA_TVECTORI`, or splitting the vector tag `LUA_TVECTOR` into `LUA_TVECTOR2`, `LUA_TVECTOR3`, `LUA_TVECTOR4`, and `LUA_TQUAT` and use variant bits for the primitive type.
 1. Replace `glm/gtc/random.{inl,hpp}` with a variant that takes advantage of CXX11's [Pseudo-random number generation](https://en.cppreference.com/w/cpp/numeric/random) facilities (and unify it with `math.random`).
+1. One downside to vectors/quaternions being an explicit `Value` is that they increase the minimum Value size to at least 16 bytes. Given that types in Lua are fairly transparent, it may be beneficial to introduce, or at least experiment with, a compile-time option to make vector/quaternion types collectible.
 1. Support for triangles and meshes, retrofit current spatial indexing structures for triangles, and consider BSPs.
 1. Include broad phase collision scripting examples, e.g., dynamic AABB tree and/or multibox sweep-and-prune.
 1. Initial support for frustums (both orthographic and perspective) and OBBs, or, at minimum, the more computationally complex parts of these structures.
@@ -577,15 +577,15 @@ See [libs/scripts](libs/scripts) for a collection of example/test scripts using 
 
 #### Tweaks/TODO:
 Ordered by priority.
-1. Fix/improve MSVC portions of CMakeLists.
-1. [geom](libs/glm-binding/geom): SIMD support (at the very least for the most commonly used functions).
-1. Add support for two-dimensional geometrical structures (Ray2D, Line2D, Plane2D).
+1. [geom](libs/glm-binding/geom): SIMD support (... for the most commonly use functions).
+1. Add support for two-dimensional geometrical structures: Ray2D, Line2D, Plane2D.
 1. Optimize `glm_createMatrix`. Profiling case '4x4 matrix creation (lua_Alloc)' is the one of the slowest operations in the added vector/matrix API. Worse when using the default Windows allocator.
 1. Improve build scripts for linking against custom allocators. [rpmalloc](https://github.com/mjansson/rpmalloc) has shown significant upsides for cases of tight loops that allocate many matrix objects. For example, the profiling case '4x4 matrix - 4 component matrix * matrix' (using TM_MUL; generational GC enabled) halved its execution time.
-1. Include GLM version control in binding library to support older GLM versions.
 1. Improve support for `glm::mat3x4` and `glm::mat4x3`.
 1. `glmMat_set` support for tables, e.g., `mat[i] = { ... }`, by using `glmH_tovector`.
+1. Fix/improve MSVC portions of CMakeLists.
 1. Features/configurations to reduce size of binding library.
+1. Include GLM version control in binding library to support older GLM versions.
 
 ## Benchmarking
 **TODO**: Finish comparisons to...
