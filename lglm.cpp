@@ -442,7 +442,7 @@ int glmVec_equalKey(const TValue *k1, const Node *n2, int rtt) {
   }
 }
 
-size_t glmcVec_hash(const Value *kvl, int ktt) {
+size_t glmVec_hash(const Value *kvl, int ktt) {
   // Uses a custom glm::hash implementation without the dependency on std::hash
   switch (withvariant(ktt)) {
     case LUA_VVECTOR2: return glm::hash::hash(glm_vvalue_raw(*kvl).v2);
@@ -452,6 +452,26 @@ size_t glmcVec_hash(const Value *kvl, int ktt) {
     default:
       return 0xDEAD;  // C0D3
   }
+}
+
+namespace glm {
+  /// <summary>
+  /// Return true if each component of the vector is finite.
+  /// </summary>
+  template<length_t L, typename T, qualifier Q>
+  GLM_FUNC_DECL bool __isfinite(vec<L, T, Q> const &v);
+}
+
+int glmVec_isfinite(const TValue *obj) {
+  switch (ttypetag(obj)) {
+    case LUA_VVECTOR2: return glm::__isfinite(glm_vecvalue(obj).v2);
+    case LUA_VVECTOR3: return glm::__isfinite(glm_vecvalue(obj).v3);
+    case LUA_VVECTOR4: return glm::__isfinite(glm_vecvalue(obj).v4);
+    case LUA_VQUAT: return glm::__isfinite(glm_quatvalue(obj).v4); // @HACK
+    default:
+      break;
+  }
+  return 0;
 }
 
 int glmVec_next(const TValue *obj, StkId key) {
@@ -971,6 +991,21 @@ LUA_API const char *glm_pushstring(lua_State *L, int idx) {
 */
 
 namespace glm {
+  /// <summary>
+  /// Return true if all components of the vector are finite.
+  ///
+  /// @NOTE: -ffast-math will break this condition.
+  /// </summary>
+  template<length_t L, typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER bool __isfinite(vec<L, T, Q> const &v) {
+    GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'isnan' only accept floating-point inputs");
+
+    bool result = true;
+    for (length_t l = 0; l < L; ++l)
+      result &= glm::isfinite(v[l]);
+    return result;
+  }
+
   /// <summary>
   /// Improved slerp implementation for generalized vectors.
   /// </summary>

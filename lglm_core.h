@@ -128,7 +128,10 @@ LUAI_FUNC int glmVec_tostr (const TValue *obj, char *buff, size_t len);
 LUAI_FUNC int glmVec_equalKey (const TValue *k1, const Node *n2, int rtt);
 
 /* Compute the hash of the vector key: The key comes broken (tag in 'ktt' and value in 'vkl') */
-LUAI_FUNC size_t glmcVec_hash (const Value *kvl, int ktt);
+LUAI_FUNC size_t glmVec_hash (const Value *kvl, int ktt);
+
+/* Return true if each vector component is finite */
+LUAI_FUNC int glmVec_isfinite (const TValue *obj);
 
 /*
 ** Pops a key from the stack and pushes a <key, value> pair from the vector at

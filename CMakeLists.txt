@@ -196,9 +196,9 @@ ELSE()
 
   # Compile everything, or lglm.cpp, or nothing with -ffast-math
   IF( LUA_FAST_MATH )
-    ADD_COMPILE_OPTIONS(-ffast-math)
+    ADD_COMPILE_OPTIONS(-ffast-math -fno-finite-math-only)
   ELSEIF( GLM_FAST_MATH )
-    SET(glm_nativeFlags "${glm_nativeFlags} -ffast-math")
+    SET(glm_nativeFlags "${glm_nativeFlags} -ffast-math -fno-finite-math-only")
   ENDIF()
 
   # Compile everything, lglm.cpp, or nothing with common performance tweaks

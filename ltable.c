@@ -165,7 +165,7 @@ static Node *mainposition (const Table *t, int ktt, const Value *kvl) {
     case LUA_VVECTOR3:
     case LUA_VVECTOR4:
     case LUA_VQUAT:
-      return hashmod(t, glmcVec_hash(kvl, ktt));
+      return hashmod(t, glmVec_hash(kvl, ktt));
     case LUA_VSHRSTR: {
       TString *ts = tsvalueraw(*kvl);
       return hashstr(t, ts);
@@ -694,6 +694,11 @@ void luaH_newkey (lua_State *L, Table *t, const TValue *key, TValue *value) {
     }
     else if (l_unlikely(luai_numisnan(f)))
       luaG_runerror(L, "table index is NaN");
+  }
+  else if (ttisvector(key)) {
+    if (l_unlikely(!glmVec_isfinite(key))) {
+      luaG_runerror(L, "vector index has NaN component");
+    }
   }
   if (ttisnil(value))
     return;  /* do not insert nil values */
