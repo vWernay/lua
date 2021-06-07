@@ -17,7 +17,6 @@
   #include <glm/simd/platform.h>
 #endif
 
-#include "allocator.hpp"
 #include "ext/vector_extensions.hpp"
 #include "ext/quat_extensions.hpp"
 #include "ext/matrix_extensions.hpp"
@@ -52,13 +51,6 @@
 
 /* Forward declare all structures. */
 namespace glm {
-
-  /// <summary>
-  /// A STL vector that uses the Lua allocator
-  /// </summary>
-  /// <typeparam name="T"></typeparam>
-  template<typename T> using List = std::vector<T, LuaCrtAllocator<T>>;
-
   template<length_t L, typename T, qualifier Q = defaultp> struct AABB;
   template<length_t L, typename T, qualifier Q = defaultp> struct Line;
   template<length_t L, typename T, qualifier Q = defaultp> struct Ray;

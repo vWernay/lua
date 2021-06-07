@@ -716,8 +716,8 @@ namespace glm {
     return s;
   }
 
-  template<typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER_NOINLINE Sphere<3, T, Q> optimalEnclosingSphere(const glm::List<vec<3, T, Q>> &pts) {
+  template<typename T, qualifier Q, class Vector>
+  GLM_GEOM_QUALIFIER_NOINLINE Sphere<3, T, Q> optimalEnclosingSphere(const Vector &pts) {
     switch (pts.size()) {
       case 0: return Sphere<3, T, Q>();
       case 1: return Sphere<3, T, Q>(pts[0], T(0));

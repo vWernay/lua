@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "setup.hpp"
+#include "allocator.hpp"
 
 #include "line.hpp"
 #include "linesegment.hpp"
@@ -14,6 +15,13 @@
 #include "plane.hpp"
 
 namespace glm {
+  /// <summary>
+  /// A STL vector that uses the Lua allocator
+  /// </summary>
+  /// <typeparam name="T"></typeparam>
+  template<typename T>
+  using List = std::vector<T, InternalLuaCrtAllocator<T>>;
+
   /// <summary>
   /// Describes the thickness of the polygon (i.e., how the third dimension
   /// relates to the plane) for 'contains' operations.
@@ -28,14 +36,13 @@ namespace glm {
   /// A two-dimensional closed surface in three-dimensional space.
   ///
   /// @NOTE: This polygon implementation is tailored specifically to the Lua
-  ///   binding. The "glm::List" pointer is owned/maintained by the userdata
-  ///   bounded to the garbage collector.
+  ///   binding. The "glm::List" pointer is owned by the userdata bound to the
+  ///   garbage collector.
   /// </summary>
   template<length_t L, typename T, qualifier Q>
   struct Polygon {
     using Point = vec<L, T, Q>;
 
-    static const List<Point> NullVerticies;
     List<Point> *p;  // Stores the vertices of this polygon.
 
     // Reference to the stack index the Polygon userdata belongs to; note this
@@ -57,40 +64,45 @@ namespace glm {
     }
 
     GLM_FUNC_QUALIFIER size_t size() const {
+      lua_assert(p != GLM_NULLPTR);
       return (p == GLM_NULLPTR) ? 0 : p->size();
     }
 
     GLM_FUNC_QUALIFIER const Point &back() const {
+      lua_assert(p != GLM_NULLPTR);
       return p->back();
     }
 
     GLM_FUNC_QUALIFIER Point &operator[](size_t i) {
+      lua_assert(p != GLM_NULLPTR);
       return p->operator[](i);
     }
 
     GLM_FUNC_QUALIFIER const Point &operator[](size_t i) const {
+      lua_assert(p != GLM_NULLPTR);
       return p->operator[](i);
     }
 
     GLM_FUNC_QUALIFIER typename List<Point>::const_iterator begin() const {
-      return (p == GLM_NULLPTR) ? Polygon<L, T, Q>::NullVerticies.begin() : p->begin();
+      lua_assert(p != GLM_NULLPTR);
+      return p->begin();
     }
 
     GLM_FUNC_QUALIFIER typename List<Point>::const_iterator cbegin() const {
-      return (p == GLM_NULLPTR) ? Polygon<L, T, Q>::NullVerticies.cbegin() : p->cbegin();
+      lua_assert(p != GLM_NULLPTR);
+      return p->cbegin();
     }
 
     GLM_FUNC_QUALIFIER typename List<Point>::const_iterator end() const {
-      return (p == GLM_NULLPTR) ? Polygon<L, T, Q>::NullVerticies.end() : p->end();
+      lua_assert(p != GLM_NULLPTR);
+      return p->end();
     }
 
     GLM_FUNC_QUALIFIER typename List<Point>::const_iterator cend() const {
-      return (p == GLM_NULLPTR) ? Polygon<L, T, Q>::NullVerticies.cend() : p->cend();
+      lua_assert(p != GLM_NULLPTR);
+      return p->cend();
     }
   };
-
-  template<length_t L, typename T, qualifier Q>
-  const typename glm::List<typename Polygon<L, T, Q>::Point> Polygon<L, T, Q>::NullVerticies;
 
   template<length_t L, typename T, qualifier Q>
   static Polygon<L, T, Q> operator-(const Polygon<L, T, Q> &polygon) {

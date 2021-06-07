@@ -754,18 +754,19 @@ GLM_BINDING_QUALIFIER(sphere_optimalEnclosingSphere) {
     case 3: TRAITS_FUNC(LB, glm::optimalEnclosingSphere, gLuaVec3<>, gLuaVec3<>, gLuaVec3<>); break;
     case 4: TRAITS_FUNC(LB, glm::optimalEnclosingSphere, gLuaVec3<>, gLuaVec3<>, gLuaVec3<>, gLuaVec3<>); break;
     default: {
-      LuaCrtAllocator<gLuaVec3<>::type> allocator(LB.L);
+      InternalLuaCrtAllocator<gLuaVec3<>::type> allocator(LB.L);
+      using List = glm::List<gLuaVec3<>::type>;
 
       // @TODO: This implementation is UNSAFE. Create a glm::List userdata that
       // is temporarily anchored onto the stack for the duration of the function
-      glm::List<gLuaVec3<>::type> pts(allocator);
+      List pts(allocator);
       auto push_back = [&pts](const gLuaVec3<>::type &v) { pts.push_back(v); };
 
       if (lua_istable(LB.L, LB.idx))
         glmLuaArray::forEach<gLuaVec3<>>(LB.L, LB.idx, push_back);
       else
         glmLuaStack::forEach<gLuaVec3<>>(LB.L, LB.idx, push_back);
-      return gLuaBase::Push(LB, optimalEnclosingSphere(pts));
+      return gLuaBase::Push(LB, glm::optimalEnclosingSphere<glm_Float, glm::defaultp, List>(pts));
     }
   }
   GLM_BINDING_END
@@ -1173,9 +1174,6 @@ GLM_BINDING_QUALIFIER(polygon_new) {
   if (!lua_isnoneornil(LB.L, LB.idx) && !lua_istable(LB.L, LB.idx))
     return luaL_argerror(LB.L, LB.idx, lua_typename(LB.L, LUA_TTABLE));
 
-  using PolyList = glm::List<gLuaPolygon<>::Point::type>;
-  LuaCrtAllocator<gLuaPolygon<>::Point::type> allocator(LB.L);
-
   // Create a new polygon userdata.
   void *ptr = lua_newuserdatauv(LB.L, sizeof(gLuaPolygon<>::type), 0);  // [..., poly]
   gLuaPolygon<>::type *polygon = reinterpret_cast<gLuaPolygon<>::type *>(ptr);
@@ -1183,30 +1181,41 @@ GLM_BINDING_QUALIFIER(polygon_new) {
   polygon->p = GLM_NULLPTR;
 
   // Setup metatable.
-  if (luaL_getmetatable(LB.L, LUA_GLM_POLYGON_META) != LUA_TTABLE) // [..., poly, meta]
-    return luaL_error(L, "invalid polygon metatable");
+  if (luaL_getmetatable(LB.L, LUA_GLM_POLYGON_META) == LUA_TTABLE) { // [..., poly, meta]
+    lua_setmetatable(LB.L, -2);  // [..., poly]
 
-  lua_setmetatable(LB.L, -2);  // [..., poly]
+    // Create a std::vector backed by the Lua allocator.
+    using PolyList = glm::List<gLuaPolygon<>::Point::type>;
+    InternalLuaCrtAllocator<gLuaPolygon<>::Point::type> allocator(LB.L);
+    PolyList *list = static_cast<PolyList*>(allocator.realloc(GLM_NULLPTR, 0, sizeof(PolyList)));
 
-  // Allocate a std::vector using the Lua allocator
-  polygon->p = reinterpret_cast<PolyList*>(allocator.realloc(GLM_NULLPTR, 0, sizeof(PolyList)));
-  ::new(polygon->p) PolyList(allocator);
+    // Populate the polygon with an array of coordinates, if one exists.
+    try {
+      ::new(list) PolyList(allocator);
+      polygon->p = list;
 
-  // Populate the polygon with an array of coordinates, if one exists.
-  if (top >= 1 && lua_istable(LB.L, LB.idx)) {
-    const auto e = glmLuaArray::end<gLuaVec3<>>(LB.L, LB.idx);
-    for (auto b = glmLuaArray::begin<gLuaVec3<>>(LB.L, LB.idx); b != e; ++b) {
-      polygon->p->push_back(*b);
+      if (top >= 1 && lua_istable(LB.L, LB.idx)) {
+        const auto e = glmLuaArray::end<gLuaVec3<>>(LB.L, LB.idx);
+        for (auto b = glmLuaArray::begin<gLuaVec3<>>(LB.L, LB.idx); b != e; ++b) {
+          polygon->p->push_back(*b);
+        }
+      }
     }
+    catch (...) {
+      lua_pop(L, 1);
+      return luaL_error(L, "unknown polygon error");
+    }
+    return 1;
   }
 
-  return 1;
+  lua_pop(L, 2);
+  return luaL_error(L, "invalid polygon metatable");
   GLM_BINDING_END
 }
 
 GLM_BINDING_QUALIFIER(polygon_to_string) {
   gLuaPolygon<>::type *ud = reinterpret_cast<gLuaPolygon<>::type *>(luaL_checkudata(L, 1, LUA_GLM_POLYGON_META));
-  if (ud != GLM_NULLPTR && ud->p != GLM_NULLPTR) {
+  if (ud->p != GLM_NULLPTR) {
     lua_pushfstring(L, "Polygon<%I>", ud->p->size());
     return 1;
   }
@@ -1219,8 +1228,8 @@ GLM_BINDING_QUALIFIER(polygon_to_string) {
 /// </summary>
 GLM_BINDING_QUALIFIER(polygon__gc) {
   gLuaPolygon<>::type *ud = reinterpret_cast<gLuaPolygon<>::type *>(luaL_checkudata(L, 1, LUA_GLM_POLYGON_META));
-  if (ud != GLM_NULLPTR && ud->p != GLM_NULLPTR) {
-    LuaCrtAllocator<void> allocator(L);
+  if (ud->p != GLM_NULLPTR) {
+    InternalLuaCrtAllocator<void> allocator(L);
     ud->p->~vector();  // Invoke destructor.
     allocator.realloc(ud->p, sizeof(glm::List<gLuaPolygon<>::Point::type>), 0);  // Free allocation
     ud->p = GLM_NULLPTR;

@@ -37,12 +37,6 @@ namespace glm {
       : minPoint(min), maxPoint(max) {
     }
 
-    AABB(const glm::List<vec<L, T, Q>> &points) {
-      setNegativeInfinity();
-      for (auto it = points.begin(); it != points.end(); ++it)
-        enclose(*it);
-    }
-
     AABB(const AABB<L, T, Q> &aabb)
       : minPoint(aabb.minPoint), maxPoint(aabb.maxPoint) {
     }
@@ -468,9 +462,13 @@ namespace glm {
   /// <summary>
   /// Generates an AABB that encloses the given set of points.
   /// </summary>
-  template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER AABB<L, T, Q> minimalEnclosingAABB(const glm::List<vec<L, T, Q>> &points) {
-    return AABB<L, T, Q>(points);
+  template<length_t L, typename T, qualifier Q, class Vector>
+  GLM_GEOM_QUALIFIER AABB<L, T, Q> minimalEnclosingAABB(const Vector &points) {
+    AABB<L, T, Q> aabb(T(0));
+    aabb.setNegativeInfinity();
+    for (auto it = points.begin(); it != points.end(); ++it)
+      aabb.enclose(*it);
+    return aabb;
   }
 
   /// <summary>
