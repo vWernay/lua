@@ -279,6 +279,7 @@ GLM_BINDING_QUALIFIER(unpack) {
         default:                                                                \
           break;                                                                \
       }                                                                         \
+      break;                                                                    \
     }                                                                           \
     default:                                                                    \
       break;                                                                    \
@@ -331,6 +332,7 @@ GLM_BINDING_QUALIFIER(mat_add) {
         default:
           break;
       }
+      break;
     }
     default:
       break;
@@ -379,6 +381,7 @@ GLM_BINDING_QUALIFIER(mat_sub) {
         default:
           break;
       }
+      break;
     }
     default:
       break;
@@ -474,6 +477,7 @@ GLM_BINDING_QUALIFIER(mat_mul) {
         default:
           break;
       }
+      break;
     }
     default:
       break;
@@ -521,6 +525,7 @@ GLM_BINDING_QUALIFIER(mat_negate) {
         default:
           break;
       }
+      break;
     }
     default:
       break;
