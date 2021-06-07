@@ -56,6 +56,7 @@ API:
       (1) Endianness changed from JS API: defaults to little endian.
 
 @EXAMPLES:
+    -- GET_DLC_WEAPON_DATA
     local view = DataView.ArrayBuffer(512)
     if Citizen.InvokeNative(0x79923CD21BECE14E, 1, view:Buffer(), Citizen.ReturnResultAnyway()) then
         local dlc = {
@@ -75,12 +76,38 @@ API:
         -- Output: print(json.encode(dlc, { indent = true }))
     end
 
+    -- GET_PED_HEAD_BLEND_DATA
+    if Citizen.InvokeNative(0x2746BD9D88C5C5D0, ped, view:Buffer(), Citizen.ReturnResultAnyway()) then
+        local blend = {
+            shapeFirst = view:GetInt32(0),
+            shapeSecond = view:GetInt32(8),
+            shapeThird = view:GetInt32(16),
+            skinFirst = view:GetInt32(24),
+            skinSecond = view:GetInt32(32),
+            skinThird = view:GetInt32(40),
+            shapeMix = view:GetFloat32(48),
+            skinMix = view:GetFloat32(56),
+            thirdMix = view:GetFloat32(64),
+        }
+
+        -- Output: print(json.encode(blend, { indent = true }))
+
+        -- Manipulate
+        view:SetInt32(0, 0)
+            :SetInt32(8, 8)
+            :SetInt32(16, 16)
+            :SetInt32(24, 24)
+            :SetInt32(32, 32)
+            :SetInt32(40, 40)
+            :SetFloat32(48, math.pi)
+            :SetFloat32(56, 11.1)
+            :SetFloat32(64, -math.pi)
+    end
+
 @LICENSE
     See Copyright Notice in lua.h
 --]]
-local DataView
-
-DataView = {
+DataView = setmetatable({
     EndBig = ">",
     EndLittle = "<",
     Types = {
@@ -106,7 +133,11 @@ DataView = {
         Int = { code = "i" }, -- a signed int with n bytes
         Uint = { code = "I" }, -- an unsigned int with n bytes
     },
-}
+}, {
+    __call = function(_, length)
+        return DataView.ArrayBuffer(length)
+    end
+})
 DataView.__index = DataView
 
 --[[ Create an ArrayBuffer with a size in bytes --]]
@@ -228,5 +259,3 @@ for label,datatype in pairs(DataView.FixedTypes) do
         return self
     end
 end
-
-return DataView

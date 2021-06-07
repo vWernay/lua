@@ -5,7 +5,21 @@
 @LICENSE
     See Copyright Notice in lua.h
 --]]
-local glm = glm
+local glm = require("glm")
+
+-- Cache common functions
+local vec3 = vec3
+local quat = quat
+local glm_abs = glm.abs
+local glm_deg = glm.deg
+local glm_dot = glm.dot
+local glm_rad = glm.rad
+local glm_sign = glm.sign
+
+-- Cache direction vectors
+local glm_up = glm.up()
+local glm_right = glm.right()
+local glm_forward = glm.forward()
 
 --[[
     Example 1: ScreenPositionToCameraRay: gluUnProject implemented with data
@@ -17,13 +31,13 @@ local glm = glm
 --]]
 function ScreenPositionToCameraRay(screenX, screenY)
     local pos = GetFinalRenderedCamCoord()
-    local rot = glm.rad(GetFinalRenderedCamRot(2))
+    local rot = glm_rad(GetFinalRenderedCamRot(2))
 
     local q = glm.quatEulerAngleZYX(rot.z, rot.y, rot.x)
     return pos,glm.rayPicking(
-        q * glm.forward(),
-        q * glm.up(),
-        glm.rad(GetFinalRenderedCamFov()),
+        q * glm_forward,
+        q * glm_up,
+        glm_rad(GetFinalRenderedCamFov()),
         GetAspectRatio(true),
         0.10000, -- GetFinalRenderedCamNearClip(),
         10000.0, -- GetFinalRenderedCamFarClip(),
@@ -40,27 +54,27 @@ end
 --]]
 function SurfaceNormalToMarkerRotation(normal)
     local quat_eps = 1E-2
-    local q = nil
 
     -- If the surface normal is upwards or downwards, rotate the Z (heading) of
     -- the quaternion so any rendered texture/decal is directed towards the
     -- client camera.
-    if glm.approx(glm.abs(normal.z), 1.0, quat_eps) then
+    local q = nil
+    if glm.approx(glm_abs(normal.z), 1.0, quat_eps) then
         local camRot = GetFinalRenderedCamRot(2)
-        local counterRotation = (glm.sign(normal.z) * -camRot.z) - 90.0
+        local counterRotation = (glm_sign(normal.z) * -camRot.z) - 90.0
 
-        q = glm.quatlookRotation(normal, glm.right())
-        q = q * quat(counterRotation, glm.up())
+        q = glm.quatlookRotation(normal, glm_right)
+        q = q * quat(counterRotation, glm_up)
     else
-        q = glm.quatlookRotation(normal, glm.up())
+        q = glm.quatlookRotation(normal, glm_up)
         if glm.approx(normal.y, -1.0, quat_eps) then -- The texture/decal needs to be flipped!
-            q = q * quat(180.0, glm.forward())
+            q = q * quat(180.0, glm_forward)
         end
     end
 
     -- @NOTE RotationOrder 2 is ZXY, however, the YXZ angles are extracted
     local euler = vec3(glm.extractEulerAngleYXZ(q))
-    return q,glm.deg(vec3(euler[2],euler[1],euler[3]))
+    return q,glm_deg(vec3(euler[2],euler[1],euler[3]))
 end
 
 --[[
@@ -80,12 +94,12 @@ function CreateDecalFromRaycastResult(decalType, pos, surface, entity, textureSi
         -- vehicle to the 'right' vector of the decal.
         local forward,right,up,_ = GetEntityMatrix(entity)
 
-        local dot_forward = dot(surface, forward)
-        local dot_right = dot(surface, right)
-        if glm.approx(glm.abs(dot_forward), 1.0, decal_epsilon) then
-            decalRight = glm.sign(-dot_forward) * glm.projPlane(right, surface)
-        elseif glm.approx(glm.abs(dot_right), 1.0, decal_epsilon) then
-            decalRight = glm.sign(dot_right) * forward
+        local dot_forward = glm_dot(surface, forward)
+        local dot_right = glm_dot(surface, right)
+        if glm.approx(glm_abs(dot_forward), 1.0, decal_epsilon) then
+            decalRight = glm_sign(-dot_forward) * glm.projPlane(right, surface)
+        elseif glm.approx(glm_abs(dot_right), 1.0, decal_epsilon) then
+            decalRight = glm_sign(dot_right) * forward
         else
             decalRight = glm.projPlane(forward, surface)
         end
@@ -95,15 +109,15 @@ function CreateDecalFromRaycastResult(decalType, pos, surface, entity, textureSi
         pos = pos + surface * 0.05
 
         -- Compute a perpendicular of the surface
-        decalRight = glm.perpendicular(surface, -glm.up(), glm.right())
+        decalRight = glm.perpendicular(surface, -glm_up, glm_right)
 
         -- If the surface normal is upwards or downwards, rotate the Z (heading
         -- component) of the quaternion so any rendered texture/decal points
         -- towards the client camera.
-        local dot_up = glm.dot(surface, glm.up())
-        if glm.approx(glm.abs(dot_up), 1.0, decal_epsilon) then
+        local dot_up = glm_dot(surface, glm_up)
+        if glm.approx(glm_abs(dot_up), 1.0, decal_epsilon) then
             local camRot = GetFinalRenderedCamRot(2)
-            decalRight = quat(camRot.z, glm.up()) * glm.right()
+            decalRight = quat(camRot.z, glm_up) * glm_right
         end
     end
 
@@ -158,9 +172,7 @@ Citizen.CreateThread(function()
         local r_pos,r_dir = ScreenPositionToCameraRay(mx, my)
         local b = r_pos + 10000 * r_dir
 
-        -- StartExpensiveSynchronousShapeTestLosProbe
-        local handle = StartShapeTestRay(r_pos.x,r_pos.y,r_pos.z, b.x,b.y,b.z, 1|2|8|16, PlayerPedId(), 7)
-
+        local handle = StartExpensiveSynchronousShapeTestLosProbe(r_pos.x,r_pos.y,r_pos.z, b.x,b.y,b.z, 1|2|8|16, PlayerPedId(), 7)
         local _,hit,pos,surface,entity = GetShapeTestResult(handle)
         if hit ~= 0 then -- Draw a preview using "DrawMarker":
 
