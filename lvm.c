@@ -1282,9 +1282,9 @@ LUA_JUMPTABLE_ATTRIBUTE void luaV_execute (lua_State *L, CallInfo *ci) {
       vmcase(OP_GETTABLE) {
         TValue *rb = vRB(i);
         TValue *rc = vRC(i);
-        if (ttisvector(rb)) {  /* fast track for integers? */
-          if (ttisinteger(rc) && l_likely(glmVec_fastgeti(rb, ivalue(rc), ra))) { /* nothing */ }
-          else if (ttisstring(rc) && l_likely(glmVec_fastgets(rb, tsvalue(rc), ra))) { /* nothing */ }
+        if (ttisvector(rb)) {  /* fast track for integers / character indexing? */
+          if (ttisinteger(rc) && glmVec_fastgeti(rb, ivalue(rc), ra)) { /* nothing */ }
+          else if (ttisstring(rc) && glmVec_fastgets(rb, tsvalue(rc), ra)) { /* nothing */ }
           else {
             Protect(glmVec_get(L, rb, rc, ra));
           }
