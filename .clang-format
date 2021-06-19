@@ -1,3 +1,5 @@
+# LuaGLM Clang-Format Style Options
+# see https://clang.llvm.org/docs/ClangFormatStyleOptions.html
 BasedOnStyle: WebKit
 AlignOperands: true
 

@@ -39,6 +39,7 @@ lua54.dll
 *.sym
 *.a
 *.dll
+*.exp
 
 # CMake
 CMakeFiles/
