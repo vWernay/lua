@@ -73,8 +73,8 @@ function SurfaceNormalToMarkerRotation(normal)
     -- different eps values, normals approaching sin(x) == cos(x), not perfectly
     -- emulating the R* vector math library, etc.
     --
-    -- Note, ADD_DECAL uses direction vectors, which will simplifies the
-    -- calculation significantly.
+    -- Note ADD_DECAL uses direction vectors, simplifying the calculation
+    -- significantly.
     elseif glm_approx(normal.y, 1.0, quat_eps) then
         q = glm.quatlookRotation(normal, -glm_up)
         surfaceFlip = quat(180.0, glm_right)
