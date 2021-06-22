@@ -153,6 +153,16 @@
 #elif defined(_WIN32)
   #define WIN32_LEAN_AND_MEAN
   #include <windows.h>
+
+  /* Ensure the performance counter frequency is initialized. */
+  static LARGE_INTEGER info;
+  static LUA_INLINE void InitPerformanceCounter() {
+    static int init = 1;
+    if (init) {
+      init = 0; /* @TODO: Fix potential race condition */
+      QueryPerformanceFrequency(&info);
+    }
+  }
 #elif defined(__APPLE__)
   #include <sys/time.h>
 #elif defined(_POSIX_TIMERS) && _POSIX_TIMERS > 0
@@ -178,19 +188,6 @@
 
 #if defined(LUA_SYS_CLOCK)
 #include "llimits.h"
-
-#if defined(_WIN32)
-/* Ensure the performance counter frequency is initialized. */
-static LARGE_INTEGER info;
-static LUA_INLINE void InitPerformanceCounter() {
-  static int init = 1;
-  if (init) {
-    init = 0; /* @TODO: Fix potential race condition */
-    QueryPerformanceFrequency(&info);
-  }
-}
-#endif
-
 static int os_deltatime(lua_State *L) {
   const lua_Unsigned end = l_castS2U(luaL_checkinteger(L, 1));
   const lua_Unsigned start = l_castS2U(luaL_checkinteger(L, 2));
