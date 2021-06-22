@@ -89,6 +89,9 @@ mat3x3((0.819152, 0.573576, 0.000000), (-0.573576, 0.819152, 0.000000), (0.00000
 
 ### qua
 ```lua
+-- Return the identity quaternion.
+q = quat()
+
 -- Generic quaternion constructor. Note, "qua" also aliased to quat.
 q = quat(w --[[ number ]], x --[[ number ]], y --[[ number ]], z --[[ number ]])
 q = quat(xyz --[[ vec3 ]], w --[[ number ]])

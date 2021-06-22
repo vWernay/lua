@@ -15,6 +15,7 @@ local glm_deg = glm.deg
 local glm_dot = glm.dot
 local glm_rad = glm.rad
 local glm_sign = glm.sign
+local glm_approx = glm.approx
 
 -- Cache direction vectors
 local glm_up = glm.up()
@@ -54,26 +55,34 @@ end
 --]]
 function SurfaceNormalToMarkerRotation(normal)
     local quat_eps = 1E-2
+    local surfaceFlip = quat(180.0, glm_forward)
 
     -- If the surface normal is upwards or downwards, rotate the Z (heading) of
     -- the quaternion so any rendered texture/decal is directed towards the
     -- client camera.
     local q = nil
-    if glm.approx(glm_abs(normal.z), 1.0, quat_eps) then
+    if glm_approx(glm_abs(normal.z), 1.0, quat_eps) then
         local camRot = GetFinalRenderedCamRot(2)
         local counterRotation = (glm_sign(normal.z) * -camRot.z) - 90.0
 
         q = glm.quatlookRotation(normal, glm_right)
         q = q * quat(counterRotation, glm_up)
-    else
+
+    -- There will always be edge-case issues when trying to precisely map a
+    -- surface normal to a rotation usable by DRAW_MARKER: numerical stability,
+    -- different eps values, normals approaching sin(x) == cos(x), not perfectly
+    -- emulating the R* vector math library, etc.
+    --
+    -- Note, ADD_DECAL uses direction vectors, which will simplifies the
+    -- calculation significantly.
+    elseif glm_approx(normal.y, 1.0, quat_eps) then
+        q = glm.quatlookRotation(normal, -glm_up)
+        surfaceFlip = quat(180.0, glm_right)
+    else -- The texture/decal needs to be flipped!
         q = glm.quatlookRotation(normal, glm_up)
-        if glm.approx(normal.y, -1.0, quat_eps) then -- The texture/decal needs to be flipped!
-            q = q * quat(180.0, glm_forward)
-        end
     end
 
-    -- @NOTE RotationOrder 2 is ZXY, however, the YXZ angles are extracted
-    local euler = vec3(glm.extractEulerAngleYXZ(q))
+    local euler = vec3(glm.extractEulerAngleYXZ(q * surfaceFlip))
     return q,glm_deg(vec3(euler[2],euler[1],euler[3]))
 end
 
@@ -84,7 +93,7 @@ end
     See "decalType" and "PatchDecalDiffuseMap" for its limitations.
 --]]
 function CreateDecalFromRaycastResult(decalType, pos, surface, entity, textureSize, m_quat)
-    local decal_epsilon = 1E-2  -- Decal properties
+    local decalEps = 1E-2  -- Decal properties
     local decalTimeout = -1.0
 
     local decalForward = -surface
@@ -96,17 +105,17 @@ function CreateDecalFromRaycastResult(decalType, pos, surface, entity, textureSi
 
         local dot_forward = glm_dot(surface, forward)
         local dot_right = glm_dot(surface, right)
-        if glm.approx(glm_abs(dot_forward), 1.0, decal_epsilon) then
+        if glm_approx(glm_abs(dot_forward), 1.0, decalEps) then
             decalRight = glm_sign(-dot_forward) * glm.projPlane(right, surface)
-        elseif glm.approx(glm_abs(dot_right), 1.0, decal_epsilon) then
+        elseif glm_approx(glm_abs(dot_right), 1.0, decalEps) then
             decalRight = glm_sign(dot_right) * forward
         else
             decalRight = glm.projPlane(forward, surface)
         end
     else
         -- Slightly adjust the position of the decal relative to the surface to
-        -- 'massage' texture mapping.
-        pos = pos + surface * 0.05
+        -- 'massage' texture mapping/rage::decalClipper.
+        pos = pos + surface * 0.0666
 
         -- Compute a perpendicular of the surface
         decalRight = glm.perpendicular(surface, -glm_up, glm_right)
@@ -115,7 +124,7 @@ function CreateDecalFromRaycastResult(decalType, pos, surface, entity, textureSi
         -- component) of the quaternion so any rendered texture/decal points
         -- towards the client camera.
         local dot_up = glm_dot(surface, glm_up)
-        if glm.approx(glm_abs(dot_up), 1.0, decal_epsilon) then
+        if glm_approx(glm_abs(dot_up), 1.0, decalEps) then
             local camRot = GetFinalRenderedCamRot(2)
             decalRight = quat(camRot.z, glm_up) * glm_right
         end
@@ -147,9 +156,12 @@ function LoadStreamedTextureDict(dict, texture)
 end
 
 Citizen.CreateThread(function()
-    local activeDict = "graffiti" -- Custom streamed textures
-    local activeTexture = "Peace"
-    local activeSize = vec2(5.0, 5.0)  -- The two dimensional size (prior to aspect adjustment) of the texture
+    local activeDict,activeTexture = "GTAOlogo","GTAOTransitionLogo"
+    --local activeDict,activeTexture = "ba_djposters","ls_solomun_poster_a"
+    --local activeDict,activeTexture = "graffiti","Peace" -- Using customed streamed textures!
+
+    -- The two dimensional size of the texture (prior to aspect adjustment)
+    local activeSize = vec2(5.0, 5.0)
     LoadStreamedTextureDict(activeDict, activeTexture)
 
     -- Adjust the 'size' of the texture according to its aspect ratio.
@@ -175,6 +187,7 @@ Citizen.CreateThread(function()
         local handle = StartExpensiveSynchronousShapeTestLosProbe(r_pos.x,r_pos.y,r_pos.z, b.x,b.y,b.z, 1|2|8|16, PlayerPedId(), 7)
         local _,hit,pos,surface,entity = GetShapeTestResult(handle)
         if hit ~= 0 then -- Draw a preview using "DrawMarker":
+            surface = glm.normalize(surface)
 
             -- Slightly adjust the position of the marker so the texture does
             -- not clip with flat surfaces

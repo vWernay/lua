@@ -1636,7 +1636,9 @@ LUA_API int glmMat_mat(lua_State *L) { return glm_createMatrix<glm_Float>(L, 0, 
 /// </summary>
 LUA_API int glmVec_qua(lua_State *L) {
   const TValue *o1 = glm_index2value(L, 1);
-  if (ttisnumber(o1)) {
+  if (o1 == &G(L)->nilvalue)  // No arguments: return the identity.
+    return glm_pushquat(L, glm::identity<glm::qua<glm_Float>>());
+  else if (ttisnumber(o1)) {
     const TValue *o2 = glm_index2value(L, 2);
     if (ttisvector3(o2))  // <angle, axis>, degrees for gritLua compatibility
       return glm_pushquat(L, glm::angleAxis(cast_glmfloat(glm::radians(nvalue(o1))), glm_vecvalue(o2).v3));

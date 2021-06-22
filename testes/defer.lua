@@ -1,5 +1,5 @@
 -- ================================================================
--- Following section is an extract from the code.lua test
+-- These tests are mostly adapted from Lua 5.4 tests for TBC variables
 -- These functions test bytecode generation, and also provide
 -- helper routines that we use later on in other test cases
 
@@ -54,10 +54,6 @@ do
     end
     pcall(x)
     assert(y == 6)
-    -- Seems the defer closure that errored is called twice
-    -- FIXME why? See also test 12 below - same issue I think
-    -- This appears to be a feature of Lua 5.4
-    --assert(y == 8)
     print 'Test 3 OK'
 end
 
@@ -115,8 +111,8 @@ do
     local y = 100
     local function z(...)
         -- recursive call to make stack
-       defer x(y) end
-       return ...
+        defer x(y) end
+        return ...
     end
     do
         local a,b,c = z(1,2,3)
