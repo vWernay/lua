@@ -1202,6 +1202,24 @@ LUA_API int glmVec_slerp(lua_State *L) {
   return luaL_error(L, "slerp(v, v, a) or slerp(q, q, a) expected");
 }
 
+LUA_API int glmVec_clamp (lua_State *L) {
+  const TValue *x = glm_index2value(L, 1);
+  const TValue *y = glm_index2value(L, 2);
+  const TValue *z = glm_index2value(L, 3);
+  if (ttypetag(x) == ttypetag(y) && ttypetag(y) == ttypetag(z)) {
+    switch (ttypetag(x)) {
+      case LUA_VNUMINT: /* grit-lua implementation will cast integers */
+      case LUA_VNUMFLT: lua_pushnumber(L, glm::clamp(nvalue(x), nvalue(y), nvalue(z))); return 1;
+      case LUA_VVECTOR2: return glm_pushvec2(L, glm::clamp(glm_vecvalue(x).v2, glm_vecvalue(y).v2, glm_vecvalue(z).v2));
+      case LUA_VVECTOR3: return glm_pushvec3(L, glm::clamp(glm_vecvalue(x).v3, glm_vecvalue(y).v3, glm_vecvalue(z).v3));
+      case LUA_VVECTOR4: return glm_pushvec4(L, glm::clamp(glm_vecvalue(x).v4, glm_vecvalue(y).v4, glm_vecvalue(z).v4));
+      default:
+        break;
+    }
+  }
+  return luaL_error(L, LABEL_NUMBER " or " LABEL_VECTOR " expected");
+}
+
 LUA_API lua_Integer lua_ToHash (lua_State *L, int idx, int ignore_case) {
   return glm_tohash(L, idx, ignore_case);
 }

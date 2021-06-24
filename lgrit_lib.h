@@ -230,6 +230,9 @@ LUA_API int glmVec_normalize (lua_State *L);
 */
 LUA_API int glmVec_slerp (lua_State *L);
 
+/* grit-lua math library extension */
+LUA_API int glmVec_clamp (lua_State *L);
+
 /* }================================================================== */
 
 #endif

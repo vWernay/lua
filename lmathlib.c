@@ -20,6 +20,7 @@
 
 #include "lauxlib.h"
 #include "lualib.h"
+#include "lgrit_lib.h"
 
 
 #undef PI
@@ -887,6 +888,8 @@ static const luaL_Reg mathlib[] = {
   { "trunc", math_trunc },
 #endif
 #endif
+  /* grit-lua compatbility */
+  { "clamp", glmVec_clamp },
   /* placeholders */
   {"random", NULL},
   {"randomseed", NULL},
