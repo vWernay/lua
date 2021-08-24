@@ -212,33 +212,11 @@ static int dostring (lua_State *L, const char *s, const char *name) {
 */
 static int dolibrary (lua_State *L, const char *name) {
   int status;
-#if defined(GRIT_POWER_PRELOADLIBS)
-  const char *global = name;
-  const char *eq = strchr(name,'=');
-  if (eq) {
-    global = eq + 1;
-    if ((eq = (eq == name ? NULL : eq)))  /* ensure name != eq */
-      lua_pushlstring(L, name, eq - name);
-  }
-
-  lua_getglobal(L, "require");
-  lua_pushstring(L, global);
-  if ((status = docall(L, 1, 1)) == LUA_OK) {  /* call 'require(name)' */
-    if (eq) {
-      lua_setglobal(L, lua_tostring(L, -2));
-      lua_pop(L, 1);
-    }
-    else {
-      lua_setglobal(L, global);  /* global[name] = require return */
-    }
-  }
-#else
   lua_getglobal(L, "require");
   lua_pushstring(L, name);
   status = docall(L, 1, 1);  /* call 'require(name)' */
   if (status == LUA_OK)
     lua_setglobal(L, name);  /* global[name] = require return */
-#endif
   return report(L, status);
 }
 
