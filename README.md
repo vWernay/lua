@@ -585,11 +585,10 @@ Ordered by priority.
 1. Add support for two-dimensional geometrical structures: Ray2D, Line2D, Plane2D.
 1. Optimize `glm_createMatrix`. Profiling case '4x4 matrix creation (lua_Alloc)' is the one of the slowest operations in the added vector/matrix API. Worse when using the default Windows allocator.
 1. Optimize runtime swizzling: `swizzle` and `glmVec_get`. It is likely possible to improve this operation by 15/20 percent.
-1. Improve build scripts for linking against custom allocators. [rpmalloc](https://github.com/gottfriedleibniz/rpmalloc/tree/lua) has shown significant upsides for cases of tight loops that allocate many matrix objects. For example, an internal profiling case '4x4 matrix - 4 component matrix * matrix' (using TM_MUL; generational GC enabled) halved its execution time by using a custom allocator.
 1. Improve support for `glm::mat3x4` and `glm::mat4x3`.
 1. `glmMat_set` support for tables, e.g., `mat[i] = { ... }`, by using `glmH_tovector`.
-1. Fix/improve MSVC portions of CMakeLists.
 1. Features/configurations to reduce size of binding library.
+1. Consider replacing the 'blob' variant with an FFI library: advanced use is required.
 1. Include GLM version control in binding library to support older GLM versions.
 
 ## Benchmarking
