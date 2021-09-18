@@ -103,7 +103,7 @@ IF( MSVC )
   ADD_COMPILE_DEFINITIONS(_CRT_SECURE_NO_DEPRECATE)
   ADD_COMPILE_DEFINITIONS(_CRT_NONSTDC_NO_DEPRECATE)
 
-  SET(LUA_C_FLAGS "/MT")
+  SET(LUA_C_FLAGS "")
   SET(LUA_REL_FLAGS "${LUA_REL_FLAGS} /GL")
   SET(LUA_LINKFLAGS "${LUA_LINKFLAGS} /LTCG")
 
@@ -326,9 +326,9 @@ OPTION(LUA_USE_JUMPTABLE "Force the use of jump tables in the main interpreter l
 OPTION(LUA_USE_LONGJMP "handles errors with _longjmp/_setjmp when compiling as C++" OFF)
 OPTION(LUA_CPP_EXCEPTIONS "unprotected calls are wrapped in typed C++ exceptions" ON)
 
-IF( CMAKE_BUILD_TYPE STREQUAL Debug )
-  SET(LUA_INCLUDE_TEST ON)
-ENDIF()
+# IF( CMAKE_BUILD_TYPE STREQUAL Debug )
+#   SET(LUA_INCLUDE_TEST ON)
+# ENDIF()
 
 SET(LUA_F2IMOD_ENUM F2Ieq F2Ifloor F2Iceil)
 SET(LUA_F2IMOD F2Ieq CACHE STRING "Rounding modes for float-to-integer coercion")
