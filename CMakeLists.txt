@@ -945,6 +945,6 @@ IF( LUA_INCLUDE_TEST ) # ctest --verbose
   ENABLE_TESTING()
   ADD_TEST(NAME test_all
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/testes
-    COMMAND lua ${PROJECT_SOURCE_DIR}/testes/all.lua
+    COMMAND lua -e "_port=true" ${PROJECT_SOURCE_DIR}/testes/all.lua
   )
 ENDIF()
