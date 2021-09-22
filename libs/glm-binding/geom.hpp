@@ -99,7 +99,7 @@ struct gLuaRelative : gLuaTrait<T> {
 };
 
 template<glm::length_t L = 3, typename T = glm_Float>
-struct gLuaAABB : gLuaTraitCommon<T, glm::AABB<L, T>> {
+struct gLuaAABB : gLuaSharedTrait<T, glm::AABB<L, T>> {
   using Point = gLuaTrait<typename glm::AABB<L, T>::Point>;
 
   static GLM_CONSTEXPR const char *Label() { return "AABB"; }
@@ -110,7 +110,7 @@ struct gLuaAABB : gLuaTraitCommon<T, glm::AABB<L, T>> {
 };
 
 template<glm::length_t L = 3, typename T = glm_Float>
-struct gLuaLine : gLuaTraitCommon<T, glm::Line<L, T>> {
+struct gLuaLine : gLuaSharedTrait<T, glm::Line<L, T>> {
   using Point = gLuaTrait<typename glm::Line<L, T>::Point>;
   using Near = gLuaRelative<true, false, T>;
   using Far = gLuaRelative<false, false, T>;
@@ -123,7 +123,7 @@ struct gLuaLine : gLuaTraitCommon<T, glm::Line<L, T>> {
 };
 
 template<glm::length_t L = 3, typename T = glm_Float>
-struct gLuaSegment : gLuaTraitCommon<T, glm::LineSegment<L, T>> {
+struct gLuaSegment : gLuaSharedTrait<T, glm::LineSegment<L, T>> {
   using Point = gLuaTrait<typename glm::LineSegment<L, T>::Point>;
   using Near = gLuaRelative<true, true, T>;
   using Far = gLuaRelative<false, true, T>;
@@ -136,7 +136,7 @@ struct gLuaSegment : gLuaTraitCommon<T, glm::LineSegment<L, T>> {
 };
 
 template<glm::length_t L = 3, typename T = glm_Float>
-struct gLuaRay : gLuaTraitCommon<T, glm::Ray<L, T>> {
+struct gLuaRay : gLuaSharedTrait<T, glm::Ray<L, T>> {
   using Point = gLuaTrait<typename glm::Ray<L, T>::Point>;
   using Near = gLuaRelative<true, true, T>;
   using Far = gLuaRelative<false, false, T>;
@@ -149,7 +149,7 @@ struct gLuaRay : gLuaTraitCommon<T, glm::Ray<L, T>> {
 };
 
 template<glm::length_t L = 3, typename T = glm_Float>
-struct gLuaSphere : gLuaTraitCommon<T, glm::Sphere<L, T>> {
+struct gLuaSphere : gLuaSharedTrait<T, glm::Sphere<L, T>> {
   using Point = gLuaTrait<typename glm::Sphere<L, T>::Point>;
 
   static GLM_CONSTEXPR const char *Label() { return "Sphere"; }
@@ -160,7 +160,7 @@ struct gLuaSphere : gLuaTraitCommon<T, glm::Sphere<L, T>> {
 };
 
 template<glm::length_t L = 3, typename T = glm_Float>
-struct gLuaPlane : gLuaTraitCommon<T, glm::Plane<L, T>> {
+struct gLuaPlane : gLuaSharedTrait<T, glm::Plane<L, T>> {
   using Point = gLuaTrait<typename glm::Plane<L, T>::Point>;
 
   static GLM_CONSTEXPR const char *Label() { return "Plane"; }
@@ -177,7 +177,7 @@ struct gLuaPlane : gLuaTraitCommon<T, glm::Plane<L, T>> {
 ///   userdata also storing the dimensionality to each point.
 /// </summary>
 template<typename T = glm_Float>
-struct gLuaPolygon : gLuaTraitCommon<T, glm::Polygon<3, T>> {
+struct gLuaPolygon : gLuaSharedTrait<T, glm::Polygon<3, T>> {
   using Point = gLuaTrait<typename glm::Polygon<3, T>::Point>;
 
   static GLM_CONSTEXPR const char *Label() { return "Polygon"; }
