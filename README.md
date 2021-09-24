@@ -453,6 +453,9 @@ As `lglm.cpp` must be compiled as C++, the preprocessor flag `LUA_C_LINKAGE` is 
 ### Make
 An modified version of the makefile [bundled](https://www.lua.org/download.html) with release versions of Lua. The same instructions apply:
 ```bash
+# Ensure the GLM library is initialized
+└> git submodule update --init
+
 # Build for the linux platform target, linked with readline;
 └> make linux-readline
 
@@ -467,6 +470,8 @@ An modified version of the makefile [bundled](https://www.lua.org/download.html)
 A CMake project that builds the stand-alone interpreter (`lua`), a compiler (`luac`), the GLM binding library, and shared/static libraries. This project includes variables for most preprocessor configuration flags supported by Lua and GLM. See `cmake -LAH` or [cmake-gui](https://cmake.org/runningcmake/) for the complete list of build options.
 
 ```bash
+└> git submodule update --init
+
 # Create build directory
 └> mkdir -p build ; cd build
 
