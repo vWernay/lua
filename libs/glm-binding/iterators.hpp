@@ -59,7 +59,7 @@ public:
 
 template<typename Trait>
 bool operator==(const glmLuaIterator<Trait> &lhs, const glmLuaIterator<Trait> &rhs) {
-  return lhs.getId() && rhs.getId() && lhs.isEqual(rhs);
+  return lhs.getId() == rhs.getId() && lhs.isEqual(rhs);
 }
 
 template<typename Trait>
