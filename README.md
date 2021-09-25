@@ -435,13 +435,6 @@ result = utf8.strcmputf8i(stringLH, stringRH)
 
 ```
 
-#### Library Preloading:
-Allow the preloading of libraries, e.g., ``lib = require('...')``, via command line arguments.
-```bash
-# Preload a JSON library (stored at _G.rapidjson) and msgpack library (stored at _G.msgpack)
-./lua -lglm -lrapidjson -lmsgpack=cmsgpack
-```
-
 #### Readline History:
 Keep a persistent list of commands that have been run on the Lua interpreter. With the `LUA_HISTORY` environment variable used to declare the location history.
 
