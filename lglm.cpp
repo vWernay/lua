@@ -1049,8 +1049,12 @@ lua_Integer luaO_HashString(const char *string, size_t length, int ignore_case) 
   hash ^= (hash >> 11);
   hash += (hash << 15);
 
+#if defined(GRIT_POWER_UHASH)
+  return l_castU2S(hash);
+#else
   // @TODO: Eventually avoid sign-extension issues. If ever...
   return (lua_Integer)(int)hash;
+#endif
 }
 
 /* gritLua functions stored in lbaselib; considered deprecated */
