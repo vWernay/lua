@@ -557,7 +557,7 @@ See [libs/scripts](libs/scripts) for a collection of example/test scripts using 
 
 #### Planned Features:
 1. Support for integer vectors/matrices. Either by introducing an additional type, e.g., `LUA_TVECTORI`, or splitting the vector tag `LUA_TVECTOR` into `LUA_TVECTOR2`, `LUA_TVECTOR3`, `LUA_TVECTOR4`, and `LUA_TQUAT` and use variant bits for the primitive type.
-1. Replace `glm/gtc/random.{inl,hpp}` with a variant that takes advantage of CXX11's [Pseudo-random number generation](https://en.cppreference.com/w/cpp/numeric/random) facilities (and unify it with `math.random`).
+1. Replace `glm/gtc/random.{inl,hpp}` with a variant that takes advantage of CXX11s [Pseudo-random number generation](https://en.cppreference.com/w/cpp/numeric/random) facilities (and unify it with `math.random`).
 1. One downside to vectors/quaternions being an explicit `Value` is that they increase the minimum Value size to at least 16 bytes. Given that types in Lua are fairly transparent, it may be beneficial to introduce, or at least experiment with, a compile-time option to make vector/quaternion types collectible.
 1. Support for meshes and retrofit current spatial indexing structures for triangles; consider BSPs.
 1. Include broad phase collision scripting examples, e.g., dynamic AABB tree and/or multibox sweep-and-prune.
@@ -579,6 +579,8 @@ See [libs/scripts](libs/scripts) for a collection of example/test scripts using 
 
 #### Tweaks/TODO:
 Ordered by priority.
+1. Include GLM versioning checks in binding library to support older GLM versions, e.g., 0.9.9.9 to 0.9.9.0. GLM is presently suffering from some backwards compatibility issues and much of the quaternion library remains broken when `GLM_FORCE_QUAT_DATA_XYZW` is enabled.
+1. Features/configurations to reduce size of binding library.
 1. [geom](libs/glm-binding/geom): SIMD support (... for the most commonly use functions).
 1. Add support for two-dimensional geometrical structures: Ray2D, Line2D, Plane2D.
 1. Optimize `binding` functions that use 'glm_i2v'. Logic redundant with ``gLuaSharedTrait::Next(LB)``.
@@ -586,15 +588,71 @@ Ordered by priority.
 1. Optimize runtime swizzling: `swizzle` and `glmVec_get`. It is likely possible to improve this operation by 15/20 percent.
 1. Improve support for `glm::mat3x4` and `glm::mat4x3`.
 1. `glmMat_set` support for tables, e.g., `mat[i] = { ... }`, by using `glmH_tovector`.
-1. Features/configurations to reduce size of binding library.
 1. Consider replacing the 'blob' variant with an FFI library: advanced use is required.
-1. Include GLM version control in binding library to support older GLM versions.
 
 ## Benchmarking
-**TODO**: Finish comparisons to...
-- Lua/[LuaJIT](https://github.com/LuaJIT/LuaJIT) + [excessive/cpml](https://github.com/excessive/cpml)
-- [NumPy](https://github.com/numpy/numpy)
-- [PyGLM](https://github.com/Zuzu-Typ/PyGLM)
+These benchmark values are preliminary and subject to change. Correctness not guaranteed and no refunds allowed. LuaGLM was compiled with the default [makefile](./makefile) with `-DGLM_FORCE_DEFAULT_ALIGNED_GENTYPES` added to `GLM_FLAGS`. 
+
+### NumPy & PyGLM
+[PyGLM vs NumPy.py](https://github.com/Zuzu-Typ/PyGLM/blob/master/test/PyGLM%20vs%20NumPy.py) was ported to Lua + LuaGLM. Both were modified to increase the total number of iterations-per-case to be in the billions. Each value represents the average throughput in millions of operations per second. Secondary values represent the operations throughput with object/sink preallocation (see `LUA_GLM_RECYCLE`).
+
+| Operation                | NumPy runs | PyGLM runs | LuaGLM run    |
+|--------------------------|------------|------------|---------------|
+| vec3 creation            | 10.476     | 19.408     | 57.027        |
+| vec3 creation (custom)   | 2.530      | 14.325     | 57.123        |
+| dot(vec3)                | 1.933      | 30.340     | 77.995        |
+| cross(vec3)              | 0.076      | 29.036     | 78.245        |
+| l2norm(vec3)             | 0.538      | 37.832     | 68.900        |
+| compadd(vec3)            | 3.457      | 18.094     | 87.579        |
+| mat4x4 creation          | 9.481      | 19.573     | 20.033/29.991 |
+| mat4x4 identity creation | 0.956      | 23.434     | 30.351/71.164 |
+| mat4x4 transposition     | 2.866      | 20.609     | 29.848/72.203 |
+| mat4x4 inverse           | 0.236      | 17.441     | 24.281/47.528 |
+| mul(mat4x4, mat4x4)      | 3.367      | 11.796     | 29.379/39.614 |
+| mul(mat4x4, vec4)        | 1.370      | 15.877     | 71.390        |
+
+### LuaJIT + excessive/CPML
+`PyGLM vs NumPy.py` was ported to LuaJIT and [excessive/CPML](https://github.com/excessive/CPML). Each value represents the average throughput in millions of operations per second. Secondary values represent the operations throughput using 'object' preallocation (i.e., the 'out' parameter in many CPML functions).
+
+Note, the JIT compiler may optimize away some of the fairly tight 'profiling' loops. To compensate for this, each measurement function, i.e., the thing that invokes each operation repeatedly, is passed through `jit.off(X, true)`. These results are not a true representation of LuaJITs potential: just FFI and ancillary in-time optimizations. Real-world comparisons should be preferred (TBD).
+
+| Operation                | CPML/joff     | CPML_FFI      | LuaGLM        |
+|--------------------------|---------------|---------------|---------------|
+| vec3 creation            | 10.851        | 13.314        | 57.027        |
+| vec3 creation (custom)   | 8.960         | 8.212         | 57.123        |
+| dot(vec3)                | 48.232        | 119.451       | 77.995        |
+| cross(vec3)              | 10.230/23.840 | 2.752/105.678 | 78.245        |
+| l2norm(vec3)             | 39.737        | 6.581         | 68.900        |
+| compadd(vec3)            | 4.482         | 1.675         | 87.579        |
+| mat4x4 creation          | 6.224         | 9.128         | 20.033/29.991 |
+| mat4x4 identity creation | 5.112/11.756  | 9.367/60.403  | 30.351/71.164 |
+| mat4x4 transposition     | 3.219/6.224   | 5.652/39.101  | 29.848/72.203 |
+| mat4x4 inverse           | 0.644/0.728   | 4.701/19.800  | 24.281/47.528 |
+| mul(mat4x4, mat4x4)      | 0.866/3.427   | 2.966/7.049   | 29.379/39.614 |
+| mul(mat4x4, vec4)        | 1.468/9.819   | 1.662/55.578  | 71.390        |
+
+#### + MGL
+Modifying the benchmark scripts for [MGL](https://github.com/ImagicTheCat/MGL#comparisons) to include LuaGLM. Secondary values represent the benchmarks output with transform recycling (caching the `ent.transform` object).
+
+| Operation                    | wtime (s)   | utime (s)   | mem (kB)    | ~ ms/tick     | ~ frame % |
+|------------------------------|-------------|-------------|-------------|---------------|-----------|
+| GLM g++ CPERF+GLM\_FLAGS     | 0.110       | 0.110       | 3648        | 0.092         | 1         |
+| GLM g++ -O2                  | 0.430       | 0.430       | 3584        | 0.358         | 2         |
+| MGL LUAJIT_DISABLE_GC64      | 0.840       | 0.810       | 11256       | 0.700         | 4         |
+| LuaGLM                       | 1.17/0.92   | 1.14/0.9    | 8932/6576   | 0.975/0.767   | 6/5       |
+| CPML LuaJIT                  | 2.4/1.57    | 2.38/1.54   | 10208/5364  | 2/1.308       | 12/8      |
+| MGL LuaJIT                   | 14.900      | 14.880      | 12256       | 12.417        | 74        |
+| MGL LuaJIT/joff              | 15.190      | 15.150      | 11920       | 12.658        | 76        |
+| MGL LUAJIT_DISABLE_GC64/joff | 16.480      | 16.460      | 9900        | 13.733        | 82        |
+| CPML LuaJIT/joff             | 19.11/18.49 | 19.08/18.46 | 14900/6780  | 15.925/15.408 | 96/92     |
+| MGL Lua5.4                   | 40.310      | 40.290      | 9544        | 33.592        | 202       |
+| CPML Lua5.4                  | 66.32/61.46 | 66.28/61.43 | 23364/10004 | 55.267/51.217 | 332/307   |
+
+Note, that modern LuaJIT builds enable `LJ_GC64` mode by default (See commit "x64: Enable LJ_GC64 mode by default."). This conflicts with the table creation heavy, and sink optimization dependent, nature of MGL.
+
+### TODO
+Finish comparisons to...
+- Other things not Lua.
 - [Unity.Mathematics](https://github.com/Unity-Technologies/Unity.Mathematics)
 
 ## Sources & Acknowledgments:
