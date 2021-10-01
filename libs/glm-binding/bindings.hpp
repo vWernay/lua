@@ -1582,6 +1582,15 @@ struct gLuaEps : gLuaTrait<T> {
 ** ===================================================================
 */
 
+/* Generic to_string wrapper. */
+#define TO_STRING(LB, F, Tr, ...)                           \
+  LUA_MLM_BEGIN                                             \
+  char buff[2 * GLM_STRING_BUFFER] = { 0 };                 \
+  const int len = F(buff, GLM_STRING_BUFFER, Tr::Next(LB)); \
+  lua_pushlstring(L, buff, cast_sizet(len < 0 ? 0 : len));  \
+  return 1;                                                 \
+  LUA_MLM_END
+
 /* glm/gtx/hash.hpp */
 #define STD_HASH(LB, F, Traits, ...)          \
   LUA_MLM_BEGIN                               \

@@ -20,6 +20,7 @@
 #include "ext/vector_extensions.hpp"
 #include "ext/quat_extensions.hpp"
 #include "ext/matrix_extensions.hpp"
+#include <lglm_string.hpp> // @LuaGLM
 
 #define GLM_GEOM_QUALIFIER static GLM_INLINE
 

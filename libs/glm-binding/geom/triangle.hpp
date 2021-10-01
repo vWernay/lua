@@ -774,6 +774,21 @@ namespace glm {
   }
 
   namespace detail {
+    // @LuaGLM
+    template<glm::length_t L, typename T, qualifier Q>
+    struct format_lua_string<Triangle<L, T, Q>> {
+      static GLM_FUNC_QUALIFIER int call(char *buff, size_t buff_len, const Triangle<L, T, Q> &t) {
+        char a[GLM_STRING_BUFFER];
+        char b[GLM_STRING_BUFFER];
+        char c[GLM_STRING_BUFFER];
+
+        format_lua_string<vec<L, T, Q>>::call(a, GLM_STRING_BUFFER, t.a);
+        format_lua_string<vec<L, T, Q>>::call(b, GLM_STRING_BUFFER, t.b);
+        format_lua_string<vec<L, T, Q>>::call(c, GLM_STRING_BUFFER, t.c);
+        return _vsnprintf(buff, buff_len, "tri(%s, %s, %s)", a, b, c);
+      }
+    };
+
     template<glm::length_t L, typename T, qualifier Q>
     struct compute_to_string<Triangle<L, T, Q>> {
       GLM_GEOM_QUALIFIER std::string call(const Triangle<L, T, Q> &t) {

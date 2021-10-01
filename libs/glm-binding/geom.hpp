@@ -260,6 +260,7 @@ TRAITS_DEFN(aabb_operator_sub, operator-, gLuaAABB<>, gLuaVec3<>)
 ROTATION_MATRIX_DEFN(aabb_operator_mul, operator*, LAYOUT_UNARY, gLuaAABB<>)
 TRAITS_LAYOUT_DEFN(aabb_equal, glm::equal, GEOM_EQUALS, gLuaAABB<>)
 TRAITS_LAYOUT_DEFN(aabb_notEqual, glm::notEqual, GEOM_EQUALS, gLuaAABB<>)
+//TRAITS_LAYOUT_DEFN(aabb_tostring, glm::detail::format_type, TO_STRING, gLuaAABB<>)
 TRAITS_DEFN(aabb_isinf, glm::isinf, gLuaAABB<>)
 TRAITS_DEFN(aabb_isnan, glm::isnan, gLuaAABB<>)
 TRAITS_DEFN(aabb_isfinite, glm::isfinite, gLuaAABB<>)
@@ -319,6 +320,7 @@ static const luaL_Reg luaglm_aabblib[] = {
   { "operator_mul", glm_aabb_operator_mul },
   { "equal", glm_aabb_equal },
   { "notEqual", glm_aabb_notEqual },
+  //{ "tostring", glm_aabb_tostring },
   { "isinf", glm_aabb_isinf },
   { "isnan", glm_aabb_isnan },
   { "isfinite", glm_aabb_isfinite },
@@ -414,6 +416,7 @@ TRAITS_DEFN(aabb2d_operator_sub, operator-, gLuaAABB<2>, gLuaVec2<>)
 ROTATION_MATRIX_DEFN(aabb2d_operator_mul, operator*, LAYOUT_UNARY, gLuaAABB<2>)
 TRAITS_LAYOUT_DEFN(aabb2d_equal, glm::equal, GEOM_EQUALS, gLuaAABB<2>)
 TRAITS_LAYOUT_DEFN(aabb2d_notEqual, glm::notEqual, GEOM_EQUALS, gLuaAABB<2>)
+//TRAITS_LAYOUT_DEFN(aabb2d_tostring, glm::detail::format_type, TO_STRING, gLuaAABB<2>)
 TRAITS_DEFN(aabb2d_isinf, glm::isinf, gLuaAABB<2>)
 TRAITS_DEFN(aabb2d_isnan, glm::isnan, gLuaAABB<2>)
 TRAITS_DEFN(aabb2d_isfinite, glm::isfinite, gLuaAABB<2>)
@@ -457,6 +460,7 @@ static const luaL_Reg luaglm_aabb2dlib[] = {
   { "operator_mul", glm_aabb2d_operator_mul },
   { "equal", glm_aabb2d_equal },
   { "notEqual", glm_aabb2d_notEqual },
+  //{ "tostring", glm_aabb2d_tostring },
   { "isinf", glm_aabb2d_isinf },
   { "isnan", glm_aabb2d_isnan },
   { "isfinite", glm_aabb2d_isfinite },
@@ -514,6 +518,7 @@ TRAITS_DEFN(line_operator_sub, operator-, gLuaLine<>, gLuaVec3<>)
 ROTATION_MATRIX_DEFN(line_operator_mul, operator*, LAYOUT_UNARY, gLuaLine<>)
 TRAITS_LAYOUT_DEFN(line_equal, glm::equal, GEOM_EQUALS, gLuaLine<>)
 TRAITS_LAYOUT_DEFN(line_notEqual, glm::notEqual, GEOM_EQUALS, gLuaLine<>)
+//TRAITS_LAYOUT_DEFN(line_tostring, glm::detail::format_type, TO_STRING, gLuaLine<>)
 TRAITS_DEFN(line_to_segment, glm::toLineSegment, gLuaLine<>, gLuaFloat)
 TRAITS_DEFN(line_isinf, glm::isinf, gLuaLine<>)
 TRAITS_DEFN(line_isnan, glm::isnan, gLuaLine<>)
@@ -546,6 +551,7 @@ static const luaL_Reg luaglm_linelib[] = {
   { "operator_mul", glm_line_operator_mul },
   { "equal", glm_line_equal },
   { "notEqual", glm_line_notEqual },
+  //{ "tostring", glm_line_tostring },
   { "to_segment", glm_line_to_segment },
   { "isinf", glm_line_isinf },
   { "isnan", glm_line_isnan },
@@ -591,6 +597,7 @@ TRAITS_DEFN(ray_operator_sub, operator-, gLuaRay<>, gLuaVec3<>)
 ROTATION_MATRIX_DEFN(ray_operator_mul, operator*, LAYOUT_UNARY, gLuaRay<>)
 TRAITS_LAYOUT_DEFN(ray_equal, glm::equal, GEOM_EQUALS, gLuaRay<>)
 TRAITS_LAYOUT_DEFN(ray_notEqual, glm::notEqual, GEOM_EQUALS, gLuaRay<>)
+//TRAITS_LAYOUT_DEFN(ray_tostring, glm::detail::format_type, TO_STRING, gLuaRay<>)
 TRAITS_DEFN(ray_isinf, glm::isinf, gLuaRay<>)
 TRAITS_DEFN(ray_isnan, glm::isnan, gLuaRay<>)
 TRAITS_DEFN(ray_isfinite, glm::isfinite, gLuaRay<>)
@@ -620,6 +627,7 @@ static const luaL_Reg luaglm_raylib[] = {
   { "operator_mul", glm_ray_operator_mul },
   { "equal", glm_ray_equal },
   { "notEqual", glm_ray_notEqual },
+  //{ "tostring", glm_ray_tostring },
   { "isinf", glm_ray_isinf },
   { "isnan", glm_ray_isnan },
   { "isfinite", glm_ray_isfinite },
@@ -662,6 +670,7 @@ TRAITS_DEFN(segment_operator_sub, operator-, gLuaSegment<>, gLuaVec3<>)
 ROTATION_MATRIX_DEFN(segment_operator_mul, operator*, LAYOUT_UNARY, gLuaSegment<>)
 TRAITS_LAYOUT_DEFN(segment_equal, glm::equal, GEOM_EQUALS, gLuaSegment<>)
 TRAITS_LAYOUT_DEFN(segment_notEqual, glm::notEqual, GEOM_EQUALS, gLuaSegment<>)
+//TRAITS_LAYOUT_DEFN(segment_tostring, glm::detail::format_type, TO_STRING, gLuaSegment<>)
 TRAITS_DEFN(segment_length, glm::length, gLuaSegment<>)
 TRAITS_DEFN(segment_length2, glm::length2, gLuaSegment<>)
 TRAITS_DEFN(segment_isfinite, glm::isfinite, gLuaSegment<>)
@@ -698,6 +707,7 @@ static const luaL_Reg luaglm_segmentlib[] = {
   { "operator_mul", glm_segment_operator_mul },
   { "equal", glm_segment_equal },
   { "notEqual", glm_segment_notEqual },
+  //{ "tostring", glm_segment_tostring },
   { "length", glm_segment_length },
   { "length2", glm_segment_length2 },
   { "isfinite", glm_segment_isfinite },
@@ -743,6 +753,7 @@ TRAITS_DEFN(segment2d_operator_add, operator+, gLuaSegment<2>, gLuaVec2<>)
 TRAITS_DEFN(segment2d_operator_sub, operator-, gLuaSegment<2>, gLuaVec2<>)
 TRAITS_LAYOUT_DEFN(segment2d_equal, glm::equal, GEOM_EQUALS, gLuaSegment<2>)
 TRAITS_LAYOUT_DEFN(segment2d_notEqual, glm::notEqual, GEOM_EQUALS, gLuaSegment<2>)
+//TRAITS_LAYOUT_DEFN(segment2d_tostring, glm::detail::format_type, TO_STRING, gLuaSegment<2>)
 TRAITS_DEFN(segment2d_length, glm::length, gLuaSegment<2>)
 TRAITS_DEFN(segment2d_length2, glm::length2, gLuaSegment<2>)
 TRAITS_DEFN(segment2d_isfinite, glm::isfinite, gLuaSegment<2>)
@@ -774,6 +785,7 @@ static const luaL_Reg luaglm_segment2dlib[] = {
   { "operator_sub", glm_segment2d_operator_sub },
   { "equal", glm_segment2d_equal },
   { "notEqual", glm_segment2d_notEqual },
+  //{ "tostring", glm_segment2d_tostring },
   { "length", glm_segment2d_length },
   { "length2", glm_segment2d_length2 },
   { "isfinite", glm_segment2d_isfinite },
@@ -814,6 +826,7 @@ TRAITS_DEFN(triangle_operator_sub, operator-, gLuaTriangle<>, gLuaVec3<>)
 ROTATION_MATRIX_DEFN(triangle_operator_mul, operator*, LAYOUT_UNARY, gLuaTriangle<>)
 TRAITS_LAYOUT_DEFN(triangle_equal, glm::equal, GEOM_EQUALS, gLuaTriangle<>)
 TRAITS_LAYOUT_DEFN(triangle_notEqual, glm::notEqual, GEOM_EQUALS, gLuaTriangle<>)
+//TRAITS_LAYOUT_DEFN(triangle_tostring, glm::detail::format_type, TO_STRING, gLuaTriangle<>)
 TRAITS_DEFN(triangle_isinf, glm::isinf, gLuaTriangle<>)
 TRAITS_DEFN(triangle_isnan, glm::isnan, gLuaTriangle<>)
 TRAITS_DEFN(triangle_isfinite, glm::isfinite, gLuaTriangle<>)
@@ -860,6 +873,7 @@ static const luaL_Reg luaglm_trianglelib[] = {
   { "operator_mul", glm_triangle_operator_mul },
   { "equal", glm_triangle_equal },
   { "notEqual", glm_triangle_notEqual },
+  //{ "tostring", glm_triangle_tostring },
   { "isinf", glm_triangle_isinf },
   { "isnan", glm_triangle_isnan },
   { "isfinite", glm_triangle_isfinite },
@@ -949,6 +963,7 @@ TRAITS_DEFN(sphere_operator_sub, operator-, gLuaSphere<>, gLuaVec3<>)
 ROTATION_MATRIX_DEFN(sphere_operator_mul, operator*, LAYOUT_UNARY, gLuaSphere<>)
 TRAITS_LAYOUT_DEFN(sphere_equal, glm::equal, GEOM_EQUALS, gLuaSphere<>)
 TRAITS_LAYOUT_DEFN(sphere_notEqual, glm::notEqual, GEOM_EQUALS, gLuaSphere<>)
+//TRAITS_LAYOUT_DEFN(sphere_tostring, glm::detail::format_type, TO_STRING, gLuaSphere<>)
 TRAITS_DEFN(sphere_volume, glm::volume, gLuaSphere<>)
 TRAITS_DEFN(sphere_surfaceArea, glm::surfaceArea, gLuaSphere<>)
 TRAITS_DEFN(sphere_isinf, glm::isinf, gLuaSphere<>)
@@ -994,6 +1009,7 @@ static const luaL_Reg luaglm_spherelib[] = {
   { "operator_mul", glm_sphere_operator_mul },
   { "equal", glm_sphere_equal },
   { "notEqual", glm_sphere_notEqual },
+  //{ "tostring", glm_sphere_tostring },
   { "volume", glm_sphere_volume },
   { "surfaceArea", glm_sphere_surfaceArea },
   { "isinf", glm_sphere_isinf },
@@ -1056,6 +1072,7 @@ TRAITS_DEFN(circle_operator_add, operator+, gLuaSphere<2>, gLuaVec2<>)
 TRAITS_DEFN(circle_operator_sub, operator-, gLuaSphere<2>, gLuaVec2<>)
 TRAITS_LAYOUT_DEFN(circle_equal, glm::equal, GEOM_EQUALS, gLuaSphere<2>)
 TRAITS_LAYOUT_DEFN(circle_notEqual, glm::notEqual, GEOM_EQUALS, gLuaSphere<2>)
+//TRAITS_LAYOUT_DEFN(circle_tostring, glm::detail::format_type, TO_STRING, gLuaSphere<2>)
 TRAITS_DEFN(circle_area, glm::area, gLuaSphere<2>)
 TRAITS_DEFN(circle_isinf, glm::isinf, gLuaSphere<2>)
 TRAITS_DEFN(circle_isnan, glm::isnan, gLuaSphere<2>)
@@ -1095,6 +1112,7 @@ static const luaL_Reg luaglm_circlelib[] = {
   { "operator_sub", glm_circle_operator_sub },
   { "equal", glm_circle_equal },
   { "notEqual", glm_circle_notEqual },
+  //{ "tostring", glm_circle_tostring },
   { "area", glm_circle_area },
   { "isinf", glm_circle_isinf },
   { "isnan", glm_circle_isnan },
@@ -1151,6 +1169,7 @@ TRAITS_DEFN(plane_operator_sub, operator-, gLuaPlane<>, gLuaVec3<>)
 ROTATION_MATRIX_DEFN(plane_operator_mul, operator*, LAYOUT_UNARY, gLuaPlane<>)
 TRAITS_LAYOUT_DEFN(plane_equal, glm::equal, GEOM_EQUALS, gLuaPlane<>)
 TRAITS_LAYOUT_DEFN(plane_notEqual, glm::notEqual, GEOM_EQUALS, gLuaPlane<>)
+//TRAITS_LAYOUT_DEFN(plane_tostring, glm::detail::format_type, TO_STRING, gLuaPlane<>)
 TRAITS_DEFN(plane_fromRay, glm::planeFrom, gLuaRay<>, gLuaVec3<>)
 TRAITS_DEFN(plane_fromLine, glm::planeFrom, gLuaLine<>, gLuaVec3<>)
 TRAITS_DEFN(plane_fromLineSegment, glm::planeFrom, gLuaSegment<>, gLuaVec3<>)
@@ -1257,6 +1276,7 @@ static const luaL_Reg luaglm_planelib[] = {
   { "operator_mul", glm_plane_operator_mul },
   { "equal", glm_plane_equal },
   { "notEqual", glm_plane_notEqual },
+  //{ "tostring", glm_plane_tostring },
   { "fromRay", glm_plane_fromRay },
   { "fromLine", glm_plane_fromLine },
   { "fromLineSegment", glm_plane_fromLineSegment },

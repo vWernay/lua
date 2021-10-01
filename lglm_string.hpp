@@ -4,6 +4,9 @@
 ** See Copyright Notice in lua.h
 */
 
+#ifndef lglm_string_h
+#define lglm_string_h
+
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
@@ -377,3 +380,5 @@ namespace hash {
 /* }================================================================== */
 
 #undef GLM_STRING_HEADER
+
+#endif

@@ -442,6 +442,19 @@ namespace glm {
   }
 
   namespace detail {
+    // @LuaGLM
+    template<glm::length_t L, typename T, qualifier Q>
+    struct format_lua_string<LineSegment<L, T, Q>> {
+      static GLM_FUNC_QUALIFIER int call(char *buff, size_t buff_len, const LineSegment<L, T, Q> &line) {
+        char a[GLM_STRING_BUFFER];
+        char b[GLM_STRING_BUFFER];
+
+        format_lua_string<vec<L, T, Q>>::call(a, GLM_STRING_BUFFER, line.a);
+        format_lua_string<vec<L, T, Q>>::call(b, GLM_STRING_BUFFER, line.b);
+        return _vsnprintf(buff, buff_len, "segment(%s, %s)", a, b);
+      }
+    };
+
     template<glm::length_t L, typename T, qualifier Q>
     struct compute_to_string<LineSegment<L, T, Q>> {
       GLM_GEOM_QUALIFIER std::string call(const LineSegment<L, T, Q> &line) {

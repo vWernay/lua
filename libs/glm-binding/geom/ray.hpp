@@ -423,6 +423,19 @@ namespace glm {
   }
 
   namespace detail {
+    // @LuaGLM
+    template<glm::length_t L, typename T, qualifier Q>
+    struct format_lua_string<Ray<L, T, Q>> {
+      static GLM_FUNC_QUALIFIER int call(char *buff, size_t buff_len, const Ray<L, T, Q> &ray) {
+        char pos[GLM_STRING_BUFFER];
+        char dir[GLM_STRING_BUFFER];
+
+        format_lua_string<vec<L, T, Q>>::call(pos, GLM_STRING_BUFFER, ray.pos);
+        format_lua_string<vec<L, T, Q>>::call(dir, GLM_STRING_BUFFER, ray.dir);
+        return _vsnprintf(buff, buff_len, "ray(%s, %s)", pos, dir);
+      }
+    };
+
     template<glm::length_t L, typename T, qualifier Q>
     struct compute_to_string<Ray<L, T, Q>> {
       GLM_GEOM_QUALIFIER std::string call(const Ray<L, T, Q> &ray) {
