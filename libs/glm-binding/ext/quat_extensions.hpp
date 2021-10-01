@@ -24,7 +24,11 @@
 #endif
 
 #include <glm/glm.hpp>
+#if GLM_VERSION >= 991  // @COMPAT Changed to ext/quaternion_common in 0.9.9.1
 #include <glm/ext/quaternion_common.hpp>
+#else
+#include <glm/gtc/quaternion.hpp>
+#endif
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/fast_square_root.hpp>
 #include <glm/gtx/euler_angles.hpp>

@@ -23,8 +23,14 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
+#if GLM_VERSION >= 996 /* @COMPAT Added in 0.9.9.6 */
 #include <glm/ext/scalar_integer.hpp>
+#endif
+#if GLM_VERSION >= 991 /* @COMPAT Changed to ext/scale_constants in 0.9.9.1 */
 #include <glm/ext/scalar_constants.hpp>
+#else
+#include <glm/gtc/constants.hpp>
+#endif
 
 #include <lua.hpp>
 #include <lglm.hpp>
@@ -120,6 +126,7 @@ static const luaL_Reg luaglm_lib[] = {
   { "_VERSION", GLM_NULLPTR },
   { "_COPYRIGHT", GLM_NULLPTR },
   { "_DESCRIPTION", GLM_NULLPTR },
+  { "_GLM_VERSION", GLM_NULLPTR },
   { GLM_NULLPTR, GLM_NULLPTR }
 };
 
@@ -147,7 +154,9 @@ extern "C" {
     glm_newmetatable(L, LUA_GLM_POLYGON_META, "polygon", luaglm_polylib);
 #endif
 #if defined(CONSTANTS_HPP) || defined(EXT_SCALAR_CONSTANTS_HPP)
+  #if GLM_VERSION >= 997  // @COMPAT Added in 0.9.9.7
     GLM_CONSTANT(L, cos_one_over_two);
+  #endif
     GLM_CONSTANT(L, e);
     GLM_CONSTANT(L, epsilon);
     GLM_CONSTANT(L, euler);
@@ -199,6 +208,7 @@ extern "C" {
     lua_pushliteral(L, LUA_GLM_VERSION); lua_setfield(L, -2, "_VERSION");
     lua_pushliteral(L, LUA_GLM_COPYRIGHT); lua_setfield(L, -2, "_COPYRIGHT");
     lua_pushliteral(L, LUA_GLM_DESCRIPTION); lua_setfield(L, -2, "_DESCRIPTION");
+    lua_pushinteger(L, GLM_VERSION); lua_setfield(L, -2, "_GLM_VERSION");
 
     /* Copy lmathlib functions not supported by library. */
     if (lua_getfield(L, LUA_REGISTRYINDEX, LUA_LOADED_TABLE) == LUA_TTABLE) {  // [..., glm, load_tab]

@@ -1598,6 +1598,16 @@ struct gLuaEps : gLuaTrait<T> {
   gLuaBase::Push(LB, hash(Traits::Next(LB))); \
   LUA_MLM_END
 
+/* @COMPAT max ULPs parameters for scalar numbers introduced in 0.9.9.3 */
+#if GLM_VERSION >= 993
+  #define _TR_EQUAL_ULPS(LB, F, A, B, Val)                                  \
+    else if (ttisinteger(Val)) {                                            \
+      return gLuaBase::Push((LB), F((A), (B), gLuaTrait<int>::Next((LB)))); \
+    }
+#else
+  #define _TR_EQUAL_ULPS(LB, F, A, B, Val)
+#endif
+
 /* Generic equals layout */
 #define _EQUAL(LB, F, Tr, Tr_Row)                                              \
   LUA_MLM_BEGIN                                                                \
@@ -1608,10 +1618,9 @@ struct gLuaEps : gLuaTrait<T> {
     return gLuaBase::Push(LB, F(__a, __b));                                    \
   else if (ttisfloat(_tv3)) /* <Tr, Tr, eps> */                                \
     return gLuaBase::Push(LB, F(__a, __b, gLuaEps<Tr::value_type>::Next(LB))); \
-  else if (ttisinteger(_tv3)) /* <Tr, Tr, ULPs> */                             \
-    return gLuaBase::Push(LB, F(__a, __b, gLuaTrait<int>::Next(LB)));          \
   else if (Tr_Row::Is(LB, (LB).idx)) /* <Tr, Tr, vec> */                       \
     return gLuaBase::Push(LB, F(__a, __b, Tr_Row::Next(LB)));                  \
+  _TR_EQUAL_ULPS(LB, F, __a, __b, _tv3) /* <Tr, Tr, ULPs> */                   \
   return luaL_typeerror((LB).L, (LB).idx, "expected none, " LABEL_NUMBER " or " LABEL_VECTOR); \
   LUA_MLM_END
 

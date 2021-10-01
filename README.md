@@ -579,7 +579,6 @@ See [libs/scripts](libs/scripts) for a collection of example/test scripts using 
 
 #### Tweaks/TODO:
 Ordered by priority.
-1. Include GLM versioning checks in binding library to support older GLM versions, e.g., 0.9.9.9 to 0.9.9.0. GLM is presently suffering from some backwards compatibility issues and much of the quaternion library remains broken when `GLM_FORCE_QUAT_DATA_XYZW` is enabled.
 1. Features/configurations to reduce size of binding library.
 1. [geom](libs/glm-binding/geom): SIMD support (... for the most commonly use functions).
 1. Add support for two-dimensional geometrical structures: Ray2D, Line2D, Plane2D.

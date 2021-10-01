@@ -12,9 +12,33 @@
 #include "lobject.h"
 #include "ltm.h"
 
-/* Handle should-be-deprecated-instead-of-removed GLM macro GLM_FORCE_QUAT_DATA_WXYZ */
+/*
+@@ LUAGLM_QUAT_WXYZ Quaternion layout (i.e., wxyz vs xyzw).
+@@ LUAGLM_VERSION Version number of the included GLM library. This value is
+**  manually redefined so it can be used by the strictly-C defined portions of
+**  this runtime.
+**
+** Temporary until 820a2c0e625f26000c688d841836bb10483be34d is remedied.
+*/
+#if !defined(LUAGLM_VERSION)
+  #define LUAGLM_VERSION 999
+#endif
+
+/* Handle should-be-deprecated-instead-of-removed GLM_FORCE_QUAT_DATA_WXYZ */
 #if defined(GLM_FORCE_QUAT_DATA_WXYZ)
   #undef GLM_FORCE_QUAT_DATA_XYZW
+#endif
+
+#if LUAGLM_VERSION < 999
+  #if defined(GLM_FORCE_QUAT_DATA_WXYZ)
+    #define LUAGLM_QUAT_WXYZ 1
+  #else
+    #define LUAGLM_QUAT_WXYZ 0
+  #endif
+#elif defined(GLM_FORCE_QUAT_DATA_XYZW)
+  #define LUAGLM_QUAT_WXYZ 0
+#else
+  #define LUAGLM_QUAT_WXYZ 1
 #endif
 
 /*
@@ -56,7 +80,7 @@ static LUA_INLINE grit_length_t glm_dimensions (lu_byte rtt) {
 static LUA_INLINE int vecgeti (const TValue *obj, lua_Integer n, StkId res) {
   grit_length_t _n = cast(grit_length_t, n);
   if (l_likely(_n >= 1 && _n <= glm_dimensions(ttypetag(obj)))) {  /* Accessing vectors is 0-based */
-#if !defined(GLM_FORCE_QUAT_DATA_XYZW)  /* quaternion has WXYZ layout */
+#if LUAGLM_QUAT_WXYZ  /* quaternion has WXYZ layout */
     if (ttypetag(obj) == LUA_VQUAT) _n = (_n % 4) + 1;
 #endif
 
@@ -88,7 +112,7 @@ static LUA_INLINE int vecgets (const TValue *obj, const char *k, StkId res) {
   }
 
   if (l_likely(_n >= 1 && _n <= _d)) {
-#if !defined(GLM_FORCE_QUAT_DATA_XYZW)  /* quaternion has WXYZ layout */
+#if LUAGLM_QUAT_WXYZ  /* quaternion has WXYZ layout */
     if (ttypetag(obj) == LUA_VQUAT) _n = (_n % 4) + 1;
 #endif
     setfltvalue(s2v(res), cast_num((&(vvalue_ref(obj)->x))[_n - 1]));

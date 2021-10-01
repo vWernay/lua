@@ -17,7 +17,36 @@
 #include "lua.hpp"
 
 #include <glm/glm.hpp>
+
+/*
+** @COMPAT Fix for missing "ext/quaternion_common.hpp" include in type_quat.hpp
+**  introduced in 0.9.9.9. Note, "detail/qualifier.hpp" will forward declare the
+**  quaternion type. And this include must be placed before "type_quat.hpp".
+*/
+#if GLM_VERSION < 999
+  #include <glm/gtc/quaternion.hpp>
+#endif
 #include <glm/detail/type_quat.hpp>
+
+/*
+@@ LUA_GLM_MINVERSION Minimum supported GLM_VERSION.
+@@ LUA_GLM_MAXVERSION Maximum supported GLM_VERSION.
+*/
+#define LUA_GLM_MINVERSION 991
+#define LUA_GLM_MAXVERSION 999
+#if GLM_VERSION < LUA_GLM_MINVERSION || GLM_VERSION > LUA_GLM_MAXVERSION
+  #error "GLM error: unsupported version"
+#endif
+
+/* @COMPAT GLM_DEFAULT_CTOR introduced in 0.9.9.9 */
+#if !defined(GLM_DEFAULT_CTOR)
+  #define GLM_DEFAULT_CTOR GLM_DEFAULT
+#endif
+
+/* @COMPAT GLM_IF_CONSTEXPR introduced in 0.9.9.5 */
+#if !defined(GLM_IF_CONSTEXPR)
+  #define GLM_IF_CONSTEXPR if
+#endif
 
 /*
 ** LuaGLM offers vectors as a primitive type in the runtime and the default

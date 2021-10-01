@@ -7,11 +7,6 @@
 #define lglm_cpp
 #define LUA_CORE
 
-/* @TEMP Disallow 820a2c0e625f26000c688d841836bb10483be34d */
-#if defined(GLM_FORCE_QUAT_DATA_XYZW)
-  #error "please compile without GLM_FORCE_QUAT_DATA_XYZW"
-#endif
-
 /*
 ** For default builds this file will be compiled as C++ and then linked against
 ** the rest of the Lua compiled in C. Some care is required when crossing
@@ -56,12 +51,24 @@ extern LUA_API_LINKAGE {
 #include <glm/fwd.hpp>
 #include <glm/ext.hpp>
 
-#include <glm/detail/type_quat.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/common.hpp>
 #include <glm/gtx/exterior_product.hpp>
 #include <glm/ext/matrix_relational.hpp>
 #include <glm/ext/matrix_transform.hpp>
+
+/* Handle should-be-deprecated-instead-of-removed GLM_FORCE_QUAT_DATA_WXYZ */
+#if defined(GLM_FORCE_QUAT_DATA_WXYZ)
+  #undef GLM_FORCE_QUAT_DATA_XYZW
+/* @TEMP Disallow 820a2c0e625f26000c688d841836bb10483be34d */
+#elif defined(GLM_FORCE_QUAT_DATA_XYZW)
+  #error "please compile without GLM_FORCE_QUAT_DATA_XYZW"
+#endif
+
+/* @TEMP Ensure C boundary is correct */
+#if LUAGLM_VERSION != GLM_VERSION
+  #error "GLM error: A different version of LUAGLM is already defined."
+#endif
 
 #define INVALID_VECTOR_TYPE "invalid " LABEL_VECTOR " type"
 #define INVALID_VECTOR_STRUCTURE "invalid " LABEL_VECTOR " structure"
@@ -327,7 +334,7 @@ void glmVec_get(lua_State *L, const TValue *obj, TValue *key, StkId res) {
           // Quaternion was swizzled and resultant vector is still normalized.
           // Keep quaternion semantics.
           if (ttisquat(obj) && glm::isNormalized(glm_vec_boundary(&out).v4, glm::epsilon<glm_Float>())) {
-#if !defined(GLM_FORCE_QUAT_DATA_XYZW)  // quaternion has WXYZ layout
+#if LUAGLM_QUAT_WXYZ  // quaternion has WXYZ layout
             lua_Float4 swap = out;
             out = { swap.w, swap.x, swap.y, swap.z };
 #endif
@@ -579,7 +586,7 @@ static int glmMat_auxset(lua_State *L, const TValue *obj, TValue *key, TValue *v
       case 2: m.m42[dim - 1] = glm_vecvalue(val).v2; break;
       case 3: m.m43[dim - 1] = glm_vecvalue(val).v3; break;
       case 4: {
-#if !defined(GLM_FORCE_QUAT_DATA_XYZW)  // quaternion has WXYZ layout
+#if LUAGLM_QUAT_WXYZ  // quaternion has WXYZ layout
         if (ttisquat(val)) {
           const glm::qua<glm_Float> &q = glm_quatvalue(val).q;
           m.m44[dim - 1] = glm::vec<4, glm_Float>(q.x, q.y, q.z, q.w);
@@ -1278,15 +1285,18 @@ LUA_API int lua_tovector (lua_State *L, int idx, int flags, lua_Float4 *f4) {
   if (f4 != GLM_NULLPTR && variant != LUA_TNIL) {
     if (variant == LUA_VVECTOR1)
       f4->x = v.v4.x;
-
-    // @TODO: Use GLM_FORCE_QUAT_DATA_XYZW preprocessor directive to avoid the
-    // runtime ternary operations. However, this API is deprecated and will
-    // receive little attention.
     else if (novariant(variant) == LUA_TVECTOR) {
+#if LUAGLM_QUAT_WXYZ
       f4->x = ((variant == LUA_VQUAT) ? v.q.x : v.v4.x);
       f4->y = ((variant == LUA_VQUAT) ? v.q.y : v.v4.y);
       f4->z = ((variant == LUA_VQUAT) ? v.q.z : v.v4.z);
       f4->w = ((variant == LUA_VQUAT) ? v.q.w : v.v4.w);
+#else
+      f4->x = v.v4.x;
+      f4->y = v.v4.y;
+      f4->z = v.v4.z;
+      f4->w = v.v4.w;
+#endif
     }
   }
   return variant;

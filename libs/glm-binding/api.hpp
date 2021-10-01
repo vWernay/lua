@@ -23,6 +23,10 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/matrix_factorisation.hpp>
 #include <glm/detail/_vectorize.hpp>
+#if GLM_VERSION >= 994 && GLM_VERSION <= 997
+/* @COMPAT introduced in 0.9.9.4 and missing from ext.hpp until 0.9.9.8 */
+#include <glm/ext/matrix_common.hpp>
+#endif
 #if GLM_HAS_CXX11_STL
 #include <glm/gtx/hash.hpp>
 #endif
@@ -148,6 +152,19 @@
   #define GTX_WRAP_HPP
 #endif
 
+/*
+** @WIP Macros that ensure backwards compatibility.
+**
+** Temporary change until an improved feature-flag system is developed to reduce
+** the size of the binding library (if ever?).
+*/
+#if GLM_VERSION < 999
+  #undef GTX_PCA_HPP /* @COMPAT pca.hpp introduced in 0.9.9.9 */
+  #if GLM_VERSION < 994
+    #undef EXT_MATRIX_COMMON_HPP /* @COMPAT ext/matrix_common.hpp introduced in 0.9.9.4 */
+  #endif
+#endif
+
 /* }================================================================== */
 
 /*
@@ -174,11 +191,7 @@
       TRAITS_FUNC(LB, F, gLuaInteger, gLuaInteger);                           \
       break;                                                                  \
     case LUA_VSHRSTR: case LUA_VLNGSTR: /* string coercion */                 \
-    case LUA_VNUMFLT:                                                         \
-      if (gLuaInteger::Is(LB, (LB).idx + 2)) /* <number, number, ulps> */     \
-        TRAITS_FUNC(LB, F, gLuaNumber, gLuaNumber, gLuaTrait<int>);           \
-      TRAITS_FUNC(LB, F, gLuaNumber, gLuaNumber, gLuaNumber);                 \
-      break;                                                                  \
+    case LUA_VNUMFLT: _EQUAL(LB, F, gLuaNumber, gLuaNumber); break;           \
     case LUA_VVECTOR2: _EQUAL(LB, F, gLuaVec2<>, gLuaVec2<>); break;          \
     case LUA_VVECTOR3: _EQUAL(LB, F, gLuaVec3<>, gLuaVec3<>); break;          \
     case LUA_VVECTOR4: _EQUAL(LB, F, gLuaVec4<>, gLuaVec4<>); break;          \
@@ -560,7 +573,9 @@ INTEGER_VECTOR_DEFN(findMSB, glm::findMSB, LAYOUT_UNARY, LUA_UNSIGNED)
 #endif
 
 #if defined(EXT_SCALAR_INTEGER_HPP) || defined(EXT_VECTOR_INTEGER_HPP)
+#if GLM_VERSION >= 996  // @COMPAT Added in 0.9.9.6
 INTEGER_VECTOR_DEFN(findNSB, glm::findNSB, LAYOUT_VECTOR_INT, LUA_UNSIGNED)
+#endif
 #endif
 
 #if defined(GTC_BITFIELD_HPP)
@@ -681,7 +696,9 @@ TRAITS_DEFN(unpackUint2x32, glm::unpackUint2x32, gLuaTrait<glm::uint64>)
 #endif
 
 #if defined(GTC_ULP_HPP)
+#if GLM_VERSION >= 993  // @COMPAT float_distance incorrectly declared until 0.9.9.3
 NUMBER_VECTOR_DEFN(float_distance, glm::float_distance, LAYOUT_BINARY)
+#endif
 #endif
 
 #if defined(GTC_ULP_HPP) || defined(EXT_SCALAR_ULP_HPP) || defined(EXT_VECTOR_ULP_HPP)
@@ -695,8 +712,13 @@ NUMBER_VECTOR_DEFN(float_distance, glm::float_distance, LAYOUT_BINARY)
     TRAITS_FUNC(LB, F, Tr, Tr::as_type<int>);    \
   LUA_MLM_END
 
+#if GLM_VERSION >= 993  // @COMPAT vector support added in 0.9.9.3
 NUMBER_VECTOR_DEFN(next_float, glm::next_float, NEXT_FLOAT)
 NUMBER_VECTOR_DEFN(prev_float, glm::prev_float, NEXT_FLOAT)
+#else
+TRAITS_LAYOUT_DEFN(next_float, glm::next_float, NEXT_FLOAT, gLuaNumber)
+TRAITS_LAYOUT_DEFN(prev_float, glm::prev_float, NEXT_FLOAT, gLuaNumber)
+#endif
 #endif
 
 /* }================================================================== */
@@ -1141,7 +1163,9 @@ MATRIX_GENERAL_MAJOR_DEFN(rowMajor, glm::rowMajor)
 #endif
 
 #if defined(GTX_MATRIX_OPERATION_HPP)
+#if GLM_VERSION >= 993  // @COMPAT Added in 0.9.9.3
 SYMMETRIC_MATRIX_DEFN(adjugate, glm::adjugate, LAYOUT_UNARY)
+#endif
 TRAITS_LAYOUT_DEFN(diagonal2x2, glm::diagonal2x3, LAYOUT_UNARY, gLuaVec2<>)
 TRAITS_LAYOUT_DEFN(diagonal2x3, glm::diagonal2x3, LAYOUT_UNARY, gLuaVec2<>)
 TRAITS_LAYOUT_DEFN(diagonal2x4, glm::diagonal2x4, LAYOUT_UNARY, gLuaVec2<>)
@@ -1390,6 +1414,7 @@ GLM_BINDING_QUALIFIER(mix) {
     case LUA_VVECTOR3: LAYOUT_TERNARY_OPTIONAL(LB, glm::mix, gLuaVec3<>); break;
     case LUA_VVECTOR4: LAYOUT_TERNARY_OPTIONAL(LB, glm::mix, gLuaVec4<>); break;
     case LUA_VQUAT: LAYOUT_TERNARY_SCALAR(LB, glm::mix, gLuaQuat<>); break;
+  #if GLM_VERSION >= 994  // @COMPAT ext/matrix_common.hpp introduced in 0.9.9.4
     case LUA_VMATRIX: {
       const glmMatrix &mat = glm_mvalue(_tv);
       if (mat.size == mat.secondary) {
@@ -1407,6 +1432,7 @@ GLM_BINDING_QUALIFIER(mix) {
       }
       return luaL_typeerror(LB.L, LB.idx, LABEL_NUMBER " or " LABEL_SYMMETRIC_MATRIX);
     }
+  #endif
     default:
       break;
   }
@@ -1531,12 +1557,20 @@ NUMBER_VECTOR_DEFN(sincos, glm::sincos, QRDECOMPOSE) /* LUA_VECTOR_EXTENSIONS */
 #endif
 
 #if defined(EXT_SCALAR_INTEGER_HPP) || defined(EXT_VECTOR_INTEGER_HPP)
+#if GLM_VERSION >= 999  // @COMPAT isMultiple fixed in 0.9.9.9
 INTEGER_VECTOR_DEFN(isMultiple, glm::isMultiple, LAYOUT_BINARY_SCALAR, LUA_UNSIGNED)
+#endif
+#if GLM_VERSION >= 996  // @COMPAT Fixed in 0.9.9.6
 INTEGER_VECTOR_DEFN(isPowerOfTwo, glm::isPowerOfTwo, LAYOUT_UNARY, LUA_UNSIGNED)
+#else
+TRAITS_LAYOUT_DEFN(isPowerOfTwo, glm::isPowerOfTwo, LAYOUT_UNARY, gLuaInteger)
+#endif
+#if GLM_VERSION >= 996  // @COMPAT Added in 0.9.9.6
 INTEGER_VECTOR_DEFN(nextMultiple, glm::nextMultiple, LAYOUT_BINARY_OPTIONAL, LUA_UNSIGNED)
 INTEGER_VECTOR_DEFN(nextPowerOfTwo, glm::nextPowerOfTwo, LAYOUT_UNARY, LUA_UNSIGNED)
 INTEGER_VECTOR_DEFN(prevMultiple, glm::prevMultiple, LAYOUT_BINARY_OPTIONAL, LUA_UNSIGNED)
 INTEGER_VECTOR_DEFN(prevPowerOfTwo, glm::prevPowerOfTwo, LAYOUT_UNARY, LUA_UNSIGNED)
+#endif
 #endif
 
 #if defined(GTC_EPSILON_HPP)
@@ -1712,7 +1746,9 @@ NUMBER_VECTOR_DEFN(fastDistance, glm::fastDistance, LAYOUT_BINARY)
 NUMBER_VECTOR_DEFN(fastInverseSqrt, glm::fastInverseSqrt, LAYOUT_UNARY)
 NUMBER_VECTOR_DEFN(fastLength, glm::fastLength, LAYOUT_UNARY)
 NUMBER_VECTOR_DEFN(fastSqrt, glm::fastSqrt, LAYOUT_UNARY)
+#if GLM_VERSION >= 999  // @COMPAT fastNormalize ambiguity fixed in 0.9.9.9
 NUMBER_VECTOR_QUAT_DEFN(fastNormalize, glm::fastNormalize, LAYOUT_UNARY)
+#endif
 #endif
 
 #if defined(GTX_FAST_TRIGONOMETRY_HPP)
@@ -1802,7 +1838,9 @@ NUMBER_VECTOR_DEFN(distance2, glm::distance2, LAYOUT_BINARY)
 TRAITS_LAYOUT_DEFN(l1Norm, glm::l1Norm, LAYOUT_UNARY_OR_BINARY, gLuaVec3<>)
 TRAITS_LAYOUT_DEFN(l2Norm, glm::l2Norm, LAYOUT_UNARY_OR_BINARY, gLuaVec3<>)
 NUMBER_VECTOR_DEFN(length2, glm::length2, LAYOUT_UNARY) /* glm/gtx/quaternion.hpp */
+#if GLM_VERSION >= 996  // @COMPAT Added in 0.9.9.6
 TRAITS_LAYOUT_DEFN(lMaxNorm, glm::lMaxNorm, LAYOUT_UNARY_OR_BINARY, gLuaVec3<>)
+#endif
 TRAITS_LAYOUT_DEFN(lxNorm, glm::lxNorm, LAYOUT_UNARY_OR_BINARY, gLuaVec3<>, gLuaTrait<unsigned>)
 #endif
 
