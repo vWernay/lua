@@ -898,6 +898,28 @@
 #endif
 
 /*
+** Helpers for packing matrix dimensions into a single unit. @TODO Optimize.
+**
+@@ LUA_GLM_MATRIX_COLS Unpack the number of matrix columns for a given type.
+@@ LUA_GLM_MATRIX_ROWS Unpack the number of matrix rows for a given type.
+@@ LUA_GLM_MATRIX_TYPE Utility macro for packing column/row dimensions into
+**  a single value. Type-casting related to this macro should be considered.
+*/
+#define LUA_GLM_MATRIX_TYPE(C, R) ((C) | ((R) << 8))
+#define LUA_GLM_MATRIX_COLS(T) ((T) & 0xFF)
+#define LUA_GLM_MATRIX_ROWS(T) (((T) >> 8) & 0xFF)
+
+#define LUA_GLM_MATRIX_2x2 LUA_GLM_MATRIX_TYPE(2, 2)
+#define LUA_GLM_MATRIX_2x3 LUA_GLM_MATRIX_TYPE(2, 3)
+#define LUA_GLM_MATRIX_2x4 LUA_GLM_MATRIX_TYPE(2, 4)
+#define LUA_GLM_MATRIX_3x2 LUA_GLM_MATRIX_TYPE(3, 2)
+#define LUA_GLM_MATRIX_3x3 LUA_GLM_MATRIX_TYPE(3, 3)
+#define LUA_GLM_MATRIX_3x4 LUA_GLM_MATRIX_TYPE(3, 4)
+#define LUA_GLM_MATRIX_4x2 LUA_GLM_MATRIX_TYPE(4, 2)
+#define LUA_GLM_MATRIX_4x3 LUA_GLM_MATRIX_TYPE(4, 3)
+#define LUA_GLM_MATRIX_4x4 LUA_GLM_MATRIX_TYPE(4, 4)
+
+/*
 ** GLM_FORCE_SIZE_T_LENGTH forces length_t to be size_t. Otherwise it is
 ** defined as an int (as GLSL declares it). This type requires synchronization
 ** across the C and CPP boundaries.

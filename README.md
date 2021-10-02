@@ -582,6 +582,8 @@ Ordered by priority.
 1. Features/configurations to reduce size of binding library.
 1. [geom](libs/glm-binding/geom): SIMD support (... for the most commonly use functions).
 1. Add support for two-dimensional geometrical structures: Ray2D, Line2D, Plane2D.
+1. Experiment with packing matrix dimensions into a single a int: should simplify logic throughout the library when operating on generic matrices (i.e., avoid the switch-by-size then switch-by-secondary idiom).
+1. Cleanup testing scripts/environment and publish.
 1. Optimize `binding` functions that use 'glm_i2v'. Logic redundant with ``gLuaSharedTrait::Next(LB)``.
 1. Optimize `glm_createMatrix`. Profiling case '4x4 matrix creation (lua_Alloc)' is the one of the slowest operations in the added vector/matrix API. Worse when using the default Windows allocator.
 1. Optimize runtime swizzling: `swizzle` and `glmVec_get`. It is likely possible to improve this operation by 15/20 percent.

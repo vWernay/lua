@@ -78,7 +78,7 @@ extern LUA_API_LINKAGE {
 
 /*
 ** Matrices in GLM are stored in a column-major format. These macros exists for
-** the almost-zero percent change that matrices ever have the option to be
+** the almost-zero percent chance that matrices ever have the option to be
 ** represented by Lua as a row-major format.
 */
 #define lua_matrix_cols(size, secondary) size
@@ -1316,42 +1316,21 @@ struct gLuaEps : gLuaTrait<T> {
 ** @NOTE: This parser does not throw an error if the Value is not a known matrix
 **  value. This is to simplify the EQUAL/HASH operations.
 */
-#define PARSE_MATRIX(LB, Value, F, ArgLayout, ...)                    \
-  LUA_MLM_BEGIN                                                       \
-  switch (gm_cols(Value)) {                                           \
-    case 2: {                                                         \
-      switch (gm_rows(Value)) {                                       \
-        case 2: ArgLayout(LB, F, gLuaMat2x2<>, ##__VA_ARGS__); break; \
-        case 3: ArgLayout(LB, F, gLuaMat2x3<>, ##__VA_ARGS__); break; \
-        case 4: ArgLayout(LB, F, gLuaMat2x4<>, ##__VA_ARGS__); break; \
-        default:                                                      \
-          break;                                                      \
-      }                                                               \
-      break;                                                          \
-    }                                                                 \
-    case 3: {                                                         \
-      switch (gm_rows(Value)) {                                       \
-        case 2: ArgLayout(LB, F, gLuaMat3x2<>, ##__VA_ARGS__); break; \
-        case 3: ArgLayout(LB, F, gLuaMat3x3<>, ##__VA_ARGS__); break; \
-        case 4: ArgLayout(LB, F, gLuaMat3x4<>, ##__VA_ARGS__); break; \
-        default:                                                      \
-          break;                                                      \
-      }                                                               \
-      break;                                                          \
-    }                                                                 \
-    case 4: {                                                         \
-      switch (gm_rows(Value)) {                                       \
-        case 2: ArgLayout(LB, F, gLuaMat4x2<>, ##__VA_ARGS__); break; \
-        case 3: ArgLayout(LB, F, gLuaMat4x3<>, ##__VA_ARGS__); break; \
-        case 4: ArgLayout(LB, F, gLuaMat4x4<>, ##__VA_ARGS__); break; \
-        default:                                                      \
-          break;                                                      \
-      }                                                               \
-      break;                                                          \
-    }                                                                 \
-    default:                                                          \
-      break;                                                          \
-  }                                                                   \
+#define PARSE_MATRIX(LB, Value, F, ArgLayout, ...)                                 \
+  LUA_MLM_BEGIN                                                                    \
+  switch (LUA_GLM_MATRIX_TYPE(gm_cols(Value), gm_rows(Value))) {                   \
+    case LUA_GLM_MATRIX_2x2: ArgLayout(LB, F, gLuaMat2x2<>, ##__VA_ARGS__); break; \
+    case LUA_GLM_MATRIX_2x3: ArgLayout(LB, F, gLuaMat2x3<>, ##__VA_ARGS__); break; \
+    case LUA_GLM_MATRIX_2x4: ArgLayout(LB, F, gLuaMat2x4<>, ##__VA_ARGS__); break; \
+    case LUA_GLM_MATRIX_3x2: ArgLayout(LB, F, gLuaMat3x2<>, ##__VA_ARGS__); break; \
+    case LUA_GLM_MATRIX_3x3: ArgLayout(LB, F, gLuaMat3x3<>, ##__VA_ARGS__); break; \
+    case LUA_GLM_MATRIX_3x4: ArgLayout(LB, F, gLuaMat3x4<>, ##__VA_ARGS__); break; \
+    case LUA_GLM_MATRIX_4x2: ArgLayout(LB, F, gLuaMat4x2<>, ##__VA_ARGS__); break; \
+    case LUA_GLM_MATRIX_4x3: ArgLayout(LB, F, gLuaMat4x3<>, ##__VA_ARGS__); break; \
+    case LUA_GLM_MATRIX_4x4: ArgLayout(LB, F, gLuaMat4x4<>, ##__VA_ARGS__); break; \
+    default:                                                                       \
+      break;                                                                       \
+  }                                                                                \
   LUA_MLM_END
 
 /* A glm::function that operates only on NxN matrices */
@@ -1389,7 +1368,6 @@ struct gLuaEps : gLuaTrait<T> {
       if (size == 4 && secondary_size == 3) ArgLayout(LB, F, gLuaMat4x3<>, ##__VA_ARGS__); \
       if (size == 4 && secondary_size == 4) ArgLayout(LB, F, gLuaMat4x4<>, ##__VA_ARGS__); \
       return luaL_typeerror((LB).L, (LB).idx, GLM_INVALID_MAT_DIMENSIONS);    \
-      break;                                                                  \
     }                                                                         \
     default:                                                                  \
       break;                                                                  \
