@@ -582,6 +582,7 @@ ENDIF()
 #######################################
 
 OPTION(GLM_FORCE_MESSAGES "Platform auto detection and default configuration" OFF)
+OPTION(GLM_FORCE_CTOR_INIT "Force default initialization of vector, matrix and quaternion types" OFF)
 OPTION(GLM_FORCE_INLINE "Force inline" ON)
 OPTION(GLM_FORCE_ALIGNED_GENTYPES "Force GLM to enable aligned types" OFF)
 OPTION(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES "Force GLM to use aligned types by default" OFF)
@@ -622,6 +623,10 @@ ENDIF()
 
 # g++ doesn't support force-inlined vardiac functions, see glm::to_string.
 # Technically this is a GLM error that should be reported
+
+IF( GLM_FORCE_CTOR_INIT )
+  ADD_COMPILE_DEFINITIONS(GLM_FORCE_CTOR_INIT)
+ENDIF()
 
 IF( GLM_FORCE_INLINE )
   ADD_COMPILE_DEFINITIONS(GLM_FORCE_INLINE)

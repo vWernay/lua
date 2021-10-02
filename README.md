@@ -165,7 +165,7 @@ m2 = m:rotate(math.rad(35.0), vec3(1, 0, 0))
 vec3(70.000000, -0.000000, 0.000000)
 
 -- spherical linear interpolation of the matrices as quaternions
-> slerp(m:toQuat(), m2:toQuat(), 2/glm.pi)
+> glm.slerp(m:toQuat(), m2:toQuat(), 2/glm.pi)
 quat(0.877641, {0.479318, 0.000000, 0.000000})
 
 -- Example ported from https://github.com/g-truc/glm/blob/master/readme.md
@@ -439,7 +439,7 @@ result = utf8.strcmputf8i(stringLH, stringRH)
 Keep a persistent list of commands that have been run on the Lua interpreter. With the `LUA_HISTORY` environment variable used to declare the location history.
 
 ## Building
-The Lua core can be compiled as C or as C++ code. All functions required to integrate GLM into Lua are defined in [lglm_core.h](lglm_core.h). The mechanism for aliasing the GLM structures across C/C++ boundaries is provided in [lglm.hpp](lglm.hpp). And the GLM/Lua integration is implemented in [lglm.cpp](lglm.cpp).
+The Lua core can be compiled as C or as C++ code. All functions required to integrate GLM into Lua are defined in [lglm_core.h](lglm_core.h). The mechanism for aliasing the GLM structures across C/C++ boundaries is provided in [luaconf.h][luaconf.h] and [lglm.hpp](lglm.hpp). GLM/Lua integration is implemented in [lglm.cpp](lglm.cpp).
 
 As `lglm.cpp` must be compiled as C++, the preprocessor flag `LUA_C_LINKAGE` is used to synchronize the calling convention required to link it with the rest of Lua. Beware of language boundary issues!
 

@@ -1,5 +1,9 @@
 /*
 ** Geometric setup
+**
+** @TODO GLM_EXTERNAL_TEMPLATE support
+** @TODO GLM_CONFIG_DEFAULTED_FUNCTIONS support
+** @TODO Move "geom/" to "ext/geom/"
 */
 #ifndef __EXT_GEOM_SETUP_HPP__
 #define __EXT_GEOM_SETUP_HPP__

@@ -10,6 +10,16 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
+/*
+** @COMPAT GCC explicitly forbids using forceinline on variadic functions.
+**  Compiling with glm/gtx/string_cast with GLM_FORCE_INLINE will lead to errors
+*/
+#if (GLM_COMPILER & GLM_COMPILER_GCC)
+  #define GLM_STRING_FUNC_QUALIFIER
+#else
+  #define GLM_STRING_FUNC_QUALIFIER GLM_FUNC_QUALIFIER
+#endif
+
 /* Buffer size of format header */
 #define GLM_FORMAT_BUFFER 128
 
@@ -25,7 +35,7 @@
 /* Forward declare functor for pushing Lua strings without intermediate std::string */
 namespace glm {
 namespace detail {
-  static int _vsnprintf(char *buff, size_t buff_len, const char *msg, ...) {
+  static GLM_STRING_FUNC_QUALIFIER int _vsnprintf(char *buff, size_t buff_len, const char *msg, ...) {
     int length = 0;
 
     va_list list;
@@ -318,7 +328,7 @@ namespace hash {
   /// <summary>
   /// ltable.c: l_hashfloat
   /// </summary>
-  static int l_hashfloat(lua_Number n) {
+  static GLM_FUNC_QUALIFIER int l_hashfloat(lua_Number n) {
     int i;
     lua_Integer ni;
     n = std::frexp(n, &i) * -cast_num(INT_MIN);

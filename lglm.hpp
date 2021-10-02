@@ -49,6 +49,17 @@
 #endif
 
 /*
+** @COMPAT GLM_CONFIG_DEFAULTED_DEFAULT_CTOR introduced in 0.9.9.9
+** @COMPAT defaulted constructors fixed in PR #1027
+**  Compensating for that change will require expanding the glmVector, glmMatrix,
+**  and GLM boundary structs to handle the implicitly deleted constructors and
+**  assignment operators.
+*/
+#if GLM_HAS_DEFAULTED_FUNCTIONS && GLM_CONFIG_DEFAULTED_FUNCTIONS == GLM_DISABLE
+  #error "GLM error: invalid GLM_FORCE_CTOR_INIT configuration (WIP)"
+#endif
+
+/*
 ** LuaGLM offers vectors as a primitive type in the runtime and the default
 ** primitive to each vector/quaternion is float. This increases the minimum size
 ** to a Value/TaggedValue to 16-bytes (or 4 x float).
@@ -222,7 +233,15 @@ union glmVector {
   glm::vec<4, glm_Float> v4;
   glm::qua<glm_Float> q;
 
+#if GLM_CONFIG_DEFAULTED_FUNCTIONS == GLM_DISABLE
+#if GLM_CONFIG_CTOR_INIT == GLM_CTOR_INITIALIZER_LIST
+  glmVector() : v4(glm::vec<4, glm_Float>()) { }
+#else
+  glmVector() { v4 = glm::vec<4, glm_Float>(); }
+#endif
+#else
   glmVector() GLM_DEFAULT_CTOR;
+#endif
   glmVector(const glm::vec<1, glm_Float> &_v) : v1(_v) { }
   glmVector(const glm::vec<2, glm_Float> &_v) : v2(_v) { }
   glmVector(const glm::vec<3, glm_Float> &_v) : v3(_v) { }
@@ -282,7 +301,15 @@ LUA_GLM_ALIGNED_TYPE(struct, glmMatrix) {
   glm::length_t size;
   glm::length_t secondary;
 
+#if GLM_CONFIG_DEFAULTED_DEFAULT_CTOR == GLM_DISABLE
+#if GLM_CONFIG_CTOR_INIT == GLM_CTOR_INITIALIZER_LIST
+  glmMatrix() : m44(glm::mat<4, 4, glm_Float>()), size(4), secondary(4) { }
+#else
+  glmMatrix() { size = 4; secondary = 4; m44 = glm::mat<4, 4, glm_Float>(); }
+#endif
+#else
   glmMatrix() GLM_DEFAULT_CTOR;
+#endif
   glmMatrix(const glm::mat<2, 2, glm_Float> &_m) : m22(_m), size(2), secondary(2) { }
   glmMatrix(const glm::mat<2, 3, glm_Float> &_m) : m23(_m), size(2), secondary(3) { }
   glmMatrix(const glm::mat<2, 4, glm_Float> &_m) : m24(_m), size(2), secondary(4) { }

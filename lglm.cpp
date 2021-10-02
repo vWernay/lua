@@ -1343,7 +1343,7 @@ LUA_API int lua_tomatrix (lua_State *L, int idx, lua_Mat4 *matrix) {
   return 0;
 }
 
-LUA_API int lua_pushmatrix (lua_State *L, lua_Mat4 *matrix) {
+LUA_API int lua_pushmatrix (lua_State *L, const lua_Mat4 *matrix) {
   if (matrix == GLM_NULLPTR
       || matrix->size < 2 || matrix->size > 4
       || matrix->secondary < 2 || matrix->secondary > 4) {
