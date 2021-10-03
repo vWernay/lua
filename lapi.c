@@ -433,7 +433,7 @@ LUA_API lua_Unsigned lua_rawlen (lua_State *L, int idx) {
     case LUA_VVECTOR3: return 3;
     case LUA_VVECTOR4: return 4;
     case LUA_VQUAT: return 4;
-    case LUA_VMATRIX: return cast(lua_Unsigned, mvalue(o).size);
+    case LUA_VMATRIX: return cast(lua_Unsigned, LUA_GLM_MATRIX_COLS(mvalue_dims(o)));
     case LUA_VSHRSTR: return tsvalue(o)->shrlen;
     case LUA_VLNGSTR: return tsvalue(o)->u.lnglen;
 #if defined(GRIT_POWER_BLOB)

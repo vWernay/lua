@@ -130,7 +130,7 @@ LUA_API void lua_pushvector (lua_State *L, lua_Float4 f4, int variant);
 
 /* Returns true if the object at the given index is a matrix, storing its
 ** dimensions in size & secondary. These are extensions to the grit-lua API */
-LUA_API int lua_ismatrix (lua_State *L, int idx, int *size, int *secondary);
+LUA_API int lua_ismatrix (lua_State *L, int idx, int *dimensions);
 LUA_API int lua_tomatrix (lua_State *L, int idx, lua_Mat4 *matrix);
 LUA_API int lua_pushmatrix (lua_State *L, const lua_Mat4 *matrix);
 

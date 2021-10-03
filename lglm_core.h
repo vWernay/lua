@@ -188,8 +188,8 @@ LUAI_FUNC int glm_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, St
 static LUA_INLINE int matgeti (const TValue *obj, lua_Integer n, StkId res) {
   const grit_length_t gidx = cast(grit_length_t, n);
   const lua_Mat4 *m = mvalue_ref(obj);
-  if (l_likely(gidx >= 1 && gidx <= m->size)) {
-    switch (m->secondary) {
+  if (l_likely(gidx >= 1 && gidx <= LUA_GLM_MATRIX_COLS(m->dimensions))) {
+    switch (LUA_GLM_MATRIX_ROWS(m->dimensions)) {
       case 2: {
         const lua_CFloat2 *col = &m->m.m2[gidx - 1];
         lua_Float4 f4 = luaMat_cast_m2(col);

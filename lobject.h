@@ -832,6 +832,7 @@ typedef struct GCMatrix {
 #define ttismatrix(o) checktag((o), ctb(LUA_VMATRIX))
 #define mvalue(o)	check_exp(ttismatrix(o), gco2mat(val_(o).gc)->mat4)
 #define mvalue_ref(o)	check_exp(ttismatrix(o), &gco2mat(val_(o).gc)->mat4)
+#define mvalue_dims(o)	mvalue(o).dimensions
 
 #define setmvalue2s(L, o, x) setmvalue(L, s2v(o), x)
 #define setmvalue(L, obj, x) glm_setmvalue(L, obj, x)

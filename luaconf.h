@@ -904,6 +904,9 @@
 @@ LUA_GLM_MATRIX_ROWS Unpack the number of matrix rows for a given type.
 @@ LUA_GLM_MATRIX_TYPE Utility macro for packing column/row dimensions into
 **  a single value. Type-casting related to this macro should be considered.
+**
+** @TODO Consider creating macros (or future-proofing) for the chance that this
+** runtime offers the option to represent Lua matrices in a row-major format.
 */
 #define LUA_GLM_MATRIX_TYPE(C, R) ((C) | ((R) << 8))
 #define LUA_GLM_MATRIX_COLS(T) ((T) & 0xFF)
@@ -968,8 +971,7 @@ LUA_GLM_ALIGNED_TYPEDEF(struct, lua_Mat4) {
     LUA_GLM_ALIGNED_TYPE(lua_CFloat3, m3[4]);  /* Aligned 3-by-X matrix */
     LUA_GLM_ALIGNED_TYPE(lua_CFloat4, m4[4]);  /* Aligned 4-by-X matrix */
   } m;
-  grit_length_t size;  /* Number of columns */
-  grit_length_t secondary;  /* Size of each column vector */
+  grit_length_t dimensions;  /* Number of columns & size of each column vector */
 } lua_Mat4;
 
 /* }================================================================== */

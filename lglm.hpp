@@ -149,7 +149,7 @@ LUA_API bool glm_isquat(lua_State *L, int idx);
 ** the number of column vectors and "secondary" as the size of each column
 ** component.
 */
-LUA_API bool glm_ismatrix(lua_State *L, int idx, glm::length_t &size, glm::length_t &secondary);
+LUA_API bool glm_ismatrix(lua_State *L, int idx, glm::length_t &dimensions);
 
 /* Push a vector/quaternion onto the Lua stack. */
 LUA_API int glm_pushvec1(lua_State *L, const glm::vec<1, glm_Float> &v);
@@ -204,15 +204,6 @@ LUA_API glm::mat<4, 4, glm_Float> glm_tomat4x4(lua_State *L, int idx);
 static LUA_INLINE glm::length_t glm_vector_length(lua_State *L, int idx) {
   glm::length_t size = 0;
   return glm_isvector(L, idx, size) ? size : 0;
-}
-
-/*
-** Return the dimensionality of the matrix (i.e., the number of component
-** vectors) of the Matrix at (or starting at) the given index; zero on failure.
-*/
-static LUA_INLINE glm::length_t glm_matrix_length(lua_State *L, int idx, glm::length_t &secondary) {
-  glm::length_t size = 0;
-  return glm_ismatrix(L, idx, size, secondary) ? size : 0;
 }
 
 /* }================================================================== */
@@ -298,39 +289,38 @@ LUA_GLM_ALIGNED_TYPE(struct, glmMatrix) {
     glm::mat<4, 3, glm_Float> m43;
     glm::mat<4, 4, glm_Float> m44;
   };
-  glm::length_t size;
-  glm::length_t secondary;
+  glm::length_t dimensions;
 
 #if GLM_CONFIG_DEFAULTED_DEFAULT_CTOR == GLM_DISABLE
 #if GLM_CONFIG_CTOR_INIT == GLM_CTOR_INITIALIZER_LIST
-  glmMatrix() : m44(glm::mat<4, 4, glm_Float>()), size(4), secondary(4) { }
+  glmMatrix() : m44(glm::mat<4, 4, glm_Float>()), dimensions(LUA_GLM_MATRIX_4x4) { }
 #else
-  glmMatrix() { size = 4; secondary = 4; m44 = glm::mat<4, 4, glm_Float>(); }
+  glmMatrix() { dimensions = LUA_GLM_MATRIX_4x4; m44 = glm::mat<4, 4, glm_Float>(); }
 #endif
 #else
   glmMatrix() GLM_DEFAULT_CTOR;
 #endif
-  glmMatrix(const glm::mat<2, 2, glm_Float> &_m) : m22(_m), size(2), secondary(2) { }
-  glmMatrix(const glm::mat<2, 3, glm_Float> &_m) : m23(_m), size(2), secondary(3) { }
-  glmMatrix(const glm::mat<2, 4, glm_Float> &_m) : m24(_m), size(2), secondary(4) { }
-  glmMatrix(const glm::mat<3, 2, glm_Float> &_m) : m32(_m), size(3), secondary(2) { }
-  glmMatrix(const glm::mat<3, 3, glm_Float> &_m) : m33(_m), size(3), secondary(3) { }
-  glmMatrix(const glm::mat<3, 4, glm_Float> &_m) : m34(_m), size(3), secondary(4) { }
-  glmMatrix(const glm::mat<4, 2, glm_Float> &_m) : m42(_m), size(4), secondary(2) { }
-  glmMatrix(const glm::mat<4, 3, glm_Float> &_m) : m43(_m), size(4), secondary(3) { }
-  glmMatrix(const glm::mat<4, 4, glm_Float> &_m) : m44(_m), size(4), secondary(4) { }
+  glmMatrix(const glm::mat<2, 2, glm_Float> &_m) : m22(_m), dimensions(LUA_GLM_MATRIX_2x2) { }
+  glmMatrix(const glm::mat<2, 3, glm_Float> &_m) : m23(_m), dimensions(LUA_GLM_MATRIX_2x3) { }
+  glmMatrix(const glm::mat<2, 4, glm_Float> &_m) : m24(_m), dimensions(LUA_GLM_MATRIX_2x4) { }
+  glmMatrix(const glm::mat<3, 2, glm_Float> &_m) : m32(_m), dimensions(LUA_GLM_MATRIX_3x2) { }
+  glmMatrix(const glm::mat<3, 3, glm_Float> &_m) : m33(_m), dimensions(LUA_GLM_MATRIX_3x3) { }
+  glmMatrix(const glm::mat<3, 4, glm_Float> &_m) : m34(_m), dimensions(LUA_GLM_MATRIX_3x4) { }
+  glmMatrix(const glm::mat<4, 2, glm_Float> &_m) : m42(_m), dimensions(LUA_GLM_MATRIX_4x2) { }
+  glmMatrix(const glm::mat<4, 3, glm_Float> &_m) : m43(_m), dimensions(LUA_GLM_MATRIX_4x3) { }
+  glmMatrix(const glm::mat<4, 4, glm_Float> &_m) : m44(_m), dimensions(LUA_GLM_MATRIX_4x4) { }
 
   // Assignment Operators
 
-  inline void operator=(const glm::mat<2, 2, glm_Float> &_m) { size = 2; secondary = 2; m22 = _m; }
-  inline void operator=(const glm::mat<2, 3, glm_Float> &_m) { size = 2; secondary = 3; m23 = _m; }
-  inline void operator=(const glm::mat<2, 4, glm_Float> &_m) { size = 2; secondary = 4; m24 = _m; }
-  inline void operator=(const glm::mat<3, 2, glm_Float> &_m) { size = 3; secondary = 2; m32 = _m; }
-  inline void operator=(const glm::mat<3, 3, glm_Float> &_m) { size = 3; secondary = 3; m33 = _m; }
-  inline void operator=(const glm::mat<3, 4, glm_Float> &_m) { size = 3; secondary = 4; m34 = _m; }
-  inline void operator=(const glm::mat<4, 2, glm_Float> &_m) { size = 4; secondary = 2; m42 = _m; }
-  inline void operator=(const glm::mat<4, 3, glm_Float> &_m) { size = 4; secondary = 3; m43 = _m; }
-  inline void operator=(const glm::mat<4, 4, glm_Float> &_m) { size = 4; secondary = 4; m44 = _m; }
+  inline void operator=(const glm::mat<2, 2, glm_Float> &_m) { dimensions = LUA_GLM_MATRIX_2x2; m22 = _m; }
+  inline void operator=(const glm::mat<2, 3, glm_Float> &_m) { dimensions = LUA_GLM_MATRIX_2x3; m23 = _m; }
+  inline void operator=(const glm::mat<2, 4, glm_Float> &_m) { dimensions = LUA_GLM_MATRIX_2x4; m24 = _m; }
+  inline void operator=(const glm::mat<3, 2, glm_Float> &_m) { dimensions = LUA_GLM_MATRIX_3x2; m32 = _m; }
+  inline void operator=(const glm::mat<3, 3, glm_Float> &_m) { dimensions = LUA_GLM_MATRIX_3x3; m33 = _m; }
+  inline void operator=(const glm::mat<3, 4, glm_Float> &_m) { dimensions = LUA_GLM_MATRIX_3x4; m34 = _m; }
+  inline void operator=(const glm::mat<4, 2, glm_Float> &_m) { dimensions = LUA_GLM_MATRIX_4x2; m42 = _m; }
+  inline void operator=(const glm::mat<4, 3, glm_Float> &_m) { dimensions = LUA_GLM_MATRIX_4x3; m43 = _m; }
+  inline void operator=(const glm::mat<4, 4, glm_Float> &_m) { dimensions = LUA_GLM_MATRIX_4x4; m44 = _m; }
 
   // Reassignment; glm::mat = glmMatrix.
 
@@ -402,8 +392,7 @@ LUA_API int glm_pushmat(lua_State *L, const glmMatrix &m);
     && sizeof(lua_Mat4::Columns::m2) == sizeof(glmMatrix::m24)
     && sizeof(lua_Mat4::Columns::m3) == sizeof(glmMatrix::m34)
     && sizeof(lua_Mat4::Columns::m4) == sizeof(glmMatrix::m44)
-    && offsetof(lua_Mat4, size) == offsetof(glmMatrix, size)
-    && offsetof(lua_Mat4, secondary) == offsetof(glmMatrix, secondary)
+    && offsetof(lua_Mat4, dimensions) == offsetof(glmMatrix, dimensions)
     && offsetof(lua_Mat4, m.m2) == offsetof(glmMatrix, m24)
     && offsetof(lua_Mat4, m.m3) == offsetof(glmMatrix, m34)
     && offsetof(lua_Mat4, m.m4) == offsetof(glmMatrix, m44), "Inconsistent Structures: lua_Mat4 / glmMatrix"

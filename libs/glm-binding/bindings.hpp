@@ -76,16 +76,6 @@ extern LUA_API_LINKAGE {
 /* Metatable name for polygon userdata. */
 #define LUA_GLM_POLYGON_META "GLM_POLYGON"
 
-/*
-** Matrices in GLM are stored in a column-major format. These macros exists for
-** the almost-zero percent chance that matrices ever have the option to be
-** represented by Lua as a row-major format.
-*/
-#define lua_matrix_cols(size, secondary) size
-#define lua_matrix_rows(size, secondary) secondary
-#define gm_cols(M) lua_matrix_cols(mvalue(M).size, mvalue(M).secondary)
-#define gm_rows(M) lua_matrix_rows(mvalue(M).size, mvalue(M).secondary)
-
 /* Macro for implicitly handling floating point drift where possible */
 #if defined(LUA_GLM_DRIFT)
   #define gm_drift(x) glm::normalize((x))
@@ -565,7 +555,7 @@ struct gLuaBase {
     const TValue *o = glm_i2v(LB.L, idx_);
     if (l_likely(ttismatrix(o))) {
       const glmMatrix &mat = glm_mvalue(o);
-      if (lua_matrix_cols(mat.size, mat.secondary) == C && lua_matrix_rows(mat.size, mat.secondary) == R)
+      if (mat.dimensions == LUA_GLM_MATRIX_TYPE(C, R))
         return mat.Get(m);
     }
     return luaL_error(LB.L, GLM_INVALID_MAT_STRUCTURE);
@@ -850,44 +840,21 @@ struct gLuaTrait<glm::mat<C, R, T>> : gLuaSharedTrait<T, glm::mat<C, R, T>> {
 
   LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::mat<C, R, T> zero() { return glm::mat<C, R, T>(T(0)); }
   LUA_TRAIT_QUALIFIER bool Is(const gLuaBase &LB, int idx) {
-    glm::length_t size = 0, secondary = 0;
-    return glm_ismatrix(LB.L, idx, size, secondary)
-           && lua_matrix_cols(size, secondary) == C
-           && lua_matrix_rows(size, secondary) == R;
+    glm::length_t dimensions = 0;
+    return glm_ismatrix(LB.L, idx, dimensions) && dimensions == LUA_GLM_MATRIX_TYPE(C, R);
   }
 
   static GLM_CONSTEXPR const char *Label() {
-    switch (lua_matrix_cols(C, R)) {
-      case 2: {
-        switch (lua_matrix_rows(C, R)) {
-          case 2: return LABEL_MATRIX "2x2";
-          case 3: return LABEL_MATRIX "2x3";
-          case 4: return LABEL_MATRIX "2x4";
-          default:
-            break;
-        }
-        break;
-      }
-      case 3: {
-        switch (lua_matrix_rows(C, R)) {
-          case 2: return LABEL_MATRIX "3x2";
-          case 3: return LABEL_MATRIX "3x3";
-          case 4: return LABEL_MATRIX "3x4";
-          default:
-            break;
-        }
-        break;
-      }
-      case 4: {
-        switch (lua_matrix_rows(C, R)) {
-          case 2: return LABEL_MATRIX "4x2";
-          case 3: return LABEL_MATRIX "4x3";
-          case 4: return LABEL_MATRIX "4x4";
-          default:
-            break;
-        }
-        break;
-      }
+    switch (LUA_GLM_MATRIX_TYPE(C, R)) {
+      case LUA_GLM_MATRIX_2x2: return LABEL_MATRIX "2x2";
+      case LUA_GLM_MATRIX_2x3: return LABEL_MATRIX "2x3";
+      case LUA_GLM_MATRIX_2x4: return LABEL_MATRIX "2x4";
+      case LUA_GLM_MATRIX_3x2: return LABEL_MATRIX "3x2";
+      case LUA_GLM_MATRIX_3x3: return LABEL_MATRIX "3x3";
+      case LUA_GLM_MATRIX_3x4: return LABEL_MATRIX "3x4";
+      case LUA_GLM_MATRIX_4x2: return LABEL_MATRIX "4x2";
+      case LUA_GLM_MATRIX_4x3: return LABEL_MATRIX "4x3";
+      case LUA_GLM_MATRIX_4x4: return LABEL_MATRIX "4x4";
       default:
         break;
     }
@@ -1318,7 +1285,7 @@ struct gLuaEps : gLuaTrait<T> {
 */
 #define PARSE_MATRIX(LB, Value, F, ArgLayout, ...)                                 \
   LUA_MLM_BEGIN                                                                    \
-  switch (LUA_GLM_MATRIX_TYPE(gm_cols(Value), gm_rows(Value))) {                   \
+  switch (mvalue_dims(Value)) {                                                    \
     case LUA_GLM_MATRIX_2x2: ArgLayout(LB, F, gLuaMat2x2<>, ##__VA_ARGS__); break; \
     case LUA_GLM_MATRIX_2x3: ArgLayout(LB, F, gLuaMat2x3<>, ##__VA_ARGS__); break; \
     case LUA_GLM_MATRIX_2x4: ArgLayout(LB, F, gLuaMat2x4<>, ##__VA_ARGS__); break; \
@@ -1337,11 +1304,11 @@ struct gLuaEps : gLuaTrait<T> {
 #define PARSE_SYMMETRIC_MATRIX(LB, F, ArgLayout, ...)                        \
   LUA_MLM_BEGIN                                                              \
   const TValue *_tv = glm_i2v((LB).L, (LB).idx);                             \
-  if (l_likely(ttismatrix(_tv) && gm_cols(_tv) == gm_rows(_tv))) {           \
-    switch (gm_cols(_tv)) {                                                  \
-      case 2: ArgLayout(LB, F, gLuaMat2x2<>, ##__VA_ARGS__); break;          \
-      case 3: ArgLayout(LB, F, gLuaMat3x3<>, ##__VA_ARGS__); break;          \
-      case 4: ArgLayout(LB, F, gLuaMat4x4<>, ##__VA_ARGS__); break;          \
+  if (l_likely(ttismatrix(_tv))) {                                           \
+    switch (mvalue_dims(_tv)) {                                              \
+      case LUA_GLM_MATRIX_2x2: ArgLayout(LB, F, gLuaMat2x2<>, ##__VA_ARGS__); break; \
+      case LUA_GLM_MATRIX_3x3: ArgLayout(LB, F, gLuaMat3x3<>, ##__VA_ARGS__); break; \
+      case LUA_GLM_MATRIX_4x4: ArgLayout(LB, F, gLuaMat4x4<>, ##__VA_ARGS__); break; \
       default:                                                               \
         return luaL_typeerror((LB).L, (LB).idx, GLM_INVALID_MAT_DIMENSIONS); \
     }                                                                        \
@@ -1361,13 +1328,14 @@ struct gLuaEps : gLuaTrait<T> {
   switch (ttypetag(_tv)) {                                                    \
     case LUA_VQUAT: ArgLayout(LB, F, gLuaQuat<>, ##__VA_ARGS__); break;       \
     case LUA_VMATRIX: {                                                       \
-      const glm::length_t size = gm_cols(_tv);                                \
-      const glm::length_t secondary_size = gm_rows(_tv);                      \
-      if (size == 3 && secondary_size == 3) ArgLayout(LB, F, gLuaMat3x3<>, ##__VA_ARGS__); \
-      if (size == 3 && secondary_size == 4) ArgLayout(LB, F, gLuaMat3x4<>, ##__VA_ARGS__); \
-      if (size == 4 && secondary_size == 3) ArgLayout(LB, F, gLuaMat4x3<>, ##__VA_ARGS__); \
-      if (size == 4 && secondary_size == 4) ArgLayout(LB, F, gLuaMat4x4<>, ##__VA_ARGS__); \
-      return luaL_typeerror((LB).L, (LB).idx, GLM_INVALID_MAT_DIMENSIONS);    \
+      switch (mvalue_dims(_tv)) {                                             \
+        case LUA_GLM_MATRIX_3x3: ArgLayout(LB, F, gLuaMat3x3<>, ##__VA_ARGS__); break; \
+        case LUA_GLM_MATRIX_3x4: ArgLayout(LB, F, gLuaMat3x4<>, ##__VA_ARGS__); break; \
+        case LUA_GLM_MATRIX_4x3: ArgLayout(LB, F, gLuaMat4x3<>, ##__VA_ARGS__); break; \
+        case LUA_GLM_MATRIX_4x4: ArgLayout(LB, F, gLuaMat4x4<>, ##__VA_ARGS__); break; \
+        default:                                                              \
+            return luaL_typeerror((LB).L, (LB).idx, GLM_INVALID_MAT_DIMENSIONS); \
+      }                                                                       \
     }                                                                         \
     default:                                                                  \
       break;                                                                  \
