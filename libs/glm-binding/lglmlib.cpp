@@ -16,7 +16,9 @@
 */
 
 #define lglmlib_cpp
+#if !defined(LUA_LIB)
 #define LUA_LIB
+#endif
 
 #include <functional>
 #include <algorithm>

@@ -770,12 +770,12 @@ namespace glm {
     }
 
     // The set of supporting points for the minimal sphere.
-    size_t sp[4] = { 0, 1, 2, 3 };
+    typename Vector::size_type sp[4] = { 0, 1, 2, 3 };
     bool expendable[4] = { true, true, true, true };
 
     Sphere<3, T, Q> s = optimalEnclosingSphere(pts[sp[0]], pts[sp[1]], pts[sp[2]], pts[sp[3]]);
     T rSq = s.r * s.r + epsilon<T>();
-    for (size_t i = 4; i < pts.size(); ++i) {
+    for (typename Vector::size_type i = 4; i < pts.size(); ++i) {
       if (i == sp[0] || i == sp[1] || i == sp[2] || i == sp[3])
         continue;
 

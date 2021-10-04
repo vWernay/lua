@@ -325,7 +325,7 @@ namespace glm {
 
   /// <summary>
   /// Express the given point in terms of barycentric u, v, w coordinates. To
-  /// map to <u, v> coordinates use: <v, w>.
+  /// map to (u, v) coordinates use: (v, w).
   ///
   /// Note, "point" should lie on the plane formed by the triangle.
   /// </summary>
@@ -358,7 +358,7 @@ namespace glm {
 
   /// <summary>
   /// Express the given point in terms of barycentric u, v coordinates. To map to
-  /// <u, v, w> coordinates use: <1 - u - v, u, v>.
+  /// (u, v, w) coordinates use: (1 - u - v, u, v).
   /// </summary>
   template<typename T, qualifier Q>
   GLM_GEOM_QUALIFIER vec<2, T, Q> barycentricUV(const Triangle<3, T, Q> &t, const vec<3, T, Q> &point) {
@@ -509,7 +509,7 @@ namespace glm {
 
   /// <summary>
   /// Compute the closest point between the triangle (along an edge) and provided
-  /// point. Also returning the point in Barycentric <u, v, w>.
+  /// point. Also returning the point in Barycentric (u, v, w).
   /// </summary>
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER_NOINLINE vec<L, T, Q> closestPointTriangle(const Triangle<L, T, Q> &t, const vec<L, T, Q> &p, T &u, T &v, T &w) {

@@ -330,7 +330,7 @@ namespace hash {
   /// </summary>
   static GLM_FUNC_QUALIFIER int l_hashfloat(lua_Number n) {
     int i;
-    lua_Integer ni;
+    lua_Integer ni = 0;
     n = std::frexp(n, &i) * -cast_num(INT_MIN);
     if (!lua_numbertointeger(n, &ni)) { /* is 'n' inf/-inf/NaN? */
       lua_assert(luai_numisnan(n) || l_mathop(fabs)(n) == cast_num(HUGE_VAL));

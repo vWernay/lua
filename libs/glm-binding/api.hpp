@@ -1076,14 +1076,18 @@ TRAITS_LAYOUT_DEFN(shearY, glm::shearY, LAYOUT_BINARY_SCALAR, gLuaMat3x3<>)
   TRAITS_PUSH(LB, count, outValues, outVectors);                          \
   LUA_MLM_END
 
-#define LAYOUT_COMPUTE_COVARIANCE(LB, F, Mat, Cols, ...)                                           \
-  LUA_MLM_BEGIN                                                                                    \
-  using Vec = gLuaTrait<typename Mat::type::col_type>;                                             \
-  auto begin = glmLuaArray::begin<Vec>(LB.L, LB.idx);                                              \
-  auto end = glmLuaArray::end<Vec>(LB.L, LB.idx++);                                                \
-  if (Vec::Is(LB, LB.idx))                                                                         \
-    return gLuaBase::Push(LB, F<Cols, Mat::value_type, glm::defaultp>(begin, end, Vec::Next(LB))); \
-  return gLuaBase::Push(LB, F<Cols, Mat::value_type, glm::defaultp>(begin, end));                  \
+#define LAYOUT_COMPUTE_COVARIANCE(LB, F, Mat, Cols, ...)               \
+  LUA_MLM_BEGIN                                                        \
+  using Vec = gLuaTrait<typename Mat::type::col_type>;                 \
+  glmLuaArray<Vec> lArray(LB.L, LB.idx++);                             \
+  if (Vec::Is(LB, LB.idx)) {                                           \
+    return gLuaBase::Push(LB, F<Cols, Mat::value_type, glm::defaultp>( \
+      lArray.begin(), lArray.end(), Vec::Next(LB)                      \
+    ));                                                                \
+  }                                                                    \
+  return gLuaBase::Push(LB, F<Cols, Mat::value_type, glm::defaultp>(   \
+    lArray.begin(), lArray.end()                                       \
+  ));                                                                  \
   LUA_MLM_END
 
 SYMMETRIC_MATRIX_DEFN(findEigenvaluesSymReal, glm::findEigenvaluesSymReal, LAYOUT_FIND_EIGEN);

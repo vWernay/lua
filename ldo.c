@@ -528,8 +528,8 @@ static void rethook (lua_State *L, CallInfo *ci, int nres) {
 
 
 /* Unpack the first vector/matrix object */
-static int glmVec_call_unpack(lua_State *L) { return glm_unpack_vector(L, 1); };
-static int glmMat_call_unpack(lua_State *L) { return glm_unpack_matrix(L, 1); };
+static int glmVec_call_unpack(lua_State *L) { return glm_unpack_vector(L, 1); }
+static int glmMat_call_unpack(lua_State *L) { return glm_unpack_matrix(L, 1); }
 
 
 /*

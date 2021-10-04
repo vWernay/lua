@@ -236,16 +236,20 @@ struct gLuaPolygon : gLuaSharedTrait<T, glm::Polygon<3, T>> {
 GLM_BINDING_QUALIFIER(aabb_new) {
   GLM_BINDING_BEGIN
   if (lua_istable(LB.L, LB.idx)) {
-    using Iterator = glmLuaArray::Iterator<gLuaVec3<>>;
-    return gLuaBase::Push(LB, glm::minimalEnclosingAABB<Iterator, 3, gLuaVec3<>::value_type>(
-                              glmLuaArray::begin<gLuaVec3<>>(LB.L, LB.idx),
-                              glmLuaArray::end<gLuaVec3<>>(LB.L)));
+    using value_type = gLuaVec3<>::value_type;
+    using Iterator = glmLuaArray<gLuaVec3<>>::Iterator;
+    glmLuaArray<gLuaVec3<>> lArray(LB.L, LB.idx);
+    return gLuaBase::Push(LB, glm::minimalEnclosingAABB<Iterator, 3, value_type>(
+      lArray.begin(), lArray.end())
+    );
   }
   else {
-    using Iterator = glmLuaStack::Iterator<gLuaVec3<>>;
-    return gLuaBase::Push(LB, glm::minimalEnclosingAABB<Iterator, 3, gLuaVec3<>::value_type>(
-                              glmLuaStack::begin<gLuaVec3<>>(LB.L, LB.idx),
-                              glmLuaStack::end<gLuaVec3<>>(LB.L)));
+    using value_type = gLuaVec3<>::value_type;
+    using Iterator = glmLuaStack<gLuaVec3<>>::Iterator;
+    glmLuaStack<gLuaVec3<>> lStack(LB.L, LB.idx);
+    return gLuaBase::Push(LB, glm::minimalEnclosingAABB<Iterator, 3, value_type>(
+      lStack.begin(), lStack.end())
+    );
   }
   GLM_BINDING_END
 }
@@ -392,16 +396,20 @@ static const luaL_Reg luaglm_aabblib[] = {
 GLM_BINDING_QUALIFIER(aabb2d_new) {
   GLM_BINDING_BEGIN
   if (lua_istable(LB.L, LB.idx)) {
-    using Iterator = glmLuaArray::Iterator<gLuaVec2<>>;
-    return gLuaBase::Push(LB, glm::minimalEnclosingAABB<Iterator, 2, gLuaVec2<>::value_type>(
-                              glmLuaArray::begin<gLuaVec2<>>(LB.L, LB.idx),
-                              glmLuaArray::end<gLuaVec2<>>(LB.L)));
+    using value_type = gLuaVec2<>::value_type;
+    using Iterator = glmLuaArray<gLuaVec2<>>::Iterator;
+    glmLuaArray<gLuaVec2<>> lArray(LB.L, LB.idx);
+    return gLuaBase::Push(LB, glm::minimalEnclosingAABB<Iterator, 2, value_type>(
+      lArray.begin(), lArray.end())
+    );
   }
   else {
-    using Iterator = glmLuaStack::Iterator<gLuaVec2<>>;
-    return gLuaBase::Push(LB, glm::minimalEnclosingAABB<Iterator, 2, gLuaVec2<>::value_type>(
-                              glmLuaStack::begin<gLuaVec2<>>(LB.L, LB.idx),
-                              glmLuaStack::end<gLuaVec2<>>(LB.L)));
+    using value_type = gLuaVec2<>::value_type;
+    using Iterator = glmLuaStack<gLuaVec2<>>::Iterator;
+    glmLuaStack<gLuaVec2<>> lStack(LB.L, LB.idx);
+    return gLuaBase::Push(LB, glm::minimalEnclosingAABB<Iterator, 2, value_type>(
+      lStack.begin(), lStack.end())
+    );
   }
   GLM_BINDING_END
 }
@@ -939,18 +947,18 @@ GLM_BINDING_QUALIFIER(sphere_optimalEnclosingSphere) {
     case 3: TRAITS_FUNC(LB, glm::optimalEnclosingSphere, gLuaVec3<>, gLuaVec3<>, gLuaVec3<>); break;
     case 4: TRAITS_FUNC(LB, glm::optimalEnclosingSphere, gLuaVec3<>, gLuaVec3<>, gLuaVec3<>, gLuaVec3<>); break;
     default: {
-      using List = glm::List<gLuaVec3<>::type>;
-
-      // @TODO: This implementation is UNSAFE. Create a glm::List userdata that
-      // is temporarily anchored onto the stack for the duration of the function
-      List pts;
-      auto push_back = [&pts](const gLuaVec3<>::type &v) { pts.push_back(v); };
-
-      if (lua_istable(LB.L, LB.idx))
-        glmLuaArray::forEach<gLuaVec3<>>(LB.L, LB.idx, push_back);
-      else
-        glmLuaStack::forEach<gLuaVec3<>>(LB.L, LB.idx, push_back);
-      return gLuaBase::Push(LB, glm::optimalEnclosingSphere<glm_Float, glm::defaultp, List>(pts));
+      if (lua_istable(LB.L, LB.idx)) {
+        glmLuaArray<gLuaVec3<>> lArray(LB.L, LB.idx);
+        return gLuaBase::Push(LB,
+          glm::optimalEnclosingSphere<glm_Float, glm::defaultp, glmLuaArray<gLuaVec3<>>>(lArray)
+        );
+      }
+      else {
+        glmLuaStack<gLuaVec3<>> lStack(LB.L, LB.idx);
+        return gLuaBase::Push(LB,
+          glm::optimalEnclosingSphere<glm_Float, glm::defaultp, glmLuaStack<gLuaVec3<>>>(lStack)
+        );
+      }
     }
   }
   GLM_BINDING_END
@@ -1435,8 +1443,9 @@ GLM_BINDING_QUALIFIER(polygon_new) {
       polygon->p = ::new (list) PolyList();
 
       if (top >= 1 && lua_istable(LB.L, LB.idx)) {
-        const auto e = glmLuaArray::end<gLuaVec3<>>(LB.L, LB.idx);
-        for (auto b = glmLuaArray::begin<gLuaVec3<>>(LB.L, LB.idx); b != e; ++b) {
+        glmLuaArray<gLuaVec3<>> lArray(LB.L, LB.idx);
+        const auto e = lArray.end();
+        for (auto b = lArray.begin(); b != e; ++b) {
           polygon->p->push_back(*b);
         }
       }

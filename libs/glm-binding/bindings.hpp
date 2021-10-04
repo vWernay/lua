@@ -19,6 +19,8 @@
 */
 #ifndef __BINDING_LUA_BINDINGS_HPP__
 #define __BINDING_LUA_BINDINGS_HPP__
+
+#define LUA_LIB
 #if !defined(LUA_API_LINKAGE)
 #if defined(LUA_C_LINKAGE)
   #define LUA_API_LINKAGE "C"
@@ -171,6 +173,14 @@ struct gLuaBase {
   /// </summary>
   GLM_INLINE int top() {
     return (ltop == 0) ? ((ltop = _gettop(L))) : ltop;
+  }
+
+  /// <summary>
+  /// Presumes the "top" field is cached: i.e., the mutable equivalent of this
+  /// method has been invoked at least once.
+  /// </summary>
+  GLM_INLINE int top() const {
+    return ltop; // return (ltop == 0) ? _gettop(L) : ltop;
   }
 
   /// <summary>
