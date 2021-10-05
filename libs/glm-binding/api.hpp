@@ -7,6 +7,32 @@
 #ifndef __BINDING_API_HPP__
 #define __BINDING_API_HPP__
 
+/*
+** Flags used by the binding API.
+**
+** Functions:
+@@ LUA_GLM_INCLUDE_GTC Include glm/gtc/+
+@@ LUA_GLM_INCLUDE_GTX Include glm/gtx/+
+@@ LUA_GLM_INCLUDE_EXT Include glm/ext/+
+@@ LUA_GLM_INCLUDE_ALL Include all GLM headers.
+@@ LUA_GLM_ALIASES Include aliases (e.g., length vs. magnitude) to functions.
+**
+** Features:
+@@ LUA_GLM_REPLACE_MATH Force replace _G.math with the binding library on open.
+@@ LUA_GLM_RECYCLE Enable object recycling: trailing/unused parameters in a
+**  function call, e.g., matrix objects, are used as a result store.
+@@ LUA_GLM_FORCED_RECYCLE Disable this library from allocating memory, i.e.,
+**  force usage of LUA_GLM_RECYCLE. Note, polygons other geom/ structures ignore
+**  this flag (this may change).
+@@ LUA_GLM_SAFE Enable a general try/catch wrapper for API functions. This
+**  should likely be disabled.
+**
+** Experimental:
+@@ LUA_GLM_DRIFT Implicitly normalize parameters that expect direction vectors
+**  and quaternions.
+@@ LUA_GLM_INLINED_TEMPLATES Enable inlined-template resolution. Function names
+**  include object types to be parsed, e.g., F_P1P2, up to template resolution.
+*/
 #include "bindings.hpp"
 #include "iterators.hpp"
 
@@ -1855,6 +1881,10 @@ TRAITS_LAYOUT_DEFN(rotateFromTo, glm::rotateFromTo, LAYOUT_BINARY, gLuaVec3<>) /
 ROTATION_MATRIX_DEFN(transformDir, glm::transformDir, LAYOUT_UNARY, gLuaVec3<>) /* LUA_MATRIX_EXTENSIONS */
 ROTATION_MATRIX_DEFN(transformPos, glm::transformPos, LAYOUT_UNARY, gLuaVec3<>)
 TRAITS_DEFN(transformPosPerspective, glm::transformPosPerspective, gLuaMat4x4<>, gLuaVec3<>)
+#if defined(LUA_GLM_INLINED_TEMPLATES)
+TRAITS_DEFN(rotate_mat3, glm::rotate, gLuaMat3x3<>, gLuaTrait<gLuaMat3x3<>::value_type>)
+TRAITS_DEFN(rotate_mat4, glm::rotate, gLuaMat4x4<>, gLuaTrait<gLuaMat4x4<>::value_type>, gLuaDir3<>)
+#endif
 #endif
 
 #if defined(GTX_SPLINE_HPP)

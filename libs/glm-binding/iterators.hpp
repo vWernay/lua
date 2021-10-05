@@ -50,7 +50,7 @@ public:
   // Interface Outline.
 
   /// <summary>
-  /// Container dependant size
+  /// Container dependent size
   /// </summary>
   using size_type = int;
 

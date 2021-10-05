@@ -584,6 +584,10 @@ GLM_LUA_REG(transformPos), /* LUA_MATRIX_EXTENSIONS */
 GLM_LUA_REG(transformPosPerspective),
 GLM_LUA_REG(transformDir),
 GLM_LUA_REG(rotateFromTo), /* LUA_QUATERNION_EXTENSIONS */
+#if defined(LUA_GLM_INLINED_TEMPLATES)
+GLM_LUA_REG(rotate_mat3),
+GLM_LUA_REG(rotate_mat4),
+#endif
 #endif
 
 #if defined(GTX_SPLINE_HPP)
