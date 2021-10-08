@@ -70,6 +70,17 @@ extern LUA_API_LINKAGE {
   #error "GLM error: A different version of LUAGLM is already defined."
 #endif
 
+/*
+** @HACK: Functions with C linkage should avoid SIMD functions that directly
+** reference __builtin_*, e.g., _mm_shuffle_ps and ia32_shufps (avoid gxx_personality).
+** @TODO: __arm__/_M_ARM
+*/
+#if GLM_CONFIG_ALIGNED_GENTYPES == GLM_ENABLE && defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
+  #if defined(LUA_C_LINKAGE) && defined(__GNUG__) && !defined(__OPTIMIZE__) && !defined(LUAGLM_FORCE_HIGHP)
+    #define LUAGLM_FORCE_HIGHP
+  #endif
+#endif
+
 #define INVALID_VECTOR_TYPE "invalid " LABEL_VECTOR " type"
 #define INVALID_VECTOR_STRUCTURE "invalid " LABEL_VECTOR " structure"
 #define INVALID_VECTOR_DIMENSIONS "invalid " LABEL_VECTOR " dimensions"
@@ -1113,17 +1124,43 @@ LUA_API int glmVec_cross(lua_State *L) {
       return luaL_typeerror(L, 2, LABEL_VECTOR2);
     }
     case LUA_VVECTOR3: {
+#if defined(LUAGLM_FORCE_HIGHP)
+      if (ttypetag(y) == LUA_VQUAT) {
+        const glm::vec<3, glm_Float, glm::qualifier::highp> v(glm_vecvalue(x).v3);
+        const glm::qua<glm_Float, glm::qualifier::highp> q(glm_quatvalue(y).q);
+        return glm_pushvec3(L, glm::vec<3, glm_Float>(glm::cross(v, q)));
+      }
+      else if (ttypetag(y) == LUA_VVECTOR3) {
+        const glm::vec<3, glm_Float, glm::qualifier::highp> v(glm_vecvalue(x).v3);
+        const glm::vec<3, glm_Float, glm::qualifier::highp> v2(glm_vecvalue(y).v3);
+        return glm_pushvec3(L, glm::vec<3, glm_Float>(glm::cross(v, v2)));
+      }
+#else
       if (ttypetag(y) == LUA_VQUAT)
         return glm_pushvec3(L, glm::cross(glm_vecvalue(x).v3, glm_quatvalue(y).q));
       if (ttypetag(y) == LUA_VVECTOR3)
         return glm_pushvec3(L, glm::cross(glm_vecvalue(x).v3, glm_vecvalue(y).v3));
+#endif
       return luaL_typeerror(L, 2, LABEL_VECTOR3 " or " LABEL_QUATERN);
     }
     case LUA_VQUAT: {
+#if defined(LUAGLM_FORCE_HIGHP)
+      if (ttypetag(y) == LUA_VQUAT) {
+        const glm::qua<glm_Float, glm::qualifier::highp> q(glm_quatvalue(x).q);
+        const glm::qua<glm_Float, glm::qualifier::highp> q2(glm_quatvalue(y).q);
+        return glm_pushquat(L, glm::qua<glm_Float>(glm::cross(q, q2)));
+      }
+      else if (ttypetag(y) == LUA_VVECTOR3) {
+        const glm::qua<glm_Float, glm::qualifier::highp> q(glm_quatvalue(x).q);
+        const glm::vec<3, glm_Float, glm::qualifier::highp> v(glm_vecvalue(y).v3);
+        return glm_pushvec3(L, glm::vec<3, glm_Float>(glm::cross(q, v)));
+      }
+#else
       if (ttypetag(y) == LUA_VQUAT)
         return glm_pushquat(L, glm::cross(glm_quatvalue(x).q, glm_quatvalue(y).q));
       if (ttypetag(y) == LUA_VVECTOR3)
         return glm_pushvec3(L, glm::cross(glm_quatvalue(x).q, glm_vecvalue(y).v3));
+#endif
       return luaL_typeerror(L, 2, LABEL_VECTOR3 " or " LABEL_QUATERN);
     }
     default:
@@ -1873,11 +1910,24 @@ static int vec_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
       }
       else if (tt_p2 == LUA_VQUAT) {
         switch (tt_p1) {
+#if defined(LUAGLM_FORCE_HIGHP)
+          case LUA_VVECTOR3: {
+            const glm::vec<3, glm_Float, glm::qualifier::highp> vx(v.v3);
+            const glm::qua<glm_Float, glm::qualifier::highp> qy(glm_quatvalue(p2).q);
+            const glm::vec<3, glm_Float> result(vx * qy);
+            glm_setvvalue2s(res, result, LUA_VVECTOR3);
+            return 1;
+          }
+#else
           case LUA_VVECTOR3: glm_setvvalue2s(res, v.v3 * glm_quatvalue(p2).q, LUA_VVECTOR3); return 1;
-#if defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
+#endif
+          // type_quat_simd.inl:180:31: error: ‘const struct glm::vec<4, float, glm::aligned_highp>’
+          // has no member named ‘Data’
+#if GLM_CONFIG_ALIGNED_GENTYPES == GLM_ENABLE && defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
           case LUA_VVECTOR4: {
-            const glm::qua<glm_Float> x = glm::inverse(glm_quatvalue(p2).q);
-            const glm::vec<4, glm_Float> result = glm::detail::compute_quat_mul_vec4<glm_Float, glm::defaultp, false>::call(x, v.v4);
+            const glm::vec<4, glm_Float, glm::qualifier::highp> vx(v.v4);
+            const glm::qua<glm_Float, glm::qualifier::highp> qy(glm_quatvalue(p2).q);
+            const glm::vec<4, glm_Float> result(vx * qy);
             glm_setvvalue2s(res, result, LUA_VVECTOR4);
             return 1;
           }
@@ -2010,11 +2060,12 @@ static int quat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId
     }
     case TM_SUB: {
       if (tt_p2 == LUA_VQUAT) {
-#if defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
-        const glm::qua<glm_Float> &x = glm_quatvalue(p1).q;
-        const glm::qua<glm_Float> &y = glm_quatvalue(p2).q;
-        const glm::qua<glm_Float> result = glm::detail::compute_quat_sub<glm_Float, glm::defaultp, false>::call(x, y);
-        glm_setvvalue2s(res, result, LUA_VQUAT);
+        // type_quat_simd.inl:94:11: error: could not convert ‘Result’ from
+        // ‘glm::vec<4, float, glm::aligned_highp>’ to ‘glm::qua<float, glm::aligned_highp>’
+#if GLM_CONFIG_ALIGNED_GENTYPES == GLM_ENABLE && defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
+        const glm::qua<glm_Float, glm::qualifier::highp> qx(glm_quatvalue(p1).q);
+        const glm::qua<glm_Float, glm::qualifier::highp> qy(glm_quatvalue(p2).q);
+        glm_setvvalue2s(res, glm::qua<glm_Float>(qx - qy), LUA_VQUAT);
         return 1;
 #else
         glm_setvvalue2s(res, glm_quatvalue(p1).q - glm_quatvalue(p2).q, LUA_VQUAT);
@@ -2034,11 +2085,24 @@ static int quat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId
       switch (tt_p2) {
         case LUA_VNUMINT: glm_setvvalue2s(res, v.q * cast_glmfloat(ivalue(p2)), LUA_VQUAT); return 1;
         case LUA_VNUMFLT: glm_setvvalue2s(res, v.q * cast_glmfloat(fltvalue(p2)), LUA_VQUAT); return 1;
+#if defined(LUAGLM_FORCE_HIGHP)
+        case LUA_VVECTOR3: {
+          const glm::qua<glm_Float, glm::qualifier::highp> qx(glm_quatvalue(p1).q);
+          const glm::vec<3, glm_Float, glm::qualifier::highp> vy(glm_vecvalue(p2).v3);
+          const glm::vec<3, glm_Float> result(qx * vy);
+          glm_setvvalue2s(res, result, LUA_VVECTOR3);
+          return 1;
+        }
+#else
         case LUA_VVECTOR3: glm_setvvalue2s(res, v.q * glm_vecvalue(p2).v3, LUA_VVECTOR3); return 1;
-#if defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
+#endif
+        // type_quat_simd.inl:180:31: error: ‘const struct glm::vec<4, float, glm::aligned_highp>’
+        // has no member named ‘Data’
+#if GLM_CONFIG_ALIGNED_GENTYPES == GLM_ENABLE && defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
         case LUA_VVECTOR4: {
-          const glm::vec<4, glm_Float> &y = glm_vecvalue(p2).v4;
-          const glm::vec<4, glm_Float> result = glm::detail::compute_quat_mul_vec4<glm_Float, glm::defaultp, false>::call(v.q, y);
+          const glm::qua<glm_Float, glm::qualifier::highp> qx(glm_quatvalue(p1).q);
+          const glm::vec<4, glm_Float, glm::qualifier::highp> vy(glm_vecvalue(p2).v4);
+          const glm::vec<4, glm_Float> result(qx * vy);
           glm_setvvalue2s(res, result, LUA_VVECTOR4);
           return 1;
         }
