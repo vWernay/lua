@@ -487,6 +487,7 @@ OPTION(GRIT_COMPAT_IPAIRS "Reintroduce compatibility for the ``__ipairs`` metame
 OPTION(GRIT_POWER_DEFER "Enable the defer statement" OFF)
 OPTION(GRIT_POWER_DEFER_OLD "Import func2close from ltests.h into the base library as `defer`" ON)
 OPTION(GRIT_POWER_JOAAT "Enable compile time Jenkins' one-at-a-time hashing" ON)
+OPTION(GRIT_POWER_LAMBDA "Enable short function notation" ON)
 OPTION(GRIT_POWER_COMPOUND "Add compound operators (+=, -=, *=, /=, <<=, >>=, &=, |=, and ^=) to the language." ON)
 OPTION(GRIT_POWER_INTABLE "Support for unpacking named values from tables using the in keyword" ON)
 OPTION(GRIT_POWER_TABINIT "Syntactic sugar to improve the syntax for specifying sets" ON)
@@ -527,6 +528,10 @@ ENDIF()
 
 IF( GRIT_POWER_JOAAT )
   ADD_COMPILE_DEFINITIONS(GRIT_POWER_JOAAT)
+ENDIF()
+
+IF( GRIT_POWER_LAMBDA )
+  ADD_COMPILE_DEFINITIONS(GRIT_POWER_LAMBDA)
 ENDIF()
 
 IF( GRIT_COMPAT_IPAIRS )
@@ -826,7 +831,7 @@ ELSE()
 ENDIF()
 
 # Add extra rc files to the windows build
-IF( MSVC OR CYGWIN OR MSYS )
+IF( (MSVC OR CYGWIN OR MSYS) AND NOT LUA_INCLUDE_TEST )
   IF( NOT CMAKE_RC_COMPILER )
     SET(CMAKE_RC_COMPILER windres.exe)
   ENDIF()

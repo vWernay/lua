@@ -997,13 +997,26 @@ static void setvararg (FuncState *fs, int nparams) {
 }
 
 
+#if defined(GRIT_POWER_LAMBDA)
+static void parlist_ext (LexState *ls, int end_token);
 static void parlist (LexState *ls) {
+  parlist_ext(ls, ')');
+}
+
+static void parlist_ext (LexState *ls, int end_token) {
+#else
+static void parlist (LexState *ls) {
+#endif
   /* parlist -> [ {NAME ','} (NAME | '...') ] */
   FuncState *fs = ls->fs;
   Proto *f = fs->f;
   int nparams = 0;
   int isvararg = 0;
+#if defined(GRIT_POWER_LAMBDA)
+  if (ls->t.token != end_token) {  /* is 'parlist' not empty? */
+#else
   if (ls->t.token != ')') {  /* is 'parlist' not empty? */
+#endif
     do {
       switch (ls->t.token) {
         case TK_NAME: {
@@ -1052,6 +1065,32 @@ static void body (LexState *ls, expdesc *e, int ismethod, int line) {
 #endif
   close_func(ls);
 }
+
+
+#if defined(GRIT_POWER_LAMBDA)
+static void simplebody(LexState *ls, expdesc *e, int line) {
+  /* simplebody ->  parlist `|' expr END */
+  expdesc ebody;
+  int reg;
+  BlockCnt bl;
+  FuncState new_fs;
+  new_fs.f = addprototype(ls);
+  new_fs.f->linedefined = line;
+  open_func(ls, &new_fs, &bl);
+  parlist_ext(ls, '|');
+  checknext(ls, '|');
+  expr(ls, &ebody);
+  reg = luaK_exp2anyreg(&new_fs, &ebody);
+  luaK_ret(&new_fs, reg, 1);
+  new_fs.f->lastlinedefined = ls->linenumber;
+#if defined(GRIT_POWER_DEFER)
+  codeclosure(ls, e, 0);
+#else
+  codeclosure(ls, e);
+#endif
+  close_func(ls);
+}
+#endif
 
 
 #if defined(GRIT_POWER_DEFER)
@@ -1310,6 +1349,13 @@ static void simpleexp (LexState *ls, expdesc *v) {
     case TK_HASH: {
       codehash(v, ls->t.seminfo.ts);
       break;
+    }
+#endif
+#if defined(GRIT_POWER_LAMBDA)
+    case '|': {
+      luaX_next(ls);
+      simplebody(ls, v, ls->linenumber);
+      return;
     }
 #endif
     default: {

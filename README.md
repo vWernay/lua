@@ -316,6 +316,25 @@ Note: for compatibility reasons, all hashes returned are sign-extended:
 2491553369
 ```
 
+#### Short Function Notation:
+Syntactic sugar for writing concise anonymous functions of the form `|a, b, ...| expr`. Where `expr` is any expression equivalent to `function(a, b, ...) return expr end`. For example,
+
+```lua
+> f = |x| x^2 - 1 -- function(x) return x^2+1 end
+
+> f(2)
+3.0
+
+> f(vec3(1, 2, 3))
+vec3(0.000000, 3.000000, 8.000000)
+
+-- 'hexadump' from lua-MessagePack.lua
+> hexadump = |s| s:gsub('.', |c| string.format('%02X ', c:byte()))
+
+> hexadump("\221\255\255\255\255Z")
+DD FF FF FF FF 5A
+```
+
 #### \_\_ipairs:
 Reintroduce compatibility for the ``__ipairs`` metamethod that was deprecated in 5.3 and removed in 5.4.
 
@@ -503,6 +522,7 @@ Note, not all Lua-specific options are listed.
   - **GRIT\_POWER\_TABINIT**
   - **GRIT\_POWER\_CCOMMENT**
   - **GRIT\_POWER\_JOAAT**
+  - **GRIT\_POWER\_LAMBDA**
   - **GRIT\_POWER\_EACH**
   - **GRIT\_POWER\_BLOB**
   - **GRIT\_POWER\_WOW**
