@@ -14,7 +14,9 @@ CWARNSCPP= \
 	-Wredundant-decls \
 	-Wdisabled-optimization \
 	-Wdouble-promotion \
-    # the next warnings might be useful sometimes,
+	-Wmissing-declarations \
+	# the next warnings might be useful sometimes,
+	# but usually they generate too much noise
 	# -Werror \
 	# -pedantic   # warns if we use jump tables \
 	# -Wconversion  \

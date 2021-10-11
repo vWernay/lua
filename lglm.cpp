@@ -515,7 +515,9 @@ int glmVec_next(const TValue *obj, StkId key) {
     return 1;
   }
   else if (ttisnumber(key_obj)) {
-    const lua_Integer l_nextIdx = glm_tointeger(key_obj) + 1; // @TODO: Fix wrap-around semantics
+    lua_Integer l_nextIdx = glm_tointeger(key_obj);
+    l_nextIdx = luaL_intop(+, l_nextIdx, 1);  /* first empty element */
+
     const glm::length_t nextIdx = i_glmlen(l_nextIdx);
     if (nextIdx >= 1 && nextIdx <= glm_dimensions(ttypetag(obj))) {
       setivalue(key_obj, l_nextIdx);  // Iterator values are 1-based
@@ -765,7 +767,9 @@ int glmMat_next(const TValue *obj, StkId key) {
     return 1;
   }
   else if (ttisnumber(key_value)) {
-    const lua_Integer l_nextIdx = glm_tointeger(key_value) + 1; // @TODO: Fix wrap-around semantics
+    lua_Integer l_nextIdx = glm_tointeger(key_value);
+    l_nextIdx = luaL_intop(+, l_nextIdx, 1);  /* first empty element */
+
     const glm::length_t nextIdx = i_glmlen(l_nextIdx);
     if (nextIdx >= 1 && nextIdx <= LUA_GLM_MATRIX_COLS(mvalue_dims(obj))) {
       setivalue(key_value, l_nextIdx);  // Iterator values are 1-based
