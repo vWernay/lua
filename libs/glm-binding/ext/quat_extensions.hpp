@@ -373,7 +373,7 @@ namespace glm {
 #endif
   }
 
-#if defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
+#if GLM_CONFIG_ALIGNED_GENTYPES == GLM_ENABLE && defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
   /// <summary>
   /// non-aligned implementation
   /// </summary>

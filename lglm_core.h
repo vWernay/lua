@@ -112,6 +112,7 @@ static LUA_INLINE int vecgets (const TValue *obj, const char *k, StkId res) {
   }
 
   if (l_likely(_n >= 1 && _n <= _d)) {
+    /* @TODO: Avoid taking the address of a 'TValue' field */
 #if LUAGLM_QUAT_WXYZ  /* quaternion has WXYZ layout */
     if (ttypetag(obj) == LUA_VQUAT) _n = (_n % 4) + 1;
 #endif
@@ -177,47 +178,26 @@ LUAI_FUNC int glm_trybinTM (lua_State *L, const TValue *p1, const TValue *p2, St
 ** ===================================================================
 */
 
-#define luaMat_cast_m2(M) { (M)->x, (M)->y, 0, 0 }
-#define luaMat_cast_m3(M) { (M)->x, (M)->y, (M)->z, 0 }
-#define luaMat_cast_m4(M) M
-
 /* Fast path equivalent macros. */
-#define glmMat_fastgeti(T, I, S) (matgeti((T), (I), (S)) != LUA_TNONE)
-
-/* Helper function for generalized matrix int-access. */
-static LUA_INLINE int matgeti (const TValue *obj, lua_Integer n, StkId res) {
-  const grit_length_t gidx = cast(grit_length_t, n);
-  const lua_Mat4 *m = mvalue_ref(obj);
-  if (l_likely(gidx >= 1 && gidx <= LUA_GLM_MATRIX_COLS(m->dimensions))) {
-    switch (LUA_GLM_MATRIX_ROWS(m->dimensions)) {
-      case 2: {
-        const lua_CFloat2 *col = &m->m.m2[gidx - 1];
-        lua_Float4 f4 = luaMat_cast_m2(col);
-        setvvalue(s2v(res), f4, LUA_VVECTOR2);
-        return LUA_VVECTOR2;
-      }
-      case 3: {
-        const lua_CFloat3 *col = &m->m.m3[gidx - 1];
-        lua_Float4 f4 = luaMat_cast_m3(col);
-        setvvalue(s2v(res), f4, LUA_VVECTOR3);
-        return LUA_VVECTOR3;
-      }
-      case 4: {
-        setvvalue(s2v(res), m->m.m4[gidx - 1], LUA_VVECTOR4);
-        return LUA_VVECTOR4;
-      }
-      default:
-        break;
-    }
-  }
-  return LUA_TNONE;
-}
+#define glmMat_fastgeti(T, I, S) (glmMat_vmgeti((T), (I), (S)) != LUA_TNONE)
 
 /* Create a new collectible matrix object, linking it to the allgc list */
 LUAI_FUNC GCMatrix *glmMat_new (lua_State *L);
 
 /* rawgeti variant for matrix types */
 LUAI_FUNC int glmMat_rawgeti (const TValue *obj, lua_Integer n, StkId res);
+
+/*
+** glmMat_rawgeti: That does not set 'res' to nil on invalid access.
+**
+** @NOTE: matgeti is an inlined function that could be directly used by lvm.c.
+** However, certain GLM configurations will implicitly align glm::vec3. This
+** logic does not exist within the C boundary of the runtime at the moment.
+**
+** This should incur a ~5% hit on the throughput of matrix accessing, e.g.,
+** 305657101.637 Mi/s vs. 285964300.217 Mi/
+*/
+LUAI_FUNC int glmMat_vmgeti (const TValue *obj, lua_Integer n, StkId res);
 
 /* rawget variant for matrix types */
 LUAI_FUNC int glmMat_rawget (const TValue *obj, TValue *key, StkId res);

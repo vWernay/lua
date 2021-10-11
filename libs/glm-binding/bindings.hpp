@@ -92,11 +92,23 @@ extern LUA_API_LINKAGE {
 #endif
 
 /* TValue -> glmVector */
-#if !defined(glm_vecvalue)
+#if !defined(glm_vvalue)
 #define glm_mvalue(o) glm_constmat_boundary(mvalue_ref(o))
-#define glm_vvalue(o) glm_constvec_boundary(vvalue_ref(o))
-#define glm_vecvalue(o) check_exp(ttisvector(o), glm_constvec_boundary(&vvalue_(o)))
-#define glm_quatvalue(o) check_exp(ttisquat(o), glm_constvec_boundary(&vvalue_(o)))
+#define glm_vvalue(o) check_exp(ttisvector(o), glm_constvec_boundary(&vvalue_(o)))
+#define glm_v2value(o) glm_vvalue(o).v2
+#define glm_v3value(o) glm_vvalue(o).v3
+#define glm_v4value(o) glm_vvalue(o).v4
+#define glm_qvalue(o) glm_vvalue(o).q
+#endif
+
+/*
+** 'LUAGLM_ALIGNED' is used to compensate for some SIMD library functions being
+** broken in GLM.
+*/
+#if !defined(LUAGLM_ALIGNED)
+#if GLM_CONFIG_ALIGNED_GENTYPES == GLM_ENABLE && defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
+  #define LUAGLM_ALIGNED
+#endif
 #endif
 
 /*
@@ -474,7 +486,7 @@ struct gLuaBase {
   LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::vec<2, glm_Float> &v) {
     const TValue *o = glm_i2v(LB.L, idx_);
     if (l_likely(ttisvector2(o))) {
-      v = glm_vecvalue(o).v2;
+      v = glm_v2value(o);
       return 1;
     }
     return luaL_typeerror(LB.L, idx_, LABEL_VECTOR2);
@@ -483,7 +495,7 @@ struct gLuaBase {
   LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::vec<3, glm_Float> &v) {
     const TValue *o = glm_i2v(LB.L, idx_);
     if (l_likely(ttisvector3(o))) {
-      v = glm_vecvalue(o).v3;
+      v = glm_v3value(o);
       return 1;
     }
     return luaL_typeerror(LB.L, idx_, LABEL_VECTOR3);
@@ -492,7 +504,7 @@ struct gLuaBase {
   LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::vec<4, glm_Float> &v) {
     const TValue *o = glm_i2v(LB.L, idx_);
     if (l_likely(ttisvector4(o))) {
-      v = glm_vecvalue(o).v4;
+      v = glm_v4value(o);
       return 1;
     }
     return luaL_typeerror(LB.L, idx_, LABEL_VECTOR4);
@@ -502,7 +514,7 @@ struct gLuaBase {
   LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::vec<2, T> &v) {
     const TValue *o = glm_i2v(LB.L, idx_);
     if (l_likely(ttisvector2(o))) {
-      const glm::vec<2, glm_Float> &_v = glm_vecvalue(o).v2;
+      const glm::vec<2, glm_Float> &_v = glm_v2value(o);
       v = cast_vec2(_v, T);
       return 1;
     }
@@ -513,7 +525,7 @@ struct gLuaBase {
   LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::vec<3, T> &v) {
     const TValue *o = glm_i2v(LB.L, idx_);
     if (l_likely(ttisvector3(o))) {
-      const glm::vec<3, glm_Float> &_v = glm_vecvalue(o).v3;
+      const glm::vec<3, glm_Float> &_v = glm_v3value(o);
       v = cast_vec3(_v, T);
       return 1;
     }
@@ -524,7 +536,7 @@ struct gLuaBase {
   LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::vec<4, T> &v) {
     const TValue *o = glm_i2v(LB.L, idx_);
     if (l_likely(ttisvector4(o))) {
-      const glm::vec<4, glm_Float> &_v = glm_vecvalue(o).v4;
+      const glm::vec<4, glm_Float> &_v = glm_v4value(o);
       v = cast_vec4(_v, T);
       return 1;
     }
@@ -545,7 +557,7 @@ struct gLuaBase {
   LUA_TRAIT_QUALIFIER int Pull(const gLuaBase LB, int idx_, glm::qua<glm_Float> &q) {
     const TValue *o = glm_i2v(LB.L, idx_);
     if (l_likely(ttisquat(o))) {
-      q = gm_drift(glm_quatvalue(o).q);
+      q = gm_drift(glm_qvalue(o));
       return 1;
     }
     return luaL_typeerror(LB.L, idx_, LABEL_QUATERN);

@@ -467,12 +467,12 @@ GLM_BINDING_QUALIFIER(mat_negate) {
 */
 
 #if defined(INTEGER_HPP)
-#if LUA_INT_TYPE != LUA_INT_INT || !defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
+#if LUA_INT_TYPE != LUA_INT_INT || !defined(LUAGLM_ALIGNED)
 INTEGER_VECTOR_DEFN(bitCount, glm::bitCount, LAYOUT_UNARY, LUA_UNSIGNED)
 #endif
 INTEGER_VECTOR_DEFN(bitfieldExtract, glm::bitfieldExtract, LAYOUT_UNARY, LUA_UNSIGNED, gLuaTrait<int>, gLuaTrait<int>)
 INTEGER_VECTOR_DEFN(bitfieldInsert, glm::bitfieldInsert, LAYOUT_BINARY, LUA_UNSIGNED, gLuaTrait<int>, gLuaTrait<int>)
-#if LUA_INT_TYPE != LUA_INT_INT || !defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
+#if LUA_INT_TYPE != LUA_INT_INT || !defined(LUAGLM_ALIGNED)
 INTEGER_VECTOR_DEFN(bitfieldReverse, glm::bitfieldReverse, LAYOUT_UNARY, LUA_UNSIGNED)
 #endif
 INTEGER_VECTOR_DEFN(findLSB, glm::findLSB, LAYOUT_UNARY, LUA_UNSIGNED)
@@ -726,7 +726,7 @@ ROTATION_MATRIX_DEFN(rotateNormalizedAxis, glm::rotateNormalizedAxis, LAYOUT_UNA
 
 #if defined(MATRIX_HPP)
 SYMMETRIC_MATRIX_DEFN(determinant, glm::determinant, LAYOUT_UNARY)
-#if defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
+#if defined(LUAGLM_ALIGNED)
 MATRIX_DEFN(matrixCompMult, glm::__matrixCompMult, LAYOUT_BINARY)
 #else
 MATRIX_DEFN(matrixCompMult, glm::matrixCompMult, LAYOUT_BINARY)
@@ -1199,9 +1199,9 @@ GLM_BINDING_QUALIFIER(toint) {
   GLM_BINDING_BEGIN
   const TValue *_tv = glm_i2v(LB.L, LB.idx);
   switch (ttypetag(_tv)) {
-    case LUA_VVECTOR2: return gLuaBase::Push(LB, cast_vec2(glm_vecvalue(_tv).v2, glm_Integer));
-    case LUA_VVECTOR3: return gLuaBase::Push(LB, cast_vec3(glm_vecvalue(_tv).v3, glm_Integer));
-    case LUA_VVECTOR4: return gLuaBase::Push(LB, cast_vec4(glm_vecvalue(_tv).v4, glm_Integer));
+    case LUA_VVECTOR2: return gLuaBase::Push(LB, cast_vec2(glm_v2value(_tv), glm_Integer));
+    case LUA_VVECTOR3: return gLuaBase::Push(LB, cast_vec3(glm_v3value(_tv), glm_Integer));
+    case LUA_VVECTOR4: return gLuaBase::Push(LB, cast_vec4(glm_v4value(_tv), glm_Integer));
     default: {
       int valid;
       const lua_Integer n = lua_tointegerx(LB.L, LB.idx, &valid);
@@ -1304,7 +1304,7 @@ GLM_BINDING_QUALIFIER(mix) {
       switch (mvalue_dims(_tv)) {
         case LUA_GLM_MATRIX_2x2: LAYOUT_TERNARY_OPTIONAL(LB, glm::mix, gLuaMat2x2<>); break;
         case LUA_GLM_MATRIX_3x3: LAYOUT_TERNARY_OPTIONAL(LB, glm::mix, gLuaMat3x3<>); break;
-  #if defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
+  #if defined(LUAGLM_ALIGNED)
         case LUA_GLM_MATRIX_4x4: LAYOUT_TERNARY_OPTIONAL(LB, glm::__mix, gLuaMat4x4<>); break;
   #else
         case LUA_GLM_MATRIX_4x4: LAYOUT_TERNARY_OPTIONAL(LB, glm::mix, gLuaMat4x4<>); break;
@@ -1852,7 +1852,7 @@ GLM_BINDING_QUALIFIER(rotate) {
         TRAITS_FUNC(LB, glm::rotate, gLuaQuat<>, gLuaFloat, gLuaDir3<>); /* <quat, angle, axis> */
       else if (ttisvector3(_tv2)) /* glm/gtx/quaternion.hpp */
         TRAITS_FUNC(LB, glm::rotate, gLuaQuat<>, gLuaVec3<>);
-#if defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
+#if defined(LUAGLM_ALIGNED)
       else if (ttisvector4(_tv2))
         TRAITS_FUNC(LB, glm::__rotate, gLuaQuat<>, gLuaVec4<>);
 #else

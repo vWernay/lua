@@ -964,6 +964,12 @@ LUA_GLM_ALIGNED_TYPEDEF(struct, lua_CFloat4) lua_Float4;
 ** These safeguards will not be required if LuaGLM ever becomes a strictly C++
 ** compiled runtime. As the "C" parts of this runtime can use the structs
 ** defined in lglm.hpp
+**
+** @TODO: Compensate for: detail::storage<3, T, detail::is_aligned<Q>::value>::type
+** data implicitly aligning vec3 types. This requires 'GLM_HAS_ALIGNOF' emulation.
+**
+** @TODO: Consider preventing the use of 'GLM_FORCE_DEFAULT_ALIGNED_GENTYPES'
+** without 'GLM_FORCE_XYZW_ONLY' being defined in the meantime.
 */
 LUA_GLM_ALIGNED_TYPEDEF(struct, lua_Mat4) {
   union Columns {
