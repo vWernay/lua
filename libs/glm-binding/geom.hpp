@@ -1547,7 +1547,7 @@ GLM_BINDING_QUALIFIER(polygon__newindex) {
 
 extern "C" {
   /// <summary>
-  /// Iterator function for polygon verticies.
+  /// Iterator function for polygon vertices.
   /// </summary>
   static int polygon__iterator(lua_State *L) {
     GLM_BINDING_BEGIN

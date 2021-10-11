@@ -28,8 +28,9 @@ local vec3 = vec3
 local vec4 = vec4
 
 local table = table
-local table_wipe = table.wipe
 local table_remove = table.remove
+local table_create = table.create or function() return {} end
+local table_wipe = table.wipe or function() return {} end
 
 local glm = glm
 local glm_aabb_contains = glm.aabb.contains
@@ -147,13 +148,13 @@ function Octree.EstimateParameters(minBounds, maxBounds)
         local max = (maxBounds and maxBounds[i]) or nil
 
         local point = (max and glm_midpoint(min, max)) or min
-        mid += point
+        mid = mid + point
         minPos = glm.min(minPos, point)
         maxPos = glm.max(maxPos, point)
 
         if max then -- An AABB
             local dimensions = max - min
-            width += dimensions
+            width = width + dimensions
             minDim = glm.min(minDim, dimensions)
             maxDim = glm.max(maxDim, dimensions)
         end
@@ -227,7 +228,7 @@ function Octree:NewNode(parent, position, axisLength)
         node = table_remove(self.availableIndicies)
     else
         node = self.nodeCount
-        self.nodeCount += 1
+        self.nodeCount = self.nodeCount + 1
     end
 
     self.hasObjects[node] = false
@@ -353,7 +354,7 @@ function Octree:CanMerge(node)
             return false
         end
 
-        totalObjects += #objects[child]
+        totalObjects = totalObjects + #objects[child]
     end
 
     return totalObjects <= self.leafSize
@@ -524,7 +525,7 @@ function Octree:Insert(object, min, max)
     while not root or not glm_aabb_containsAABB(nodeMin[root], nodeMax[root] or nodeMin[root], min, max) do
         self:ShiftAndGrow(objCenter - self.center[root].xyz)
 
-        count += 1
+        count = count + 1
         root = self.root
         if count > Octree.MaximumGrowIterations then
             CouldNotGrowError()
@@ -687,8 +688,8 @@ end
 --[[ @OVERRIDE --]]
 function Octree:CreateQueryCache()
     return {
-        stack = table.create(32, 0), -- Recyclable/Reused stack structure
-        rootbfs = table.create(1, 0),
+        stack = table_create(32, 0), -- Recyclable/Reused stack structure
+        rootbfs = table_create(1, 0),
     }
 end
 
@@ -725,7 +726,7 @@ function Octree:GenericQuery(cache, F, arg0, arg1, yield)
 
     rootbfs[1] = self.root ; stack[1] = rootbfs
     while pointer > 0 do
-        local childList = stack[pointer] ; stack[pointer] = nil ; pointer -= 1
+        local childList = stack[pointer] ; stack[pointer] = nil ; pointer = pointer - 1
         for i=1,#childList do
             local node = childList[i]
             if F(nodeMin[node], nodeMax[node], arg0, arg1) then
@@ -738,7 +739,7 @@ function Octree:GenericQuery(cache, F, arg0, arg1, yield)
                 end
 
                 if hasObjects[node] and #childs > 0 then
-                    pointer += 1 ; stack[pointer] = childs
+                    pointer = pointer + 1 ; stack[pointer] = childs
                 end
             end
         end
@@ -822,7 +823,7 @@ RecursiveNeighborSearch = function(self, node, point, neighborList)
                 or (nextDist <= (neighborList.worstDist + glm.feps))
             ) then
                 RecursiveNeighborSearch(self, children[nextBest], point, neighborList)
-                visited |= (1 << nextBest) -- mark as visited
+                visited = visited | (1 << nextBest) -- mark as visited
             else
                 continue = false
             end

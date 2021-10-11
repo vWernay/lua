@@ -375,8 +375,8 @@ namespace glm {
     vec<L, T, Q> area(0);
     if (polygon.size() <= 2)
       return T(0);
-    GLM_GEOM_ASSUME(isPlanar(polygon), T(0));
 
+    GLM_GEOM_ASSUME(isPlanar(polygon), T(0));
     size_t i = polygon.size() - 1;
     for (size_t j = 0; j < polygon.size(); ++j) {
       area += cross(polygon[i], polygon[j]);
@@ -413,7 +413,7 @@ namespace glm {
   }
 
   /// <summary>
-  /// Tests if the polygon is planar, i.e., all of its verticies lie on the same
+  /// Tests if the polygon is planar, i.e., all of its vertices lie on the same
   /// plane.
   /// </summary>
   template<length_t L, typename T, qualifier Q>
@@ -460,7 +460,7 @@ namespace glm {
   }
 
   /// <summary>
-  /// Tests if the polygon is null, i.e., has no verticies.
+  /// Tests if the polygon is null, i.e., has no vertices.
   /// </summary>
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool isNull(const Polygon<L, T, Q> &polygon) {
@@ -506,8 +506,8 @@ namespace glm {
       return false;
     else if (size <= 3)
       return true;
-    GLM_GEOM_ASSUME(isPlanar(polygon), false);
 
+    GLM_GEOM_ASSUME(isPlanar(polygon), false);
     size_t i = size - 2;
     size_t j = size - 1;
     size_t k = 0;

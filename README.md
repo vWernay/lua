@@ -21,7 +21,7 @@ Vectors and quaternions are basic types (following nil, boolean, number, string,
 vec4(3.141593, 2.718282, 1.618034, 3.141593)
 
 -- vectors and quaternions have an explicit type string even though they are
--- internally represented by the same LUA_TVECTOR tag (grit-lua compatbility)
+-- internally represented by the same LUA_TVECTOR tag (grit-lua compatibility)
 > print(type(v), type(quat(1,0,0,0)))
 vector3 quat
 
@@ -188,7 +188,7 @@ The binding library also extends GLM to:
 See [EXTENDED.md](EXTENDED.md) for a list of additional functions.
 
 #### Casting Rules
-As vector/quaternion types are represented by float-point values, some additional type-inferencing rules are required when casting values to and from floating point values (see sections [4.6-4.9] in your favorite `ISO/IEC 14882` document):
+As vector/quaternion types are represented by float-point values, some additional type-inference rules are required when casting values to and from floating point values (see sections [4.6-4.9] in your favorite `ISO/IEC 14882` document):
 
 1. A `glm::vec<1, ...>` structure is represented by `lua_Integer`, `lua_Number`, or `bool` Lua value and all `glm::vec<1, ...>` bindings are templated to those Lua types.
 1. All other `glm::vec` structures are float-casted (and/or bound to float-templated functions). Consequently, bitfield and integer operations, e.g., [packUnorm](http://glm.g-truc.net/0.9.9/api/a00716.html#gaccd3f27e6ba5163eb7aa9bc8ff96251a) and [floatBitsToInt](http://glm.g-truc.net/0.9.9/api/a00662.html#ga99f7d62f78ac5ea3b49bae715c9488ed), are considered unsafe when operating on multi-dimensional vectors (consider inexact IEEE754).
@@ -359,7 +359,7 @@ for k,v in each(t) do print(k, v) end
 
 which defaults to a ``pairs`` implementation that supports a fourth return variable (to-be-closed) when no `__iter` metamethod exists. ... This patch is inspired by the Self-iterating Objects patch; see commit logs for reasoning behind deviation.
 
-#### String Blobs
+#### String Blobs:
 Introduce a `LUA_TSTRING` variant that is effectively a `LUA_VLNGSTR` but without the hash caching mechanism. Values of this variant are stored in tables by reference.
 
 ```lua
@@ -569,7 +569,7 @@ For all GLM preprocessor flags, see the [GLM manual](https://github.com/g-truc/g
     true
     ```
 
-#### CRT Allocator
+#### CRT Allocator:
 Inspired by `LLVM_INTEGRATED_CRT_ALLOC`, the CMake project includes the ability to replace the default Windows CRT allocator. Only [rpmalloc](https://github.com/mjansson/rpmalloc) and [mimalloc](https://github.com/microsoft/mimalloc) are supported at the moment; use `-DLUA_CRT_ALLOC="path/to/rpmalloc"`.
 
 ## Developer Notes:

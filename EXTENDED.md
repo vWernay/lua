@@ -995,12 +995,12 @@ An Axis-Aligned Bounding Box. All operators (non-constructors) are of the form:
 ```lua
 -- aabbMin --[[ vec3 ]]: The minimum extent of the AABB in world space,
 -- aabbMax --[[ vec3 ]]: The maximum extent of the AABB in world space,
--- ...: vardiac function parameters
+-- ...: variadic function parameters
 result = aabb.function(aabbMin, aabbMax, ...)
 
 -- aabbMin --[[ vec2 ]]: The minimum extent of the AABB in world space,
 -- aabbMax --[[ vec2 ]]: The maximum extent of the AABB in world space,
--- ...: vardiac function parameters
+-- ...: variadic function parameters
 result = aabb2d.function(aabbMin, aabbMax, ...)
 ```
 
@@ -1342,7 +1342,7 @@ A line that extends to plus/minus infinity. All operators (non-constructors) are
 ```lua
 -- linePos --[[ vec3 ]]: The origin of the line in world space,
 -- lineDir --[[ vec3 ]]: The direction of the line,
--- ...: vardiac function parameters.
+-- ...: variadic function parameters.
 result = line.function(linePos, lineDir, ...)
 ```
 
@@ -1488,7 +1488,7 @@ A line that extends to infinity is only **one** direction. All operators (non-co
 ```lua
 -- rayPos --[[ vec3 ]]: The origin of the line in world space,
 -- rayDir --[[ vec3 ]]: The direction of the line,
--- ...: vardiac function parameters
+-- ...: variadic function parameters
 result = line.function(rayPos, rayDir, ...)
 ```
 
@@ -1628,7 +1628,7 @@ A line in world-space with a finite/definite start and end point. All operators 
 ```lua
 -- segStart --[[ vec3 ]]: The starting point of the line segment,
 -- segEnd --[[ vec3 ]]: The ending point to the line segment,
--- ...: vardiac function parameters
+-- ...: variadic function parameters
 result = segment.function(segStart, segEnd, ...)
 ```
 
@@ -1831,7 +1831,7 @@ A Sphere. All operators (non-constructors) are of the form:
 ```lua
 -- spherePos: The centroid of the sphere (or circle),
 -- sphereRad: The radius of the sphere (or circle),
--- ...: vardiac function parameters
+-- ...: variadic function parameters
 result = sphere.function(spherePos --[[ vec3 ]], sphereRad --[[ number ]], ...)
 result = circle.function(circlePos --[[ vec2 ]], circleRad --[[ number ]], ...)
 ```
@@ -2088,7 +2088,7 @@ An affine 2D subspace of a 3D dimensional space. All operators (non-constructors
 ```lua
 -- planeNormal --[[ vec3 ]]: The direction the plane is facing,
 -- planeOffset --[[ vec3 ]]: The offset of this plane from the origin (0,0,0),
--- ...: vardiac function parameters
+-- ...: variadic function parameters
 result = plane.function(planeNormal, planeOffset, ...)
 ```
 
@@ -2549,7 +2549,7 @@ vec3 = polygon.centroid(...)
 
 ### polygon.isPlanar
 ```lua
--- Tests if the polygon is planar, i.e., all of its verticies lie on the same
+-- Tests if the polygon is planar, i.e., all of its vertices lie on the same
 -- plane
 bool = polygon.isPlanar(...)
 ```
@@ -2563,7 +2563,7 @@ bool = polygon.isSimple(...)
 
 ### polygon.isNull
 ```lua
--- Tests if the polygon is null, i.e., has no verticies
+-- Tests if the polygon is null, i.e., has no vertices
 bool = polygon.isNull(...)
 ```
 

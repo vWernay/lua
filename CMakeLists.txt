@@ -626,7 +626,7 @@ IF( GLM_FORCE_MESSAGES )
   ADD_COMPILE_DEFINITIONS(GLM_FORCE_MESSAGES)
 ENDIF()
 
-# g++ doesn't support force-inlined vardiac functions, see glm::to_string.
+# g++ doesn't support force-inlined variadic functions, see glm::to_string.
 # Technically this is a GLM error that should be reported
 
 IF( GLM_FORCE_CTOR_INIT )

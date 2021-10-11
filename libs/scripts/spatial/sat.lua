@@ -43,11 +43,11 @@ local Interval
 local vec3 = vec3
 
 local table = table
-local table_create = table.create
 local table_insert = table.insert
 local table_remove = table.remove
 local table_sort = table.sort
-local table_wipe = table.wipe
+local table_create = table.create or function() return {} end
+local table_wipe = table.wipe or function() return {} end
 
 local glm = glm
 local glm_min = glm.min
@@ -206,7 +206,7 @@ function Interval:Append(value, object, nodeType)
 
     local index = self.index
 
-    self.index += 1
+    self.index = self.index + 1
     self.values[index] = value
     self.objects[index] = object
     self.objectLookup[object] = index
@@ -272,7 +272,7 @@ function Interval:Remove(index)
         self.nodeType[sibling] = Interval.NodeType.Point
     end
 
-    self.index -= 1
+    self.index = self.index - 1
     objectLookup[objects[index]] = nil
 
     table_remove(objects, index)
@@ -374,7 +374,7 @@ function Interval:SubsortIndex(objects)
         local index = self.objectLookup[objects[i]]
         local sibling = self.siblingIndex[index]
 
-        objectCount += 1
+        objectCount = objectCount + 1
         if sibling ~= -1 then -- AABB
             min = glm_min(min, values[index], values[sibling])
             max = glm_max(max, values[index], values[sibling])
@@ -382,7 +382,7 @@ function Interval:SubsortIndex(objects)
             result[2][itemIndex] = index ; result[2][itemIndex + 1] = sibling
             result[3][itemIndex] = index ; result[3][itemIndex + 1] = sibling
 
-            itemIndex += 2
+            itemIndex = itemIndex + 2
         else -- Point
             min = glm_min(min, values[index])
             max = glm_max(max, values[index])
@@ -390,7 +390,7 @@ function Interval:SubsortIndex(objects)
             result[2][itemIndex] = index
             result[3][itemIndex] = index
 
-            itemIndex += 1
+            itemIndex = itemIndex + 1
         end
     end
 
@@ -431,7 +431,7 @@ function Interval:Partition(itemSet, partFunction, axis, intervalKey, value, res
 
             result[#result + 1] = index
             if nodeType[index] == Interval.NodeType.Min or nodeType[index] == Interval.NodeType.Point then
-                objCount += 1
+                objCount = objCount + 1
             end
         end
     end
@@ -620,8 +620,8 @@ function Interval:IntervalCount(itemSet, axis, objectCount)
     for i=1,#items do
         local item = items[i]
         if nodeType[item] == Interval.NodeType.Max then
-            openIntervals -= 1
-            closedIntervals += 1
+            openIntervals = openIntervals - 1
+            closedIntervals = closedIntervals + 1
         end
 
         local alpha = (values[item][axis] - minItem) * invBoxWidth
@@ -631,7 +631,7 @@ function Interval:IntervalCount(itemSet, axis, objectCount)
         end
 
         if nodeType[item] == Interval.NodeType.Min then
-            openIntervals += 1
+            openIntervals = openIntervals + 1
         end
     end
 
@@ -661,10 +661,10 @@ function Interval:CountPartition(partitionings, itemSet, axis, value)
 
         local object,valueType = objects[item],nodeType[item]
         if valueType == Interval.NodeType.Min or valueType == Interval.NodeType.Point then
-            lowCount += ((lower(self, object, axis, value) and 1) or 0)
-            upCount += ((upper(self, object, axis, value) and 1) or 0)
+            lowCount = lowCount + ((lower(self, object, axis, value) and 1) or 0)
+            upCount = upCount + ((upper(self, object, axis, value) and 1) or 0)
             if mid then
-                midCount += ((mid(self, object, axis, value) and 1) or 0)
+                midCount = midCount + ((mid(self, object, axis, value) and 1) or 0)
             end
         end
     end

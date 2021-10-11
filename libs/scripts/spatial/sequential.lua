@@ -12,8 +12,8 @@ local SequentialSpatial
 local vec3 = vec3
 
 local table = table
-local table_wipe = table.wipe
 local table_remove = table.remove
+local table_wipe = table.wipe or function() return {} end
 
 local glm = glm
 local glm_aabb_contains = glm.aabb.contains

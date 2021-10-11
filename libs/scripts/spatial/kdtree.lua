@@ -52,9 +52,9 @@ local Interval = Interval or require('sat')
 local vec3 = vec3
 
 local table = table
-local table_wipe = table.wipe
-local table_create = table.create
 local table_remove = table.remove
+local table_create = table.create or function() return {} end
+local table_wipe = table.wipe or function() return {} end
 
 local glm = glm
 local glm_abs = glm.abs
@@ -198,9 +198,9 @@ local function CreateIntervalPooler(poolLimit)
         New = function(self) return { {},{},{} } end,
 
         Recycle = function(self, t)
-            table_wipe(t[1])
-            table_wipe(t[2])
-            table_wipe(t[3])
+            t[1] = table_wipe(t[1])
+            t[2] = table_wipe(t[2])
+            t[3] = table_wipe(t[3])
             return t;
         end,
 
@@ -319,7 +319,7 @@ function KDTree:DeleteNode(node)
     else
         local leafNode = -node
 
-        table_wipe(self.objects[leafNode])
+        self.objects[leafNode] = table_wipe(self.objects[leafNode])
         self.leafMinBounds[leafNode] = __emptybounds
         self.leafMaxBounds[leafNode] = __emptybounds
         self.availableLeafIndicies[#self.availableLeafIndicies + 1] = leafNode
@@ -565,8 +565,8 @@ end
 
 --[[ @OVERRIDE --]]
 function KDTree:Immutable()
-    table_wipe(self.availableNodeIndicies)
-    table_wipe(self.availableLeafIndicies)
+    self.availableNodeIndicies = table_wipe(self.availableNodeIndicies)
+    self.availableLeafIndicies = table_wipe(self.availableLeafIndicies)
 
     self.intervals = nil
     self.availableNodeIndicies = nil
@@ -618,7 +618,7 @@ function KDTree:Insert(object, aabbMin, aabbMax)
         error("Tree is immutable")
     end
 
-    self.modificationCount += 1
+    self.modificationCount = self.modificationCount + 1
     intervals:AppendBounds(object, aabbMin, aabbMax)
     if self.root then
         self.root = self:InsertNode(intervals, self.root, object, nil)
@@ -635,7 +635,7 @@ function KDTree:InsertPoint(object, point)
         error("Tree is immutable")
     end
 
-    self.modificationCount += 1
+    self.modificationCount = self.modificationCount + 1
     intervals:AppendPoint(object, point)
     if self.root then
         self.root = self:InsertNode(intervals, self.root, object, nil)
@@ -652,7 +652,7 @@ function KDTree:Remove(object)
     end
 
     if self.root then
-        self.modificationCount += 1
+        self.modificationCount = self.modificationCount + 1
         self.root = self:RemoveNode(self.intervals, self.root, object)
         if self.root == 0 then -- Everything was deleted.
             self.root = nil
@@ -690,7 +690,7 @@ function KDTree:Query(stack, point, yield)
 
     local pointer = 1 ; stack[1] = self.root
     while pointer > 0 do
-        local node = stack[pointer] ; stack[pointer] = nil ; pointer -= 1
+        local node = stack[pointer] ; stack[pointer] = nil ; pointer = pointer - 1
         if node < 0 then
             local leafObjects = objects[-node]
             for i=1,#leafObjects do
@@ -702,8 +702,8 @@ function KDTree:Query(stack, point, yield)
             end
         else
             local value = point[cardinalAxis[node]]
-            if value <= cardinal[node][2] then pointer += 1 ; stack[pointer] = low[node] end
-            if value >= cardinal[node][3] then pointer += 1 ; stack[pointer] = high[node] end
+            if value <= cardinal[node][2] then pointer = pointer + 1 ; stack[pointer] = low[node] end
+            if value >= cardinal[node][3] then pointer = pointer + 1 ; stack[pointer] = high[node] end
         end
     end
 end
@@ -723,7 +723,7 @@ function KDTree:GenericQuery(stack, F, arg0, arg1, yield)
 
     local pointer = 1 ; stack[1] = self.root
     while pointer > 0 do
-        local node = stack[pointer] ; stack[pointer] = nil ; pointer -= 1
+        local node = stack[pointer] ; stack[pointer] = nil ; pointer = pointer - 1
         if node < 0 then -- Node is a leaf, see what objects the ray intersects through.
             local leafObjects = objects[-node]
             for i=1,#leafObjects do
@@ -735,8 +735,8 @@ function KDTree:GenericQuery(stack, F, arg0, arg1, yield)
         else -- Intersects the AABB of the node, process its children
             local nodeMin = nodeMinBnds[node]
             if F(nodeMin, nodeMaxBnds[node] or nodeMin, arg0, arg1) then
-                if low[node] ~= 0 then pointer += 1 ; stack[pointer] = low[node] end
-                if high[node] ~= 0 then pointer += 1 ; stack[pointer] = high[node] end
+                if low[node] ~= 0 then pointer = pointer + 1 ; stack[pointer] = low[node] end
+                if high[node] ~= 0 then pointer = pointer + 1 ; stack[pointer] = high[node] end
             end
         end
     end
@@ -883,15 +883,15 @@ local function ComputeStatistics(self, rootIndex)
     rootIndex = rootIndex or self.root
     stack[1] = rootIndex ; depthMap[rootIndex] = 1
     while pointer > 0 do
-        local node = stack[pointer] ; stack[pointer] = nil ; pointer -= 1
+        local node = stack[pointer] ; stack[pointer] = nil ; pointer = pointer - 1
 
         local depth = depthMap[node]
         if node < 0 then
             local objects = objects[-node]
             local x = #objects
 
-            leafCount += 1
-            objCount += x
+            leafCount = leafCount + 1
+            objCount = objCount + x
             minLeafCount = (minLeafCount > x and x) or minLeafCount
             maxLeafCount = (maxLeafCount > x and maxLeafCount) or x
             minDepth = (minDepth > depth and depth) or minDepth
@@ -901,15 +901,15 @@ local function ComputeStatistics(self, rootIndex)
             m_last = (k == 0 and x) or m
             s_last = (k == 0 and 0.0) or s
 
-            k += 1
+            k = k + 1
             m = m_last + (x - m_last) / k
             s = s_last + (x - m_last) * (x - m)
         else
-            nodeCount += 1
+            nodeCount = nodeCount + 1
 
             local low,high = low[node],high[node]
-            if low then pointer += 1 ; depthMap[low] = depth + 1 ; stack[pointer] = low end
-            if high then pointer += 1 ; depthMap[high] = depth + 1 ; stack[pointer] = high end
+            if low then pointer = pointer + 1 ; depthMap[low] = depth + 1 ; stack[pointer] = low end
+            if high then pointer = pointer + 1 ; depthMap[high] = depth + 1 ; stack[pointer] = high end
         end
     end
 
