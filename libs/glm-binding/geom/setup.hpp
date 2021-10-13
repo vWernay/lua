@@ -5,8 +5,8 @@
 ** @TODO GLM_CONFIG_DEFAULTED_FUNCTIONS support
 ** @TODO Move "geom/" to "ext/geom/"
 */
-#ifndef __EXT_GEOM_SETUP_HPP__
-#define __EXT_GEOM_SETUP_HPP__
+#ifndef EXT_GEOM_SETUP_HPP
+#define EXT_GEOM_SETUP_HPP
 
 #include <vector>
 
@@ -64,13 +64,13 @@ namespace glm {
   template<length_t L, typename T, qualifier Q = defaultp> struct Sphere;
   template<length_t L, typename T, qualifier Q = defaultp> struct Plane;
   template<length_t L, typename T, qualifier Q = defaultp> struct Polygon;
-};
+}
 
 /******************************************************************************
 * GLM Binding:
 * See Copyright Notice in lua.h
 \******************************************************************************
-* MathGeoLib
+* MathGeoLib:
 * Copyright Jukka Jylänki
 *
 * Licensed under the Apache License, Version 2.0 (the "License");

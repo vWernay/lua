@@ -1,8 +1,8 @@
 /// <summary>
 /// See Copyright Notice in setup.hpp
 /// </summary>
-#ifndef __EXT_GEOM_SPHERE_HPP__
-#define __EXT_GEOM_SPHERE_HPP__
+#ifndef EXT_GEOM_SPHERE_HPP
+#define EXT_GEOM_SPHERE_HPP
 
 #include <algorithm>
 
@@ -72,7 +72,7 @@ namespace glm {
 
   template<length_t L, typename T, qualifier Q>
   static bool operator==(const Sphere<L, T, Q> &s1, const Sphere<L, T, Q> &s2) {
-    return s1.pos == s2.pos && s1.r == s2.r;
+    return s1.pos == s2.pos && s1.r == s2.r;  // @TODO: glm::equal(s1.r, s2.r, glm::epsilon<T>());
   }
 
   template<length_t L, typename T, qualifier Q>
@@ -765,8 +765,9 @@ namespace glm {
       case 2: return optimalEnclosingSphere<T, Q>(pts[0], pts[1]);
       case 3: return optimalEnclosingSphere<T, Q>(pts[0], pts[1], pts[2]);
       case 4: return optimalEnclosingSphere<T, Q>(pts[0], pts[1], pts[2], pts[3]);
-      default:
+      default: {
         break;
+      }
     }
 
     // The set of supporting points for the minimal sphere.

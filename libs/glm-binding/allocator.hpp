@@ -3,8 +3,8 @@
 ** An allocator implementation for C++ STL objects.
 ** See Copyright Notice in lua.h
 */
-#ifndef __BINDING_ALLOCATOR_HPP__
-#define __BINDING_ALLOCATOR_HPP__
+#ifndef BINDING_ALLOCATOR_HPP
+#define BINDING_ALLOCATOR_HPP
 
 #include <new>
 #if defined(LUA_ALLOC_DEBUG)

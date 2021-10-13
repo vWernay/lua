@@ -334,9 +334,12 @@ static int ipairsaux (lua_State *L) {
 */
 static int ipairsaux_raw (lua_State *L) {
   const int type = lua_type(L, 1);
-  lua_Integer i = luaL_checkinteger(L, 2) + 1;
-  if (type != LUA_TTABLE && type != LUA_TMATRIX && type != LUA_TVECTOR)
-    luaL_typeerror(L, 1, lua_typename(L, LUA_TTABLE));
+  lua_Integer i = luaL_checkinteger(L, 2);
+  i = luaL_intop(+, i, 1);
+  if (type != LUA_TTABLE && type != LUA_TMATRIX && type != LUA_TVECTOR) {
+    return luaL_typeerror(L, 1, lua_typename(L, LUA_TTABLE));
+  }
+
   lua_pushinteger(L, i);
   return (lua_rawgeti(L, 1, i) == LUA_TNIL) ? 1 : 2;
 }

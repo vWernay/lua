@@ -1,8 +1,8 @@
 /// <summary>
 /// See Copyright Notice in setup.hpp
 /// </summary>
-#ifndef __EXT_GEOM_LINE_HPP__
-#define __EXT_GEOM_LINE_HPP__
+#ifndef EXT_GEOM_LINE_HPP
+#define EXT_GEOM_LINE_HPP
 
 #include "setup.hpp"
 #include <glm/gtx/string_cast.hpp>
@@ -213,7 +213,7 @@ namespace glm {
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER vec<L, T, Q> closestPoint(const Line<L, T, Q> &line, const Triangle<L, T, Q> &triangle, T &d, T &u, T &v) {
     d = intersectTriangleLine(triangle, line, u, v);  // Compute distance along line
-    if (d == std::numeric_limits<T>::infinity()) {
+    if (glm::isinf(d)) {
       closestPointTriangleLine<L, T, Q, Line<L, T, Q>>(triangle, line, u, v, d);
     }
 
@@ -409,11 +409,11 @@ namespace glm {
     const T d43 = dot(v4, v3);
     const T d31 = dot(v3, v1);
     const T d33 = dot(v3, v3);
-    if (d33 == T(0))
+    if (d33 == T(0))  // @TODO: glm::equal(d33, T(0), glm::epsilon<T>())
       return false;  // zero direction vector.
 
     const T denom = dot(v1, v1) * d33 - d31 * d31;
-    if (denom != T(0))
+    if (denom != T(0))  // @TODO: glm::notEqual(denom, T(0), glm::epsilon<T>())
       d = (d43 * d31 - dot(v4, v1) * d33) / denom;
     d2 = (d43 + d * d31) / d33;
 

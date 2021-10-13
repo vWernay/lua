@@ -9,8 +9,8 @@
 **
 ** See Copyright Notice in lua.h
 */
-#ifndef __EXT_EXTENSION_VECTOR_HPP__
-#define __EXT_EXTENSION_VECTOR_HPP__
+#ifndef EXT_EXTENSION_VECTOR_HPP
+#define EXT_EXTENSION_VECTOR_HPP
 #if !defined(GLM_ENABLE_EXPERIMENTAL)
   #define GLM_ENABLE_EXPERIMENTAL
 #endif
@@ -75,13 +75,13 @@ namespace glm {
       return forwardRH<T, Q>();
 #endif
     }
-  };
+  }
 
   /* glm::all(glm::equal(...)) shorthand ; @TODO Optimize */
 
   template<typename genIUType>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool equal(genIUType x, genIUType y) {
-    return x == y;
+    return x == y;  // @TODO: glm::equal(x, y, glm::epsilon<genIUType>())
   }
 
   template<typename T>
@@ -128,7 +128,7 @@ namespace glm {
 
   template<typename genIUType>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool notEqual(genIUType x, genIUType y) {
-    return x != y;
+    return x != y;  // @TODO: glm::notEqual(x, y, glm::epsilon<genIUType>())
   }
 
   template<typename T>
@@ -226,7 +226,7 @@ namespace glm {
   GLM_FUNC_QUALIFIER bool isUniform(vec<L, T, Q> const &v) {
     bool result = true;
     for (length_t i = 1; i < L; ++i)  // @TODO: detail::compute_isuniform_vector
-      result &= (v[i] == v[0]);
+      result &= (v[i] == v[0]);  // @TODO: glm::equal(v[i], v[0], glm::epsilon<T>())
     return result;
   }
 
@@ -1023,7 +1023,7 @@ namespace glm {
 
   template<typename genType>
   GLM_FUNC_QUALIFIER genType snap(const genType value, const genType step) {
-    if (step != genType(0))
+    if (step != genType(0))  // @TODO: glm::notEqual(step, genType(0), glm::epsilon<genType>())
       return glm::floor((value / step) + genType(0.5)) * step;
     return value;
   }

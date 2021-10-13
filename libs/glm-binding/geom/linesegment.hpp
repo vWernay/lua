@@ -1,8 +1,8 @@
 /// <summary>
 /// See Copyright Notice in setup.hpp
 /// </summary>
-#ifndef __EXT_GEOM_LINESEGMENT_HPP__
-#define __EXT_GEOM_LINESEGMENT_HPP__
+#ifndef EXT_GEOM_LINESEGMENT_HPP
+#define EXT_GEOM_LINESEGMENT_HPP
 
 #include "setup.hpp"
 #include "line.hpp"

@@ -8,8 +8,8 @@
 **
 ** See Copyright Notice in lua.h
 */
-#ifndef __EXT_EXTENSION_MATRIX_HPP__
-#define __EXT_EXTENSION_MATRIX_HPP__
+#ifndef EXT_EXTENSION_MATRIX_HPP
+#define EXT_EXTENSION_MATRIX_HPP
 #if !defined(GLM_ENABLE_EXPERIMENTAL)
   #define GLM_ENABLE_EXPERIMENTAL
 #endif

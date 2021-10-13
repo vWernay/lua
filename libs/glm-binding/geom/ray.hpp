@@ -1,8 +1,8 @@
 /// <summary>
 /// See Copyright Notice in setup.hpp
 /// </summary>
-#ifndef __EXT_GEOM_RAY_HPP__
-#define __EXT_GEOM_RAY_HPP__
+#ifndef EXT_GEOM_RAY_HPP
+#define EXT_GEOM_RAY_HPP
 
 #include "setup.hpp"
 #include "line.hpp"
@@ -367,7 +367,7 @@ namespace glm {
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool intersects(const Ray<L, T, Q> &ray, const Triangle<L, T, Q> &triangle, T &d, T &u, T &v) {
     d = intersectTriangleLine(triangle, toLine(ray), u, v);
-    return d >= T(0) && d != std::numeric_limits<T>::infinity();
+    return glm::isfinite(d) && d >= T(0);
   }
 
   template<length_t L, typename T, qualifier Q>

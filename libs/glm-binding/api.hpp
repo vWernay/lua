@@ -4,8 +4,8 @@
 ** Missing Headers:
 **  glm/gtx/associated_min_max.hpp
 */
-#ifndef __BINDING_API_HPP__
-#define __BINDING_API_HPP__
+#ifndef BINDING_API_HPP
+#define BINDING_API_HPP
 
 /*
 ** Flags used by the binding API.
@@ -213,9 +213,7 @@
   const TValue *_tv = glm_i2v((LB).L, (LB).idx);                              \
   switch (ttypetag(_tv)) {                                                    \
     case LUA_VFALSE: case LUA_VTRUE:                                          \
-    case LUA_VNUMINT:                                                         \
-      TRAITS_FUNC(LB, F, gLuaInteger, gLuaInteger);                           \
-      break;                                                                  \
+    case LUA_VNUMINT: TRAITS_FUNC(LB, F, gLuaInteger, gLuaInteger); break;    \
     case LUA_VSHRSTR: case LUA_VLNGSTR: /* string coercion */                 \
     case LUA_VNUMFLT: _EQUAL(LB, F, gLuaNumber, gLuaNumber); break;           \
     case LUA_VVECTOR2: _EQUAL(LB, F, gLuaVec2<>, gLuaVec2<>); break;          \
@@ -260,8 +258,9 @@ GLM_BINDING_QUALIFIER(hash) {
       case LUA_VVECTOR4: STD_HASH(LB, std::hash, gLuaVec4<>); break;
       case LUA_VQUAT: STD_HASH(LB, std::hash, gLuaQuat<>); break;
       case LUA_VMATRIX: PARSE_MATRIX(LB, _tv, std::hash, STD_HASH); break;
-      default:
+      default: {
         return luaL_typeerror(LB.L, LB.idx, LABEL_VECTOR " or " LABEL_QUATERN " or " LABEL_MATRIX);
+      }
     }
   }
   return _gettop(LB.L) - LB.top();
@@ -277,7 +276,8 @@ TRAITS_DEFN(forwardRH, glm::unit::forwardRH<glm_Float>)
 GLM_BINDING_QUALIFIER(unpack) {
   GLM_BINDING_BEGIN
   for (; LB.idx <= LB.top(); ++LB.idx) {
-    switch (ttype(glm_i2v(LB.L, LB.idx))) {
+    const TValue *_tv = glm_i2v(LB.L, LB.idx);
+    switch (ttype(_tv)) {
       case LUA_TVECTOR: glm_unpack_vector(LB.L, LB.idx); break;
       case LUA_TMATRIX: glm_unpack_matrix(LB.L, LB.idx); break;
       default: {
@@ -348,8 +348,9 @@ GLM_BINDING_QUALIFIER(mat_add) {
       case LUA_GLM_MATRIX_4x2: ADDITION_OPERATOR(LB, operator+, gLuaMat4x2<>, ttype(_tv2)); break;
       case LUA_GLM_MATRIX_4x3: ADDITION_OPERATOR(LB, operator+, gLuaMat4x3<>, ttype(_tv2)); break;
       case LUA_GLM_MATRIX_4x4: ADDITION_OPERATOR(LB, operator+, gLuaMat4x4<>, ttype(_tv2)); break;
-      default:
+      default: {
         break;
+      }
     }
   }
   return luaL_typeerror(LB.L, LB.idx, LABEL_NUMBER " or " LABEL_VECTOR " or " LABEL_MATRIX);
@@ -372,8 +373,9 @@ GLM_BINDING_QUALIFIER(mat_sub) {
       case LUA_GLM_MATRIX_4x2: ADDITION_OPERATOR(LB, operator-, gLuaMat4x2<>, ttype(_tv2)); break;
       case LUA_GLM_MATRIX_4x3: ADDITION_OPERATOR(LB, operator-, gLuaMat4x3<>, ttype(_tv2)); break;
       case LUA_GLM_MATRIX_4x4: ADDITION_OPERATOR(LB, operator-, gLuaMat4x4<>, ttype(_tv2)); break;
-      default:
+      default: {
         break;
+      }
     }
   }
   return luaL_typeerror(LB.L, LB.idx, LABEL_NUMBER " or " LABEL_VECTOR " or " LABEL_MATRIX);
@@ -404,8 +406,9 @@ GLM_BINDING_QUALIFIER(mat_mul) {
           case LUA_GLM_MATRIX_4x2: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat4x2<>); break;
           case LUA_GLM_MATRIX_4x3: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat4x3<>); break;
           case LUA_GLM_MATRIX_4x4: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat4x4<>); break;
-          default:
+          default: {
             break;
+          }
         }
       }
       break;
@@ -424,13 +427,15 @@ GLM_BINDING_QUALIFIER(mat_mul) {
         case LUA_GLM_MATRIX_4x2: MULTIPLICATION_OPERATOR(LB, operator*, gLuaMat4x2<>, ttype(_tv2)); break;
         case LUA_GLM_MATRIX_4x3: MULTIPLICATION_OPERATOR(LB, operator*, gLuaMat4x3<>, ttype(_tv2)); break;
         case LUA_GLM_MATRIX_4x4: MULTIPLICATION_OPERATOR(LB, operator*, gLuaMat4x4<>, ttype(_tv2)); break;
-        default:
+        default: {
           break;
+        }
       }
       break;
     }
-    default:
+    default: {
       break;
+    }
   }
   return luaL_typeerror(LB.L, LB.idx, LABEL_NUMBER " or " LABEL_VECTOR " or " LABEL_MATRIX);
   GLM_BINDING_END
@@ -450,8 +455,9 @@ GLM_BINDING_QUALIFIER(mat_negate) {
       case LUA_GLM_MATRIX_4x2: TRAITS_FUNC(LB, operator-, gLuaMat4x2<>); break;
       case LUA_GLM_MATRIX_4x3: TRAITS_FUNC(LB, operator-, gLuaMat4x3<>); break;
       case LUA_GLM_MATRIX_4x4: TRAITS_FUNC(LB, operator-, gLuaMat4x4<>); break;
-      default:
+      default: {
         break;
+      }
     }
   }
   return luaL_typeerror(LB.L, LB.idx, LABEL_MATRIX);
@@ -501,8 +507,9 @@ GLM_BINDING_QUALIFIER(bitfieldInterleave) {
     case 2: TRAITS_FUNC(LB, glm::bitfieldInterleave, gLuaTrait<uint32_t>, gLuaTrait<uint32_t>); break;
     case 3: TRAITS_FUNC(LB, glm::bitfieldInterleave, gLuaTrait<uint32_t>, gLuaTrait<uint32_t>, gLuaTrait<uint32_t>); break;
     case 4: TRAITS_FUNC(LB, glm::bitfieldInterleave, gLuaTrait<uint16_t>, gLuaTrait<uint16_t>, gLuaTrait<uint16_t>, gLuaTrait<uint16_t>); break;
-    default:
+    default: {
       break;
+    }
   }
   return luaL_error(LB.L, "interleave expects {uint32_t, uint32_t}, {uint32_t, uint32_t, uint32_t}, or {uint16_t, uint16_t, uint16_t, uint16_t}");
   GLM_BINDING_END
@@ -661,13 +668,15 @@ GLM_BINDING_QUALIFIER(inverse) {
         case LUA_GLM_MATRIX_2x2: TRAITS_FUNC(LB, glm::inverse, gLuaMat2x2<>); break;
         case LUA_GLM_MATRIX_3x3: TRAITS_FUNC(LB, glm::inverse, gLuaMat3x3<>); break;
         case LUA_GLM_MATRIX_4x4: TRAITS_FUNC(LB, glm::inverse, gLuaMat4x4<>); break;
-        default:
+        default: {
           return luaL_typeerror(LB.L, LB.idx, GLM_INVALID_MAT_DIMENSIONS);
+        }
       }
       return luaL_typeerror(LB.L, LB.idx, LABEL_NUMBER " or " LABEL_SYMMETRIC_MATRIX);
     }
-    default:
+    default: {
       break;
+    }
   }
   return luaL_typeerror(LB.L, LB.idx, LABEL_NUMBER " or " LABEL_VECTOR " or " LABEL_MATRIX);
   GLM_BINDING_END
@@ -735,39 +744,44 @@ MATRIX_DEFN(transpose, glm::transpose, LAYOUT_UNARY)
 GLM_BINDING_QUALIFIER(outerProduct) {
   GLM_BINDING_BEGIN
   const TValue *_tv = glm_i2v(LB.L, LB.idx);
+  const TValue *_tv2 = glm_i2v(LB.L, LB.idx + 1);
   switch (ttypetag(_tv)) {
     case LUA_VVECTOR2: {
-      switch (ttypetag(glm_i2v(LB.L, LB.idx + 1))) {
+      switch (ttypetag(_tv2)) {
         case LUA_VVECTOR2: TRAITS_FUNC(LB, glm::outerProduct, gLuaVec2<>, gLuaVec2<>); break;
         case LUA_VVECTOR3: TRAITS_FUNC(LB, glm::outerProduct, gLuaVec2<>, gLuaVec3<>); break;
         case LUA_VVECTOR4: TRAITS_FUNC(LB, glm::outerProduct, gLuaVec2<>, gLuaVec4<>); break;
-        default:
+        default: {
           break;
+        }
       }
       break;
     }
     case LUA_VVECTOR3: {
-      switch (ttypetag(glm_i2v(LB.L, LB.idx + 1))) {
+      switch (ttypetag(_tv2)) {
         case LUA_VVECTOR2: TRAITS_FUNC(LB, glm::outerProduct, gLuaVec3<>, gLuaVec2<>); break;
         case LUA_VVECTOR3: TRAITS_FUNC(LB, glm::outerProduct, gLuaVec3<>, gLuaVec3<>); break;
         case LUA_VVECTOR4: TRAITS_FUNC(LB, glm::outerProduct, gLuaVec3<>, gLuaVec4<>); break;
-        default:
+        default: {
           break;
+        }
       }
       break;
     }
     case LUA_VVECTOR4: {
-      switch (ttypetag(glm_i2v(LB.L, LB.idx + 1))) {
+      switch (ttypetag(_tv2)) {
         case LUA_VVECTOR2: TRAITS_FUNC(LB, glm::outerProduct, gLuaVec4<>, gLuaVec2<>); break;
         case LUA_VVECTOR3: TRAITS_FUNC(LB, glm::outerProduct, gLuaVec4<>, gLuaVec3<>); break;
         case LUA_VVECTOR4: TRAITS_FUNC(LB, glm::outerProduct, gLuaVec4<>, gLuaVec4<>); break;
-        default:
+        default: {
           break;
+        }
       }
       break;
     }
-    default:
+    default: {
       break;
+    }
   }
   return luaL_typeerror(LB.L, LB.idx, LABEL_VECTOR);
   GLM_BINDING_END
@@ -844,8 +858,9 @@ GLM_BINDING_QUALIFIER(identity) {
     case LUA_GLM_MATRIX_4x2: return gLuaBase::Push(LB, glm::identity<gLuaMat4x2<>::type>());
     case LUA_GLM_MATRIX_4x3: return gLuaBase::Push(LB, glm::identity<gLuaMat4x3<>::type>());
     case LUA_GLM_MATRIX_4x4: return gLuaBase::Push(LB, glm::identity<gLuaMat4x4<>::type>());
-    default:
+    default: {
       break;
+    }
   }
   return luaL_error(LB.L, GLM_INVALID_MAT_DIMENSIONS);
   GLM_BINDING_END
@@ -1116,7 +1131,7 @@ TRAITS_LAYOUT_DEFN(shearY, glm::shearY, LAYOUT_BINARY_SCALAR, gLuaMat3x3<>)
   ));                                                                  \
   LUA_MLM_END
 
-SYMMETRIC_MATRIX_DEFN(findEigenvaluesSymReal, glm::findEigenvaluesSymReal, LAYOUT_FIND_EIGEN);
+SYMMETRIC_MATRIX_DEFN(findEigenvaluesSymReal, glm::findEigenvaluesSymReal, LAYOUT_FIND_EIGEN)
 GLM_BINDING_QUALIFIER(computeCovarianceMatrix) {
   GLM_BINDING_BEGIN
   luaL_checktype(L, LB.idx, LUA_TTABLE);
@@ -1128,8 +1143,9 @@ GLM_BINDING_QUALIFIER(computeCovarianceMatrix) {
     case 2: LAYOUT_COMPUTE_COVARIANCE(LB, glm::computeCovarianceMatrix, gLuaMat2x2<>, 2); break;
     case 3: LAYOUT_COMPUTE_COVARIANCE(LB, glm::computeCovarianceMatrix, gLuaMat3x3<>, 3); break;
     case 4: LAYOUT_COMPUTE_COVARIANCE(LB, glm::computeCovarianceMatrix, gLuaMat4x4<>, 4); break;
-    default:
+    default: {
       break;
+    }
   }
   return luaL_typeerror(LB.L, LB.idx, "vector array");
   GLM_BINDING_END
@@ -1252,8 +1268,8 @@ GLM_BINDING_QUALIFIER(min) { /* Ported: static int math_min (lua_State *L) */
   const int n = LB.top();  /* number of arguments */
   luaL_argcheck(L, n >= 1, 1, "value expected");
 
-  const TValue *_tmp = glm_i2v(LB.L, LB.idx);
-  if (ttisnumber(_tmp) || cvt2num(_tmp)) {  /* string -> number coercion; follow lmathlib */
+  const TValue *o = glm_i2v(LB.L, LB.idx);
+  if (ttisnumber(o) || cvt2num(o)) {  /* string -> number coercion; follow lmathlib */
     int imin = 1;  /* index of current minimum value */
     for (int i = 2; i <= n; i++) {
       if (lua_compare(L, i, imin, LUA_OPLT))
@@ -1271,8 +1287,8 @@ GLM_BINDING_QUALIFIER(max) { /* Ported: static int math_max (lua_State *L) */
   const int n = LB.top();  /* number of arguments */
   luaL_argcheck(L, n >= 1, 1, "value expected");
 
-  const TValue *_tmp = glm_i2v(LB.L, LB.idx);
-  if (ttisnumber(_tmp) || cvt2num(_tmp)) {  /* string -> number coercion; follow lmathlib */
+  const TValue *o = glm_i2v(LB.L, LB.idx);
+  if (ttisnumber(o) || cvt2num(o)) {  /* string -> number coercion; follow lmathlib */
     int imax = 1;  /* index of current maximum value */
     for (int i = 2; i <= n; i++) {
       if (lua_compare(L, imax, i, LUA_OPLT))
@@ -1309,14 +1325,16 @@ GLM_BINDING_QUALIFIER(mix) {
   #else
         case LUA_GLM_MATRIX_4x4: LAYOUT_TERNARY_OPTIONAL(LB, glm::mix, gLuaMat4x4<>); break;
   #endif
-        default:
+        default: {
           return luaL_typeerror(LB.L, LB.idx, GLM_INVALID_MAT_DIMENSIONS);
+        }
       }
       return luaL_typeerror(LB.L, LB.idx, LABEL_NUMBER " or " LABEL_SYMMETRIC_MATRIX);
     }
   #endif
-    default:
+    default: {
       break;
+    }
   }
   return luaL_typeerror(LB.L, LB.idx, LABEL_NUMBER " or " LABEL_VECTOR " or " LABEL_MATRIX);
   GLM_BINDING_END
@@ -1366,7 +1384,8 @@ NUMBER_VECTOR_DEFN(ilogb, glm::ilogb, LAYOUT_UNARY)
 #if defined(EXPONENTIAL_HPP) || defined(GTX_EXTERIOR_PRODUCT_HPP) || defined(EXT_QUATERNION_GEOMETRIC_HPP)
 GLM_BINDING_QUALIFIER(cross) {
   GLM_BINDING_BEGIN
-  switch (ttypetag(glm_i2v(LB.L, LB.idx))) {
+  const TValue *_tv = glm_i2v(LB.L, LB.idx);
+  switch (ttypetag(_tv)) {
     case LUA_VVECTOR2: TRAITS_FUNC(LB, glm::cross, gLuaVec2<>, gLuaVec2<>); break; /* glm/gtx/exterior_product.hpp */
     case LUA_VVECTOR3: {
       if (gLuaQuat<>::Is(LB, LB.idx + 1))
@@ -1380,8 +1399,9 @@ GLM_BINDING_QUALIFIER(cross) {
       TRAITS_FUNC(LB, glm::cross, gLuaQuat<>, gLuaVec3<>); /* <quat, vector3> */
       break;
     }
-    default:
+    default: {
       break;
+    }
   }
   return luaL_typeerror(LB.L, LB.idx, LABEL_VECTOR " or " LABEL_QUATERN);
   GLM_BINDING_END
@@ -1532,13 +1552,10 @@ TRAITS_LAYOUT_DEFN(luminosity, glm::luminosity, LAYOUT_UNARY, gLuaVec3<>)
 TRAITS_LAYOUT_DEFN(rgbColor, glm::rgbColor, LAYOUT_UNARY, gLuaVec3<>)
 GLM_BINDING_QUALIFIER(saturation) {
   GLM_BINDING_BEGIN
-  const TValue *_tv = glm_i2v(LB.L, LB.idx + 1);
-  if (!_isvalid(LB.L, _tv))
-    TRAITS_FUNC(LB, glm::saturation, gLuaFloat);
-  else if (ttisvector3(_tv))
-    TRAITS_FUNC(LB, glm::saturation, gLuaFloat, gLuaVec3<>);
-  else if (ttisvector4(_tv))
-    TRAITS_FUNC(LB, glm::saturation, gLuaFloat, gLuaVec4<>);
+  const TValue *_tv2 = glm_i2v(LB.L, LB.idx + 1);
+  if (!_isvalid(LB.L, _tv2)) TRAITS_FUNC(LB, glm::saturation, gLuaFloat);
+  else if (ttisvector3(_tv2)) TRAITS_FUNC(LB, glm::saturation, gLuaFloat, gLuaVec3<>);
+  else if (ttisvector4(_tv2)) TRAITS_FUNC(LB, glm::saturation, gLuaFloat, gLuaVec4<>);
   return luaL_typeerror(LB.L, LB.idx, LABEL_NUMBER " or " LABEL_VECTOR);
   GLM_BINDING_END
 }
@@ -1815,8 +1832,9 @@ GLM_BINDING_QUALIFIER(components) {  // An optimized variant of glm::components
       gLuaBase::Push(LB, LUA_GLM_MATRIX_ROWS(mvalue_dims(_tv)));
       return 2;
     }
-    default:
+    default: {
       return gLuaBase::Push(LB, 1);
+    }
   }
   GLM_BINDING_END
 }
@@ -1865,13 +1883,15 @@ GLM_BINDING_QUALIFIER(rotate) {
       switch (mvalue_dims(_tv)) {
         case LUA_GLM_MATRIX_3x3: TRAITS_FUNC(LB, glm::rotate, gLuaMat3x3<>, gLuaTrait<gLuaMat3x3<>::value_type>); break;
         case LUA_GLM_MATRIX_4x4: TRAITS_FUNC(LB, glm::rotate, gLuaMat4x4<>, gLuaTrait<gLuaMat4x4<>::value_type>, gLuaDir3<>); break;
-        default:
+        default: {
           break;
+        }
       }
       return luaL_typeerror(LB.L, LB.idx, LABEL_MATRIX "3x3 or " LABEL_MATRIX "4x4");
     }
-    default:
+    default: {
       break;
+    }
   }
   return luaL_typeerror(LB.L, LB.idx, LABEL_VECTOR " or " LABEL_QUATERN " or " LABEL_MATRIX);
   GLM_BINDING_END
@@ -1907,13 +1927,15 @@ GLM_BINDING_QUALIFIER(scale) {
       switch (mvalue_dims(_tv)) {
         case LUA_GLM_MATRIX_3x3: TRAITS_FUNC(LB, glm::scale, gLuaMat3x3<>, gLuaVec2<>); break;
         case LUA_GLM_MATRIX_4x4: TRAITS_FUNC(LB, glm::scale, gLuaMat4x4<>, gLuaVec3<>); break;
-        default:
+        default: {
           break;
+        }
       }
       return luaL_typeerror(LB.L, LB.idx, LABEL_MATRIX "3x3 or " LABEL_MATRIX "4x4");
     }
-    default:
+    default: {
       break;
+    }
   }
   return luaL_typeerror(LB.L, LB.idx, LABEL_VECTOR3);
   GLM_BINDING_END
@@ -1928,13 +1950,15 @@ GLM_BINDING_QUALIFIER(translate) {
       switch (mvalue_dims(_tv)) {
         case LUA_GLM_MATRIX_3x3: TRAITS_FUNC(LB, glm::translate, gLuaMat3x3<>, gLuaVec2<>); break;
         case LUA_GLM_MATRIX_4x4: TRAITS_FUNC(LB, glm::translate, gLuaMat4x4<>, gLuaVec3<>); break;
-        default:
+        default: {
           break;
+        }
       }
       return luaL_typeerror(LB.L, LB.idx, LABEL_MATRIX "3x3 or " LABEL_MATRIX "4x4");
     }
-    default:
+    default: {
       break;
+    }
   }
   return luaL_typeerror(LB.L, LB.idx, LABEL_VECTOR3 " or " LABEL_SYMMETRIC_MATRIX);
   GLM_BINDING_END
@@ -1944,15 +1968,17 @@ TRAITS_DEFN(trs, glm::trs, gLuaVec3<>, gLuaQuat<>, gLuaVec3<>) /* LUA_MATRIX_EXT
 #endif
 
 #if defined(GTX_VECTOR_ANGLE_HPP)
-NUMBER_VECTOR_QUAT_DEFNS(angle, glm::angle, LAYOUT_BINARY, LAYOUT_BINARY, LAYOUT_UNARY_OR_BINARY);
+NUMBER_VECTOR_QUAT_DEFNS(angle, glm::angle, LAYOUT_BINARY, LAYOUT_BINARY, LAYOUT_UNARY_OR_BINARY)
 GLM_BINDING_QUALIFIER(orientedAngle) {
   GLM_BINDING_BEGIN
-  switch (ttypetag(glm_i2v(LB.L, LB.idx))) {
+  const TValue *_tv = glm_i2v(LB.L, LB.idx);
+  switch (ttypetag(_tv)) {
     case LUA_VVECTOR2: TRAITS_FUNC(LB, glm::orientedAngle, gLuaDir2<>, gLuaDir2<>); break;
     case LUA_VVECTOR3: TRAITS_FUNC(LB, glm::orientedAngle, gLuaDir3<>, gLuaDir3<>, gLuaDir3<>); break;
     case LUA_VQUAT: TRAITS_FUNC(LB, glm::orientedAngle, gLuaQuat<>, gLuaQuat<>, gLuaDir3<>); break;
-    default:
+    default: {
       break;
+    }
   }
   return luaL_typeerror(LB.L, LB.idx, LABEL_VECTOR " or " LABEL_QUATERN);
   GLM_BINDING_END
@@ -1980,8 +2006,9 @@ GLM_BINDING_QUALIFIER(isNormalized) {
     case LUA_VVECTOR4: LAYOUT_BINARY_EPS(LB, glm::isNormalized, gLuaVec4<>); break;
     case LUA_VQUAT: LAYOUT_BINARY_EPS(LB, glm::isNormalized, gLuaQuat<>); break;
     case LUA_VMATRIX: PARSE_MATRIX(LB, _tv, glm::_isNormalized, LAYOUT_BINARY_EPS); break;
-    default:
+    default: {
       break;
+    }
   }
   return luaL_typeerror(LB.L, LB.idx, LABEL_VECTOR " or " LABEL_SYMMETRIC_MATRIX);
   GLM_BINDING_END
@@ -2000,8 +2027,9 @@ GLM_BINDING_QUALIFIER(isNull) {
     case LUA_VVECTOR4: LAYOUT_BINARY_EPS(LB, glm::isNull, gLuaVec4<>); break;
     case LUA_VQUAT: LAYOUT_BINARY_EPS(LB, glm::isNull, gLuaQuat<>); break;
     case LUA_VMATRIX: PARSE_MATRIX(LB, _tv, glm::_isNull, LAYOUT_BINARY_EPS); break;
-    default:
+    default: {
       break;
+    }
   }
   return luaL_typeerror(LB.L, LB.idx, LABEL_VECTOR " or " LABEL_SYMMETRIC_MATRIX);
   GLM_BINDING_END

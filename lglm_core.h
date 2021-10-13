@@ -104,11 +104,12 @@ static LUA_INLINE int vecgets (const TValue *obj, const char *k, StkId res) {
     case 'z': case 'b': case '3': _n = 3; break;
     case 'w': case 'a': case '4': _n = 4; break;
     case 'n': {  /* Dimension fields takes priority over metamethods */
-      setivalue(s2v(res), (lua_Integer)_d);
+      setivalue(s2v(res), cast(lua_Integer, _d));
       return LUA_TNUMBER;
     }
-    default:
+    default: {
       break;
+    }
   }
 
   if (l_likely(_n >= 1 && _n <= _d)) {

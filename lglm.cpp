@@ -250,8 +250,9 @@ static glm::length_t swizzle(const glm::vec<L, T, Q> &v, const char *key, lua_Fl
       case 'y': GLM_IF_CONSTEXPR (L < 2) return 0; (&out.x)[i] = static_cast<T>(v[1]); break;
       case 'z': GLM_IF_CONSTEXPR (L < 3) return 0; (&out.x)[i] = static_cast<T>(v[2]); break;
       case 'w': GLM_IF_CONSTEXPR (L < 4) return 0; (&out.x)[i] = static_cast<T>(v[3]); break;
-      default:
+      default: {
         return 0;
+      }
     }
   }
   return i;
@@ -301,8 +302,9 @@ int glmVec_rawget(const TValue *obj, TValue *key, StkId res) {
         result = vecgets(obj, svalue(key), res);
       break;
     }
-    default:
+    default: {
       break;
+    }
   }
 
   if (result == LUA_TNONE)
@@ -341,8 +343,9 @@ void glmVec_get(lua_State *L, const TValue *obj, TValue *key, StkId res) {
         case LUA_VVECTOR3: count = swizzle(v.v3, str, out); break;
         case LUA_VVECTOR4: count = swizzle(v.v4, str, out); break;
         case LUA_VQUAT: count = swizzle(v.q, str, out); break;
-        default:
+        default: {
           break;
+        }
       }
 
       switch (count) {
@@ -385,9 +388,10 @@ void glmVec_objlen(const TValue *obj, StkId res) {
     case LUA_VVECTOR3: setfltvalue(s2v(res), cast_num(glm::length(v.v3))); break;
     case LUA_VVECTOR4: setfltvalue(s2v(res), cast_num(glm::length(v.v4))); break;
     case LUA_VQUAT: setfltvalue(s2v(res), cast_num(glm::length(v.q))); break;
-    default:
+    default: {
       setfltvalue(s2v(res), cast_num(0));
       break;
+    }
   }
 }
 
@@ -400,8 +404,9 @@ int glmVec_equalObj(lua_State *L, const TValue *o1, const TValue *o2, int rtt) {
     case LUA_VVECTOR3: result = _glmeq(v.v3, other_v.v3); break;
     case LUA_VVECTOR4: result = _glmeq(v.v4, other_v.v4); break;
     case LUA_VQUAT: result = _glmeq(v.q, other_v.q); break;
-    default:
+    default: {
       break;
+    }
   }
 
   // @TODO: Document the specifics of this tag method and how glm::equal(V, V2)
@@ -454,8 +459,9 @@ int glmVec_tostr(const TValue *obj, char *buff, size_t len) {
     case LUA_VVECTOR3: copy = glm::detail::format_type(buff, len, v.v3); break;
     case LUA_VVECTOR4: copy = glm::detail::format_type(buff, len, v.v4); break;
     case LUA_VQUAT: copy = glm::detail::format_type(buff, len, v.q); break;
-    default:
+    default: {
       break;
+    }
   }
   lua_assert(copy >= 0);
   return copy;
@@ -469,8 +475,9 @@ int glmVec_equalKey(const TValue *k1, const Node *n2, int rtt) {
     case LUA_VVECTOR3: return glm_v3value(k1) == glm_v3value_raw(keyval(n2));
     case LUA_VVECTOR4: return glm_v4value(k1) == glm_v4value_raw(keyval(n2));
     case LUA_VQUAT: return glm_qvalue(k1) == glm_qvalue_raw(keyval(n2));
-    default:
+    default: {
       return 0;
+    }
   }
 }
 
@@ -481,8 +488,9 @@ size_t glmVec_hash(const Value *kvl, int ktt) {
     case LUA_VVECTOR3: return glm::hash::hash(glm_v3value_raw(*kvl));
     case LUA_VVECTOR4: return glm::hash::hash(glm_v4value_raw(*kvl));
     case LUA_VQUAT: return glm::hash::hash(glm_qvalue_raw(*kvl));
-    default:
+    default: {
       return 0xDEAD;  // C0D3
+    }
   }
 }
 
@@ -500,8 +508,9 @@ int glmVec_isfinite(const TValue *obj) {
     case LUA_VVECTOR3: return glm::__isfinite(glm_v3value(obj));
     case LUA_VVECTOR4: return glm::__isfinite(glm_v4value(obj));
     case LUA_VQUAT: return glm::__isfinite(glm_v4value(obj)); // @HACK
-    default:
+    default: {
       break;
+    }
   }
   return 0;
 }
@@ -538,8 +547,9 @@ int glm_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId res, TM
         return quat_trybinTM(L, p1, p2, res, event);
       return vec_trybinTM(L, p1, p2, res, event);
     }
-    default:
+    default: {
       break;
+    }
   }
   return 0;
 }
@@ -671,8 +681,9 @@ static LUA_INLINE int matgeti (const TValue *obj, lua_Integer n, StkId res) {
         setvvalue(s2v(res), m->m.m4[gidx - 1], LUA_VVECTOR4);
         return LUA_VVECTOR4;
       }
-      default:
+      default: {
         break;
+      }
     }
   }
   return LUA_TNONE;
@@ -751,8 +762,9 @@ int glmMat_tostr(const TValue *obj, char *buff, size_t len) {
     case LUA_GLM_MATRIX_4x2: copy = glm::detail::format_type(buff, len, m.m42); break;
     case LUA_GLM_MATRIX_4x3: copy = glm::detail::format_type(buff, len, m.m43); break;
     case LUA_GLM_MATRIX_4x4: copy = glm::detail::format_type(buff, len, m.m44); break;
-    default:
+    default: {
       break;
+    }
   }
 
   lua_assert(copy >= 0);
@@ -795,8 +807,9 @@ int glmMat_equalObj(lua_State *L, const TValue *o1, const TValue *o2) {
       case LUA_GLM_MATRIX_4x2: result = _glmeq(m.m42, other_m.m42); break;
       case LUA_GLM_MATRIX_4x3: result = _glmeq(m.m43, other_m.m43); break;
       case LUA_GLM_MATRIX_4x4: result = _glmeq(m.m44, other_m.m44); break;
-      default:
+      default: {
         break;
+      }
     }
   }
 
@@ -816,9 +829,9 @@ int glmMat_equalObj(lua_State *L, const TValue *o1, const TValue *o2) {
 LUA_API int glm_unpack_matrix(lua_State *L, int idx) {
   luaL_checkstack(L, 4, "matrix unpack");
 
-  const TValue *obj = glm_index2value(L, idx);
-  if (ttismatrix(obj)) {
-    const glmMatrix &m = glm_mvalue(obj);
+  const TValue *o = glm_index2value(L, idx);
+  if (ttismatrix(o)) {
+    const glmMatrix &m = glm_mvalue(o);
     for (glm::length_t i = 0; i < LUA_GLM_MATRIX_COLS(m.dimensions); ++i) {
       switch (LUA_GLM_MATRIX_ROWS(m.dimensions)) {
         case 2: glm_pushvec2(L, m.m42[i]); break;
@@ -997,8 +1010,9 @@ LUA_API const char *glm_typename(lua_State *L, int idx) {
     case LUA_VVECTOR4: return LABEL_VECTOR4;
     case LUA_VQUAT: return LABEL_QUATERN;
     case LUA_VMATRIX: return LABEL_MATRIX;
-    default:
+    default: {
       return "Unknown GLM Type";
+    }
   }
 }
 
@@ -1216,8 +1230,9 @@ LUA_API int glmVec_cross(lua_State *L) {
 #endif
       return luaL_typeerror(L, 2, LABEL_VECTOR3 " or " LABEL_QUATERN);
     }
-    default:
+    default: {
       break;
+    }
   }
   return luaL_typeerror(L, 1, LABEL_VECTOR2 ", " LABEL_VECTOR3 ", or " LABEL_QUATERN);
 }
@@ -1232,8 +1247,9 @@ LUA_API int glmVec_inverse(lua_State *L) {
       case LUA_GLM_MATRIX_2x2: return glm_pushmat2x2(L, glm::inverse(m.m22));
       case LUA_GLM_MATRIX_3x3: return glm_pushmat3x3(L, glm::inverse(m.m33));
       case LUA_GLM_MATRIX_4x4: return glm_pushmat4x4(L, glm::inverse(m.m44));
-      default:
+      default: {
         break;
+      }
     }
   }
   return luaL_typeerror(L, 1, LABEL_QUATERN " or " LABEL_SYMMETRIC_MATRIX);
@@ -1246,8 +1262,9 @@ LUA_API int glmVec_normalize(lua_State *L) {
     case LUA_VVECTOR3: return glm_pushvec3(L, glm::normalize(glm_v3value(x)));
     case LUA_VVECTOR4: return glm_pushvec4(L, glm::normalize(glm_v4value(x)));
     case LUA_VQUAT: return glm_pushquat(L, glm::normalize(glm_qvalue(x)));
-    default:
+    default: {
       break;
+    }
   }
   return luaL_typeerror(L, 1, LABEL_VECTOR " or " LABEL_QUATERN);
 }
@@ -1263,8 +1280,9 @@ LUA_API int glmVec_slerp(lua_State *L) {
       case LUA_VVECTOR3: return glm_pushvec3(L, glm::__objslerp(glm_v3value(x), glm_v3value(y), t));
       case LUA_VVECTOR4: return glm_pushvec4(L, glm::__objslerp(glm_v4value(x), glm_v4value(y), t));
       case LUA_VQUAT: return glm_pushquat(L, glm::slerp(glm_qvalue(x), glm_qvalue(y), t));
-      default:
+      default: {
         break;
+      }
     }
   }
   return luaL_error(L, "slerp(v, v, a) or slerp(q, q, a) expected");
@@ -1281,8 +1299,9 @@ LUA_API int glmVec_clamp (lua_State *L) {
       case LUA_VVECTOR2: return glm_pushvec2(L, glm::clamp(glm_v2value(x), glm_v2value(y), glm_v2value(z)));
       case LUA_VVECTOR3: return glm_pushvec3(L, glm::clamp(glm_v3value(x), glm_v3value(y), glm_v3value(z)));
       case LUA_VVECTOR4: return glm_pushvec4(L, glm::clamp(glm_v4value(x), glm_v4value(y), glm_v4value(z)));
-      default:
+      default: {
         break;
+      }
     }
   }
   return luaL_error(L, LABEL_NUMBER " or " LABEL_VECTOR " expected");
@@ -1522,8 +1541,9 @@ static bool PopulateMatrix(lua_State *L, int idx, bool fixed_size, glmMatrix &m,
       case LUA_GLM_MATRIX_4x2: m.m44 = glm::mat<4, 4, glm_Float>(_m.m42); break;
       case LUA_GLM_MATRIX_4x3: m.m44 = glm::mat<4, 4, glm_Float>(_m.m43); break;
       case LUA_GLM_MATRIX_4x4: m.m44 = _m.m44; break;
-      default:
+      default: {
         return false;
+      }
     }
   }
   // Otherwise, parse column vectors
@@ -1638,8 +1658,9 @@ static int glm_createMatrix(lua_State *L, glm::length_t dimensions) {
       case 2: result.m42 = glm::identity<glm::mat<4, 2, T>>(); break;
       case 3: result.m43 = glm::identity<glm::mat<4, 3, T>>(); break;
       case 4: result.m44 = glm::identity<glm::mat<4, 4, T>>(); break;
-      default:
+      default: {
         break;
+      }
     }
     return glm_pushmat(L, result);
   }
@@ -1653,8 +1674,9 @@ static int glm_createMatrix(lua_State *L, glm::length_t dimensions) {
         case 2: result.m42 = glm::mat<4, 2, glm_Float>(result.m44); break;
         case 3: result.m43 = glm::mat<4, 3, glm_Float>(result.m44); break;
         case 4: /* result.m44 = glm::mat<4, 4, glm_Float>(result.m44); */ break;
-        default:
+        default: {
           break;
+        }
       }
 
       // The first argument was a 'matrix' intended to be recycled.
@@ -1751,8 +1773,9 @@ LUA_API int glmVec_qua(lua_State *L) {
     switch (m.dimensions) {
       case LUA_GLM_MATRIX_3x3: return glm_pushquat(L, glm::qua<glm_Float>(m.m33));
       case LUA_GLM_MATRIX_4x4: return glm_pushquat(L, glm::qua<glm_Float>(m.m44));
-      default:
+      default: {
         return luaL_typeerror(L, 1, LABEL_MATRIX "3x3 or " LABEL_MATRIX "4x4");
+      }
     }
   }
   return luaL_typeerror(L, 1, LABEL_NUMBER ", " LABEL_VECTOR3 ", or " LABEL_MATRIX);
@@ -1865,13 +1888,15 @@ static int num_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
             case LUA_GLM_MATRIX_2x2: glm_newmvalue(L, res, s + m2.m22, LUA_GLM_MATRIX_2x2); return 1;
             case LUA_GLM_MATRIX_3x3: glm_newmvalue(L, res, s + m2.m33, LUA_GLM_MATRIX_3x3); return 1;
             case LUA_GLM_MATRIX_4x4: glm_newmvalue(L, res, s + m2.m44, LUA_GLM_MATRIX_4x4); return 1;
-            default:
+            default: {
               break;
+            }
           }
           break;
         }
-        default:
+        default: {
           break;
+        }
       }
       break;
     }
@@ -1884,13 +1909,15 @@ static int num_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
             case LUA_GLM_MATRIX_2x2: glm_newmvalue(L, res, s - m2.m22, LUA_GLM_MATRIX_2x2); return 1;
             case LUA_GLM_MATRIX_3x3: glm_newmvalue(L, res, s - m2.m33, LUA_GLM_MATRIX_3x3); return 1;
             case LUA_GLM_MATRIX_4x4: glm_newmvalue(L, res, s - m2.m44, LUA_GLM_MATRIX_4x4); return 1;
-            default:
+            default: {
               break;
+            }
           }
           break;
         }
-        default:
+        default: {
           break;
+        }
       }
       break;
     }
@@ -1901,8 +1928,9 @@ static int num_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
         case LUA_VVECTOR4: glm_setvvalue2s(res, s * glm_v4value(p2), ttypetag(p2)); return 1;
         case LUA_VQUAT: glm_setvvalue2s(res, s * glm_qvalue(p2), LUA_VQUAT); return 1;
         case LUA_VMATRIX: INDEP_SCALAR_MATRIX_OPERATION(L, operator*, res, s, p2); break;
-        default:
+        default: {
           break;
+        }
       }
       break;
     }
@@ -1913,13 +1941,15 @@ static int num_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
         case LUA_VVECTOR4: glm_setvvalue2s(res, s / glm_v4value(p2), ttypetag(p2)); return 1;
         case LUA_VQUAT: glm_setvvalue2s(res, s * glm::inverse(glm_qvalue(p2)), LUA_VQUAT); return 1;
         case LUA_VMATRIX: INDEP_SCALAR_MATRIX_OPERATION(L, operator/, res, s, p2); break;
-        default:
+        default: {
           break;
+        }
       }
       break;
     }
-    default:
+    default: {
       break;
+    }
   }
   return 0;
 }
@@ -1987,8 +2017,9 @@ static int vec_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
 #else
           case LUA_VVECTOR4: glm_setvvalue2s(res, v.v4 * glm_qvalue(p2), LUA_VVECTOR4); return 1;
 #endif
-          default:
+          default: {
             break;
+          }
         }
       }
       else if (tt_p2 == LUA_VMATRIX) {
@@ -2004,8 +2035,9 @@ static int vec_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
             case LUA_GLM_MATRIX_4x2: glm_setvvalue2s(res, v.v2 * m2.m42, LUA_VVECTOR4); return 1;
             case LUA_GLM_MATRIX_4x3: glm_setvvalue2s(res, v.v3 * m2.m43, LUA_VVECTOR4); return 1;
             case LUA_GLM_MATRIX_4x4: glm_setvvalue2s(res, v.v4 * m2.m44, LUA_VVECTOR4); return 1;
-            default:
+            default: {
               break;
+            }
           }
         }
         // Alternatively: rotate a point by only the rotation part of a transformation matrix.
@@ -2033,8 +2065,9 @@ static int vec_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
             case LUA_VVECTOR2: glm_setvvalue2s(res, v.v2 / m2.m22, LUA_VVECTOR2); return 1;
             case LUA_VVECTOR3: glm_setvvalue2s(res, v.v3 / m2.m33, LUA_VVECTOR3); return 1;
             case LUA_VVECTOR4: glm_setvvalue2s(res, v.v4 / m2.m44, LUA_VVECTOR4); return 1;
-            default:
+            default: {
               break;
+            }
           }
           break;
         }
@@ -2052,8 +2085,9 @@ static int vec_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
           case LUA_VVECTOR2: glm_setvvalue2s(res, glm::__objFloorDivide(v.v2, s), LUA_VVECTOR2); return 1;
           case LUA_VVECTOR3: glm_setvvalue2s(res, glm::__objFloorDivide(v.v3, s), LUA_VVECTOR3); return 1;
           case LUA_VVECTOR4: glm_setvvalue2s(res, glm::__objFloorDivide(v.v4, s), LUA_VVECTOR4); return 1;
-          default:
+          default: {
             break;
+          }
         }
       }
       break;
@@ -2092,8 +2126,9 @@ static int vec_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
     case TM_BXOR: INT_VECTOR_OPERATION(operator^, res, v, p2); break;
     case TM_SHL: INT_VECTOR_OPERATION(operator<<, res, v, p2); break;
     case TM_SHR: INT_VECTOR_OPERATION(operator>>, res, v, p2); break;
-    default:
+    default: {
       break;
+    }
   }
   return 0;
 }
@@ -2163,8 +2198,9 @@ static int quat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId
         case LUA_VVECTOR4: glm_setvvalue2s(res, v.q * glm_v4value(p2), LUA_VVECTOR4); return 1;
 #endif
         case LUA_VQUAT: glm_setvvalue2s(res, v.q * glm_qvalue(p2), LUA_VQUAT); return 1;
-        default:
+        default: {
           break;
+        }
       }
       break;
     }
@@ -2182,8 +2218,9 @@ static int quat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId
       }
       break;
     }
-    default:
+    default: {
       break;
+    }
   }
   return 0;
 }
@@ -2237,8 +2274,9 @@ static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
             case LUA_GLM_MATRIX_4x2: MATRIX_MULTIPLICATION_OPERATION(L, res, m, m2, 4, 2); return 1;
             case LUA_GLM_MATRIX_4x3: MATRIX_MULTIPLICATION_OPERATION(L, res, m, m2, 4, 3); return 1;
             case LUA_GLM_MATRIX_4x4: MATRIX_MULTIPLICATION_OPERATION(L, res, m, m2, 4, 4); return 1;
-            default:
+            default: {
               break;
+            }
           }
         }
       }
@@ -2254,8 +2292,9 @@ static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
           case LUA_GLM_MATRIX_4x2: glm_setvvalue2s(res, m.m42 * v2.v4, LUA_VVECTOR2); return 1;
           case LUA_GLM_MATRIX_4x3: glm_setvvalue2s(res, m.m43 * v2.v4, LUA_VVECTOR3); return 1;
           case LUA_GLM_MATRIX_4x4: glm_setvvalue2s(res, m.m44 * v2.v4, LUA_VVECTOR4); return 1;
-          default:
+          default: {
             break;
+          }
         }
       }
       break;
@@ -2268,8 +2307,9 @@ static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
             case LUA_GLM_MATRIX_2x2: glm_newmvalue(L, res, m.m22 / m2.m22, LUA_GLM_MATRIX_2x2); return 1;
             case LUA_GLM_MATRIX_3x3: glm_newmvalue(L, res, m.m33 / m2.m33, LUA_GLM_MATRIX_3x3); return 1;
             case LUA_GLM_MATRIX_4x4: glm_newmvalue(L, res, m.m44 / m2.m44, LUA_GLM_MATRIX_4x4); return 1;
-            default:
+            default: {
               break;
+            }
           }
         }
       }
@@ -2279,8 +2319,9 @@ static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
           case 2: glm_setvvalue2s(res, m.m22 / v2.v2, LUA_VVECTOR2); return 1;
           case 3: glm_setvvalue2s(res, m.m33 / v2.v3, LUA_VVECTOR3); return 1;
           case 4: glm_setvvalue2s(res, m.m44 / v2.v4, LUA_VVECTOR4); return 1;
-          default:
+          default: {
             break;
+          }
         }
       }
       else if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT)
@@ -2292,13 +2333,15 @@ static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
         case 2: glm_newmvalue(L, res, -m.m24, m.dimensions); return 1;
         case 3: glm_newmvalue(L, res, -m.m34, m.dimensions); return 1;
         case 4: glm_newmvalue(L, res, -m.m44, m.dimensions); return 1;
-        default:
+        default: {
           break;
+        }
       }
       break;
     }
-    default:
+    default: {
       break;
+    }
   }
   return 0;
 }

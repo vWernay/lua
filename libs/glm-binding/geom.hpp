@@ -1,8 +1,8 @@
 /*
 ** Geometric Structures
 */
-#ifndef __BINDING_GEOM_HPP__
-#define __BINDING_GEOM_HPP__
+#ifndef BINDING_GEOM_HPP
+#define BINDING_GEOM_HPP
 #if defined(LUA_GLM_GEOM_EXTENSIONS)
 
 #include "lapi.h"
@@ -935,7 +935,10 @@ GLM_BINDING_QUALIFIER(sphere_fitThroughPoints) {
   switch (LB.top()) {
     case 2: TRAITS_FUNC(LB, glm::fitThroughPoints, gLuaVec3<>, gLuaVec3<>); break;
     case 3: TRAITS_FUNC(LB, glm::fitThroughPoints, gLuaVec3<>, gLuaVec3<>, gLuaVec3<>); break;
-    default: TRAITS_FUNC(LB, glm::fitThroughPoints, gLuaVec3<>, gLuaVec3<>, gLuaVec3<>, gLuaVec3<>); break;
+    default: {
+      TRAITS_FUNC(LB, glm::fitThroughPoints, gLuaVec3<>, gLuaVec3<>, gLuaVec3<>, gLuaVec3<>);
+      break;
+    }
   }
   GLM_BINDING_END
 }
@@ -1269,8 +1272,9 @@ GLM_BINDING_QUALIFIER(plane_clipTriangle) {
   switch (clip(plane, line, t1, t1)) {
     case 1: TRAITS_PUSH(LB, t1); break;
     case 2: TRAITS_PUSH(LB, t1, t2); break;
-    default:
+    default: {
       break;
+    }
   }
   return gLuaBase::Push(LB);
   GLM_BINDING_END
@@ -1567,7 +1571,7 @@ extern "C" {
     else
       return gLuaBase::Push(LB);  // Nothing to iterate.
     GLM_BINDING_END
-  };
+  }
 }
 
 GLM_BINDING_QUALIFIER(polygon__pairs) {

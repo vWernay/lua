@@ -1,8 +1,8 @@
 /// <summary>
 /// See Copyright Notice in setup.hpp
 /// </summary>
-#ifndef __EXT_GEOM_PLANE_HPP__
-#define __EXT_GEOM_PLANE_HPP__
+#ifndef EXT_GEOM_PLANE_HPP
+#define EXT_GEOM_PLANE_HPP
 
 #include "setup.hpp"
 #include "line.hpp"
@@ -54,7 +54,7 @@ namespace glm {
 
   template<length_t L, typename T, qualifier Q>
   static bool operator==(const Plane<L, T, Q> &p1, const Plane<L, T, Q> &p2) {
-    return p1.normal == p2.normal && p1.d == p2.d;
+    return p1.normal == p2.normal && p1.d == p2.d;  // @TODO: glm::equal(p1.d, p2.d, glm::epsilon<T>());
   }
 
   template<length_t L, typename T, qualifier Q>
@@ -395,8 +395,9 @@ namespace glm {
         t1 = triangle;
         return 1;
       }
-      default:
+      default: {
         break;
+      }
     }
     return 0;
   }
@@ -661,7 +662,7 @@ namespace glm {
       return true;
     }
 
-    if (denom != T(0)) {
+    if (denom != T(0)) {  // @TODO: glm::notEqual(denom, T(0), glm::epsilon<T>())
       t = (planeD - dot(planeNormal, linePos)) / denom;
       if (abs(t) < epsilon<T>())
         return true;

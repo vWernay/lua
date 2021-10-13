@@ -2,8 +2,8 @@
 ** A set of iterator definitions for processing collections of traits without
 ** the requirement of allocating additional memory (and to avoid interop issues)
 */
-#ifndef __BINDING_ITERATORS_HPP__
-#define __BINDING_ITERATORS_HPP__
+#ifndef BINDING_ITERATORS_HPP
+#define BINDING_ITERATORS_HPP
 
 #include <iterator>
 #include <functional>

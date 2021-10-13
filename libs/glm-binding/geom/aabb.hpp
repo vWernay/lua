@@ -1,8 +1,8 @@
 /// <summary>
 /// See Copyright Notice in setup.hpp
 /// </summary>
-#ifndef __EXT_GEOM_AABB_HPP__
-#define __EXT_GEOM_AABB_HPP__
+#ifndef EXT_GEOM_AABB_HPP
+#define EXT_GEOM_AABB_HPP
 
 #include <vector>
 #include <iterator>
@@ -301,8 +301,9 @@ namespace glm {
       case 10: return LineSegment<3, T, Q>(vec<3, T, Q>(aabb.maxPoint.x, aabb.minPoint.y, aabb.maxPoint.z), aabb.maxPoint);
       case 11: return LineSegment<3, T, Q>(vec<3, T, Q>(aabb.maxPoint.x, aabb.maxPoint.y, aabb.minPoint.z), aabb.maxPoint);
       case 0:
-      default:  // First Point
+      default: {  // First Point
         return LineSegment<3, T, Q>(aabb.minPoint, vec<3, T, Q>(aabb.minPoint.x, aabb.minPoint.y, aabb.maxPoint.z));
+      }
     }
   }
 
@@ -313,8 +314,9 @@ namespace glm {
       case 2: return LineSegment<2, T, Q>(aabb.maxPoint, vec<2, T, Q>(aabb.minPoint.x, aabb.maxPoint.y));
       case 3: return LineSegment<2, T, Q>(vec<2, T, Q>(aabb.minPoint.x, aabb.maxPoint.y), aabb.minPoint);
       case 0:
-      default:  // First Point
+      default: {  // First Point
         return LineSegment<2, T, Q>(aabb.minPoint, vec<2, T, Q>(aabb.maxPoint.x, aabb.minPoint.y));
+      }
     }
   }
 
@@ -333,8 +335,9 @@ namespace glm {
       case 7:
         return aabb.maxPoint;
       case 0:
-      default:
+      default: {
         return aabb.minPoint;
+      }
     }
   }
 
@@ -349,8 +352,9 @@ namespace glm {
       case 3:
         return aabb.maxPoint;
       case 0:
-      default:
+      default: {
         return aabb.minPoint;
+      }
     }
   }
 
@@ -394,8 +398,9 @@ namespace glm {
       case 10: return vec<3, T, Q>(aabb.minPoint.x + u * d.x, aabb.maxPoint.y, aabb.minPoint.z);
       case 11: return vec<3, T, Q>(aabb.minPoint.x + u * d.x, aabb.maxPoint.y, aabb.maxPoint.z);
       case 0:  // First point
-      default:
+      default: {
         return vec<3, T, Q>(aabb.minPoint.x, aabb.minPoint.y, aabb.minPoint.z + u * d.z);
+      }
     }
   }
 
@@ -412,8 +417,9 @@ namespace glm {
       case 4: return vec<3, T, Q>(center.x, center.y, aabb.minPoint.z);
       case 5: return vec<3, T, Q>(center.x, center.y, aabb.maxPoint.z);
       case 0:
-      default:
+      default: {
         return vec<3, T, Q>(aabb.minPoint.x, center.y, center.z);
+      }
     }
   }
 
@@ -430,8 +436,9 @@ namespace glm {
       case 4: return vec<3, T, Q>(aabb.minPoint.x + u * d.x, aabb.minPoint.y + v * d.y, aabb.minPoint.z);
       case 5: return vec<3, T, Q>(aabb.minPoint.x + u * d.x, aabb.minPoint.y + v * d.y, aabb.maxPoint.z);
       case 0:
-      default:
+      default: {
         return vec<3, T, Q>(aabb.minPoint.x, aabb.minPoint.y + u * d.y, aabb.minPoint.z + v * d.z);
+      }
     }
   }
 
@@ -447,8 +454,9 @@ namespace glm {
       case 4: return vec<3, T, Q>(T(0), T(0), T(-1));
       case 5: return vec<3, T, Q>(T(0), T(0), T(1));
       case 0:
-      default:
+      default: {
         return vec<3, T, Q>(T(-1), T(0), T(0));
+      }
     }
   }
 

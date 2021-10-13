@@ -17,8 +17,8 @@
 **
 ** See Copyright Notice in lua.h
 */
-#ifndef __BINDING_LUA_BINDINGS_HPP__
-#define __BINDING_LUA_BINDINGS_HPP__
+#ifndef BINDING_LUA_BINDINGS_HPP
+#define BINDING_LUA_BINDINGS_HPP
 
 #define LUA_LIB
 #if !defined(LUA_API_LINKAGE)
@@ -840,8 +840,9 @@ struct gLuaTrait<glm::vec<D, T>> : gLuaSharedTrait<T, glm::vec<D, T>> {
       case 2: return LABEL_VECTOR2;
       case 3: return LABEL_VECTOR3;
       case 4: return LABEL_VECTOR4;
-      default:
+      default: {
         return LABEL_VECTOR;
+      }
     }
   }
 };
@@ -877,8 +878,9 @@ struct gLuaTrait<glm::mat<C, R, T>> : gLuaSharedTrait<T, glm::mat<C, R, T>> {
       case LUA_GLM_MATRIX_4x2: return LABEL_MATRIX "4x2";
       case LUA_GLM_MATRIX_4x3: return LABEL_MATRIX "4x3";
       case LUA_GLM_MATRIX_4x4: return LABEL_MATRIX "4x4";
-      default:
+      default: {
         break;
+      }
     }
     return LABEL_MATRIX;
   }
@@ -1250,7 +1252,8 @@ struct gLuaEps : gLuaTrait<T> {
 /* Vector definition where the lua_Number operation takes priority */
 #define PARSE_NUMBER_VECTOR(LB, F, ArgLayout, ...)                           \
   LUA_MLM_BEGIN                                                              \
-  switch (ttypetag(glm_i2v((LB).L, (LB).idx))) {                             \
+  const TValue *_tv = glm_i2v((LB).L, (LB).idx);                             \
+  switch (ttypetag(_tv)) {                                                   \
     case LUA_VFALSE: case LUA_VTRUE:                                         \
     case LUA_VSHRSTR: case LUA_VLNGSTR: /* string coercion */                \
     case LUA_VNUMINT: /* integer to number */                                \
@@ -1267,7 +1270,8 @@ struct gLuaEps : gLuaTrait<T> {
 /* Vector definition where lua_Integer and lua_Number operations takes priority */
 #define PARSE_INTEGER_NUMBER_VECTOR(LB, F, ILayout, FLayout, VLayout, ...)   \
   LUA_MLM_BEGIN                                                              \
-  switch (ttypetag(glm_i2v((LB).L, (LB).idx))) {                             \
+  const TValue *_tv = glm_i2v((LB).L, (LB).idx);                             \
+  switch (ttypetag(_tv)) {                                                   \
     case LUA_VFALSE: case LUA_VTRUE:                                         \
     case LUA_VNUMINT: ILayout(LB, F, gLuaInteger, ##__VA_ARGS__); break;     \
     case LUA_VSHRSTR: case LUA_VLNGSTR: /* string coercion */                \
@@ -1284,7 +1288,8 @@ struct gLuaEps : gLuaTrait<T> {
 /* glm::function defined over the vector & quaternion space: vec1, vec2, vec3, vec4, quat */
 #define PARSE_NUMBER_VECTOR_QUAT(LB, F, FLayout, VLayout, QLayout, ...)       \
   LUA_MLM_BEGIN                                                               \
-  switch (ttypetag(glm_i2v((LB).L, (LB).idx))) {                              \
+  const TValue *_tv = glm_i2v((LB).L, (LB).idx);                              \
+  switch (ttypetag(_tv)) {                                                    \
     case LUA_VFALSE: case LUA_VTRUE:                                          \
     case LUA_VSHRSTR: case LUA_VLNGSTR: /* string coercion */                 \
     case LUA_VNUMINT: /* integer to number */                                 \
@@ -1377,7 +1382,8 @@ struct gLuaEps : gLuaTrait<T> {
 */
 #define PARSE_VECTOR_TYPE(LB, F, ArgLayout, IType, ...)                         \
   LUA_MLM_BEGIN                                                                 \
-  switch (ttypetag(glm_i2v((LB).L, (LB).idx))) {                                \
+  const TValue *_tv = glm_i2v((LB).L, (LB).idx);                                \
+  switch (ttypetag(_tv)) {                                                      \
     case LUA_VFALSE: case LUA_VTRUE:                                            \
     case LUA_VSHRSTR: case LUA_VLNGSTR: /* string coercion */                   \
     case LUA_VNUMINT: /* integer to number */                                   \

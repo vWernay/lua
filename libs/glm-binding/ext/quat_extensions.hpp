@@ -11,8 +11,8 @@
 **
 ** @TODO: Also consider adding SIMD support for some of the quatEulerAngle functions
 */
-#ifndef __EXT_EXTENSION_QUAT_HPP__
-#define __EXT_EXTENSION_QUAT_HPP__
+#ifndef EXT_EXTENSION_QUAT_HPP
+#define EXT_EXTENSION_QUAT_HPP
 
 /* @TEMP Disallow 820a2c0e625f26000c688d841836bb10483be34d */
 #if defined(GLM_FORCE_QUAT_DATA_XYZW)
