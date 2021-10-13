@@ -61,6 +61,15 @@ CWARNSC= -Wdeclaration-after-statement \
 # Note: Disable -DNDEBUG
 # TESTS= -DLUA_USER_H='"ltests.h"' -O0 -g
 
+# Additional compiler options for internal tests. Useful when compiling with
+# GLM_FORCE_DEFAULT_ALIGNED_GENTYPES as additional 'alignment' requirements are
+# introduced. Note, the current '*FORCE*_ALIGNED_GENTYPES' implementation may
+# cause unaligned reads in other GCObj definitions and still requires cleanup.
+#
+# Usage: export 'UBSAN_OPTIONS=print_stacktrace=1,log_path=lua_ubsan.out'
+# GCC_SANITIZE = -g -fno-omit-frame-pointer -fsanitize=null,undefined,signed-integer-overflow,alignment
+# GPP_SANITIZE = -fsanitize=return
+
 # Your platform. See PLATS for possible values.
 PLAT= guess
 
@@ -68,11 +77,11 @@ PLAT= guess
 # LUA_LINKAGE needs to be undefined
 LUA_LINKAGE= -DLUA_C_LINKAGE
 
-CC= gcc -std=gnu99 $(CWARNSCPP) $(CWARNSC) $(CWARNGCC)
-CPP= g++ -std=c++11 $(CWARNSCPP) $(CWARNGCC)
+CC= gcc -std=gnu99 $(CWARNSCPP) $(CWARNSC) $(CWARNGCC) $(GCC_SANITIZE)
+CPP= g++ -std=c++11 $(CWARNSCPP) $(CWARNGCC) $(GCC_SANITIZE) $(GPP_SANITIZE)
 CFLAGS= -O2 -Wall -Wextra -DNDEBUG -DLUA_COMPAT_5_3 $(SYSCFLAGS) $(MYCFLAGS)
-CPERF_FLAGS = -O3 -march=native -fno-plt -fno-stack-protector -ffast-math -fno-finite-math-only # -flto
-LDFLAGS= $(SYSLDFLAGS) $(MYLDFLAGS)
+CPERF_FLAGS = -O3 -march=native -ffast-math -fno-finite-math-only # -flto -fno-plt -fno-stack-protector
+LDFLAGS= $(SYSLDFLAGS) $(MYLDFLAGS) $(GCC_SANITIZE) $(GPP_SANITIZE)
 LIBS= -lm $(SYSLIBS) $(MYLIBS)
 
 AR= ar rc
