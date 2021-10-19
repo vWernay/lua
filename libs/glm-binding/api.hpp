@@ -1091,11 +1091,11 @@ TRAITS_DEFN(shearZ3D, glm::shearZ3D, gLuaMat4x4<>, gLuaFloat, gLuaFloat)
 GLM_BINDING_QUALIFIER(scaleBias) {
   GLM_BINDING_BEGIN
   if (gLuaMat4x4<>::Is(LB, LB.idx))
-    TRAITS_FUNC(LB, glm::_scaleBias, gLuaMat4x4<>, gLuaFloat, gLuaFloat);
+    TRAITS_FUNC(LB, glm::__scaleBias, gLuaMat4x4<>, gLuaFloat, gLuaFloat);
 
   const gLuaFloat::type a = gLuaFloat::Next(LB);
   const gLuaFloat::type b = gLuaFloat::Next(LB);
-  return gLuaBase::Push(LB, glm::_scaleBias<glm_Float, glm::qualifier::defaultp>(a, b));
+  return gLuaBase::Push(LB, glm::__scaleBias<glm_Float, glm::qualifier::defaultp>(a, b));
   GLM_BINDING_END
 }
 #endif
@@ -1848,7 +1848,7 @@ TRAITS_BINARY_LAYOUT_DEFN(rotateZ, glm::rotateZ, LAYOUT_BINARY_SCALAR, gLuaVec3<
 #endif
 
 #if defined(GTX_ROTATE_VECTOR_HPP) || defined(EXT_QUATERNION_COMMON_HPP)
-NUMBER_VECTOR_QUAT_DEFN(slerp, glm::_slerp, LAYOUT_TERNARY_SCALAR)
+NUMBER_VECTOR_QUAT_DEFN(slerp, glm::__slerp, LAYOUT_TERNARY_SCALAR)
 NUMBER_VECTOR_QUAT_DEFN(barycentric, glm::barycentric, LAYOUT_BARYCENTRIC) /* LUA_VECTOR_EXTENSIONS */
 #endif
 

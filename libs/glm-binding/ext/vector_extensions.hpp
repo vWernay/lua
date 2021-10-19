@@ -482,7 +482,7 @@ namespace glm {
   /// Generalized slerp implementation
   /// </summary>
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER vec<L, T, Q> _slerp(vec<L, T, Q> const &x, vec<L, T, Q> const &y, T const &a) {
+  GLM_FUNC_QUALIFIER vec<L, T, Q> __slerp(vec<L, T, Q> const &x, vec<L, T, Q> const &y, T const &a) {
     GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'slerp' only accept floating-point inputs");
 
     // Perform a linear interpolation when CosAlpha is close to 1 to avoid side
@@ -499,13 +499,13 @@ namespace glm {
   }
 
   template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER qua<T, Q> _slerp(qua<T, Q> const &x, qua<T, Q> const &y, T const &a) {
+  GLM_FUNC_QUALIFIER qua<T, Q> __slerp(qua<T, Q> const &x, qua<T, Q> const &y, T const &a) {
     return slerp(x, y, a);
   }
 
   template<typename genType>
-  GLM_FUNC_QUALIFIER genType _slerp(genType x, genType y, genType a) {
-    return _slerp(vec<1, genType>(x), vec<1, genType>(y), a).x;
+  GLM_FUNC_QUALIFIER genType __slerp(genType x, genType y, genType a) {
+    return __slerp(vec<1, genType>(x), vec<1, genType>(y), a).x;
   }
 
   /// <summary>

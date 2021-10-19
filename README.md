@@ -604,6 +604,8 @@ Ordered by priority.
 1. Features/configurations to reduce size of binding library.
 1. Utility API that resembles `glUniformMatrix*v`-style functions, i.e., extracting/parsing array of matrices/vectors.
 1. [geom](libs/glm-binding/geom): SIMD support (... for the most commonly use functions).
+1. Replace `glm::angle` bindings with atan2 equivalent (stability).
+1. Include minification script (e.g., minilua); glm-binding extensions (ext/ and geom/) require .inl refactoring.
 1. Add support for two-dimensional geometrical structures: Ray2D, Line2D, Plane2D.
 1. Optimize `binding` functions that use 'glm_i2v'. Logic redundant with ``gLuaSharedTrait::Next(LB)``.
 1. Optimize `glm_createMatrix`. Profiling case '4x4 matrix creation (lua_Alloc)' is the one of the slowest operations in the added vector/matrix API. Worse when using the default Windows allocator.

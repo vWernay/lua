@@ -118,8 +118,8 @@ GLM_FLAGS = -DLUAGLM_VERSION=999 \
 		-DLUA_GLM_ALIASES \
 		-DLUA_GLM_GEOM_EXTENSIONS \
 		-DLUA_GLM_RECYCLE \
-		# -DGLM_FORCE_XYZW_ONLY \
 		# -DGLM_FORCE_DEFAULT_ALIGNED_GENTYPES \
+		# -DGLM_FORCE_XYZW_ONLY \
 		# -DGLM_FORCE_CTOR_INIT \
 		# -DGLM_FORCE_QUAT_DATA_XYZW \
 
@@ -217,8 +217,9 @@ linux-noreadline:
 linux-readline:
 	$(MAKE) $(ALL) SYSCFLAGS="-DLUA_USE_LINUX -DLUA_USE_READLINE" SYSLIBS="-Wl,-E -ldl -lreadline"
 
+LINUX_ONE_FLAGS := $(MYCFLAGS) $(CPERF_FLAGS) -DLUA_INCLUDE_LIBGLM -I. -Ilibs/glm-binding
 linux-one:
-	$(MAKE) linux-readline CC="$(CPP)" LUA_O="onelua.o" BASE_O="onelua.o" CORE_O="" LIB_O="" LUAC_T="" MYCFLAGS="$(MYCFLAGS) $(CPERF_FLAGS) -DLUA_INCLUDE_LIBGLM -I. -Ilibs/glm-binding"
+	$(MAKE) linux-readline CC="$(CPP)" LUA_O="onelua.o" BASE_O="onelua.o" LUA_A="" CORE_O="" LIB_O="" LUAC_T="" MYCFLAGS="$(LINUX_ONE_FLAGS)"
 
 Darwin macos macosx:
 	$(MAKE) $(ALL) SYSCFLAGS="-DLUA_USE_MACOSX"
@@ -279,93 +280,85 @@ lglmlib.o: libs/glm-binding/lglmlib.cpp lglm.hpp lua.hpp lua.h luaconf.h \
 # automatically made with 'g++ -MM l*.c'
 
 lapi.o: lapi.c lprefix.h lua.h luaconf.h lapi.h llimits.h lstate.h \
- lobject.h lglm.hpp lualib.h lauxlib.h ltm.h lzio.h lmem.h ldebug.h \
- ldo.h lfunc.h lgc.h lglm_core.h lstring.h ltable.h lundump.h lvm.h
-lauxlib.o: lauxlib.c lprefix.h lua.h luaconf.h lauxlib.h lglm.hpp \
- lualib.h
+ lobject.h ltm.h lzio.h lmem.h ldebug.h ldo.h lfunc.h lgc.h lglm_core.h \
+ lstring.h ltable.h lundump.h lvm.h
+lauxlib.o: lauxlib.c lprefix.h lua.h luaconf.h lauxlib.h lgrit_lib.h
 lbaselib.o: lbaselib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h \
- lglm.hpp lglm_core.h llimits.h ltm.h lobject.h
+ lgrit_lib.h
 lcode.o: lcode.c lprefix.h lua.h luaconf.h lcode.h llex.h lobject.h \
- llimits.h lglm.hpp lualib.h lauxlib.h lzio.h lmem.h lopcodes.h \
- lparser.h ldebug.h lstate.h ltm.h ldo.h lgc.h lstring.h ltable.h lvm.h
+ llimits.h lzio.h lmem.h lopcodes.h lparser.h ldebug.h lstate.h ltm.h \
+ ldo.h lgc.h lstring.h ltable.h lvm.h
 lcorolib.o: lcorolib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
 lctype.o: lctype.c lprefix.h lctype.h lua.h luaconf.h llimits.h
 ldblib.o: ldblib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
 ldebug.o: ldebug.c lprefix.h lua.h luaconf.h lapi.h llimits.h lstate.h \
- lobject.h lglm.hpp lualib.h lauxlib.h ltm.h lzio.h lmem.h \
- lcode.h llex.h lopcodes.h lparser.h ldebug.h ldo.h lfunc.h lstring.h \
- lgc.h ltable.h lvm.h
+ lobject.h ltm.h lzio.h lmem.h lcode.h llex.h lopcodes.h lparser.h \
+ ldebug.h ldo.h lfunc.h lstring.h lgc.h ltable.h lvm.h
 ldo.o: ldo.c lprefix.h lua.h luaconf.h lapi.h llimits.h lstate.h \
- lobject.h lglm.hpp lualib.h lauxlib.h ltm.h lzio.h lmem.h \
- ldebug.h ldo.h lfunc.h lgc.h lglm_core.h lopcodes.h lparser.h \
- lstring.h ltable.h lundump.h lvm.h
-ldump.o: ldump.c lprefix.h lua.h luaconf.h lobject.h llimits.h lglm.hpp \
- lualib.h lauxlib.h lstate.h ltm.h lzio.h lmem.h lundump.h
+ lobject.h ltm.h lzio.h lmem.h lgrit_lib.h lauxlib.h ldebug.h ldo.h \
+ lfunc.h lgc.h lopcodes.h lparser.h lstring.h ltable.h lundump.h lvm.h
+ldump.o: ldump.c lprefix.h lua.h luaconf.h lobject.h llimits.h lstate.h \
+ ltm.h lzio.h lmem.h lundump.h
 lfunc.o: lfunc.c lprefix.h lua.h luaconf.h ldebug.h lstate.h lobject.h \
- llimits.h lglm.hpp lualib.h lauxlib.h ltm.h lzio.h lmem.h ldo.h \
- lfunc.h lgc.h
+ llimits.h ltm.h lzio.h lmem.h ldo.h lfunc.h lgc.h
 lgc.o: lgc.c lprefix.h lua.h luaconf.h ldebug.h lstate.h lobject.h \
- llimits.h lglm.hpp lualib.h lauxlib.h ltm.h lzio.h lmem.h ldo.h \
- lfunc.h lgc.h lstring.h ltable.h
+ llimits.h ltm.h lzio.h lmem.h ldo.h lfunc.h lgc.h lstring.h ltable.h
 linit.o: linit.c lprefix.h lua.h luaconf.h lualib.h lauxlib.h
 liolib.o: liolib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
 llex.o: llex.c lprefix.h lua.h luaconf.h lctype.h llimits.h ldebug.h \
- lstate.h lobject.h lglm.hpp lualib.h lauxlib.h ltm.h lzio.h \
- lmem.h ldo.h lgc.h llex.h lparser.h lstring.h ltable.h
-lmathlib.o: lmathlib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
+ lstate.h lobject.h ltm.h lzio.h lmem.h ldo.h lgc.h llex.h lparser.h \
+ lstring.h ltable.h
+lmathlib.o: lmathlib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h \
+ lgrit_lib.h
 lmem.o: lmem.c lprefix.h lua.h luaconf.h ldebug.h lstate.h lobject.h \
- llimits.h lglm.hpp lualib.h lauxlib.h ltm.h lzio.h lmem.h ldo.h \
- lgc.h
+ llimits.h ltm.h lzio.h lmem.h ldo.h lgc.h
 loadlib.o: loadlib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
 lobject.o: lobject.c lprefix.h lua.h luaconf.h lctype.h llimits.h \
- ldebug.h lstate.h lobject.h lglm.hpp lualib.h lauxlib.h ltm.h \
- lzio.h lmem.h ldo.h lglm_core.h lstring.h lgc.h lvm.h
+ ldebug.h lstate.h lobject.h ltm.h lzio.h lmem.h ldo.h lstring.h lgc.h \
+ lvm.h
 lopcodes.o: lopcodes.c lprefix.h lopcodes.h llimits.h lua.h luaconf.h
 loslib.o: loslib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
 lparser.o: lparser.c lprefix.h lua.h luaconf.h lcode.h llex.h lobject.h \
- llimits.h lglm.hpp lualib.h lauxlib.h lzio.h lmem.h lopcodes.h \
- lparser.h ldebug.h lstate.h ltm.h ldo.h lfunc.h lstring.h lgc.h ltable.h
+ llimits.h lzio.h lmem.h lopcodes.h lparser.h ldebug.h lstate.h ltm.h \
+ ldo.h lfunc.h lglm_core.h lstring.h lgc.h ltable.h
 lstate.o: lstate.c lprefix.h lua.h luaconf.h lapi.h llimits.h lstate.h \
- lobject.h lglm.hpp lualib.h lauxlib.h ltm.h lzio.h lmem.h \
- ldebug.h ldo.h lfunc.h lgc.h llex.h lstring.h ltable.h
+ lobject.h ltm.h lzio.h lmem.h ldebug.h ldo.h lfunc.h lgc.h llex.h \
+ lstring.h ltable.h
 lstring.o: lstring.c lprefix.h lua.h luaconf.h ldebug.h lstate.h \
- lobject.h llimits.h lglm.hpp lualib.h lauxlib.h ltm.h lzio.h \
- lmem.h ldo.h lstring.h lgc.h
+ lobject.h llimits.h ltm.h lzio.h lmem.h ldo.h lstring.h lgc.h
 lstrlib.o: lstrlib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
 ltable.o: ltable.c lprefix.h lua.h luaconf.h ldebug.h lstate.h lobject.h \
- llimits.h lglm.hpp lualib.h lauxlib.h ltm.h lzio.h lmem.h ldo.h lgc.h \
- lstring.h ltable.h lvm.h
+ llimits.h ltm.h lzio.h lmem.h ldo.h lgc.h lglm_core.h lstring.h ltable.h \
+ lvm.h
 ltablib.o: ltablib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h \
- lglm_core.h llimits.h ltm.h lobject.h lglm.hpp lua.hpp
+ lgrit_lib.h
 ltests.o: ltests.c lprefix.h lua.h luaconf.h lapi.h llimits.h lstate.h \
- lobject.h lglm.hpp lualib.h lauxlib.h ltm.h lzio.h lmem.h \
- lcode.h llex.h lopcodes.h lparser.h lctype.h ldebug.h ldo.h lfunc.h \
- lopnames.h lstring.h lgc.h ltable.h
+ lobject.h ltm.h lzio.h lmem.h lauxlib.h lcode.h llex.h lopcodes.h \
+ lparser.h lctype.h ldebug.h ldo.h lfunc.h lopnames.h lstring.h lgc.h \
+ ltable.h lualib.h
 ltm.o: ltm.c lprefix.h lua.h luaconf.h ldebug.h lstate.h lobject.h \
- llimits.h lglm.hpp lualib.h lauxlib.h ltm.h lzio.h lmem.h ldo.h \
- lgc.h lglm_core.h lstring.h ltable.h lvm.h
+ llimits.h ltm.h lzio.h lmem.h ldo.h lgc.h lglm_core.h lstring.h ltable.h \
+ lvm.h
 lua.o: lua.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
 luac.o: luac.c lprefix.h lua.h luaconf.h lauxlib.h ldebug.h lstate.h \
- lobject.h llimits.h lglm.hpp lualib.h ltm.h lzio.h lmem.h \
- lopcodes.h lopnames.h lundump.h
+ lobject.h llimits.h ltm.h lzio.h lmem.h lopcodes.h lopnames.h lundump.h
 lundump.o: lundump.c lprefix.h lua.h luaconf.h ldebug.h lstate.h \
- lobject.h llimits.h lglm.hpp lualib.h lauxlib.h ltm.h lzio.h \
- lmem.h ldo.h lfunc.h lstring.h lgc.h lundump.h
+ lobject.h llimits.h ltm.h lzio.h lmem.h ldo.h lfunc.h lstring.h lgc.h \
+ lundump.h
 lutf8lib.o: lutf8lib.c lprefix.h lua.h luaconf.h lauxlib.h lualib.h
 lvm.o: lvm.c lprefix.h lua.h luaconf.h ldebug.h lstate.h lobject.h \
- llimits.h lglm.hpp lualib.h lauxlib.h ltm.h lzio.h lmem.h ldo.h \
- lfunc.h lgc.h lglm_core.h lopcodes.h lstring.h ltable.h lvm.h \
- ljumptab.h
+ llimits.h ltm.h lzio.h lmem.h ldo.h lfunc.h lgc.h lglm_core.h lopcodes.h \
+ lstring.h ltable.h lvm.h ljumptab.h
 lzio.o: lzio.c lprefix.h lua.h luaconf.h llimits.h lmem.h lstate.h \
- lobject.h lglm.hpp lualib.h lauxlib.h ltm.h lzio.h
+ lobject.h ltm.h lzio.h
 onelua.o: onelua.c lprefix.h luaconf.h lzio.c lua.h llimits.h lmem.h \
- lstate.h lobject.h lglm.hpp lua.hpp lualib.h lauxlib.h ltm.h lzio.h \
- lctype.c lctype.h lopcodes.c lopcodes.h lmem.c ldebug.h ldo.h lgc.h \
- lundump.c lfunc.h lstring.h lundump.h ldump.c lstate.c lapi.h llex.h \
- ltable.h lgc.c llex.c lparser.h lcode.c lcode.h lvm.h lparser.c ldebug.c \
- lfunc.c lglm.cpp lglm_core.h lgrit_lib.h lobject.c ltm.c lstring.c \
- ltable.c ldo.c lvm.c ljumptab.h lapi.c lauxlib.c lbaselib.c lcorolib.c \
- ldblib.c liolib.c lmathlib.c loadlib.c loslib.c lstrlib.c ltablib.c \
- lutf8lib.c linit.c lua.c
+ lstate.h lobject.h ltm.h lzio.h lctype.c lctype.h lopcodes.c lopcodes.h \
+ lmem.c ldebug.h ldo.h lgc.h lundump.c lfunc.h lstring.h lundump.h \
+ ldump.c lstate.c lapi.h llex.h ltable.h lgc.c llex.c lparser.h lcode.c \
+ lcode.h lvm.h lparser.c lglm_core.h ldebug.c lfunc.c lobject.c ltm.c \
+ lstring.c ltable.c ldo.c lgrit_lib.h lauxlib.h lvm.c ljumptab.h lapi.c \
+ lglm.cpp lglm.hpp lua.hpp lualib.h lglm_string.hpp lauxlib.c lbaselib.c \
+ lcorolib.c ldblib.c liolib.c lmathlib.c loadlib.c loslib.c lstrlib.c \
+ ltablib.c lutf8lib.c linit.c lua.c
 
 # (end of Makefile)

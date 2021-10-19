@@ -957,19 +957,19 @@ LUA_GLM_ALIGNED_TYPEDEF(struct, lua_CFloat4) lua_Float4;
 ** _mm_storeu_ps calls.
 **
 ** The current lua_Mat4 definition minimizes the number of changes required to
-** make alignment consistent across different compilers (and minimizes the
-** number of changes when this inevitably gets reverted). Avoiding issues of
+** make alignment consistent across different compilers. Avoiding issues of
 ** aligned loads, unaligned loads, auto-aligning, etc.
 *
 ** These safeguards will not be required if LuaGLM ever becomes a strictly C++
-** compiled runtime. As the "C" parts of this runtime can use the structs
+** compiled runtime. As the "C" parts of this runtime may use the structs
 ** defined in lglm.hpp
 **
 ** @TODO: Compensate for: detail::storage<3, T, detail::is_aligned<Q>::value>::type
 ** data implicitly aligning vec3 types. This requires 'GLM_HAS_ALIGNOF' emulation.
 **
 ** @TODO: Consider preventing the use of 'GLM_FORCE_DEFAULT_ALIGNED_GENTYPES'
-** without 'GLM_FORCE_XYZW_ONLY' being defined in the meantime.
+** without 'GLM_FORCE_XYZW_ONLY' being defined in the meantime. 'matgeti' in
+** lglm.cpp compensates for this issue, however, external dependencies may not.
 */
 LUA_GLM_ALIGNED_TYPEDEF(struct, lua_Mat4) {
   union Columns {

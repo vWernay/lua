@@ -94,8 +94,12 @@ extern LUA_API_LINKAGE {
 #define glm_typeError(L, O, M) (luaG_typeerror((L), (O), (M)), 0)
 #define glm_finishset(L, T, K, V) (luaV_finishset((L), (T), (K), (V), GLM_NULLPTR), 1)
 
+/* lua_gettop() macro */
+#if !defined(_gettop)
 #define _gettop(L) (cast_int((L)->top - ((L)->ci->func + 1)))
 #define _isvalid(L, o) (!ttisnil(o) || o != &G(L)->nilvalue)
+#endif
+
 #define _ispseudo(i) ((i) <= LUA_REGISTRYINDEX)
 
 /* index2value copied from lapi.c */

@@ -97,10 +97,10 @@
 #include "lstrlib.c"
 #include "ltablib.c"
 #include "lutf8lib.c"
-#include "linit.c"
 #if defined(LUA_INCLUDE_LIBGLM)
 #include "lglmlib.cpp"
 #endif
+#include "linit.c"
 #endif
 
 /* lua */

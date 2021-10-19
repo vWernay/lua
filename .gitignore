@@ -40,6 +40,7 @@ lua54.dll
 *.a
 *.dll
 *.exp
+*.gcda
 
 # CMake
 CMakeFiles/

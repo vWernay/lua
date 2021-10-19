@@ -626,7 +626,7 @@ namespace glm {
   /* Fixes */
 
   template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER mat<4, 4, T, Q> _scaleBias(T scale, T bias) {
+  GLM_FUNC_QUALIFIER mat<4, 4, T, Q> __scaleBias(T scale, T bias) {
     mat<4, 4, T, Q> result(0);
     result[3] = vec<4, T, Q>(vec<3, T, Q>(bias), static_cast<T>(1));
     result[0][0] = scale;
@@ -636,8 +636,8 @@ namespace glm {
   }
 
   template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER mat<4, 4, T, Q> _scaleBias(mat<4, 4, T, Q> const &m, T scale, T bias) {
-    return m * _scaleBias<T, Q>(scale, bias);
+  GLM_FUNC_QUALIFIER mat<4, 4, T, Q> __scaleBias(mat<4, 4, T, Q> const &m, T scale, T bias) {
+    return m * __scaleBias<T, Q>(scale, bias);
   }
 
   template<length_t C, length_t R, typename T, qualifier Q>
