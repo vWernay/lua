@@ -600,12 +600,12 @@ See [libs/scripts](libs/scripts) for a collection of example/test scripts using 
 #### Tweaks/TODO:
 Ordered by priority.
 1. Cleanup testing scripts/environment and publish.
+1. Include minification script (e.g., genminilua).
 1. Modify implementation to follow updated "Avoid taking the address of a 'TValue' field" (or reference) convention.
 1. Features/configurations to reduce size of binding library.
 1. Utility API that resembles `glUniformMatrix*v`-style functions, i.e., extracting/parsing array of matrices/vectors.
 1. [geom](libs/glm-binding/geom): SIMD support (... for the most commonly use functions).
 1. Replace `glm::angle` bindings with atan2 equivalent (stability).
-1. Include minification script (e.g., minilua); glm-binding extensions (ext/ and geom/) require .inl refactoring.
 1. Add support for two-dimensional geometrical structures: Ray2D, Line2D, Plane2D.
 1. Optimize `binding` functions that use 'glm_i2v'. Logic redundant with ``gLuaSharedTrait::Next(LB)``.
 1. Optimize `glm_createMatrix`. Profiling case '4x4 matrix creation (lua_Alloc)' is the one of the slowest operations in the added vector/matrix API. Worse when using the default Windows allocator.
@@ -620,7 +620,7 @@ These benchmark values are preliminary and subject to change. Correctness not gu
 ### NumPy & PyGLM
 [PyGLM vs NumPy.py](https://github.com/Zuzu-Typ/PyGLM/blob/master/test/PyGLM%20vs%20NumPy.py) was ported to Lua + LuaGLM. Both were modified to increase the total number of iterations-per-case to be in the billions. Each value represents the average throughput in millions of operations per second. Secondary values represent the operations throughput with object/sink preallocation (see `LUA_GLM_RECYCLE`).
 
-| Operation                | NumPy runs | PyGLM runs | LuaGLM run    |
+| Operation                | NumPy runs | PyGLM runs | LuaGLM runs   |
 |--------------------------|------------|------------|---------------|
 | vec3 creation            | 10.476     | 19.408     | 57.027        |
 | vec3 creation (custom)   | 2.530      | 14.325     | 57.123        |
