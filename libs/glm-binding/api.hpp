@@ -1897,6 +1897,7 @@ GLM_BINDING_QUALIFIER(rotate) {
   GLM_BINDING_END
 }
 
+//TRAITS_DEFN(rotate_slow, glm::rotate_slow, gLuaMat4x4<>, gLuaTrait<gLuaMat4x4<>::value_type>, gLuaDir3<>)
 TRAITS_LAYOUT_DEFN(rotateFromTo, glm::rotateFromTo, LAYOUT_BINARY, gLuaVec3<>) /* LUA_QUATERNION_EXTENSIONS */
 ROTATION_MATRIX_DEFN(transformDir, glm::transformDir, LAYOUT_UNARY, gLuaVec3<>) /* LUA_MATRIX_EXTENSIONS */
 ROTATION_MATRIX_DEFN(transformPos, glm::transformPos, LAYOUT_UNARY, gLuaVec3<>)
@@ -1941,6 +1942,7 @@ GLM_BINDING_QUALIFIER(scale) {
   GLM_BINDING_END
 }
 
+//TRAITS_DEFN(scale_slow, glm::scale_slow, gLuaMat4x4<>, gLuaVec3<>)
 GLM_BINDING_QUALIFIER(translate) {
   GLM_BINDING_BEGIN
   const TValue *_tv = glm_i2v(LB.L, LB.idx);

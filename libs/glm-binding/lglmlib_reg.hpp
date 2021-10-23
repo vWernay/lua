@@ -580,6 +580,7 @@ GLM_LUA_REG(barycentric), /* LUA_VECTOR_EXTENSIONS */
 
 #if defined(GTX_ROTATE_VECTOR_HPP) || defined(EXT_MATRIX_TRANSFORM_HPP) || defined(GTX_MATRIX_TRANSFORM_2D_HPP) || defined(GTX_QUATERNION_TRANSFORM_HPP)
 GLM_LUA_REG(rotate),
+//GLM_LUA_REG(rotate_slow), /* @COMPAT: Defined in ext/matrix_transform.inl */
 GLM_LUA_REG(transformPos), /* LUA_MATRIX_EXTENSIONS */
 GLM_LUA_REG(transformPosPerspective),
 GLM_LUA_REG(transformDir),
@@ -605,6 +606,7 @@ GLM_LUA_REG(levels),
 
 #if defined(GTX_TRANSFORM_HPP) || defined(EXT_MATRIX_TRANSFORM_HPP)
 GLM_LUA_REG(scale),
+//GLM_LUA_REG(scale_slow), /* @COMPAT: Defined in ext/matrix_transform.inl */
 GLM_LUA_REG(translate),
 GLM_LUA_REG(trs), /* LUA_MATRIX_EXTENSIONS */
 #endif

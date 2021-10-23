@@ -17,6 +17,7 @@ testes/libs/all
 testes/.lua_history
 manual/manual.html
 temp
+minilua.hpp
 
 # MSYS
 lua.exe

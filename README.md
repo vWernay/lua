@@ -600,7 +600,6 @@ See [libs/scripts](libs/scripts) for a collection of example/test scripts using 
 #### Tweaks/TODO:
 Ordered by priority.
 1. Cleanup testing scripts/environment and publish.
-1. Include minification script (e.g., genminilua).
 1. Modify implementation to follow updated "Avoid taking the address of a 'TValue' field" (or reference) convention.
 1. Features/configurations to reduce size of binding library.
 1. Utility API that resembles `glUniformMatrix*v`-style functions, i.e., extracting/parsing array of matrices/vectors.
@@ -678,6 +677,7 @@ Note, that modern LuaJIT builds enable `LJ_GC64` mode by default (See commit "x6
 Finish comparisons to...
 - Other things not Lua.
 - [Unity.Mathematics](https://github.com/Unity-Technologies/Unity.Mathematics)
+- Update LuaGLM benchmarks to include unity/jumbo builds.
 
 ## Sources & Acknowledgments:
 1. [grit-lua](https://github.com/grit-engine/grit-lua): Original implementation and inspiration.

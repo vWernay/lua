@@ -167,7 +167,7 @@ $(LUAC_T): $(LUAC_O) $(LUA_A)
 	$(CC) -o $@ $(LDFLAGS) $(LUAC_O) $(LUA_A) $(LIBS)
 
 clean:
-	$(RM) $(ALL_T) $(ALL_O) onelua.o $(GLM_A)
+	$(RM) $(ALL_T) $(ALL_O) $(GLM_A) minilua.hpp onelua.o
 
 depend:
 	@$(CC) $(CFLAGS) -MM l*.c
@@ -242,12 +242,6 @@ SunOS solaris:
 # Targets that do not create files (not all makes understand .PHONY).
 .PHONY: all $(PLATS) help test clean default o a depend echo
 
-lglm.o: lglm.cpp lua.h luaconf.h lglm.hpp lua.hpp lualib.h \
- lauxlib.h lglm_core.h llimits.h ltm.h lobject.h lglm_string.hpp \
- lgrit_lib.h lapi.h lstate.h lzio.h lmem.h ldebug.h lfunc.h lgc.h \
- lstring.h ltable.h lvm.h ldo.h
-	$(CPP) $(LUA_LINKAGE) $(CFLAGS) $(CPERF_FLAGS) $(TESTS) -c -o lglm.o lglm.cpp
-
 # lua-glm binding
 GLM_A = glm.so
 
@@ -259,22 +253,6 @@ lib-glm-mingw:
 
 lib-glm-macos:
 	$(MAKE) lib-glm SYSCFLAGS="-L . -DLUA_USE_MACOSX" SYSLIBS="-llua"
-
-# GLM binding library built as an object; disabled by default.
-# -I. -Ilibs/glm/ -Ilibs/glm-binding
-# -DLUA_INCLUDE_LIBGLM
-# lglmlib.o
-lglmlib.o: libs/glm-binding/lglmlib.cpp lglm.hpp lua.hpp lua.h luaconf.h \
- lualib.h lauxlib.h libs/glm-binding/api.hpp \
- libs/glm-binding/bindings.hpp lapi.h llimits.h lstate.h lobject.h \
- lglm.hpp ltm.h lzio.h lmem.h lgc.h lvm.h ldo.h lobject.h lstate.h \
- lglm_core.h libs/glm-binding/ext/vector_extensions.hpp \
- libs/glm-binding/ext/matrix_extensions.hpp \
- libs/glm-binding/ext/quat_extensions.hpp \
- libs/glm-binding/ext/vector_extensions.hpp \
- libs/glm-binding/ext/matrix_extensions.hpp lua.hpp \
- libs/glm-binding/lglmlib.hpp lua.h libs/glm-binding/lglmlib_reg.hpp
-	$(CC) $(CFLAGS) $(CPERF_FLAGS) -I. -Ilibs/glm-binding -c -o lglmlib.o libs/glm-binding/lglmlib.cpp
 
 # DO NOT EDIT
 # automatically made with 'g++ -MM l*.c'
@@ -360,5 +338,10 @@ onelua.o: onelua.c lprefix.h luaconf.h lzio.c lua.h llimits.h lmem.h \
  lglm.cpp lglm.hpp lua.hpp lualib.h lglm_string.hpp lauxlib.c lbaselib.c \
  lcorolib.c ldblib.c liolib.c lmathlib.c loadlib.c loslib.c lstrlib.c \
  ltablib.c lutf8lib.c linit.c lua.c
+lglm.o: lglm.cpp lua.h luaconf.h lglm.hpp lua.hpp lualib.h \
+ lauxlib.h lglm_core.h llimits.h ltm.h lobject.h lglm_string.hpp \
+ lgrit_lib.h lapi.h lstate.h lzio.h lmem.h ldebug.h lfunc.h lgc.h \
+ lstring.h ltable.h lvm.h ldo.h
+	$(CPP) $(LUA_LINKAGE) $(CFLAGS) $(CPERF_FLAGS) $(TESTS) -c -o lglm.o lglm.cpp
 
 # (end of Makefile)

@@ -250,10 +250,10 @@ static glm::length_t swizzle(const glm::vec<L, T, Q> &v, const char *key, lua_Fl
   glm::length_t i = 0;
   for (; i < 4 && key[i] != '\0'; ++i) {
     switch (key[i]) {
-      case 'x': GLM_IF_CONSTEXPR (L < 1) return 0; (&out.x)[i] = static_cast<T>(v[0]); break;
-      case 'y': GLM_IF_CONSTEXPR (L < 2) return 0; (&out.x)[i] = static_cast<T>(v[1]); break;
-      case 'z': GLM_IF_CONSTEXPR (L < 3) return 0; (&out.x)[i] = static_cast<T>(v[2]); break;
-      case 'w': GLM_IF_CONSTEXPR (L < 4) return 0; (&out.x)[i] = static_cast<T>(v[3]); break;
+      case 'x': GLM_IF_CONSTEXPR (L < 1) return 0; (&out.x)[i] = static_cast<lua_VecF>(v[0]); break;
+      case 'y': GLM_IF_CONSTEXPR (L < 2) return 0; (&out.x)[i] = static_cast<lua_VecF>(v[1]); break;
+      case 'z': GLM_IF_CONSTEXPR (L < 3) return 0; (&out.x)[i] = static_cast<lua_VecF>(v[2]); break;
+      case 'w': GLM_IF_CONSTEXPR (L < 4) return 0; (&out.x)[i] = static_cast<lua_VecF>(v[3]); break;
       default: {
         return 0;
       }
@@ -275,8 +275,9 @@ static LUA_INLINE glm::length_t swizzle(const glm::qua<T, Q> &q, const char *key
 }
 
 int glmVec_rawgeti(const TValue *obj, lua_Integer n, StkId res) {
-  if (vecgeti(obj, n, res) == LUA_TNONE)
+  if (vecgeti(obj, n, res) == LUA_TNONE) {
     setnilvalue(s2v(res));
+  }
 
   return ttypetag(s2v(res));
 }
@@ -285,8 +286,9 @@ int glmVec_rawgets(const TValue *obj, const char *k, StkId res) {
   // This function is to interface with 'lua_getfield'. The length of the string
   // must be recomputed.
   const int result = strlen(k) == 1 ? vecgets(obj, k, res) : LUA_TNONE;
-  if (result == LUA_TNONE)
+  if (result == LUA_TNONE) {
     setnilvalue(s2v(res));
+  }
 
   return ttypetag(s2v(res));
 }
@@ -311,8 +313,9 @@ int glmVec_rawget(const TValue *obj, TValue *key, StkId res) {
     }
   }
 
-  if (result == LUA_TNONE)
+  if (result == LUA_TNONE) {
     setnilvalue(s2v(res));
+  }
   return ttypetag(s2v(res));
 }
 
@@ -326,15 +329,17 @@ void glmVec_geti(lua_State *L, const TValue *obj, lua_Integer c, StkId res) {
 
 void glmVec_get(lua_State *L, const TValue *obj, TValue *key, StkId res) {
   if (ttisnumber(key)) {
-    if (vecgeti(obj, glm_tointeger(key), res) != LUA_TNONE)
+    if (vecgeti(obj, glm_tointeger(key), res) != LUA_TNONE) {
       return;
+    }
   }
   else if (ttisstring(key)) {
     const char *str = svalue(key);
     const size_t str_len = vslen(key);
     if (str_len == 1) {  // hot-path single character access
-      if (vecgets(obj, str, res) != LUA_TNONE)
+      if (vecgets(obj, str, res) != LUA_TNONE) {
         return;
+      }
     }
     // Allow runtime swizzle operations prior to metamethod access.
     else if (str_len <= 4) {
@@ -523,8 +528,9 @@ int glmVec_next(const TValue *obj, StkId key) {
   TValue *key_obj = s2v(key);
   if (ttisnil(key_obj)) {
     setivalue(key_obj, 1);
-    if (vecgeti(obj, 1, key + 1) == LUA_TNONE)
+    if (vecgeti(obj, 1, key + 1) == LUA_TNONE) {
       setnilvalue(s2v(key + 1));
+    }
     return 1;
   }
   else if (ttisnumber(key_obj)) {
@@ -534,8 +540,9 @@ int glmVec_next(const TValue *obj, StkId key) {
     const glm::length_t nextIdx = i_glmlen(l_nextIdx);
     if (nextIdx >= 1 && nextIdx <= glm_dimensions(ttypetag(obj))) {
       setivalue(key_obj, l_nextIdx);  // Iterator values are 1-based
-      if (vecgeti(obj, l_nextIdx, key + 1) == LUA_TNONE)
+      if (vecgeti(obj, l_nextIdx, key + 1) == LUA_TNONE) {
         setnilvalue(s2v(key + 1));
+      }
       return 1;
     }
   }
@@ -662,7 +669,7 @@ static LUA_INLINE int matgeti (const TValue *obj, lua_Integer n, StkId res) {
   if (l_likely(gidx >= 1 && gidx <= LUA_GLM_MATRIX_COLS(m->dimensions))) {
     switch (LUA_GLM_MATRIX_ROWS(m->dimensions)) {
       case 2: {
-        const lua_CFloat2 col = m->m.m2[gidx - 1];
+        const lua_CFloat2& col = m->m.m2[gidx - 1];
         const lua_Float4 f4 = { col.x, col.y, 0, 0 };
         setvvalue(s2v(res), f4, LUA_VVECTOR2);
         return LUA_VVECTOR2;
@@ -675,7 +682,7 @@ static LUA_INLINE int matgeti (const TValue *obj, lua_Integer n, StkId res) {
 #if defined(LUAGLM_ALIGNED) && GLM_CONFIG_ANONYMOUS_STRUCT == GLM_ENABLE && !GLM_CONFIG_XYZW_ONLY
         setvvalue(s2v(res), m->m.m4[gidx - 1], LUA_VVECTOR3);
 #else
-        const lua_CFloat3 col = m->m.m3[gidx - 1];
+        const lua_CFloat3& col = m->m.m3[gidx - 1];
         const lua_Float4 f4 = { col.x, col.y, col.z, 0 };
         setvvalue(s2v(res), f4, LUA_VVECTOR3);
 #endif
@@ -701,8 +708,9 @@ GCMatrix *glmMat_new(lua_State *L) {
 }
 
 int glmMat_rawgeti(const TValue *obj, lua_Integer n, StkId res) {
-  if (matgeti(obj, n, res) == LUA_TNONE)
+  if (matgeti(obj, n, res) == LUA_TNONE) {
     setnilvalue(s2v(res));
+  }
   return ttypetag(s2v(res));
 }
 
@@ -711,8 +719,9 @@ int glmMat_vmgeti (const TValue *obj, lua_Integer n, StkId res) {
 }
 
 int glmMat_rawget(const TValue *obj, TValue *key, StkId res) {
-  if (ttisnumber(key))
+  if (ttisnumber(key)) {
     return glmMat_rawgeti(obj, glm_tointeger(key), res);
+  }
 
   setnilvalue(s2v(res));
   return LUA_TNIL;
@@ -723,8 +732,9 @@ void glmMat_rawset(lua_State *L, const TValue *obj, TValue *key, TValue *val) {
 }
 
 void glmMat_get(lua_State *L, const TValue *obj, TValue *key, StkId res) {
-  if (!ttisnumber(key) || matgeti(obj, glm_tointeger(key), res) == LUA_TNONE)
+  if (!ttisnumber(key) || matgeti(obj, glm_tointeger(key), res) == LUA_TNONE) {
     luaV_finishget(L, obj, key, res, NULL);
+  }
 }
 
 void glmMat_geti(lua_State *L, const TValue *obj, lua_Integer c, StkId res) {

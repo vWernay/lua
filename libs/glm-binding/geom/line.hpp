@@ -309,19 +309,19 @@ namespace glm {
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER T distance(const Line<L, T, Q> &line, const Ray<L, T, Q> &ray) {
-    T d(0), d2(0);
+    T d(0);
     return distance(line, ray, d);
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER T distance(const Line<L, T, Q> &line, const Line<L, T, Q> &other) {
-    T d(0), d2(0);
+    T d(0);
     return distance(line, other, d);
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER T distance(const Line<L, T, Q> &line, const LineSegment<L, T, Q> &other) {
-    T d(0), d2(0);
+    T d(0);
     return distance(line, other, d);
   }
 
@@ -357,19 +357,19 @@ namespace glm {
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool intersects(const Line<L, T, Q> &line, const Sphere<L, T, Q> &s) {
     T t(0), t2(0);
-    return intersects(s, line, t, t2);
+    return intersects(line, s, t, t2);
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool intersects(const Line<L, T, Q> &line, const Plane<L, T, Q> &plane) {
     T d(0);
-    return intersects(plane, line, d);
+    return intersects(line, plane, d);
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool intersects(const Line<L, T, Q> &line, const Triangle<L, T, Q> &triangle) {
     T u, v, d(0);
-    return intersects(triangle, line, d, u, v);
+    return intersects(line, triangle, d, u, v);
   }
 
   /// <summary>

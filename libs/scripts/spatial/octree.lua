@@ -687,9 +687,9 @@ end
 
 --[[ @OVERRIDE --]]
 function Octree:CreateQueryCache()
-    return {
-        stack = table_create(32, 0), -- Recyclable/Reused stack structure
-        rootbfs = table_create(1, 0),
+    return { -- Recyclable/Reused stack structure
+        stack = setmetatable(table_create(32, 0), { __mode = "v" }),
+        rootbfs = setmetatable(table_create(1, 0), { __mode = "v" }),
     }
 end
 

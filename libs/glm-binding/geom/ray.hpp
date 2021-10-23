@@ -331,19 +331,19 @@ namespace glm {
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER T distance(const Ray<L, T, Q> &ray, const Ray<L, T, Q> &other) {
-    T d(0), d2(0);
+    T d(0);
     return distance(ray, other, d);
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER T distance(const Ray<L, T, Q> &ray, const Line<L, T, Q> &line) {
-    T d(0), d2(0);
+    T d(0);
     return distance(ray, line, d);
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER T distance(const Ray<L, T, Q> &ray, const LineSegment<L, T, Q> &line) {
-    T d(0), d2(0);
+    T d(0);
     return distance(ray, line, d);
   }
 

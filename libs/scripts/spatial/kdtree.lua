@@ -565,8 +565,8 @@ end
 
 --[[ @OVERRIDE --]]
 function KDTree:Immutable()
-    self.availableNodeIndicies = table_wipe(self.availableNodeIndicies)
-    self.availableLeafIndicies = table_wipe(self.availableLeafIndicies)
+    table_wipe(self.availableNodeIndicies)
+    table_wipe(self.availableLeafIndicies)
 
     self.intervals = nil
     self.availableNodeIndicies = nil
@@ -667,7 +667,7 @@ end
 
 --[[ @OVERRIDE --]]
 function KDTree:CreateQueryCache()
-    return table_create(64, 0) -- Recyclable/Reused stack structure
+    return setmetatable(table_create(64, 0), { __mode = "v" }) -- Recyclable/Reused stack structure
 end
 
 --[[ @OVERRIDE --]]
