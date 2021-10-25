@@ -57,10 +57,7 @@ struct LuaCrtAllocator {
   /// lua_Alloc: See Lua manual
   /// </summary>
   inline void *realloc(void *block, size_t osize, size_t nsize) {
-    if (l_alloc == nullptr)
-      throw std::bad_alloc();
-
-    return l_alloc(l_ud, block, osize, nsize);
+    return (l_alloc == nullptr) ? nullptr : l_alloc(l_ud, block, osize, nsize);
   }
 
   T *allocate(std::size_t n) {
@@ -81,10 +78,12 @@ struct LuaCrtAllocator {
   }
 
   void deallocate(T *p, std::size_t n) LUA_ALLOC_NOEXCEPT {
+    if (l_alloc != nullptr) {  // otherwise, allocate would have failed
 #if defined(LUA_ALLOC_DEBUG)
-    report(p, n, 0);
+      report(p, n, 0);
 #endif
-    realloc(static_cast<void *>(p), n, 0);
+      realloc(static_cast<void *>(p), n, 0);
+    }
   }
 
 private:

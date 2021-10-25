@@ -1424,12 +1424,13 @@ GLM_BINDING_QUALIFIER(polygon_extremePoint) {
 GLM_BINDING_QUALIFIER(polygon_new) {
   GLM_BINDING_BEGIN
   const int top = LB.top();
-  if (!lua_isnoneornil(LB.L, LB.idx) && !lua_istable(LB.L, LB.idx))
+  if (!lua_isnoneornil(LB.L, LB.idx) && !lua_istable(LB.L, LB.idx)) {
     return luaL_argerror(LB.L, LB.idx, lua_typename(LB.L, LUA_TTABLE));
+  }
 
   // Create a new polygon userdata.
   void *ptr = lua_newuserdatauv(LB.L, sizeof(gLuaPolygon<>::type), 0);  // [..., poly]
-  gLuaPolygon<>::type *polygon = reinterpret_cast<gLuaPolygon<>::type *>(ptr);
+  gLuaPolygon<>::type *polygon = static_cast<gLuaPolygon<>::type *>(ptr);
   polygon->stack_idx = -1;
   polygon->p = GLM_NULLPTR;
 
@@ -1441,6 +1442,10 @@ GLM_BINDING_QUALIFIER(polygon_new) {
     // Create a std::vector backed by the Lua allocator.
     using PolyList = glm::List<gLuaPolygon<>::Point::type>;
     PolyList *list = static_cast<PolyList *>(allocator.realloc(GLM_NULLPTR, 0, sizeof(PolyList)));
+    if (list == GLM_NULLPTR) {
+      lua_pop(L, 1);
+      return luaL_error(L, "polygon allocation error");
+    }
 
     // Populate the polygon with an array of coordinates, if one exists.
     try {
@@ -1467,7 +1472,7 @@ GLM_BINDING_QUALIFIER(polygon_new) {
 }
 
 GLM_BINDING_QUALIFIER(polygon_to_string) {
-  gLuaPolygon<>::type *ud = reinterpret_cast<gLuaPolygon<>::type *>(luaL_checkudata(L, 1, LUA_GLM_POLYGON_META));
+  gLuaPolygon<>::type *ud = static_cast<gLuaPolygon<>::type *>(luaL_checkudata(L, 1, LUA_GLM_POLYGON_META));
   if (ud->p != GLM_NULLPTR) {
     lua_pushfstring(L, "Polygon<%I>", ud->p->size());
     return 1;
@@ -1480,7 +1485,7 @@ GLM_BINDING_QUALIFIER(polygon_to_string) {
 /// Garbage collect an allocated polygon userdata.
 /// </summary>
 GLM_BINDING_QUALIFIER(polygon__gc) {
-  gLuaPolygon<>::type *ud = reinterpret_cast<gLuaPolygon<>::type *>(luaL_checkudata(L, 1, LUA_GLM_POLYGON_META));
+  gLuaPolygon<>::type *ud = static_cast<gLuaPolygon<>::type *>(luaL_checkudata(L, 1, LUA_GLM_POLYGON_META));
   if (ud->p != GLM_NULLPTR) {
     LuaCrtAllocator<void> allocator(L);
     ud->p->~vector();  // Invoke destructor.

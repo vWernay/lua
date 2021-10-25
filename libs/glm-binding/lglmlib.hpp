@@ -8,7 +8,7 @@
 #define lglmlib_hpp
 
 #define LUA_GLM_NAME "lua-glm"
-#define LUA_GLM_VERSION "lua-glm 0.1.8"
+#define LUA_GLM_VERSION "lua-glm 0.1.9"
 #define LUA_GLM_COPYRIGHT "Copyright (C) 2020, Gottfried Leibniz"
 #define LUA_GLM_DESCRIPTION "glm bindings for Lua"
 

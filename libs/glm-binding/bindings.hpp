@@ -725,7 +725,7 @@ struct gLuaBase {
     else if ((ptr = luaL_checkudata(LB.L, idx_, LUA_GLM_POLYGON_META)) == GLM_NULLPTR)
       return luaL_error(LB.L, "Invalid PolygonPull operation; not userdata");
 
-    p = *(reinterpret_cast<glm::Polygon<3, T> *>(ptr));
+    p = *(static_cast<glm::Polygon<3, T> *>(ptr));
     p.stack_idx = idx_;
     return 1;
   }

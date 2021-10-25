@@ -26,13 +26,24 @@
 #include "ext/matrix_extensions.hpp"
 #include <lglm_string.hpp> // @LuaGLM
 
-#define GLM_GEOM_QUALIFIER static GLM_INLINE
+/* Redefinition of GLM_FUNC_QUALIFIER for "geom/" */
+#define GLM_GEOM_QUALIFIER static GLM_FUNC_QUALIFIER
 
 /*
 ** For MSVC, GLM_NEVER_INLINE cannot be applied as most binding functions
-** have no declarations and __declspec(noinline) cannot be used.
+** have no forward declarations and __declspec(noinline) cannot be used.
 */
 #define GLM_GEOM_QUALIFIER_NOINLINE static
+
+/*
+** Basic exception-handling check. @TODO: Allow STL dependencies iff exception
+** handling is enabled.
+*/
+#if defined(__EXCEPTIONS) || defined(__cpp_exceptions) || defined(_CPPUNWIND)
+  #define GLM_GEOM_EXCEPTIONS 1
+#else
+  #define GLM_GEOM_EXCEPTIONS 0
+#endif
 
 /* Check runtime preconditions on geom structures (often related to ensuring normalized vectors) */
 #if defined(LUA_GLM_SAFE)
@@ -50,6 +61,9 @@
   ** True if the x,y,z components of the component vector are all zero. Note "v"
   ** should be the result to some binary operation, e.g., _mm_xor_ps, _mm_or_ps,
   ** _mm_and_ps, etc.
+  **
+  ** @NOTE Experimental until the geom/ SIMD changes are completed, 'set_epi32'
+  **  takes int parameters anyway.
   */
   #define _mm_vec3_allzero(v) _mm_testz_si128(_mm_castps_si128(v), _mm_set_epi32(0, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU))
 #endif

@@ -11,7 +11,6 @@
 #include "linesegment.hpp"
 #include "ray.hpp"
 #include "triangle.hpp"
-#include "polygon.hpp"
 
 namespace glm {
   /// <summary>
