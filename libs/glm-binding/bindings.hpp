@@ -51,14 +51,14 @@ extern LUA_API_LINKAGE {
 
 #if defined(LUA_GLM_GEOM_EXTENSIONS)
   #include "allocator.hpp"
-  #include "geom/aabb.hpp"
-  #include "geom/line.hpp"
-  #include "geom/linesegment.hpp"
-  #include "geom/ray.hpp"
-  #include "geom/triangle.hpp"
-  #include "geom/sphere.hpp"
-  #include "geom/plane.hpp"
-  #include "geom/polygon.hpp"
+  #include "ext/geom/aabb.hpp"
+  #include "ext/geom/line.hpp"
+  #include "ext/geom/linesegment.hpp"
+  #include "ext/geom/ray.hpp"
+  #include "ext/geom/triangle.hpp"
+  #include "ext/geom/sphere.hpp"
+  #include "ext/geom/plane.hpp"
+  #include "ext/geom/polygon.hpp"
 #endif
 
 /* Lua Definitions */

@@ -14,15 +14,15 @@
 #include "iterators.hpp"
 #include "bindings.hpp"
 
-#include "geom/setup.hpp"
-#include "geom/aabb.hpp"
-#include "geom/line.hpp"
-#include "geom/linesegment.hpp"
-#include "geom/ray.hpp"
-#include "geom/triangle.hpp"
-#include "geom/sphere.hpp"
-#include "geom/plane.hpp"
-#include "geom/polygon.hpp"
+#include "ext/geom/setup.hpp"
+#include "ext/geom/aabb.hpp"
+#include "ext/geom/line.hpp"
+#include "ext/geom/linesegment.hpp"
+#include "ext/geom/ray.hpp"
+#include "ext/geom/triangle.hpp"
+#include "ext/geom/sphere.hpp"
+#include "ext/geom/plane.hpp"
+#include "ext/geom/polygon.hpp"
 
 /* All geometric objects adhere to the glm::equal/glm::notEqual API. */
 #define GEOM_EQUALS(LB, F, Tr, ...) \

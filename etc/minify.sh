@@ -193,15 +193,15 @@ echo "#if defined(LUA_IMPL)" >> ${OUTFILE}
       cat ${LUA_DIR}/libs/glm-binding/ext/matrix_extensions.hpp >> ${OUTFILE}
       cat ${LUA_DIR}/libs/glm-binding/ext/quat_extensions.hpp >> ${OUTFILE}
 
-      cat ${LUA_DIR}/libs/glm-binding/geom/setup.hpp >> ${OUTFILE}
-      cat ${LUA_DIR}/libs/glm-binding/geom/aabb.hpp >> ${OUTFILE}
-      cat ${LUA_DIR}/libs/glm-binding/geom/triangle.hpp >> ${OUTFILE}
-      cat ${LUA_DIR}/libs/glm-binding/geom/line.hpp >> ${OUTFILE}
-      cat ${LUA_DIR}/libs/glm-binding/geom/linesegment.hpp >> ${OUTFILE}
-      cat ${LUA_DIR}/libs/glm-binding/geom/plane.hpp >> ${OUTFILE}
-      cat ${LUA_DIR}/libs/glm-binding/geom/polygon.hpp >> ${OUTFILE}
-      cat ${LUA_DIR}/libs/glm-binding/geom/ray.hpp >> ${OUTFILE}
-      cat ${LUA_DIR}/libs/glm-binding/geom/sphere.hpp >> ${OUTFILE}
+      cat ${LUA_DIR}/libs/glm-binding/ext/geom/setup.hpp >> ${OUTFILE}
+      cat ${LUA_DIR}/libs/glm-binding/ext/geom/aabb.hpp >> ${OUTFILE}
+      cat ${LUA_DIR}/libs/glm-binding/ext/geom/triangle.hpp >> ${OUTFILE}
+      cat ${LUA_DIR}/libs/glm-binding/ext/geom/line.hpp >> ${OUTFILE}
+      cat ${LUA_DIR}/libs/glm-binding/ext/geom/linesegment.hpp >> ${OUTFILE}
+      cat ${LUA_DIR}/libs/glm-binding/ext/geom/plane.hpp >> ${OUTFILE}
+      cat ${LUA_DIR}/libs/glm-binding/ext/geom/polygon.hpp >> ${OUTFILE}
+      cat ${LUA_DIR}/libs/glm-binding/ext/geom/ray.hpp >> ${OUTFILE}
+      cat ${LUA_DIR}/libs/glm-binding/ext/geom/sphere.hpp >> ${OUTFILE}
 
       cat ${LUA_DIR}/libs/glm-binding/allocator.hpp >> ${OUTFILE}
       cat ${LUA_DIR}/libs/glm-binding/bindings.hpp >> ${OUTFILE}
