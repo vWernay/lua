@@ -54,7 +54,7 @@ namespace glm {
 
   template<length_t L, typename T, qualifier Q>
   static bool operator==(const Plane<L, T, Q> &p1, const Plane<L, T, Q> &p2) {
-    return p1.normal == p2.normal && p1.d == p2.d;  // @TODO: glm::equal(p1.d, p2.d, glm::epsilon<T>());
+    return p1.normal == p2.normal && p1.d == p2.d;  // @TODO: equal(p1.d, p2.d, epsilon<T>());
   }
 
   template<length_t L, typename T, qualifier Q>
@@ -662,7 +662,7 @@ namespace glm {
       return true;
     }
 
-    if (denom != T(0)) {  // @TODO: glm::notEqual(denom, T(0), glm::epsilon<T>())
+    if (denom != T(0)) {  // @TODO: notEqual(denom, T(0), epsilon<T>())
       t = (planeD - dot(planeNormal, linePos)) / denom;
       if (abs(t) < epsilon<T>())
         return true;

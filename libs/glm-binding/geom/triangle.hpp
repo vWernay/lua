@@ -661,7 +661,7 @@ namespace glm {
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER vec<L, T, Q> closestPoint(const Triangle<L, T, Q> &t, const Line<L, T, Q> &line, vec<L, T, Q> &linePt) {
     T u, v, d = intersectTriangleLine(t, line, u, v);
-    if (glm::isfinite(d)) {
+    if (isfinite(d)) {
       linePt = barycentricPoint(t, u, v);
       return linePt;
     }
@@ -694,13 +694,13 @@ namespace glm {
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool intersects(const Triangle<L, T, Q> &t, const Line<L, T, Q> &line, T &u, T &v, T &d) {
     d = intersectTriangleLine(t, line, u, v);
-    return glm::isfinite(d);
+    return isfinite(d);
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool intersects(const Triangle<L, T, Q> &t, const Ray<L, T, Q> &ray, T &u, T &v, T &d) {
     d = intersectTriangleLine(t, toLine(ray), u, v);
-    return glm::isfinite(d) && d >= T(0);
+    return isfinite(d) && d >= T(0);
   }
 
   template<length_t L, typename T, qualifier Q>
@@ -725,14 +725,14 @@ namespace glm {
   GLM_GEOM_QUALIFIER bool intersects(const Triangle<L, T, Q> &t, const Line<L, T, Q> &line) {
     T u, v;
     const T d = intersectTriangleLine(t, line, u, v);
-    return glm::isfinite(d);
+    return isfinite(d);
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool intersects(const Triangle<L, T, Q> &t, const Ray<L, T, Q> &ray) {
     T u, v;
     const T d = intersectTriangleLine(t, toLine(ray), u, v);
-    return glm::isfinite(d) && d >= T(0);
+    return isfinite(d) && d >= T(0);
   }
 
   template<length_t L, typename T, qualifier Q>

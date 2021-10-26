@@ -71,7 +71,7 @@ namespace glm {
 
   template<length_t L, typename T, qualifier Q>
   static bool operator==(const Sphere<L, T, Q> &s1, const Sphere<L, T, Q> &s2) {
-    return s1.pos == s2.pos && s1.r == s2.r;  // @TODO: glm::equal(s1.r, s2.r, glm::epsilon<T>());
+    return s1.pos == s2.pos && s1.r == s2.r;  // @TODO: equal(s1.r, s2.r, epsilon<T>());
   }
 
   template<length_t L, typename T, qualifier Q>

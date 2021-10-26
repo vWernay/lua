@@ -81,47 +81,47 @@ namespace glm {
 
   template<typename genIUType>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool equal(genIUType x, genIUType y) {
-    return x == y;  // @TODO: glm::equal(x, y, glm::epsilon<genIUType>())
+    return x == y;  // @TODO: equal(x, y, epsilon<genIUType>())
   }
 
   template<typename T>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(T const &x, T const &y) {
-    return glm::equal(x, y);
+    return equal(x, y);
   }
 
   template<typename T>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(T const &x, T const &y, T eps) {
-    return glm::equal(x, y, eps);
+    return equal(x, y, eps);
   }
 
   template<typename T>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(T const &x, T const &y, int MaxULPs) {
-    return glm::equal(x, y, MaxULPs);
+    return equal(x, y, MaxULPs);
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(vec<L, T, Q> const &x, vec<L, T, Q> const &y) {
-    return glm::all(glm::equal(x, y));
+    return all(equal(x, y));
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(vec<L, T, Q> const &x, vec<L, T, Q> const &y, T eps) {
-    return glm::all(glm::equal(x, y, eps));
+    return all(equal(x, y, eps));
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(vec<L, T, Q> const &x, vec<L, T, Q> const &y, int MaxULPs) {
-    return glm::all(glm::equal(x, y, MaxULPs));
+    return all(equal(x, y, MaxULPs));
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(vec<L, T, Q> const &x, vec<L, T, Q> const &y, vec<L, T, Q> const &eps) {
-    return glm::all(glm::equal(x, y, eps));
+    return all(equal(x, y, eps));
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(vec<L, T, Q> const &x, vec<L, T, Q> const &y, vec<L, int, Q> const &MaxULPs) {
-    return glm::all(glm::equal(x, y, MaxULPs));
+    return all(equal(x, y, MaxULPs));
   }
 
   /* glm::any(glm::notEqual(...)) shorthand ; @TODO Optimize */
@@ -133,73 +133,73 @@ namespace glm {
 
   template<typename T>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(T const &x, T const &y) {
-    return glm::notEqual(x, y);
+    return notEqual(x, y);
   }
 
   template<typename T>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(T const &x, T const &y, T eps) {
-    return glm::notEqual(x, y, eps);
+    return notEqual(x, y, eps);
   }
 
   template<typename T>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(T const &x, T const &y, int MaxULPs) {
-    return glm::notEqual(x, y, MaxULPs);
+    return notEqual(x, y, MaxULPs);
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(vec<L, T, Q> const &x, vec<L, T, Q> const &y) {
-    return glm::any(glm::notEqual(x, y));
+    return any(notEqual(x, y));
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(vec<L, T, Q> const &x, vec<L, T, Q> const &y, T eps) {
-    return glm::any(glm::notEqual(x, y, eps));
+    return any(notEqual(x, y, eps));
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(vec<L, T, Q> const &x, vec<L, T, Q> const &y, int MaxULPs) {
-    return glm::any(glm::notEqual(x, y, MaxULPs));
+    return any(notEqual(x, y, MaxULPs));
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(vec<L, T, Q> const &x, vec<L, T, Q> const &y, vec<L, T, Q> const &eps) {
-    return glm::any(glm::notEqual(x, y, eps));
+    return any(notEqual(x, y, eps));
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(vec<L, T, Q> const &x, vec<L, T, Q> const &y, vec<L, int, Q> const &MaxULPs) {
-    return glm::any(glm::notEqual(x, y, MaxULPs));
+    return any(notEqual(x, y, MaxULPs));
   }
 
   /* glm::any(glm::isinf(...)) shorthand */
 
   template<typename T>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_isinf(const T &x) {
-    return glm::isinf(x);
+    return isinf(x);
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_isinf(const vec<L, T, Q> &x) {
-    return glm::any(glm::isinf(x));
+    return any(isinf(x));
   }
 
   /* glm::any(glm::isnan(...)) shorthand */
 
   template<typename T>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_isnan(const T &x) {
-    return glm::isnan(x);
+    return isnan(x);
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_isnan(const vec<L, T, Q> &x) {
-    return glm::any(glm::isnan(x));
+    return any(isnan(x));
   }
 
   /* The other useful sign() implementation: where >= 0 returns +1 */
 
   template<length_t L, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER vec<L, T, Q> signP(const vec<L, T, Q> &x) {
-    return vec<L, T, Q>(glm::lessThanEqual(vec<L, T, Q>(0), x)) - vec<L, T, Q>(glm::lessThan(x, vec<L, T, Q>(0)));
+    return vec<L, T, Q>(lessThanEqual(vec<L, T, Q>(0), x)) - vec<L, T, Q>(lessThan(x, vec<L, T, Q>(0)));
   }
 
   template<typename genType>
@@ -209,7 +209,7 @@ namespace glm {
 
   template<length_t L, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER vec<L, T, Q> signN(const vec<L, T, Q> &x) {
-    return vec<L, T, Q>(glm::lessThan(vec<L, T, Q>(0), x)) - vec<L, T, Q>(glm::lessThanEqual(x, vec<L, T, Q>(0)));
+    return vec<L, T, Q>(lessThan(vec<L, T, Q>(0), x)) - vec<L, T, Q>(lessThanEqual(x, vec<L, T, Q>(0)));
   }
 
   template<typename genType>
@@ -226,7 +226,7 @@ namespace glm {
   GLM_FUNC_QUALIFIER bool isUniform(vec<L, T, Q> const &v) {
     bool result = true;
     for (length_t i = 1; i < L; ++i)  // @TODO: detail::compute_isuniform_vector
-      result &= (v[i] == v[0]);  // @TODO: glm::equal(v[i], v[0], glm::epsilon<T>())
+      result &= (v[i] == v[0]);  // @TODO: equal(v[i], v[0], epsilon<T>())
     return result;
   }
 
@@ -377,7 +377,7 @@ namespace glm {
   template<typename T, qualifier Q>
   GLM_FUNC_QUALIFIER void orthonormalize2(vec<3, T, Q> &x, vec<3, T, Q> &y) {
     x = normalize(x);
-    y = glm::orthonormalize(y, x);
+    y = orthonormalize(y, x);
   }
 
   /// <summary>
@@ -398,7 +398,7 @@ namespace glm {
   /// </summary>
   template<typename genType>
   GLM_FUNC_QUALIFIER genType projNorm(genType const &x, genType const &Normal) {
-    return glm::dot(x, Normal) * Normal;
+    return dot(x, Normal) * Normal;
   }
 
   /// <summary>
@@ -406,7 +406,7 @@ namespace glm {
   /// </summary>
   template<typename genType>
   GLM_FUNC_QUALIFIER genType projPlane(genType const &x, genType const &Normal) {
-    return x - glm::proj(x, Normal);
+    return x - proj(x, Normal);
   }
 
   /// <summary>
@@ -1023,8 +1023,8 @@ namespace glm {
 
   template<typename genType>
   GLM_FUNC_QUALIFIER genType snap(const genType value, const genType step) {
-    if (step != genType(0))  // @TODO: glm::notEqual(step, genType(0), glm::epsilon<genType>())
-      return glm::floor((value / step) + genType(0.5)) * step;
+    if (step != genType(0))  // @TODO: notEqual(step, genType(0), epsilon<genType>())
+      return floor((value / step) + genType(0.5)) * step;
     return value;
   }
 
@@ -1051,12 +1051,12 @@ namespace glm {
   /// </summary>
   template<length_t L, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR vec<L, T, Q> direction(const vec<L, T, Q> &x, const vec<L, T, Q> &y) {
-    return glm::normalize(y - x);
+    return normalize(y - x);
   }
 
   template<typename T>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR T direction(const T x, const T y) {
-    return glm::normalize(y - x);
+    return normalize(y - x);
   }
 
   /* C++-11/C99 wrappers. */

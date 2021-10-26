@@ -77,7 +77,7 @@ namespace glm {
     GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'quatEulerAngle' only accept floating-point inputs");
 
     vec<3, T, Q> s, c;
-    glm::sincos(T(0.5) * vec<3, T, Q>(t1, t2, t3), s, c);
+    sincos(T(0.5) * vec<3, T, Q>(t1, t2, t3), s, c);
     return qua<T, Q>(
       c.x * c.y * c.z + s.y * s.z * s.x,
       s.x * c.y * c.z + s.y * s.z * c.x,
@@ -91,7 +91,7 @@ namespace glm {
     GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'quatEulerAngle' only accept floating-point inputs");
 
     vec<3, T, Q> s, c;
-    glm::sincos(T(0.5) * vec<3, T, Q>(t1, t3, t2), s, c);
+    sincos(T(0.5) * vec<3, T, Q>(t1, t3, t2), s, c);
     return qua<T, Q>(
       c.x * c.y * c.z - s.y * s.z * s.x,
       s.x * c.y * c.z - s.y * s.z * c.x,
@@ -105,7 +105,7 @@ namespace glm {
     GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'quatEulerAngle' only accept floating-point inputs");
 
     vec<3, T, Q> s, c;
-    glm::sincos(T(0.5) * vec<3, T, Q>(t2, t1, t3), s, c);
+    sincos(T(0.5) * vec<3, T, Q>(t2, t1, t3), s, c);
     return qua<T, Q>(
       c.x * c.y * c.z - s.y * s.z * s.x,
       s.x * c.y * c.z + s.y * s.z * c.x,
@@ -119,7 +119,7 @@ namespace glm {
     GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'quatEulerAngle' only accept floating-point inputs");
 
     vec<3, T, Q> s, c;
-    glm::sincos(T(0.5) * vec<3, T, Q>(t3, t1, t2), s, c);
+    sincos(T(0.5) * vec<3, T, Q>(t3, t1, t2), s, c);
     return qua<T, Q>(
       c.x * c.y * c.z + s.y * s.z * s.x,
       s.x * c.y * c.z + s.y * s.z * c.x,
@@ -133,7 +133,7 @@ namespace glm {
     GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'quatEulerAngle' only accept floating-point inputs");
 
     vec<3, T, Q> s, c;
-    glm::sincos(T(0.5) * vec<3, T, Q>(t2, t3, t1), s, c);
+    sincos(T(0.5) * vec<3, T, Q>(t2, t3, t1), s, c);
     return qua<T, Q>(
       c.x * c.y * c.z + s.y * s.z * s.x,
       s.x * c.y * c.z - s.y * s.z * c.x,
@@ -147,7 +147,7 @@ namespace glm {
     GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'quatEulerAngle' only accept floating-point inputs");
 
     vec<3, T, Q> s, c;
-    glm::sincos(T(0.5) * vec<3, T, Q>(t3, t2, t1), s, c);
+    sincos(T(0.5) * vec<3, T, Q>(t3, t2, t1), s, c);
     return qua<T, Q>(
       c.x * c.y * c.z - s.y * s.x * s.z,
       s.x * c.y * c.z - s.y * s.z * c.x,
@@ -209,52 +209,52 @@ namespace glm {
 
   template<typename T, qualifier Q>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(qua<T, Q> const &x, qua<T, Q> const &y) {
-    return glm::all(glm::equal(x, y));
+    return all(equal(x, y));
   }
 
   template<typename T, qualifier Q>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(qua<T, Q> const &x, qua<T, Q> const &y, T eps) {
-    return glm::all(glm::equal(x, y, eps));
+    return all(equal(x, y, eps));
   }
 
   template<typename T, qualifier Q>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(qua<T, Q> const &x, qua<T, Q> const &y, int MaxULPs) {
-    return glm::all(glm::equal(x, y, MaxULPs));
+    return all(equal(x, y, MaxULPs));
   }
 
   template<typename T, qualifier Q>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(qua<T, Q> const &x, qua<T, Q> const &y, vec<4, T, Q> const &eps) {
-    return glm::all(glm::equal(x, y, eps));
+    return all(equal(x, y, eps));
   }
 
   template<typename T, qualifier Q>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool all_equal(qua<T, Q> const &x, qua<T, Q> const &y, vec<4, int, Q> const &MaxULPs) {
-    return glm::all(glm::equal(x, y, MaxULPs));
+    return all(equal(x, y, MaxULPs));
   }
 
   template<typename T, qualifier Q>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(qua<T, Q> const &x, qua<T, Q> const &y) {
-    return glm::any(glm::notEqual(x, y));
+    return any(notEqual(x, y));
   }
 
   template<typename T, qualifier Q>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(qua<T, Q> const &x, qua<T, Q> const &y, T eps) {
-    return glm::any(glm::notEqual(x, y, eps));
+    return any(notEqual(x, y, eps));
   }
 
   template<typename T, qualifier Q>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(qua<T, Q> const &x, qua<T, Q> const &y, int MaxULPs) {
-    return glm::any(glm::notEqual(x, y, MaxULPs));
+    return any(notEqual(x, y, MaxULPs));
   }
 
   template<typename T, qualifier Q>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(qua<T, Q> const &x, qua<T, Q> const &y, vec<4, T, Q> const &eps) {
-    return glm::any(glm::notEqual(x, y, eps));
+    return any(notEqual(x, y, eps));
   }
 
   template<typename T, qualifier Q>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any_notequal(qua<T, Q> const &x, qua<T, Q> const &y, vec<4, int, Q> const &MaxULPs) {
-    return glm::any(glm::notEqual(x, y, MaxULPs));
+    return any(notEqual(x, y, MaxULPs));
   }
 
   template<typename T, qualifier Q>
