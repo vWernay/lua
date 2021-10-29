@@ -408,7 +408,7 @@ struct gLuaBase {
   /// <summary>
   /// Attempt to push the vector as an glm::ivec; falling back to glm::vec otherwise.
   ///
-  /// This function exists for future-proofing.
+  /// @NOTE: Future-proofing.
   /// </summary>
   template<glm::length_t L, typename T>
   LUA_TRAIT_QUALIFIER int PushNumInt(const gLuaBase &LB, const glm::vec<L, T> &v) {
@@ -446,7 +446,13 @@ struct gLuaBase {
     return 1;
   }
 
-  /* vec<, float, > */
+  /* vec<, ?, > */
+
+  /// <summary>
+  /// Convert one-or-more Lua values starting at idx into a suitable glm::vec<>
+  /// structure; returning the number of stack values consumed to populate the
+  /// vector.
+  /// </summary>
 
   LUA_TRAIT_FLOAT(Pull, int)(const gLuaBase &LB, int idx_, glm::vec<1, T> &v) {
     v.x = static_cast<T>(luaL_checknumber(LB.L, idx_));
@@ -462,26 +468,6 @@ struct gLuaBase {
     v.x = static_cast<bool>(lua_toboolean(LB.L, idx_));
     return 1;
   }
-
-  LUA_TRAIT_FLOAT(Push, int)(const gLuaBase &LB, const glm::vec<1, T> &v) {
-    lua_pushnumber(LB.L, static_cast<lua_Number>(v.x));
-    return 1;
-  }
-
-  LUA_TRAIT_INT(Push, int)(const gLuaBase &LB, const glm::vec<1, T> &v) {
-    lua_pushinteger(LB.L, static_cast<lua_Integer>(v.x));
-    return 1;
-  }
-
-  LUA_TRAIT_QUALIFIER int Push(const gLuaBase &LB, const glm::vec<1, bool> &v) {
-    return gLuaBase::Push(LB, v.x);
-  }
-
-  /// <summary>
-  /// Convert one-or-more Lua values starting at idx into a suitable glm::vec<>
-  /// structure; returning the number of stack values consumed to populate the
-  /// vector.
-  /// </summary>
 
   LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::vec<2, glm_Float> &v) {
     const TValue *o = glm_i2v(LB.L, idx_);
@@ -541,6 +527,20 @@ struct gLuaBase {
       return 1;
     }
     return luaL_typeerror(LB.L, idx_, LABEL_VECTOR4);
+  }
+
+  LUA_TRAIT_FLOAT(Push, int)(const gLuaBase &LB, const glm::vec<1, T> &v) {
+    lua_pushnumber(LB.L, static_cast<lua_Number>(v.x));
+    return 1;
+  }
+
+  LUA_TRAIT_INT(Push, int)(const gLuaBase &LB, const glm::vec<1, T> &v) {
+    lua_pushinteger(LB.L, static_cast<lua_Integer>(v.x));
+    return 1;
+  }
+
+  LUA_TRAIT_QUALIFIER int Push(const gLuaBase &LB, const glm::vec<1, bool> &v) {
+    return gLuaBase::Push(LB, v.x);
   }
 
   template<glm::length_t L, typename T>
@@ -761,19 +761,25 @@ struct gLuaBase {
 #define AS_TYPE1(Tr) Tr::as_type<>
 #define AS_TYPE2(Tr, Type) Tr::as_type<Type>
 
-template<typename V, typename T = V>
-struct gTraitCommon;
-
 template<typename T>
 struct gLuaTrait;
 
 /// <summary>
 /// Shared functions for parsing types from the Lua stack.
 /// </summary>
-template<typename V, typename T>
+template<typename BasePrimitive, typename T = BasePrimitive>
 struct gLuaSharedTrait : glm::type<T> {
+
+  /// <summary>
+  /// Base primitive type: equivalent to ::value_type in glm::vec and glm::mat
+  /// structures.
+  /// </summary>
+  using value_type = BasePrimitive;
+
+  /// <summary>
+  /// Base structure type.
+  /// </summary>
   using type = T;
-  using value_type = V;
 
   /// <summary>
   /// Empty-initialized
@@ -818,18 +824,50 @@ struct gLuaSharedTrait : glm::type<T> {
   }
 };
 
+/// <summary>
+/// Trait for primitive types: integer, number, boolean, and string.
+/// </summary>
 template<typename T>
 struct gLuaTrait : gLuaSharedTrait<T, T> {
-  template<typename Type = T> using as_type = gLuaTrait<Type>;
+  /// <summary>
+  /// Cast this primitive trait to a new type.
+  /// </summary>
+  template<typename Type = T>
+  using as_type = gLuaTrait<Type>;
 };
 
+/// <summary>
+/// Trait for quaternion types.
+/// </summary>
+template<typename T>
+struct gLuaTrait<glm::qua<T>> : gLuaSharedTrait<T, glm::qua<T>> {
+  LUA_TRAIT_QUALIFIER bool Is(const gLuaBase &LB, int idx) { return glm_isquat(LB.L, idx); }
+  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::qua<T> zero() { return glm::quat_identity<glm_Float, glm::defaultp>(); }
+  static GLM_CONSTEXPR const char *Label() { return LABEL_QUATERN; }
+};
+
+/// <summary>
+/// Trait for vector types.
+/// </summary>
 template<glm::length_t D, typename T>
 struct gLuaTrait<glm::vec<D, T>> : gLuaSharedTrait<T, glm::vec<D, T>> {
+  /// <summary>
+  /// Cast the vector trait to a new vector type.
+  /// </summary>
   template<typename Type = T>
   using as_type = gLuaTrait<glm::vec<D, Type>>;
 
+  /// <summary>
+  /// Cast the vector trait to a compatible matrix type.
+  ///
+  /// This type is mainly a helper for matrix-multiplication operators.
+  /// </summary>
   template<glm::length_t R>
-  using mul_type = gLuaTrait<glm::mat<R, D, T>>;
+  using rhs_mat_type = gLuaTrait<glm::mat<R, D, T>>;
+
+  /// <summary>
+  /// Alternative name: lhs_mat_type
+  /// </summary>
   using row_type = gLuaTrait<glm::vec<D, T>>;
 
   LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::vec<D, T> zero() { return glm::vec<D, T>(T(0)); }
@@ -847,19 +885,23 @@ struct gLuaTrait<glm::vec<D, T>> : gLuaSharedTrait<T, glm::vec<D, T>> {
   }
 };
 
-template<typename T>
-struct gLuaTrait<glm::qua<T>> : gLuaSharedTrait<T, glm::qua<T>> {
-  LUA_TRAIT_QUALIFIER bool Is(const gLuaBase &LB, int idx) { return glm_isquat(LB.L, idx); }
-  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::qua<T> zero() { return glm::quat_identity<glm_Float, glm::defaultp>(); }
-  static GLM_CONSTEXPR const char *Label() { return LABEL_QUATERN; }
-};
-
 template<glm::length_t C, glm::length_t R, typename T>
 struct gLuaTrait<glm::mat<C, R, T>> : gLuaSharedTrait<T, glm::mat<C, R, T>> {
+  /// <summary>
+  /// Lua type trait equivalent to glm::mat<C, R, T>::col_type
+  /// </summary>
+  using col_type = gLuaTrait<typename glm::mat<C, R, T>::col_type>;
+
+  /// <summary>
+  /// Lua type trait equivalent to glm::mat<C, R, T>::row_type
+  /// </summary>
+  using row_type = gLuaTrait<typename glm::mat<C, R, T>::row_type>;
+
+  /// <summary>
+  /// Right-hand matrix-operation type.
+  /// </summary>
   template<glm::length_t RNext>
-  using mul_type = gLuaTrait<glm::mat<RNext, C, T>>;
-  using col_type = gLuaTrait<glm::vec<R, T>>;
-  using row_type = gLuaTrait<glm::vec<C, T>>;
+  using rhs_mat_type = gLuaTrait<glm::mat<RNext, C, T>>;
 
   LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::mat<C, R, T> zero() { return glm::mat<C, R, T>(T(0)); }
   LUA_TRAIT_QUALIFIER bool Is(const gLuaBase &LB, int idx) {
@@ -885,6 +927,8 @@ struct gLuaTrait<glm::mat<C, R, T>> : gLuaSharedTrait<T, glm::mat<C, R, T>> {
     return LABEL_MATRIX;
   }
 };
+
+// Specializations
 
 using gLuaFloat = gLuaTrait<glm_Float>;
 using gLuaNumber = gLuaTrait<glm_Number>;
@@ -924,7 +968,7 @@ template<typename T = glm_Float> using gLuaDir3 = gLuaTrait<glm::vec<3, T>>;
 #endif
 
 /// <summary>
-/// epsilon specialization for floating point types.
+/// Specialization for floating point epsilon arguments (and/or default arguments).
 /// </summary>
 template<typename T = glm_Float>
 struct gLuaEps : gLuaTrait<T> {
@@ -1557,7 +1601,7 @@ struct gLuaEps : gLuaTrait<T> {
 */
 
 /* Generic to_string wrapper. */
-#define TO_STRING(LB, F, Tr, ...)                           \
+#define LAYOUT_TOSTRING(LB, F, Tr, ...)                     \
   LUA_MLM_BEGIN                                             \
   char buff[2 * GLM_STRING_BUFFER] = { 0 };                 \
   const int len = F(buff, GLM_STRING_BUFFER, Tr::Next(LB)); \
@@ -1566,7 +1610,7 @@ struct gLuaEps : gLuaTrait<T> {
   LUA_MLM_END
 
 /* glm/gtx/hash.hpp */
-#define STD_HASH(LB, F, Traits, ...)          \
+#define LAYOUT_HASH(LB, F, Traits, ...)       \
   LUA_MLM_BEGIN                               \
   F<Traits::type> hash;                       \
   gLuaBase::Push(LB, hash(Traits::Next(LB))); \
@@ -1583,7 +1627,7 @@ struct gLuaEps : gLuaTrait<T> {
 #endif
 
 /* Generic equals layout */
-#define _EQUAL(LB, F, Tr, Tr_Row)                                              \
+#define GENERIC_EQUAL(LB, F, Tr, Tr_Row)                                       \
   LUA_MLM_BEGIN                                                                \
   const Tr::type __a = Tr::Next(LB);                                           \
   const Tr::type __b = Tr::Next(LB);                                           \
@@ -1596,97 +1640,6 @@ struct gLuaEps : gLuaTrait<T> {
     return gLuaBase::Push(LB, F(__a, __b, Tr_Row::Next(LB)));                  \
   _TR_EQUAL_ULPS(LB, F, __a, __b, _tv3) /* <Tr, Tr, ULPs> */                   \
   return luaL_typeerror((LB).L, (LB).idx, "expected none, " LABEL_NUMBER " or " LABEL_VECTOR); \
-  LUA_MLM_END
-
-/*
-** Accumulation for min/max functions, where arguments can be the Trait or a primitive
-**
-** @TODO: Potentially handle the case of LB.idx not changing after an iteration
-*/
-#define MIN_MAX(LB, F, A, ...)                               \
-  LUA_MLM_BEGIN                                              \
-  A::type base = A::Next(LB);                                \
-  while ((LB).idx <= (LB).top()) {                           \
-    if (A::Is(LB, (LB).idx))                                 \
-      base = F(base, A::Next(LB));                           \
-    else if (gLuaTrait<A::value_type>::Is(LB, (LB).idx))     \
-      base = F(base, gLuaTrait<A::value_type>::Next(LB));    \
-    else                                                     \
-      return luaL_error((LB).L, "%s or %s expected",         \
-             A::Label(), gLuaTrait<A::value_type>::Label()); \
-  }                                                          \
-  return gLuaBase::Push(LB, base);                           \
-  LUA_MLM_END
-
-/* glm::qr_decompose */
-#define QRDECOMPOSE(LB, F, Tr, ...) \
-  LUA_MLM_BEGIN                     \
-  Tr::type q, r;                    \
-  F(Tr::Next(LB), q, r);            \
-  TRAITS_PUSH(LB, q, r);            \
-  LUA_MLM_END
-
-/* glm::clamp */
-#define CLAMP(LB, F, Tr, ...)                                                                                  \
-  LUA_MLM_BEGIN                                                                                                \
-  if (lua_isnoneornil((LB).L, (LB).idx + 1) && lua_isnoneornil((LB).L, (LB).idx + 2)) /* <vec, 0, 1> */        \
-    TRAITS_FUNC(LB, F, Tr);                                                                                    \
-  else if (gLuaTrait<Tr::value_type>::Is(LB, (LB).idx + 1) && gLuaTrait<Tr::value_type>::Is(LB, (LB).idx + 2)) \
-    TRAITS_FUNC(LB, F, Tr, gLuaTrait<Tr::value_type>, gLuaTrait<Tr::value_type>); /* <vec, minVal, maxVal> */  \
-  else                                                                                                         \
-    LAYOUT_TERNARY(LB, F, Tr); /* <vector, minVector, maxVector> */                                            \
-  LUA_MLM_END
-
-/* glm::intersectLineSphere */
-#define INTERSECT_LINE_SPHERE(LB, F, Tr, ...)                    \
-  LUA_MLM_BEGIN                                                  \
-  Tr::type v5, v6, v7, v8;                                       \
-  const Tr::type v1 = Tr::Next(LB);                              \
-  const Tr::type v2 = Tr::Next(LB);                              \
-  const Tr::type v3 = Tr::Next(LB);                              \
-  const Tr::value_type v4 = gLuaTrait<Tr::value_type>::Next(LB); \
-  if (glm::intersectLineSphere(v1, v2, v3, v4, v5, v6, v7, v8))  \
-    TRAITS_PUSH(LB, v5, v6, v7, v8);                             \
-  return gLuaBase::Push(LB);                                     \
-  LUA_MLM_END
-
-/* glm::intersectRayPlane */
-#define INTERSECT_RAY_PLANE(LB, F, Tr, ...)       \
-  LUA_MLM_BEGIN                                   \
-  Tr::value_type v5;                              \
-  const Tr::type v1 = Tr::Next(LB);               \
-  const Tr::type v2 = gm_drift(Tr::Next(LB));     \
-  const Tr::type v3 = Tr::Next(LB);               \
-  const Tr::type v4 = Tr::Next(LB);               \
-  if (glm::intersectRayPlane(v1, v2, v3, v4, v5)) \
-    return gLuaBase::Push(LB, v5);                \
-  return gLuaBase::Push(LB);                      \
-  LUA_MLM_END
-
-/* glm::intersectRaySphere */
-#define INTERSECT_RAY_SPHERE(LB, F, Tr, ...)                     \
-  LUA_MLM_BEGIN                                                  \
-  Tr::type v5, v6;                                               \
-  const Tr::type v1 = Tr::Next(LB);                              \
-  const Tr::type v2 = gm_drift(Tr::Next(LB));                    \
-  const Tr::type v3 = Tr::Next(LB);                              \
-  const Tr::value_type v4 = gLuaTrait<Tr::value_type>::Next(LB); \
-  if (glm::intersectRaySphere(v1, v2, v3, v4, v5, v6))           \
-    TRAITS_PUSH(LB, v5, v6);                                     \
-  return gLuaBase::Push(LB);                                     \
-  LUA_MLM_END
-
-/* LUA_VECTOR_EXTENSIONS: glm::smoothDamp */
-#define SMOOTH_DAMP(LB, F, Tr, ...)                              \
-  LUA_MLM_BEGIN                                                  \
-  const Tr::type c = Tr::Next(LB);                               \
-  const Tr::type t = Tr::Next(LB);                               \
-  Tr::type cv = Tr::Next(LB);                                    \
-  const Tr::value_type st = gLuaTrait<Tr::value_type>::Next(LB); \
-  const Tr::value_type ms = gLuaTrait<Tr::value_type>::Next(LB); \
-  const Tr::value_type dt = gLuaTrait<Tr::value_type>::Next(LB); \
-  const Tr::type result = F(c, t, cv, st, ms, dt);               \
-  TRAITS_PUSH(LB, result, cv);                                   \
   LUA_MLM_END
 
 /* }================================================================== */

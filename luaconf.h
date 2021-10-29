@@ -907,10 +907,15 @@
 **
 ** @TODO Consider creating macros (or future-proofing) for the chance that this
 ** runtime offers the option to represent Lua matrices in a row-major format.
+**
+** @NOTE: Previous definition:
+**  #define LUA_GLM_MATRIX_TYPE(C, R) ((C) | ((R) << 8))
+**  #define LUA_GLM_MATRIX_COLS(T) ((T) & 0xFF)
+**  #define LUA_GLM_MATRIX_ROWS(T) (((T) >> 8) & 0xFF)
 */
-#define LUA_GLM_MATRIX_TYPE(C, R) ((C) | ((R) << 8))
-#define LUA_GLM_MATRIX_COLS(T) ((T) & 0xFF)
-#define LUA_GLM_MATRIX_ROWS(T) (((T) >> 8) & 0xFF)
+#define LUA_GLM_MATRIX_TYPE(C, R) (((R) - 2) | (((C) - 2) << 2))
+#define LUA_GLM_MATRIX_COLS(T) ((((T) >> 2) & 0x3) + 2)
+#define LUA_GLM_MATRIX_ROWS(T) (((T) & 0x3) + 2)
 
 #define LUA_GLM_MATRIX_2x2 LUA_GLM_MATRIX_TYPE(2, 2)
 #define LUA_GLM_MATRIX_2x3 LUA_GLM_MATRIX_TYPE(2, 3)

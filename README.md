@@ -598,6 +598,7 @@ See [libs/scripts](libs/scripts) for a collection of example/test scripts using 
 
 #### Tweaks/TODO:
 Ordered by priority.
+1. Optimize `binding` codegen and functions that use 'glm_i2v'.
 1. Utility API that resembles `glUniformMatrix*v`-style functions, i.e., extracting/parsing array of matrices/vectors.
 1. Cleanup testing scripts/environment and publish.
 1. Modify implementation to follow updated "Avoid taking the address of a 'TValue' field" (or reference) convention.
@@ -605,7 +606,6 @@ Ordered by priority.
 1. Replace `glm::angle` bindings with atan2 equivalent (stability).
 1. Replace `glm/gtc/random.{inl,hpp}` with a variant that takes advantage of CXX11s [Pseudo-random number generation](https://en.cppreference.com/w/cpp/numeric/random) facilities (and unify it with `math.random`).
 1. Add support for two-dimensional geometrical structures: Ray2D, Line2D, Plane2D.
-1. Optimize `binding` functions that use 'glm_i2v'. Logic redundant with ``gLuaSharedTrait::Next(LB)``.
 1. Optimize `glm_createMatrix`. Profiling case '4x4 matrix creation (lua_Alloc)' is the one of the slowest operations in the added vector/matrix API. Worse when using the default Windows allocator.
 1. Optimize runtime swizzling: `swizzle` and `glmVec_get`. It is likely possible to improve this operation by 15/20 percent.
 1. Improve support for `glm::mat3x4` and `glm::mat4x3`.
@@ -661,17 +661,13 @@ Modifying the benchmark scripts for [MGL](https://github.com/ImagicTheCat/MGL#co
 |------------------------------|-------------|-------------|-------------|---------------|-----------|
 | GLM g++ CPERF+GLM\_FLAGS     | 0.110       | 0.110       | 3648        | 0.092         | 1         |
 | GLM g++ -O2                  | 0.430       | 0.430       | 3584        | 0.358         | 2         |
-| MGL LUAJIT_DISABLE_GC64      | 0.840       | 0.810       | 11256       | 0.700         | 4         |
 | LuaGLM                       | 1.17/0.92   | 1.14/0.9    | 8932/6576   | 0.975/0.767   | 6/5       |
 | CPML LuaJIT                  | 2.4/1.57    | 2.38/1.54   | 10208/5364  | 2/1.308       | 12/8      |
 | MGL LuaJIT                   | 14.900      | 14.880      | 12256       | 12.417        | 74        |
 | MGL LuaJIT/joff              | 15.190      | 15.150      | 11920       | 12.658        | 76        |
-| MGL LUAJIT_DISABLE_GC64/joff | 16.480      | 16.460      | 9900        | 13.733        | 82        |
 | CPML LuaJIT/joff             | 19.11/18.49 | 19.08/18.46 | 14900/6780  | 15.925/15.408 | 96/92     |
 | MGL Lua5.4                   | 40.310      | 40.290      | 9544        | 33.592        | 202       |
 | CPML Lua5.4                  | 66.32/61.46 | 66.28/61.43 | 23364/10004 | 55.267/51.217 | 332/307   |
-
-Note, that modern LuaJIT builds enable `LJ_GC64` mode by default (See commit "x64: Enable LJ_GC64 mode by default."). This conflicts with the table creation heavy, and sink optimization dependent, nature of MGL.
 
 ### TODO
 Finish comparisons to...
