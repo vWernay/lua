@@ -70,9 +70,14 @@ SET(glm_nativeFlags "")
 IF( MSVC )
   OPTION(LUA_USE_WINDOWS "Windows specific build" ON)
   OPTION(LUA_BUILD_AS_DLL "Build Lua library as DLL" ON)
-  OPTION(LUA_CRT_ALLOC "Replace the Windows CRT allocator with rpmalloc or mimalloc." OFF)
   IF( NOT( ${CMAKE_COMPILER_IS_CLANG} ) )
     MESSAGE(WARNING "MSVC detected! For MSVC/msbuild environments, it is advised to use the LLVM/ClangCL toolset")
+  ENDIF()
+
+  # CRT allocator replacement
+  SET(LUA_CRT_ALLOC "" CACHE PATH "Replace the Windows CRT allocator with rpmalloc or mimalloc; requires /MT")
+  IF( CMAKE_BUILD_TYPE MATCHES Debug )
+    MESSAGE(FATAL_ERROR "The Debug target isn't supported along with LUA_CRT_ALLOC!")
   ENDIF()
 
   IF(CMAKE_BUILD_TYPE MATCHES Debug)
@@ -139,16 +144,27 @@ IF( MSVC )
       ADD_LINK_OPTIONS(/INCLUDE:realloc)
     ELSEIF( LUA_CRT_ALLOC MATCHES "mimalloc$" )
       SET(MIMALLOC_LIB "${LUA_CRT_ALLOC}/out/msvc-x64/Release/mimalloc-static.lib")
-      SET(LUA_REL_FLAGS "${LUA_REL_FLAGS} /MD")
-      ADD_COMPILE_DEFINITIONS(/FI${LUA_CRT_ALLOC}/include/mimalloc-override.h)
+
+      # Additionally: '#elif defined(_MSC_VER)' needs to be commented out to
+      # ensure realloc/free are symbols exported by the library.
+      IF(NOT EXISTS ${MIMALLOC_LIB})
+        MESSAGE(FATAL_ERROR "Cannot find the mimalloc static library. To build it, "
+        "first apply the patch from https://github.com/microsoft/mimalloc/issues/268 "
+        "then build the Release x64 target through ${LUA_CRT_ALLOC}\\ide\\vs2019\\mimalloc.sln")
+      ENDIF()
+
+      SET(LUA_REL_FLAGS "${LUA_REL_FLAGS} /MT")
+      SET(LUA_LINKFLAGS "${LUA_LINKFLAGS} -INCLUDE:realloc")
+      LIST(APPEND LIBS "${MIMALLOC_LIB}" "-INCLUDE:realloc")
 
       # This runtime should never be using new/delete and all memory allocations
       # should be routed through lua_Alloc. Worst case scenario a LuaCrtAllocator
       # implementation exists for STL containers.
-      # ADD_COMPILE_DEFINITIONS(/FI${LUA_CRT_ALLOC}/include/mimalloc-new-delete.h)
+      # ADD_COMPILE_DEFINITIONS(/FI"${LUA_CRT_ALLOC}/include/mimalloc-new-delete.h")
+      # ADD_COMPILE_DEFINITIONS(/FI"${LUA_CRT_ALLOC}/include/mimalloc-override.h")
 
-      LINK_LIBRARIES(${MIMALLOC_LIB})
       ADD_LINK_OPTIONS(/INCLUDE:mi_version)
+      SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -INCLUDE:realloc")
     ELSE()
       MESSAGE(FATAL_ERROR "(${LUA_CRT_ALLOC}) Cannot find the path to for the CRT allocator; currently only rpmalloc and mimalloc are supported")
     ENDIF()
