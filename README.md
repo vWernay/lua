@@ -557,17 +557,17 @@ For all GLM preprocessor flags, see the [GLM manual](https://github.com/g-truc/g
 - **LUA\_GLM\_REPLACE\_MATH**: Replace the global math table with the glm binding library on loading.
 - **LUA\_GLM\_DRIFT**: Implicitly normalize all direction vector parameters (experiment to avoid floating-point drift).
 - **LUA\_GLM\_RECYCLE**: Treat all trailing and unused values on the Lua stack (but passed as parameters to the `CClosure`) as a 'cache' of recyclable structures.
-    ```lua
-    -- Some shared matrix
-    > t = mat(vec(1,1), vec(2,2))
+	```lua
+	-- Some shared matrix
+	> t = mat(vec(1,1), vec(2,2))
 
-    -- When enabled, all arguments after "angle" are recycled.
-    > m = glm.axisAngleMatrix(vector3(1.0, 0.0, 0.0), math.rad(35.0), t)
+	-- When enabled, all arguments after "angle" are recycled.
+	> m = glm.axisAngleMatrix(vector3(1.0, 0.0, 0.0), math.rad(35.0), t)
 
-    -- "t" and "m" reference the same matrix collectible.
-    > t == m
-    true
-    ```
+	-- "t" and "m" reference the same matrix collectible.
+	> t == m
+	true
+	```
 
 #### CRT Allocator:
 Inspired by `LLVM_INTEGRATED_CRT_ALLOC`, the CMake project includes the ability to replace the default Windows CRT allocator. Only [rpmalloc](https://github.com/mjansson/rpmalloc) and [mimalloc](https://github.com/microsoft/mimalloc) are supported at the moment; use `-DLUA_CRT_ALLOC="path/to/rpmalloc"`.
@@ -582,19 +582,19 @@ See [libs/scripts](libs/scripts) for a collection of example/test scripts using 
 1. Include broad phase collision scripting examples, e.g., dynamic AABB tree and/or multibox sweep-and-prune.
 1. Initial support for frustums (both orthographic and perspective) and OBBs, or, at minimum, the more computationally complex parts of these structures.
 1. Allow some binding functions to be independently applied to each value or structure on the call stack. If disabled, only operate on the minimum number of required objects (following lmathlib). For example:
-    ``` lua
-    -- lmathlib
-    > math.rad(35, 35)
-    0.61086523819802
+	``` lua
+	-- lmathlib
+	> math.rad(35, 35)
+	0.61086523819802
 
-    -- LUA_GLM_EXT_UNARY=OFF
-    > glm.rad(35, 35)
-    0.61086523819802
+	-- LUA_GLM_EXT_UNARY=OFF
+	> glm.rad(35, 35)
+	0.61086523819802
 
-    -- LUA_GLM_EXT_UNARY=ON
-    > glm.rad(35, 35)
-    0.61086523819802 0.61086523819802
-    ```
+	-- LUA_GLM_EXT_UNARY=ON
+	> glm.rad(35, 35)
+	0.61086523819802 0.61086523819802
+	```
 
 #### Tweaks/TODO:
 Ordered by priority.
@@ -602,10 +602,10 @@ Ordered by priority.
 1. Utility API that resembles `glUniformMatrix*v`-style functions, i.e., extracting/parsing array of matrices/vectors.
 1. Cleanup testing scripts/environment and publish.
 1. Modify implementation to follow updated "Avoid taking the address of a 'TValue' field" (or reference) convention.
-1. [geom](libs/glm-binding/geom): SIMD support (... for the most commonly use functions).
+1. [ext](libs/glm-binding/ext): Improve SIMD support.
 1. Replace `glm::angle` bindings with atan2 equivalent (stability).
 1. Replace `glm/gtc/random.{inl,hpp}` with a variant that takes advantage of CXX11s [Pseudo-random number generation](https://en.cppreference.com/w/cpp/numeric/random) facilities (and unify it with `math.random`).
-1. Add support for two-dimensional geometrical structures: Ray2D, Line2D, Plane2D.
+1. Add support for two-dimensional structures: Ray2D, Line2D, Plane2D.
 1. Optimize `glm_createMatrix`. Profiling case '4x4 matrix creation (lua_Alloc)' is the one of the slowest operations in the added vector/matrix API. Worse when using the default Windows allocator.
 1. Optimize runtime swizzling: `swizzle` and `glmVec_get`. It is likely possible to improve this operation by 15/20 percent.
 1. Improve support for `glm::mat3x4` and `glm::mat4x3`.
@@ -639,7 +639,7 @@ These benchmark values are preliminary and subject to change. Correctness not gu
 
 Note, the JIT compiler may optimize away some of the fairly tight 'profiling' loops. To compensate for this, each measurement function, i.e., the thing that invokes each operation repeatedly, is passed through `jit.off(X, true)`. These results are not a true representation of LuaJITs potential: just FFI and ancillary in-time optimizations. Real-world comparisons should be preferred (TBD).
 
-| Operation                | CPML/joff     | CPML_FFI      | LuaGLM        |
+| Operation                | CPML/joff     | CPML\_FFI     | LuaGLM        |
 |--------------------------|---------------|---------------|---------------|
 | vec3 creation            | 10.851        | 13.314        | 57.027        |
 | vec3 creation (custom)   | 8.960         | 8.212         | 57.123        |

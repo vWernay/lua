@@ -144,12 +144,6 @@ LUA_TRAIT_QUALIFIER typename std::enable_if<std::is_integral<T>::value && !std::
 LUA_TRAIT_QUALIFIER typename std::enable_if<std::is_floating_point<T>::value, R>::type Name
 
 /// <summary>
-/// Forward declare (function) parameter trait.
-/// </summary>
-template<typename T>
-struct gLuaTrait;
-
-/// <summary>
 /// A structure that interfaces with an active Lua state.
 ///
 /// This structure serves two purposes:
@@ -761,6 +755,9 @@ struct gLuaBase {
 #define AS_TYPE1(Tr) Tr::as_type<>
 #define AS_TYPE2(Tr, Type) Tr::as_type<Type>
 
+/// <summary>
+/// Forward declare (function) parameter trait.
+/// </summary>
 template<typename T>
 struct gLuaTrait;
 
