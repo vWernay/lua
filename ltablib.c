@@ -445,7 +445,6 @@ static int tcreate (lua_State *L) {
 static int treset (lua_State *L) {
   luaL_checktype(L, 1, LUA_TTABLE);
   lua_wipetable(L, 1);
-
   lua_pushvalue(L, 1);
   return 1;
 }

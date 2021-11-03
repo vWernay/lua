@@ -55,15 +55,15 @@ LUAI_FUNC TString *luaS_createlngstrobj (lua_State *L, size_t l);
 
 #if defined(GRIT_POWER_BLOB)
 /*
-** Create a string blob (a potentially externalizable string), with length L
-** clamped from below to least (LUAI_MAXSHORTLEN + 1) characters.
+** Create a string blob whose length (l) is clamped from below to at least
+** LUAI_MAXSHORTLEN + 1 characters.
 */
 LUAI_FUNC TString *luaS_newblob (lua_State *L, size_t l);
 
 /*
-** Convert the provided string into a blob. If not null, alloc is a return flag
-** that is non-zero if a new string value was allocated; or zero if "str" is
-** already a blob.
+** Convert the provided string object into a blob-variant. If the string is
+** already a blob-variant, then NULL is returned. Otherwise, a new string object
+** is allocated.
 */
 LUAI_FUNC TString *luaS_asblob (lua_State *L, TString *str);
 #endif

@@ -1116,8 +1116,8 @@ TRAITS_LAYOUT_DEFN(shearY, glm::shearY, LAYOUT_BINARY_SCALAR, gLuaMat3x3<>)
 #include <glm/gtx/pca.hpp>
 #define LAYOUT_FIND_EIGEN(LB, F, Tr, ...)                                 \
   LUA_MLM_BEGIN                                                           \
-  Tr::type outVectors;                                                    \
-  Tr::type::col_type outValues;                                           \
+  Tr::type outVectors(0);                                                 \
+  Tr::type::col_type outValues(0);                                        \
   glm::length_t count = i_glmlen(F(Tr::Next(LB), outValues, outVectors)); \
   if (outValues.length() == count)                                        \
     glm::sortEigenvalues(outValues, outVectors);                          \

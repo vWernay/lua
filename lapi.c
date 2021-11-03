@@ -488,6 +488,9 @@ LUA_API lua_State *lua_tothread (lua_State *L, int idx) {
 LUA_API const void *lua_topointer (lua_State *L, int idx) {
   const TValue *o = index2value(L, idx);
   switch (ttypetag(o)) {
+#if defined(GRIT_POWER_BLOB)
+    case LUA_VBLOBSTR: return cast_voidp(svalue(o));
+#endif
     case LUA_VLCF: return cast_voidp(cast_sizet(fvalue(o)));
     case LUA_VUSERDATA: case LUA_VLIGHTUSERDATA:
       return touserdata(o);
