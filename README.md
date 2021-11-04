@@ -726,6 +726,8 @@ Ordered by priority.
 1. Utility API that resembles `glUniformMatrix*v`-style functions, i.e., extracting/parsing array of matrices/vectors.
 1. Cleanup testing scripts/environment and publish.
 1. Modify implementation to follow updated "Avoid taking the address of a 'TValue' field" (or reference) convention.
+1. Consider `table.freeze` API for Extended API (Source: Luau).
+1. Experiment with spitting the vector definition between 'union Value' and 'struct TValue', ensuring Value remains eight bytes (Source: Luau).
 1. [ext](libs/glm-binding/ext): Improve SIMD support.
 1. Replace `glm::angle` bindings with atan2 equivalent (stability).
 1. Replace `glm/gtc/random.{inl,hpp}` with a variant that takes advantage of CXX11s [Pseudo-random number generation](https://en.cppreference.com/w/cpp/numeric/random) facilities (and unify it with `math.random`).
