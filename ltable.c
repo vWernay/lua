@@ -1014,6 +1014,7 @@ void luaH_wipetable (Table *t) {
       setnilvalue(gval(n));
   }
 
+  invalidateTMcache(t);
   /* luaC_barrierback_ not required: all added values are nil/not-collectible */
 }
 

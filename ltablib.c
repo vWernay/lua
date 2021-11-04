@@ -435,7 +435,7 @@ static int type (lua_State *L) {
 
 static int tcreate (lua_State *L) {
   lua_Integer narray = luaL_checkinteger(L, 1);
-  lua_Integer nhash = luaL_checkinteger(L, 2);
+  lua_Integer nhash = luaL_optinteger(L, 2, 0);
   luaL_argcheck(L, 0 <= narray && narray < INT_MAX, 1, "invalid narray size");
   luaL_argcheck(L, 0 <= nhash && nhash < INT_MAX, 2, "invalid nrec size");
   lua_createtable(L, (int)narray, (int)nhash);

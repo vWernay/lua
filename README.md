@@ -503,7 +503,7 @@ Expose ``lua_createtable`` and API functions common to other custom Lua runtimes
 -- Creates a new empty table
 -- narr: a hint for how many elements the table will have as a sequence.
 -- nrec: a hint for how many other elements the table will have.
-t = table.create(narr, nrec)
+t = table.create(narr[, nrec])
 
 -- Restore the table to its initial value (removing its contents) while
 -- retaining its internal pointer;
