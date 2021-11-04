@@ -6,11 +6,6 @@ mathematics library based on the [OpenGL Shading Language
 (GLSL)](https://www.opengl.org/registry/doc/GLSLangSpec.4.50.diff.pdf)
 specifications.
 
-> A significantly less efficient shared-library implementation, using tables
-and/or userdata instead of first-class types, for Lua5.1, Lua5.2, Lua5.3,
-Lua5.4, and [LuaJIT](https://github.com/LuaJIT/LuaJIT), can be found
-[TBD](https://github.com/gottfriedleibniz/...).
-
 ## Vectors/Quaternions
 
 Vectors and quaternions are basic types (following nil, boolean, number,
@@ -703,6 +698,7 @@ these added features.
 1. Support for meshes and retrofit current spatial indexing structures for triangles; consider BSPs.
 1. Include broad phase collision scripting examples, e.g., dynamic AABB tree and/or multibox sweep-and-prune.
 1. Initial support for frustums (both orthographic and perspective) and OBBs, or, at minimum, the more computationally complex parts of these structures.
+1. A significantly less efficient shared-library implementation, using tables and/or userdata instead of first-class types, for Lua5.1, Lua5.2, Lua5.3, Lua5.4, and [LuaJIT](https://github.com/LuaJIT/LuaJIT).
 1. Allow some binding functions to be independently applied to each value or structure on the call stack. If disabled, only operate on the minimum number of required objects (following lmathlib). For example:
     ```lua
     -- lmathlib
