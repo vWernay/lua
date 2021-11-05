@@ -21,7 +21,7 @@ namespace glm {
     Point pos;  // Specifies the origin of this line.
     Point dir;  // The normalized direction vector of this ray.
 
-    Ray() = default;
+    Ray() GLM_DEFAULT_CTOR;
 
     Ray(T scalar)
       : pos(scalar), dir(scalar) {

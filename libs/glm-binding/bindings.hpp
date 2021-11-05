@@ -721,6 +721,7 @@ struct gLuaBase {
 
     p = *(static_cast<glm::Polygon<3, T> *>(ptr));
     p.stack_idx = idx_;
+    p.p->Validate(LB.L);
     return 1;
   }
 

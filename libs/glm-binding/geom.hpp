@@ -1448,8 +1448,10 @@ GLM_BINDING_QUALIFIER(polygon_new) {
     }
 
     // Populate the polygon with an array of coordinates, if one exists.
+  #if GLM_GEOM_EXCEPTIONS
     try {
-      polygon->p = ::new (list) PolyList();
+  #endif
+      polygon->p = ::new (list) PolyList(allocator);
 
       if (top >= 1 && lua_istable(LB.L, LB.idx)) {
         glmLuaArray<gLuaVec3<>> lArray(LB.L, LB.idx);
@@ -1458,11 +1460,13 @@ GLM_BINDING_QUALIFIER(polygon_new) {
           polygon->p->push_back(*b);
         }
       }
+  #if GLM_GEOM_EXCEPTIONS
     }
     catch (...) {
       lua_pop(L, 1);
       return luaL_error(L, "unknown polygon error");
     }
+  #endif
     return 1;
   }
 
@@ -1474,6 +1478,7 @@ GLM_BINDING_QUALIFIER(polygon_new) {
 GLM_BINDING_QUALIFIER(polygon_to_string) {
   gLuaPolygon<>::type *ud = static_cast<gLuaPolygon<>::type *>(luaL_checkudata(L, 1, LUA_GLM_POLYGON_META));
   if (ud->p != GLM_NULLPTR) {
+    ud->p->Validate(L);
     lua_pushfstring(L, "Polygon<%I>", ud->p->size());
     return 1;
   }
@@ -1488,7 +1493,8 @@ GLM_BINDING_QUALIFIER(polygon__gc) {
   gLuaPolygon<>::type *ud = static_cast<gLuaPolygon<>::type *>(luaL_checkudata(L, 1, LUA_GLM_POLYGON_META));
   if (ud->p != GLM_NULLPTR) {
     LuaCrtAllocator<void> allocator(L);
-    ud->p->~vector();  // Invoke destructor.
+    ud->p->Validate(L);
+    ud->p->~LuaVector();  // Invoke destructor.
     allocator.realloc(ud->p, sizeof(glm::List<gLuaPolygon<>::Point::type>), 0);  // Free allocation
     ud->p = GLM_NULLPTR;
   }
@@ -1543,6 +1549,8 @@ GLM_BINDING_QUALIFIER(polygon__newindex) {
   if (poly.p != GLM_NULLPTR) {
     const size_t index = gLuaTrait<size_t>::Next(LB);
     const gLuaVec3<>::type value = gLuaVec3<>::Next(LB);
+
+    poly.p->Validate(L);
     if (index >= 1 && index <= poly.size())
       poly[index - 1] = value;
     else if (index == poly.size() + 1)

@@ -19,7 +19,7 @@ namespace glm {
     Point a;  // The starting point of this line segment.
     Point b;  // The end point of this line segment.
 
-    LineSegment() = default;
+    LineSegment() GLM_DEFAULT_CTOR;
 
     LineSegment(T scalar)
       : a(scalar), b(scalar) {

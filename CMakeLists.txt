@@ -76,9 +76,6 @@ IF( MSVC )
 
   # CRT allocator replacement
   SET(LUA_CRT_ALLOC "" CACHE PATH "Replace the Windows CRT allocator with rpmalloc or mimalloc; requires /MT")
-  IF( CMAKE_BUILD_TYPE MATCHES Debug )
-    MESSAGE(FATAL_ERROR "The Debug target isn't supported along with LUA_CRT_ALLOC!")
-  ENDIF()
 
   IF(CMAKE_BUILD_TYPE MATCHES Debug)
     ADD_COMPILE_OPTIONS(/Oi)

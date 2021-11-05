@@ -23,7 +23,7 @@ namespace glm {
     Point b;
     Point c;
 
-    Triangle() = default;
+    Triangle() GLM_DEFAULT_CTOR;
 
     Triangle(T scalar)
       : a(scalar), b(scalar), c(scalar) {

@@ -21,7 +21,7 @@ namespace glm {
     Point normal;  // The direction this plane is facing at.
     T d;  // The offset of this plane from the origin.
 
-    Plane() = default;
+    Plane() GLM_DEFAULT_CTOR;
 
     Plane(T scalar)
       : normal(scalar), d(scalar) {
