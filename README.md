@@ -718,9 +718,9 @@ these added features.
 
 Ordered by priority.
 
+1. Cleanup testing scripts/environment and publish.
 1. Optimize `binding` codegen and functions that use `glm_i2v`.
 1. Utility API that resembles `glUniformMatrix*v`-style functions, i.e., extracting/parsing array of matrices/vectors.
-1. Cleanup testing scripts/environment and publish.
 1. Modify implementation to follow updated "Avoid taking the address of a 'TValue' field" (or reference) convention.
 1. Consider `table.freeze` API for Extended API (Source: Luau).
 1. Experiment with spitting the vector definition between 'union Value' and 'struct TValue', ensuring Value remains eight bytes (Source: Luau).

@@ -1446,6 +1446,9 @@ LUA_API int lua_pushmatrix (lua_State *L, const lua_Mat4 *matrix) {
 ** ===================================================================
 */
 
+// Placeholder representing invalid matrix dimension (packed) value.
+#define INVALID_PACKED_DIM glm::length_t(-1)
+
 /// <summary>
 /// Statically cast a tagged value to the specified type parameter. Returning
 /// true on success, false otherwise.
@@ -1526,26 +1529,24 @@ static glm::length_t PopulateVectorObject(lua_State *L, int idx, glm::vec<4, T> 
 /// supplied columns vectors and their dimensionality.
 /// </summary>
 static bool PopulateMatrix(lua_State *L, int idx, bool fixed_size, glmMatrix &m, glm::length_t &outDimensions) {
-  glm::length_t dimensions = 0;
-
   // Maximum number of stack values to parse from the starting "idx"
   // idx = lua_absindex(L, idx); @NOTE: Assume 'idx' is positive.
   const int stack_count = (_gettop(L) - idx + 1);
   const TValue *o = glm_index2value(L, idx);
 
   if (stack_count == 1 && ttisnumber(o)) {
-    dimensions = m.dimensions;
+    outDimensions = m.dimensions;
     m.m44 = glm::mat<4, 4, glm_Float>(cast_glmfloat(nvalue(o)));
+    return true;
   }
   else if (stack_count == 1 && ttisquat(o)) {
-    dimensions = m.dimensions;
+    outDimensions = m.dimensions;
     m.m44 = glm::mat4_cast<glm_Float, glm::defaultp>(glm_qvalue(o));
+    return true;
   }
   else if (stack_count == 1 && ttismatrix(o)) {
     const glmMatrix &_m = glm_mvalue(o);
-
-    dimensions = fixed_size ? m.dimensions : _m.dimensions;
-    switch (dimensions) {
+    switch ((outDimensions = fixed_size ? m.dimensions : _m.dimensions)) {
       case LUA_GLM_MATRIX_2x2: m.m44 = glm::mat<4, 4, glm_Float>(_m.m22); break;
       case LUA_GLM_MATRIX_2x3: m.m44 = glm::mat<4, 4, glm_Float>(_m.m23); break;
       case LUA_GLM_MATRIX_2x4: m.m44 = glm::mat<4, 4, glm_Float>(_m.m24); break;
@@ -1559,6 +1560,7 @@ static bool PopulateMatrix(lua_State *L, int idx, bool fixed_size, glmMatrix &m,
         return false;
       }
     }
+    return true;
   }
   // Otherwise, parse column vectors
   else {
@@ -1597,11 +1599,12 @@ static bool PopulateMatrix(lua_State *L, int idx, bool fixed_size, glmMatrix &m,
     }
 
     if (size >= 2 && size <= 4 && secondary >= 2 && secondary <= 4) {
-      dimensions = LUA_GLM_MATRIX_TYPE(size, secondary);
+      outDimensions = LUA_GLM_MATRIX_TYPE(size, secondary);
+      return true;
     }
   }
 
-  return (outDimensions = dimensions) != 0;
+  return false;
 }
 
 /// <summary>
@@ -1665,7 +1668,7 @@ static int glm_createMatrix(lua_State *L, glm::length_t dimensions) {
   const int top = _gettop(L);
 
   glmMatrix result;
-  result.dimensions = dimensions != 0 ? dimensions : LUA_GLM_MATRIX_4x4;
+  result.dimensions = dimensions != INVALID_PACKED_DIM ? dimensions : LUA_GLM_MATRIX_4x4;
 
   if (top == 0) {  // If there are no elements, return the identity matrix
     switch (LUA_GLM_MATRIX_ROWS(result.dimensions)) {
@@ -1681,7 +1684,7 @@ static int glm_createMatrix(lua_State *L, glm::length_t dimensions) {
   else {  // Parse the contents of the stack and populate 'result'
     const TValue *o = glm_index2value(L, 1);
     const bool recycle = top > 1 && ttismatrix(o);
-    if (PopulateMatrix(L, recycle ? 2 : 1, dimensions != 0, result, result.dimensions)) {
+    if (PopulateMatrix(L, recycle ? 2 : 1, dimensions != INVALID_PACKED_DIM, result, result.dimensions)) {
       // Realign column-vectors, ensuring the matrix can be faithfully
       // represented by its m.mCR union value.
       switch (LUA_GLM_MATRIX_ROWS(result.dimensions)) {
@@ -1737,7 +1740,7 @@ LUA_API int glmMat_mat3x4(lua_State *L) { return glm_createMatrix<glm_Float>(L, 
 LUA_API int glmMat_mat4x2(lua_State *L) { return glm_createMatrix<glm_Float>(L, LUA_GLM_MATRIX_4x2); }
 LUA_API int glmMat_mat4x3(lua_State *L) { return glm_createMatrix<glm_Float>(L, LUA_GLM_MATRIX_4x3); }
 LUA_API int glmMat_mat4x4(lua_State *L) { return glm_createMatrix<glm_Float>(L, LUA_GLM_MATRIX_4x4); }
-LUA_API int glmMat_mat(lua_State *L) { return glm_createMatrix<glm_Float>(L, 0); }
+LUA_API int glmMat_mat(lua_State *L) { return glm_createMatrix<glm_Float>(L, INVALID_PACKED_DIM); }
 
 /// <summary>
 /// Function written to bypass API overheads;
