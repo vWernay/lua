@@ -19,6 +19,7 @@ API:
     --  DataView.GetLuaInt -- Extension: A lua_Integer
     --  DataView.GetUluaInt -- Extension: A lua_Unsigned
     --  DataView.GetLuaNum -- Extension: lua_Number
+    --  DataView.GetAddress -- Extension: %p (@Unsafe)
     DataView.Get<Type>(self, offset [, bigEndian])
 
     -- Serialize in binary form (string.pack) a 'value' according to <Type>
@@ -33,6 +34,7 @@ API:
     --  DataView.SetLuaInt -- Extension: A lua_Integer
     --  DataView.SetUluaInt -- Extension: A lua_Unsigned
     --  DataView.SetLuaNum -- Extension: lua_Number
+    --  DataView.SetAddress -- Extension: %p (@Unsafe)
     DataView.Set<Type>(self, offset, value [, bigEndian])
 
     -- Return a value according to <Type> and a dynamic type-length.
@@ -191,6 +193,18 @@ local function packblob(self, offset, value, code)
     end
 end
 
+--[[ @Debug: Return the hex encoding of the dataview ]]
+ function DataView:Dump()
+    local view = self.blob
+    if not self.cangrow then -- Dump only the subview
+        view = self.blob:sub(self.offset, self.length)
+    end
+
+    return view:gsub('.', function(c)
+        return string.format('%02X ', c:byte())
+    end)
+ end
+
 --[[
     Create the API by using DataView.Types
 --]]
@@ -257,5 +271,38 @@ for label,datatype in pairs(DataView.FixedTypes) do
             end
         end
         return self
+    end
+end
+
+--[[
+    Not the most 'robust' solution to determine 32 versus 64bit. An alternative
+    approach would be to use os.getenv("os") and
+        Linux: io.popen("uname -m"):read("*a") or
+        Windows: os.getenv("PROCESSOR_ARCHITECTURE")
+    to calculate address size.
+--]]
+function DataView.IsBit32() return math.maxinteger <= 2147483647 end
+
+--[[ @Unsafe --]]
+function DataView:GetAddress(self, offset, endian)
+    if DataView.IsBit32() then
+        return self:GetUint32(offset, endian)
+    else
+        return self:GetUint64(offset, endian)
+    end
+end
+
+--[[ @Unsafe --]]
+function DataView:SetAddress(offset, value, endian)
+    assert(string.isblob(value))
+    local address = string.format("%p", value)
+    if address:find("0x") == nil then -- %p is 'implementation defined'
+        address = "0x" .. address
+    end
+
+    if DataView.IsBit32() then
+        return self:SetUint32(offset, tonumber(address), endian)
+    else
+        return self:SetUint64(offset, tonumber(address), endian)
     end
 end
