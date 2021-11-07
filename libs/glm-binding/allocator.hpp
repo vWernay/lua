@@ -1,9 +1,10 @@
 /*
 ** $Id: allocator.hpp $
 ** An allocator implementation for C++ STL objects.
-** See Copyright Notice in lua.h
 **
 ** @TODO: Header should be C++98 compliant.
+**
+** See Copyright Notice in lua.h
 */
 #ifndef BINDING_ALLOCATOR_HPP
 #define BINDING_ALLOCATOR_HPP

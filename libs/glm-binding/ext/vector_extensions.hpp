@@ -253,6 +253,15 @@ namespace glm {
   }
 
   /// <summary>
+  /// @Compat: Old versions of GLM include unnecessary precision qualifiers for
+  /// glm::atan2 and glm::saturate.
+  /// </summary>
+  template<typename T>
+  GLM_FUNC_QUALIFIER T atan2_(T x, T y) {
+    return atan(x, y);
+  }
+
+  /// <summary>
   /// calculate sin and cos simultaneously.
   /// </summary>
   template<length_t L, typename T, qualifier Q>
@@ -469,7 +478,7 @@ namespace glm {
     const vec<L, T, Q> yxl = y * length(x);
     const T n = length(xyl - yxl);
     if (epsilonNotEqual(n, T(0), epsilon<T>()))
-      return T(2) * atan2<T, Q>(n, length(xyl + yxl));
+      return T(2) * atan2_(n, length(xyl + yxl));
     return T(0);
   }
 

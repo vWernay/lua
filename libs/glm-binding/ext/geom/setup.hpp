@@ -5,6 +5,8 @@
 ** @TODO GLM_CONFIG_DEFAULTED_FUNCTIONS support
 ** @TODO Each structure should be including their required glm headers/functions
 **  rather than depending on the bulk-include below.
+**
+** See Copyright Notice at the end of this file
 */
 #ifndef EXT_GEOM_SETUP_HPP
 #define EXT_GEOM_SETUP_HPP

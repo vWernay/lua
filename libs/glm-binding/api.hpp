@@ -1,8 +1,11 @@
 /*
+** $Id: api.hpp $
 ** External Lua/GLM binding API.
 **
 ** Missing Headers:
 **  glm/gtx/associated_min_max.hpp
+**
+** See Copyright Notice in lua.h
 */
 #ifndef BINDING_API_HPP
 #define BINDING_API_HPP

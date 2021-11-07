@@ -1,5 +1,5 @@
 /*
-** $Id: lglm_string.h $
+** $Id: lglm_string.hpp $
 ** Stack-based glm/gtx/string_cast.inl implementation
 ** See Copyright Notice in lua.h
 */

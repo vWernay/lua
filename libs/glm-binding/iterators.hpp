@@ -1,6 +1,9 @@
 /*
+** $Id: iterators.hpp $
 ** A set of iterator definitions for processing collections of traits without
 ** the requirement of allocating additional memory (and to avoid interop issues)
+**
+** See Copyright Notice in lua.h
 */
 #ifndef BINDING_ITERATORS_HPP
 #define BINDING_ITERATORS_HPP

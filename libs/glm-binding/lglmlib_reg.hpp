@@ -1,5 +1,8 @@
 /*
+** $Id: lglmlib_reg.hpp $
 ** GLM Library registration table: see luaL_Reg.
+**
+** See Copyright Notice in lua.h
 */
 
 /* Constructors */

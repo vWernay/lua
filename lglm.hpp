@@ -48,8 +48,12 @@
   #define GLM_IF_CONSTEXPR if
 #endif
 
+/* @COMPAT GLM_CONFIG_DEFAULTED_DEFAULT_CTOR introduced in 0.9.9.9 */
+#if !defined(GLM_CONFIG_DEFAULTED_DEFAULT_CTOR)
+  #define GLM_CONFIG_DEFAULTED_DEFAULT_CTOR GLM_CONFIG_DEFAULTED_FUNCTIONS
+#endif
+
 /*
-** @COMPAT GLM_CONFIG_DEFAULTED_DEFAULT_CTOR introduced in 0.9.9.9
 ** @COMPAT defaulted constructors fixed in PR #1027
 **  Compensating for that change will require expanding the glmVector, glmMatrix,
 **  and GLM boundary structs to handle the implicitly deleted constructors and

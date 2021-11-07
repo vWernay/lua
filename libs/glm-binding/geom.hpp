@@ -1,5 +1,8 @@
 /*
+** $Id: geom.hpp $
 ** Geometric Structures
+**
+** See Copyright Notice in lua.h
 */
 #ifndef BINDING_GEOM_HPP
 #define BINDING_GEOM_HPP
