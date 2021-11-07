@@ -504,6 +504,9 @@ t = table.create(narr[, nrec])
 -- retaining its internal pointer;
 t = table.wipe(t)
 
+-- Request the removal of unused capacity in the given table (shrink_to_fit).
+t = table.compact(t)
+
 -- An efficient (implemented using memcpy) table shallow-copy implementation;
 t2 = table.clone(t[, t2]) -- t2 is a preallocated destination table
 
@@ -539,6 +542,29 @@ result = utf8.strcmputf8i(stringLH, stringRH)
 --- Return all arguments with non-number/boolean/string values changed to nil;
 ... = scrub(...)
 
+```
+
+### Readonly
+
+Introduce the ability to make a table read-only and prohibit any modifications
+to the table.
+
+```lua
+-- Mark a table as readonly.
+--
+-- This behavior is 'shallow', i.e., non-frozen tables stored within 't' are
+-- still mutable.
+--
+-- Frozen tables respect the '__newindex' metamethod. However, any attempt to
+-- modify the table by that method (e.g., __newindex = rawset) will lead to an
+-- error being thrown.
+--
+-- Finally, tables with 'protected' metatables, i.e., a '__metatable' field,
+-- cannot be frozen.
+t = table.freeze(t)
+
+-- Return true if the provided table is configured as readonly; false otherwise.
+result = table.isfrozen(t)
 ```
 
 ### Readline History
@@ -633,6 +659,7 @@ Note, not all Lua-specific options are listed.
   + **GRIT\_POWER\_EACH**
   + **GRIT\_POWER\_BLOB**
   + **GRIT\_POWER\_WOW**
+  + **GRIT\_POWER\_READONLY**
   + **GRIT\_POWER\_PRELOADLIBS**
   + **GRIT\_POWER\_READLINE\_HISTORY**
 
@@ -722,7 +749,6 @@ Ordered by priority.
 1. Optimize `binding` codegen and functions that use `glm_i2v`.
 1. Utility API that resembles `glUniformMatrix*v`-style functions, i.e., extracting/parsing array of matrices/vectors.
 1. Modify implementation to follow updated "Avoid taking the address of a 'TValue' field" (or reference) convention.
-1. Consider `table.freeze` API for Extended API (Source: Luau).
 1. Experiment with spitting the vector definition between 'union Value' and 'struct TValue', ensuring Value remains eight bytes (Source: Luau).
 1. [ext](libs/glm-binding/ext): Improve SIMD support.
 1. Replace `glm::angle` bindings with atan2 equivalent (stability).

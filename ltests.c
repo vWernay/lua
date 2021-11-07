@@ -1646,6 +1646,27 @@ static int runC (lua_State *L, lua_State *L1, const char *pc) {
       int t = getindex;
       lua_rawsetp(L1, t, cast_voidp(cast_sizet(getnum)));
     }
+#if defined(GRIT_POWER_READONLY)
+    else if EQ("isreadonly") {
+      lua_pushboolean(L, lua_isreadonly(L1, getindex));
+    }
+    else if EQ("setreadonly") {
+      int t = getindex;
+      lua_setreadonly(L1, t, getnum);
+    }
+#endif
+#if defined(GRIT_POWER_WOW)
+    else if EQ("wipetable") {
+      lua_wipetable(L1, getindex);
+    }
+    else if EQ("clonetable") {
+      int t = getindex;
+      lua_clonetable(L1, t, getindex);
+    }
+    else if EQ("tabletype") {
+      lua_tabletype(L1, getindex);
+    }
+#endif
     else if EQ("remove") {
       lua_remove(L1, getnum);
     }

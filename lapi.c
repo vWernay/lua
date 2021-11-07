@@ -893,6 +893,26 @@ LUA_API void lua_createtable (lua_State *L, int narray, int nrec) {
 }
 
 
+#if defined(GRIT_POWER_READONLY)
+#define readonly_api_check(L, T) \
+  api_check(L, !(T)->readonly, "attempting to modify a readonly table")
+
+LUA_API int lua_isreadonly (lua_State* L, int idx) {
+  const TValue *o = index2value(L, idx);
+  return ttistable(o) ? cast_int((hvalue(o))->readonly) : 0;
+}
+
+LUA_API void lua_setreadonly (lua_State* L, int idx, int value) {
+  const TValue *o;
+  lua_lock(L);
+  o = index2value(L, idx);
+  api_check(L, ttistable(o), "table expected");
+  luaH_setreadonly(hvalue(o), value);
+  lua_unlock(L);
+}
+#endif
+
+
 #if defined(GRIT_POWER_WOW)
 LUA_API int lua_tabletype (lua_State *L, int idx) {
   const TValue *o = index2value(L, idx);
@@ -905,7 +925,22 @@ LUA_API void lua_wipetable (lua_State *L, int idx) {
   lua_lock(L);
   o = index2value(L, idx);
   api_check(L, ttistable(o), "table expected");
-  luaH_wipetable(hvalue(o));
+#if defined(GRIT_POWER_READONLY)
+  readonly_api_check(L, hvalue(o));
+#endif
+  luaH_wipetable(L, hvalue(o));
+  lua_unlock(L);
+}
+
+LUA_API void lua_compacttable (lua_State *L, int idx) {
+  const TValue *o;
+  lua_lock(L);
+  o = index2value(L, idx);
+  api_check(L, ttistable(o), "table expected");
+#if defined(GRIT_POWER_READONLY)
+  readonly_api_check(L, hvalue(o));
+#endif
+  luaH_compact(L, hvalue(o));
   lua_unlock(L);
 }
 
@@ -916,6 +951,9 @@ LUA_API void lua_clonetable (lua_State *L, int fromidx, int toidx) {
   to = index2value(L, toidx);
   api_check(L, ttistable(from), "table expected");
   api_check(L, ttistable(to), "table expected");
+#if defined(GRIT_POWER_READONLY)
+  readonly_api_check(L, hvalue(to));
+#endif
   luaH_clonetable(L, hvalue(from), hvalue(to));
   lua_unlock(L);
 }
@@ -981,6 +1019,9 @@ static void auxsetstr (lua_State *L, const TValue *t, const char *k) {
   TString *str = luaS_new(L, k);
   api_checknelems(L, 1);
   if (luaV_fastget(L, t, str, slot, luaH_getstr)) {
+#if defined(GRIT_POWER_READONLY)
+    readonly_api_check(L, hvalue(t));
+#endif
     luaV_finishfastset(L, t, slot, s2v(L->top - 1));
     L->top--;  /* pop value */
   }
@@ -1015,6 +1056,9 @@ LUA_API void lua_settable (lua_State *L, int idx) {
   else {
     const TValue *slot;
     if (luaV_fastget(L, t, s2v(L->top - 2), slot, luaH_get)) {
+#if defined(GRIT_POWER_READONLY)
+      readonly_api_check(L, hvalue(t));
+#endif
       luaV_finishfastset(L, t, slot, s2v(L->top - 1));
     }
     else
@@ -1044,6 +1088,9 @@ LUA_API void lua_seti (lua_State *L, int idx, lua_Integer n) {
   else {
     const TValue *slot;
     if (luaV_fastgeti(L, t, n, slot)) {
+#if defined(GRIT_POWER_READONLY)
+      readonly_api_check(L, hvalue(t));
+#endif
       luaV_finishfastset(L, t, slot, s2v(L->top - 1));
     }
     else {
@@ -1067,6 +1114,9 @@ static void aux_rawset (lua_State *L, int idx, TValue *key, int n) {
     glmMat_rawset(L, v, key, s2v(L->top - 1));
   else {
     Table *t = ensuretable(L, v);
+#if defined(GRIT_POWER_READONLY)
+    readonly_api_check(L, t);
+#endif
     luaH_set(L, t, key, s2v(L->top - 1));
     invalidateTMcache(t);
     luaC_barrierback(L, obj2gco(t), s2v(L->top - 1));
@@ -1100,6 +1150,9 @@ LUA_API void lua_rawseti (lua_State *L, int idx, lua_Integer n) {
   }
   else {
     Table *t = ensuretable(L, v);
+#if defined(GRIT_POWER_READONLY)
+    readonly_api_check(L, t);
+#endif
     luaH_setint(L, t, n, s2v(L->top - 1));
     luaC_barrierback(L, obj2gco(t), s2v(L->top - 1));
   }
@@ -1121,6 +1174,9 @@ LUA_API int lua_setmetatable (lua_State *L, int objindex) {
   }
   switch (ttype(obj)) {
     case LUA_TTABLE: {
+#if defined(GRIT_POWER_READONLY)
+      readonly_api_check(L, hvalue(obj));
+#endif
       hvalue(obj)->metatable = mt;
       if (mt) {
         luaC_objbarrier(L, gcvalue(obj), mt);

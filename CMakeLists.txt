@@ -508,6 +508,7 @@ OPTION(GRIT_POWER_SAFENAV "An indexing operation that suppresses errors on acces
 OPTION(GRIT_POWER_CCOMMENT "Support for C-style block comments" ON)
 OPTION(GRIT_POWER_NAMESPACE_SEL "Allow double-colon tokens to be used as field selection (e.g., CPP namespaces)" OFF)
 OPTION(GRIT_POWER_WOW "Expose lua_createtable and other WowLua compatibility functions" ON)
+OPTION(GRIT_POWER_READONLY "Enable readonly table API" OFF)
 OPTION(GRIT_POWER_CHRONO "Enable nanosecond resolution timers and x86 rdtsc sampling" ON)
 OPTION(GRIT_POWER_EACH "__iter metamethod support; see documentation" ON)
 OPTION(GRIT_POWER_BLOB "Enable an API to create non-internalized contiguous byte sequences" ON)
@@ -585,6 +586,10 @@ ENDIF()
 
 IF( GRIT_POWER_WOW )
   ADD_COMPILE_DEFINITIONS(GRIT_POWER_WOW)
+ENDIF()
+
+IF( GRIT_POWER_READONLY )
+  ADD_COMPILE_DEFINITIONS(GRIT_POWER_READONLY)
 ENDIF()
 
 IF( GRIT_POWER_CHRONO )

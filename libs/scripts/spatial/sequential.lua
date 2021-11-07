@@ -47,6 +47,11 @@ function SequentialSpatial:Clear()
     return self
 end
 
+--[[ @OVERRIDE --]]
+function SequentialSpatial:Compact()
+    return self
+end
+
 ---------------------------------------
 ------------ Modifications ------------
 ---------------------------------------

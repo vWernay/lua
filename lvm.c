@@ -331,6 +331,12 @@ void luaV_finishget (lua_State *L, const TValue *t, TValue *key, StkId val,
 }
 
 
+#if defined(GRIT_POWER_READONLY)
+  #define luaV_readonly_check(L, T) \
+    if ((T)->readonly) luaG_runerror((L), "table configured as readonly")
+#endif
+
+
 /*
 ** Finish a table assignment 't[key] = val'.
 ** If 'slot' is NULL, 't' is not a table.  Otherwise, 'slot' points
@@ -348,6 +354,9 @@ void luaV_finishset (lua_State *L, const TValue *t, TValue *key,
       lua_assert(isempty(slot));  /* slot must be empty */
       tm = fasttm(L, h->metatable, TM_NEWINDEX);  /* get metamethod */
       if (tm == NULL) {  /* no metamethod? */
+#if defined(GRIT_POWER_READONLY)
+        luaV_readonly_check(L, hvalue(t));
+#endif
         luaH_finishset(L, h, key, slot, val);  /* set new value */
         invalidateTMcache(h);
         luaC_barrierback(L, obj2gco(h), val);
@@ -367,6 +376,9 @@ void luaV_finishset (lua_State *L, const TValue *t, TValue *key,
     }
     t = tm;  /* else repeat assignment over 'tm' */
     if (luaV_fastget(L, t, key, slot, luaH_get)) {
+#if defined(GRIT_POWER_READONLY)
+      luaV_readonly_check(L, hvalue(t));
+#endif
       luaV_finishfastset(L, t, slot, val);
       return;  /* done */
     }
@@ -1361,6 +1373,9 @@ LUA_JUMPTABLE_ATTRIBUTE void luaV_execute (lua_State *L, CallInfo *ci) {
           const TValue *slot;
           TString *key = tsvalue(rb);  /* key must be a string */
           if (luaV_fastget(L, upval, key, slot, luaH_getshortstr)) {
+#if defined(GRIT_POWER_READONLY)
+            luaV_readonly_check(L, hvalue(upval));
+#endif
             luaV_finishfastset(L, upval, slot, rc);
           }
           else
@@ -1379,6 +1394,9 @@ LUA_JUMPTABLE_ATTRIBUTE void luaV_execute (lua_State *L, CallInfo *ci) {
           if (ttisinteger(rb)  /* fast track for integers? */
               ? (cast_void(n = ivalue(rb)), luaV_fastgeti(L, s2v(ra), n, slot))
               : luaV_fastget(L, s2v(ra), rb, slot, luaH_get)) {
+#if defined(GRIT_POWER_READONLY)
+            luaV_readonly_check(L, hvalue(s2v(ra)));
+#endif
             luaV_finishfastset(L, s2v(ra), slot, rc);
           }
           else
@@ -1394,6 +1412,9 @@ LUA_JUMPTABLE_ATTRIBUTE void luaV_execute (lua_State *L, CallInfo *ci) {
         else {
           const TValue *slot;
           if (luaV_fastgeti(L, s2v(ra), c, slot)) {
+#if defined(GRIT_POWER_READONLY)
+            luaV_readonly_check(L, hvalue(s2v(ra)));
+#endif
             luaV_finishfastset(L, s2v(ra), slot, rc);
           }
           else {
@@ -1410,6 +1431,9 @@ LUA_JUMPTABLE_ATTRIBUTE void luaV_execute (lua_State *L, CallInfo *ci) {
         TValue *rc = RKC(i);
         TString *key = tsvalue(rb);  /* key must be a string */
         if (luaV_fastget(L, s2v(ra), key, slot, luaH_getshortstr)) {
+#if defined(GRIT_POWER_READONLY)
+          luaV_readonly_check(L, hvalue(s2v(ra)));
+#endif
           luaV_finishfastset(L, s2v(ra), slot, rc);
         }
         else

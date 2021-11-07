@@ -31,6 +31,7 @@ local table = table
 local table_remove = table.remove
 local table_create = table.create or function() return {} end
 local table_wipe = table.wipe or function() return {} end
+local table_compact = table.compact or function(t) return t end
 
 local glm = glm
 local glm_aabb_contains = glm.aabb.contains
@@ -198,6 +199,17 @@ function Octree:Clear()
     self.indexLookup = table_wipe(self.indexLookup)
     self.availableIndicies = table_wipe(self.availableIndicies)
 
+    return self
+end
+
+--[[ @OVERRIDE --]]
+function Octree:Compact()
+    self.center = table_compact(self.center)
+    self.parent = table_compact(self.parent)
+    self.objects = table_compact(self.objects)
+    self.children = table_compact(self.children)
+    self.nodeMinBounds = table_compact(self.nodeMinBounds)
+    self.nodeMaxBounds = table_compact(self.nodeMaxBounds)
     return self
 end
 

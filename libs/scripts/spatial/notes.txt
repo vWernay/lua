@@ -16,6 +16,11 @@ Bounds(self, object)
 -- @RETURN self
 Clear(self)
 
+-- Requests the removal of unused capacity.
+--
+-- @RETURN self
+Compact(self)
+
 -- An explicit rebuild function: rebuild/reorganize the structure to something
 -- more optimal.
 --

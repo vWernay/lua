@@ -55,6 +55,7 @@ local table = table
 local table_remove = table.remove
 local table_create = table.create or function() return {} end
 local table_wipe = table.wipe or function() return {} end
+local table_compact = table.compact or function(t) return t end
 
 local glm = glm
 local glm_abs = glm.abs
@@ -149,6 +150,24 @@ function KDTree:Clear()
     --[[ Cached Data.--]]
     self.availableNodeIndicies = table_wipe(self.availableNodeIndicies)
     self.availableLeafIndicies = table_wipe(self.availableLeafIndicies)
+
+    return self
+end
+
+--[[ @OVERRIDE --]]
+function KDTree:Compact()
+    --[[ Tree structure --]]
+    self.cardinalAxis = table_compact(self.cardinalAxis)
+    self.cardinalValues = table_compact(self.cardinalValues)
+    self.low = table_compact(self.low)
+    self.high = table_compact(self.high)
+    self.nodeMinBounds = table_compact(self.nodeMinBounds)
+    self.nodeMaxBounds = table_compact(self.nodeMaxBounds)
+
+    --[[ Leaf structure. --]]
+    self.objects = table_compact(self.objects)
+    self.leafMinBounds = table_compact(self.leafMinBounds)
+    self.leafMaxBounds = table_compact(self.leafMaxBounds)
 
     return self
 end

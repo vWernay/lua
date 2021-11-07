@@ -648,6 +648,9 @@ Table *luaH_new (lua_State *L) {
   Table *t = gco2t(o);
   t->metatable = NULL;
   t->flags = cast_byte(maskflags);  /* table has no metamethod fields */
+#if defined(GRIT_POWER_READONLY)
+  t->readonly = 0;
+#endif
   t->array = NULL;
   t->alimit = 0;
   setnodevector(L, t, 0);
@@ -993,6 +996,13 @@ lua_Unsigned luaH_getn (Table *t) {
 }
 
 
+#if defined(GRIT_POWER_READONLY)
+void luaH_setreadonly (Table *t, int readonly) {
+  t->readonly = cast_byte(readonly);
+}
+#endif
+
+
 #if defined(GRIT_POWER_WOW)
 #include <string.h>
 
@@ -1002,7 +1012,7 @@ int luaH_type (const Table *t) {
   return t->node == dummynode ? LUA_TTARRAY : LUA_TTMIXED;
 }
 
-void luaH_wipetable (Table *t) {
+void luaH_wipetable (lua_State *L, Table *t) {
   unsigned int asize = luaH_realasize(t);
   unsigned int i = 0;
   for (; i < asize; i++)  /* array part */
@@ -1016,6 +1026,23 @@ void luaH_wipetable (Table *t) {
 
   invalidateTMcache(t);
   /* luaC_barrierback_ not required: all added values are nil/not-collectible */
+  UNUSED(L);
+}
+
+void luaH_compact(lua_State *L, Table *t) {
+  unsigned int oldasize = setlimittosize(t);
+  unsigned int newasize = cast_uint(luaH_getn(t)); /* t->alimit; */
+  if (oldasize != newasize) {
+    TValue *array = luaM_reallocvector(L, t->array, oldasize, newasize, TValue);
+    if (l_likely(array != NULL)) {
+      t->array = array;
+      t->alimit = newasize;
+      setrealasize(t);
+    }
+    else {  /* allocation failed: raise error */
+      luaM_error(L);
+    }
+  }
 }
 
 void luaH_clonetable (lua_State *L, const Table *from, Table *to) {
@@ -1066,6 +1093,9 @@ void luaH_clonetable (lua_State *L, const Table *from, Table *to) {
   to->lastfree = newt.lastfree;
   to->lsizenode = newt.lsizenode;
   to->flags = ((to->flags & ~BITRAS) | (from->flags & BITRAS));
+#if defined(GRIT_POWER_READONLY)
+  to->readonly = 0;
+#endif
   if (isblack(obj2gco(to)))
     luaC_barrierback_(L, obj2gco(to));
 }
