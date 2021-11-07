@@ -34,7 +34,7 @@
 #define aux_getn(L,n,w)	(checktab(L, n, (w) | TAB_L), luaL_len(L, n))
 
 
-#if defined(GRIT_POWER_READONLY)
+#if defined(LUAGLM_EXT_READONLY)
   #define treadonly_argcheck(L, I) \
     luaL_argcheck((L), !lua_isreadonly((L), (I)), (I), "table is readonly")
 #endif
@@ -51,7 +51,7 @@ static int checkfield (lua_State *L, const char *key, int n) {
 ** has a metatable with the required metamethods)
 */
 static void checktab (lua_State *L, int arg, int what) {
-#if defined(GRIT_POWER_READONLY)
+#if defined(LUAGLM_EXT_READONLY)
   if ((what & TAB_W)) treadonly_argcheck(L, arg);
 #endif
   if (lua_type(L, arg) != LUA_TTABLE) {  /* is it not a table? */
@@ -424,7 +424,7 @@ static int sort (lua_State *L) {
   return 0;
 }
 
-#if defined(GRIT_POWER_READONLY)
+#if defined(LUAGLM_EXT_READONLY)
 static int tfreeze(lua_State *L) {
   luaL_checktype(L, 1, LUA_TTABLE);
   if (l_unlikely(luaL_getmetafield(L, 1, "__metatable") != LUA_TNIL))
@@ -442,7 +442,7 @@ static int tisfrozen(lua_State *L) {
 #endif
 
 
-#if defined(GRIT_POWER_WOW)
+#if defined(LUAGLM_EXT_API)
 static int type (lua_State *L) {
   if (lua_type(L, 1) == LUA_TTABLE) {
     switch (lua_tabletype(L, 1)) {
@@ -471,7 +471,7 @@ static int tcreate (lua_State *L) {
 
 static int treset (lua_State *L) {
   luaL_checktype(L, 1, LUA_TTABLE);
-#if defined(GRIT_POWER_READONLY)
+#if defined(LUAGLM_EXT_READONLY)
   treadonly_argcheck(L, 1);
 #endif
   lua_wipetable(L, 1);
@@ -481,7 +481,7 @@ static int treset (lua_State *L) {
 
 static int tcompact (lua_State *L) {
   luaL_checktype(L, 1, LUA_TTABLE);
-#if defined(GRIT_POWER_READONLY)
+#if defined(LUAGLM_EXT_READONLY)
   treadonly_argcheck(L, 1);
 #endif
   lua_compacttable(L, 1);
@@ -513,11 +513,11 @@ static const luaL_Reg tab_funcs[] = {
   {"remove", tremove},
   {"move", tmove},
   {"sort", sort},
-#if defined(GRIT_POWER_READONLY)
+#if defined(LUAGLM_EXT_READONLY)
   {"freeze", tfreeze},
   {"isfrozen", tisfrozen},
 #endif
-#if defined(GRIT_POWER_WOW)
+#if defined(LUAGLM_EXT_API)
   {"type", type},
   {"create", tcreate}, {"new", tcreate},
   {"wipe", treset}, {"clear", treset},

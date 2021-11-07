@@ -142,7 +142,7 @@
 ** High-Resolution Time Stamps
 ** ===================================================================
 */
-#if defined(GRIT_POWER_CHRONO)
+#if defined(LUAGLM_EXT_CHRONO)
 
 #define LUA_SYS_CLOCK /* os_nanotime enabled */
 #define LUA_SYS_RDTSC /* os_rdtsc & os_rdtscp enabled */
@@ -550,7 +550,7 @@ static const luaL_Reg syslib[] = {
   {"setlocale", os_setlocale},
   {"time",      os_time},
   {"tmpname",   os_tmpname},
-#if defined(GRIT_POWER_CHRONO)
+#if defined(LUAGLM_EXT_CHRONO)
   #if defined(LUA_SYS_CLOCK)
   { "deltatime", os_deltatime },
   { "microtime", os_microtime },

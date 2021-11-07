@@ -46,7 +46,7 @@
 /*
 ** Union of all Lua values
 */
-LUA_GLM_ALIGNED_TYPEDEF(union, Value) {
+LUAGLM_ALIGNED_TYPEDEF(union, Value) {
   struct GCObject *gc;    /* collectable objects */
   void *p;         /* light userdata */
   lua_Float4 f4;   /* vector and quaternion stub */
@@ -148,7 +148,7 @@ typedef union StackValue {
   TValue val;
   struct {
     TValuefields;
-#if defined(GRIT_POWER_DEFER)
+#if defined(LUAGLM_EXT_DEFER)
     lu_byte is_deferred; /* 1 if deferred function, regular TBC otherwise. */
 #endif
     unsigned short delta;
@@ -350,14 +350,14 @@ typedef struct GCObject {
 /* Variant tags for strings */
 #define LUA_VSHRSTR	makevariant(LUA_TSTRING, 0)  /* short strings */
 #define LUA_VLNGSTR	makevariant(LUA_TSTRING, 1)  /* long strings */
-#if defined(GRIT_POWER_BLOB)
+#if defined(LUAGLM_EXT_BLOB)
   #define LUA_VBLOBSTR makevariant(LUA_TSTRING, 2)  /* long blobs */
 #endif
 
 #define ttisstring(o)		checktype((o), LUA_TSTRING)
 #define ttisshrstring(o)	checktag((o), ctb(LUA_VSHRSTR))
 #define ttislngstring(o)	checktag((o), ctb(LUA_VLNGSTR))
-#if defined(GRIT_POWER_BLOB)
+#if defined(LUAGLM_EXT_BLOB)
   #define ttisblobstring(o)	checktag((o), ctb(LUA_VBLOBSTR))
   #define islongstring(tt) ((tt) == LUA_VLNGSTR || (tt) == LUA_VBLOBSTR)
 #endif
@@ -735,7 +735,7 @@ typedef union Node {
 typedef struct Table {
   CommonHeader;
   lu_byte flags;  /* 1<<p means tagmethod(p) is not present */
-#if defined(GRIT_POWER_READONLY)
+#if defined(LUAGLM_EXT_READONLY)
   lu_byte readonly;  /* prohibit modifications */
 #endif
   lu_byte lsizenode;  /* log2 of size of 'node' array */

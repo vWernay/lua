@@ -646,22 +646,28 @@ Note, not all Lua-specific options are listed.
   + **HARDMEMTESTS**: Force a full collection at all points where the collector can run.
   + **EMERGENCYGCTESTS**: Force an emergency collection at every single allocation.
   + **EXTERNMEMCHECK**: Removes internal consistency checking of blocks being deallocated.
+* **LuaGLM Options**:
+  + **LUAGLM\_APICHECK**: Enable additional apicheck handling.
+  + **LUAGLM\_EPS\_EQUAL**: `luaV_equalobj` uses approximately equal (within glm::epsilon) for vector/matrix types (beware of hashing caveats).
+  + **LUAGLM\_MUL\_DIRECTION**: Define how the runtime handles ``TM_MUL(mat4x4, vec3)`.
+  + **LUAGLM\_NUMBER\_TYPE**: Use lua\_Number as the vector primitive; float otherwise.
 * **Power Patches**: See Lua Power Patches section.
-  + **GRIT\_COMPAT\_IPAIRS**
-  + **GRIT\_POWER\_DEFER**
-  + **GRIT\_POWER\_COMPOUND**
-  + **GRIT\_POWER\_SAFENAV**
-  + **GRIT\_POWER\_INTABLE**
-  + **GRIT\_POWER\_TABINIT**
-  + **GRIT\_POWER\_CCOMMENT**
-  + **GRIT\_POWER\_JOAAT**
-  + **GRIT\_POWER\_LAMBDA**
-  + **GRIT\_POWER\_EACH**
-  + **GRIT\_POWER\_BLOB**
-  + **GRIT\_POWER\_WOW**
-  + **GRIT\_POWER\_READONLY**
-  + **GRIT\_POWER\_PRELOADLIBS**
-  + **GRIT\_POWER\_READLINE\_HISTORY**
+  + **LUAGLM\_COMPAT\_IPAIRS**: Enable '\_\_ipairs'.
+  + **LUAGLM\_EXT\_API**: Enable 'Extended API'.
+  + **LUAGLM\_EXT\_BLOB**: Enable 'String Blobs'.
+  + **LUAGLM\_EXT\_CCOMMENT**: Enable 'C-Style Comments'.
+  + **LUAGLM\_EXT\_CHRONO**: Enable nanosecond resolution timers and x86 rdtsc sampling.
+  + **LUAGLM\_EXT\_COMPOUND**: Enable 'Compound Operators'.
+  + **LUAGLM\_EXT\_DEFER**: Enable 'Defer'.
+  + **LUAGLM\_EXT\_EACH**: Enable 'Each Iteration'.
+  + **LUAGLM\_EXT\_INTABLE**:: Enable 'In Unpacking'.
+  + **LUAGLM\_EXT\_JOAAT**: Enable 'Compile Time Jenkins' Hashes'.
+  + **LUAGLM\_EXT\_LAMBDA**: Enable 'Short Function Notation'.
+  + **LUAGLM\_EXT\_READLINE\_HISTORY**: Enable 'Readline History'.
+  + **LUAGLM\_EXT\_READONLY**: Enable 'Readonly'
+  + **LUAGLM\_EXT\_SAFENAV**: Enable 'Safe Navigation'.
+  + **LUAGLM\_EXT\_TABINIT**: Enable 'Set Constructors'
+  + **LUAGLM\_EXT\_SCOPE\_RESOLUTION**
 
 #### GLM Preprocessor Configurations
 
@@ -680,30 +686,41 @@ Note, not all Lua-specific options are listed.
 * **GLM\_FORCE\_SILENT\_WARNINGS**: Silent C++ warnings from language extensions.
 * **GLM\_FORCE\_QUAT\_DATA\_WXYZ**: Force GLM to store quat data as w,x,y,z instead of x,y,z,w.
 
-For all GLM preprocessor flags, see the [GLM manual](https://github.com/g-truc/glm/blob/master/manual.md#section2).
+For all GLM preprocessor, see the [GLM manual](https://github.com/g-truc/glm/blob/master/manual.md#section2).
 
 #### Added GLM Preprocessor Configurations
 
 * **GLM\_FAST\_MATH**: Enable fast math optimizations (see `-ffast-math` caveats).
 * **GLM\_FORCE\_Z\_UP**: Unit "up" vector is along the Z-axis (Y-axis otherwise).
-* **GLM\_INCLUDE\_ALL**: Create bindings for all declared GLM headers. To create module-only, extension-only, or header-only bindings see **EXTENDED.md** for a list of all headers.
-* **GLM\_GEOM\_EXTENSIONS**: Include support for geometric structures.
-* **LUA\_GLM\_NUMBER\_TYPE**: Use lua\_Number as the vector primitive; float otherwise.
-* **LUA\_GLM\_ALIASES**: Create aliases for common (alternate) names when registering the library.
-* **LUA\_GLM\_REPLACE\_MATH**: Replace the global math table with the glm binding library on loading.
-* **LUA\_GLM\_DRIFT**: Implicitly normalize all direction vector parameters (experiment to avoid floating-point drift).
-* **LUA\_GLM\_RECYCLE**: Treat all trailing and unused values on the Lua stack (but passed as parameters to the `CClosure`) as a 'cache' of recyclable structures.
-    ```lua
-    -- Some shared matrix
-    > t = mat(vec(1,1), vec(2,2))
 
-    -- When enabled, all arguments after "angle" are recycled.
-    > m = glm.axisAngleMatrix(vector3(1.0, 0.0, 0.0), math.rad(35.0), t)
+#### Binding Library Configuration
 
-    -- "t" and "m" reference the same matrix collectible.
-    > t == m
-    truef
-    ```
+* **LUAGLM\_INCLUDE\_ALL**: Create bindings for all declared GLM headers. To create module-only, extension-only, or header-only bindings see **EXTENDED.md** for a list of all headers.
+* **LUAGLM\_INCLUDE\_EXT**: Include ext headers: Stable extensions not specified by GLSL specification.
+* **LUAGLM\_INCLUDE\_GTC**: Include gtc headers: Recommended extensions not specified by GLSL specification.
+* **LUAGLM\_INCLUDE\_GTX**: Include gtx headers: Experimental extensions not specified by GLSL specification.
+* **LUAGLM\_INCLUDE\_GEOM**: Include support for geometric structures (`ext/geom/`).
+* **LUAGLM\_ALIASES**: Create aliases for common (alternate) names when registering the library.
+* **LUAGLM\_SAFELIB**: Enable a general try/catch wrapper for all binding functions.
+* **LUAGLM\_REPLACE\_MATH**: Replace the global math table with the glm binding library on loading.
+* **LUAGLM\_RECYCLE**: Treat all trailing and unused values on the Lua stack (but passed as parameters to the `CClosure`) as a 'cache' of recyclable structures.
+* **LUAGLM\_FORCED\_RECYCLE**: Disable this library from allocating memory, i.e., force usage of LUAGLM\_RECYCLE.
+* **LUAGLM\_DRIFT**: Experimental: Implicitly normalize all direction vector parameters (to avoid floating-point drift).
+* **LUAGLM\_INLINED\_TEMPLATES**: Experimental: Enable inlined-template resolution. Function names include object types to be parsed, e.g., F_P1P2, up to template resolution.
+
+Recycling Example:
+
+```lua
+-- Some shared matrix
+> t = mat(vec(1,1), vec(2,2))
+
+-- When enabled, all arguments after "angle" are recycled.
+> m = glm.axisAngleMatrix(vector3(1.0, 0.0, 0.0), math.rad(35.0), t)
+
+-- "t" and "m" reference the same matrix collectible.
+> t == m
+true
+```
 
 #### CRT Allocator
 
@@ -727,26 +744,25 @@ these added features.
 1. Initial support for frustums (both orthographic and perspective) and OBBs, or, at minimum, the more computationally complex parts of these structures.
 1. A significantly less efficient shared-library implementation, using tables and/or userdata instead of first-class types, for Lua5.1, Lua5.2, Lua5.3, Lua5.4, and [LuaJIT](https://github.com/LuaJIT/LuaJIT).
 1. Allow some binding functions to be independently applied to each value or structure on the call stack. If disabled, only operate on the minimum number of required objects (following lmathlib). For example:
-    ```lua
-    -- lmathlib
-    > math.rad(35, 35)
-    0.61086523819802
+  ```lua
+  -- lmathlib
+  > math.rad(35, 35)
+  0.61086523819802
 
-    -- LUA_GLM_EXT_UNARY=OFF
-    > glm.rad(35, 35)
-    0.61086523819802
+  -- LUAGLM_EXT_UNARY=OFF
+  > glm.rad(35, 35)
+  0.61086523819802
 
-    -- LUA_GLM_EXT_UNARY=ON
-    > glm.rad(35, 35)
-    0.61086523819802 0.61086523819802
-    ```
+  -- LUAGLM_EXT_UNARY=ON
+  > glm.rad(35, 35)
+  0.61086523819802 0.61086523819802
+  ```
 
 ### Tweaks/TODO
 
 Ordered by priority.
 
 1. Cleanup testing scripts/environment and publish.
-1. Rename `GRIT_POWER_*` flags.
 1. Optimize `binding` codegen and functions that use `glm_i2v`.
 1. Utility API that resembles `glUniformMatrix*v`-style functions, i.e., extracting/parsing array of matrices/vectors.
 1. Modify implementation to follow updated "Avoid taking the address of a 'TValue' field" (or reference) convention.
@@ -776,7 +792,7 @@ NumPy.py](https://github.com/Zuzu-Typ/PyGLM/blob/master/test/PyGLM%20vs%20NumPy.
 was ported to Lua + LuaGLM. Both were modified to increase the total number of
 iterations-per-case to be in the billions. Each value represents the average
 throughput in millions of operations per second. Secondary values represent the
-operations throughput with object/sink preallocation (see `LUA_GLM_RECYCLE`).
+operations throughput with object/sink preallocation (see `LUAGLM_RECYCLE`).
 
 | Operation                | NumPy runs | PyGLM runs | LuaGLM runs   |
 |--------------------------|------------|------------|---------------|

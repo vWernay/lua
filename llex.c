@@ -41,7 +41,7 @@ static const char *const luaX_tokens [] = {
     "and", "break", "do", "else", "elseif",
     "end", "false", "for", "function", "goto", "if",
     "in", "local",
-#if defined(GRIT_POWER_DEFER)
+#if defined(LUAGLM_EXT_DEFER)
     "defer",
 #endif
     "nil", "not", "or", "repeat",
@@ -50,7 +50,7 @@ static const char *const luaX_tokens [] = {
     "<<", ">>", "::", "<eof>",
     "<number>", "<integer>", "<name>", "<string>"
     , "<hash>"
-#if defined(GRIT_POWER_COMPOUND)
+#if defined(LUAGLM_EXT_COMPOUND)
     , "+=", "-=", "*=", "/=", "<<=", ">>=", "&=", "|=", "^="
 #endif
 };
@@ -110,7 +110,7 @@ const char *luaX_token2str (LexState *ls, int token) {
 
 static const char *txtToken (LexState *ls, int token) {
   switch (token) {
-#if defined(GRIT_POWER_JOAAT)
+#if defined(LUAGLM_EXT_JOAAT)
     case TK_HASH:
 #endif
     case TK_NAME: case TK_STRING:
@@ -471,7 +471,7 @@ static int llex (LexState *ls, SemInfo *seminfo) {
       }
       case '-': {  /* '-' or '--' (comment) */
         ls_next(ls);
-#if defined(GRIT_POWER_COMPOUND)
+#if defined(LUAGLM_EXT_COMPOUND)
         if (check_next1(ls, '=')) return TK_MINUSEQ;
 #endif
         if (ls->current != '-') return '-';
@@ -509,7 +509,7 @@ static int llex (LexState *ls, SemInfo *seminfo) {
       case '<': {
         ls_next(ls);
         if (check_next1(ls, '=')) return TK_LE;  /* '<=' */
-#if defined(GRIT_POWER_COMPOUND)
+#if defined(LUAGLM_EXT_COMPOUND)
         else if (check_next1(ls, '<')) {
           if (check_next1(ls, '='))
             return TK_SHLEQ;
@@ -524,7 +524,7 @@ static int llex (LexState *ls, SemInfo *seminfo) {
       case '>': {
         ls_next(ls);
         if (check_next1(ls, '=')) return TK_GE;  /* '>=' */
-#if defined(GRIT_POWER_COMPOUND)
+#if defined(LUAGLM_EXT_COMPOUND)
         else if (check_next1(ls, '>')) {
           if (check_next1(ls, '='))
             return TK_SHREQ;
@@ -539,11 +539,11 @@ static int llex (LexState *ls, SemInfo *seminfo) {
       case '/': {
         ls_next(ls);
         if (check_next1(ls, '/')) return TK_IDIV;  /* '//' */
-#if defined(GRIT_POWER_COMPOUND)
+#if defined(LUAGLM_EXT_COMPOUND)
         else if (check_next1(ls, '=')) return TK_DIVEQ;
 #endif
         else {
-#if defined(GRIT_POWER_CCOMMENT)
+#if defined(LUAGLM_EXT_CCOMMENT)
           int last = 0;
           if (ls->current == '*') { /* long comment */
             ls_next(ls);
@@ -566,7 +566,7 @@ static int llex (LexState *ls, SemInfo *seminfo) {
           return '/';
         }
       }
-#if defined(GRIT_POWER_COMPOUND)
+#if defined(LUAGLM_EXT_COMPOUND)
       case '+': {
         ls_next(ls);
         if (check_next1(ls, '=')) return TK_PLUSEQ;
@@ -600,7 +600,12 @@ static int llex (LexState *ls, SemInfo *seminfo) {
       }
       case ':': {
         ls_next(ls);
-#if defined(GRIT_POWER_NAMESPACE_SEL)
+        /*
+        @@ LUAGLM_EXT_SCOPE_RESOLUTION: Replace TK_DBCOLON tokens with field
+        ** selection (e.g., emulate C++ scope resolution operator). Note, this
+        ** invalidates the 'label' rule in the grammar.
+        */
+#if defined(LUAGLM_EXT_SCOPE_RESOLUTION)
         if (check_next1(ls, ':')) return '.';
 #else
         if (check_next1(ls, ':')) return TK_DBCOLON;  /* '::' */
@@ -611,7 +616,7 @@ static int llex (LexState *ls, SemInfo *seminfo) {
         read_string(ls, ls->current, seminfo);
         return TK_STRING;
       }
-#if defined(GRIT_POWER_JOAAT)
+#if defined(LUAGLM_EXT_JOAAT)
       case '`': {  /* compiled hash */
         read_string(ls, ls->current, seminfo);
         return TK_HASH;

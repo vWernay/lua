@@ -9,7 +9,7 @@
 */
 #ifndef lglm_h
 #define lglm_h
-#define LUA_GLM_API
+#define LUAGLM_API
 #if !defined(GLM_ENABLE_EXPERIMENTAL)
   #define GLM_ENABLE_EXPERIMENTAL
 #endif
@@ -29,12 +29,12 @@
 #include <glm/detail/type_quat.hpp>
 
 /*
-@@ LUA_GLM_MINVERSION Minimum supported GLM_VERSION.
-@@ LUA_GLM_MAXVERSION Maximum supported GLM_VERSION.
+@@ LUAGLM_LIBVERSION_MIN Minimum supported GLM_VERSION.
+@@ LUAGLM_LIBVERSION_MAX Maximum supported GLM_VERSION.
 */
-#define LUA_GLM_MINVERSION 991
-#define LUA_GLM_MAXVERSION 999
-#if GLM_VERSION < LUA_GLM_MINVERSION || GLM_VERSION > LUA_GLM_MAXVERSION
+#define LUAGLM_LIBVERSION_MIN 991
+#define LUAGLM_LIBVERSION_MAX 999
+#if GLM_VERSION < LUAGLM_LIBVERSION_MIN || GLM_VERSION > LUAGLM_LIBVERSION_MAX
   #error "GLM error: unsupported version"
 #endif
 
@@ -68,10 +68,10 @@
 ** primitive to each vector/quaternion is float. This increases the minimum size
 ** to a Value/TaggedValue to 16-bytes (or 4 x float).
 **
-** By enabling "LUA_GLM_NUMBER_TYPE", the primitive type of each vector becomes
+** By enabling "LUAGLM_NUMBER_TYPE", the primitive type of each vector becomes
 ** lua_Number.
 */
-#if defined(LUA_GLM_NUMBER_TYPE) && LUA_FLOAT_TYPE != LUA_FLOAT_LONGDOUBLE
+#if defined(LUAGLM_NUMBER_TYPE) && LUA_FLOAT_TYPE != LUA_FLOAT_LONGDOUBLE
   #define GLM_FLOAT_TYPE LUA_NUMBER
   #define GLM_INT_TYPE LUA_INTEGER
 #else
@@ -115,7 +115,7 @@ typedef GLM_INT_TYPE glm_Integer;
 #define cast_quat(Q, T) glm::qua<T>(static_cast<T>((Q).w), static_cast<T>((Q).x), static_cast<T>((Q).y), static_cast<T>((Q).z))
 
 /* @NOTE equal objects must have equal hashes; use with caution. */
-#if defined(LUA_GLM_EPS_EQUAL)
+#if defined(LUAGLM_EPS_EQUAL)
   #define _glmeq(a, b) (glm::all(glm::equal((a), (b), glm::epsilon<glm_Float>())))
 #else
   #define _glmeq(a, b) ((a) == (b))
@@ -281,7 +281,7 @@ union glmVector {
 /// <summary>
 /// Internal matrix definition.
 /// </summary>
-LUA_GLM_ALIGNED_TYPE(struct, glmMatrix) {
+LUAGLM_ALIGNED_TYPE(struct, glmMatrix) {
   union {
     glm::mat<2, 2, glm_Float> m22;
     glm::mat<2, 3, glm_Float> m23;
@@ -297,34 +297,34 @@ LUA_GLM_ALIGNED_TYPE(struct, glmMatrix) {
 
 #if GLM_CONFIG_DEFAULTED_DEFAULT_CTOR == GLM_DISABLE
 #if GLM_CONFIG_CTOR_INIT == GLM_CTOR_INITIALIZER_LIST
-  glmMatrix() : m44(glm::mat<4, 4, glm_Float>()), dimensions(LUA_GLM_MATRIX_4x4) { }
+  glmMatrix() : m44(glm::mat<4, 4, glm_Float>()), dimensions(LUAGLM_MATRIX_4x4) { }
 #else
-  glmMatrix() { dimensions = LUA_GLM_MATRIX_4x4; m44 = glm::mat<4, 4, glm_Float>(); }
+  glmMatrix() { dimensions = LUAGLM_MATRIX_4x4; m44 = glm::mat<4, 4, glm_Float>(); }
 #endif
 #else
   glmMatrix() GLM_DEFAULT_CTOR;
 #endif
-  glmMatrix(const glm::mat<2, 2, glm_Float> &_m) : m22(_m), dimensions(LUA_GLM_MATRIX_2x2) { }
-  glmMatrix(const glm::mat<2, 3, glm_Float> &_m) : m23(_m), dimensions(LUA_GLM_MATRIX_2x3) { }
-  glmMatrix(const glm::mat<2, 4, glm_Float> &_m) : m24(_m), dimensions(LUA_GLM_MATRIX_2x4) { }
-  glmMatrix(const glm::mat<3, 2, glm_Float> &_m) : m32(_m), dimensions(LUA_GLM_MATRIX_3x2) { }
-  glmMatrix(const glm::mat<3, 3, glm_Float> &_m) : m33(_m), dimensions(LUA_GLM_MATRIX_3x3) { }
-  glmMatrix(const glm::mat<3, 4, glm_Float> &_m) : m34(_m), dimensions(LUA_GLM_MATRIX_3x4) { }
-  glmMatrix(const glm::mat<4, 2, glm_Float> &_m) : m42(_m), dimensions(LUA_GLM_MATRIX_4x2) { }
-  glmMatrix(const glm::mat<4, 3, glm_Float> &_m) : m43(_m), dimensions(LUA_GLM_MATRIX_4x3) { }
-  glmMatrix(const glm::mat<4, 4, glm_Float> &_m) : m44(_m), dimensions(LUA_GLM_MATRIX_4x4) { }
+  glmMatrix(const glm::mat<2, 2, glm_Float> &_m) : m22(_m), dimensions(LUAGLM_MATRIX_2x2) { }
+  glmMatrix(const glm::mat<2, 3, glm_Float> &_m) : m23(_m), dimensions(LUAGLM_MATRIX_2x3) { }
+  glmMatrix(const glm::mat<2, 4, glm_Float> &_m) : m24(_m), dimensions(LUAGLM_MATRIX_2x4) { }
+  glmMatrix(const glm::mat<3, 2, glm_Float> &_m) : m32(_m), dimensions(LUAGLM_MATRIX_3x2) { }
+  glmMatrix(const glm::mat<3, 3, glm_Float> &_m) : m33(_m), dimensions(LUAGLM_MATRIX_3x3) { }
+  glmMatrix(const glm::mat<3, 4, glm_Float> &_m) : m34(_m), dimensions(LUAGLM_MATRIX_3x4) { }
+  glmMatrix(const glm::mat<4, 2, glm_Float> &_m) : m42(_m), dimensions(LUAGLM_MATRIX_4x2) { }
+  glmMatrix(const glm::mat<4, 3, glm_Float> &_m) : m43(_m), dimensions(LUAGLM_MATRIX_4x3) { }
+  glmMatrix(const glm::mat<4, 4, glm_Float> &_m) : m44(_m), dimensions(LUAGLM_MATRIX_4x4) { }
 
   // Assignment Operators
 
-  inline void operator=(const glm::mat<2, 2, glm_Float> &_m) { dimensions = LUA_GLM_MATRIX_2x2; m22 = _m; }
-  inline void operator=(const glm::mat<2, 3, glm_Float> &_m) { dimensions = LUA_GLM_MATRIX_2x3; m23 = _m; }
-  inline void operator=(const glm::mat<2, 4, glm_Float> &_m) { dimensions = LUA_GLM_MATRIX_2x4; m24 = _m; }
-  inline void operator=(const glm::mat<3, 2, glm_Float> &_m) { dimensions = LUA_GLM_MATRIX_3x2; m32 = _m; }
-  inline void operator=(const glm::mat<3, 3, glm_Float> &_m) { dimensions = LUA_GLM_MATRIX_3x3; m33 = _m; }
-  inline void operator=(const glm::mat<3, 4, glm_Float> &_m) { dimensions = LUA_GLM_MATRIX_3x4; m34 = _m; }
-  inline void operator=(const glm::mat<4, 2, glm_Float> &_m) { dimensions = LUA_GLM_MATRIX_4x2; m42 = _m; }
-  inline void operator=(const glm::mat<4, 3, glm_Float> &_m) { dimensions = LUA_GLM_MATRIX_4x3; m43 = _m; }
-  inline void operator=(const glm::mat<4, 4, glm_Float> &_m) { dimensions = LUA_GLM_MATRIX_4x4; m44 = _m; }
+  inline void operator=(const glm::mat<2, 2, glm_Float> &_m) { dimensions = LUAGLM_MATRIX_2x2; m22 = _m; }
+  inline void operator=(const glm::mat<2, 3, glm_Float> &_m) { dimensions = LUAGLM_MATRIX_2x3; m23 = _m; }
+  inline void operator=(const glm::mat<2, 4, glm_Float> &_m) { dimensions = LUAGLM_MATRIX_2x4; m24 = _m; }
+  inline void operator=(const glm::mat<3, 2, glm_Float> &_m) { dimensions = LUAGLM_MATRIX_3x2; m32 = _m; }
+  inline void operator=(const glm::mat<3, 3, glm_Float> &_m) { dimensions = LUAGLM_MATRIX_3x3; m33 = _m; }
+  inline void operator=(const glm::mat<3, 4, glm_Float> &_m) { dimensions = LUAGLM_MATRIX_3x4; m34 = _m; }
+  inline void operator=(const glm::mat<4, 2, glm_Float> &_m) { dimensions = LUAGLM_MATRIX_4x2; m42 = _m; }
+  inline void operator=(const glm::mat<4, 3, glm_Float> &_m) { dimensions = LUAGLM_MATRIX_4x3; m43 = _m; }
+  inline void operator=(const glm::mat<4, 4, glm_Float> &_m) { dimensions = LUAGLM_MATRIX_4x4; m44 = _m; }
 
   // Reassignment; glm::mat = glmMatrix.
 

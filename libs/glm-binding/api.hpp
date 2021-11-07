@@ -14,26 +14,26 @@
 ** Flags used by the binding API.
 **
 ** Functions:
-@@ LUA_GLM_INCLUDE_GTC Include glm/gtc/+
-@@ LUA_GLM_INCLUDE_GTX Include glm/gtx/+
-@@ LUA_GLM_INCLUDE_EXT Include glm/ext/+
-@@ LUA_GLM_INCLUDE_ALL Include all GLM headers.
-@@ LUA_GLM_ALIASES Include aliases (e.g., length vs. magnitude) to functions.
+@@ LUAGLM_INCLUDE_GTC Include glm/gtc/+
+@@ LUAGLM_INCLUDE_GTX Include glm/gtx/+
+@@ LUAGLM_INCLUDE_EXT Include glm/ext/+
+@@ LUAGLM_INCLUDE_ALL Include all GLM headers.
+@@ LUAGLM_ALIASES Include aliases (e.g., length vs. magnitude) to functions.
 **
 ** Features:
-@@ LUA_GLM_REPLACE_MATH Force replace _G.math with the binding library on open.
-@@ LUA_GLM_RECYCLE Enable object recycling: trailing/unused parameters in a
+@@ LUAGLM_REPLACE_MATH Force replace _G.math with the binding library on open.
+@@ LUAGLM_RECYCLE Enable object recycling: trailing/unused parameters in a
 **  function call, e.g., matrix objects, are used as a result store.
-@@ LUA_GLM_FORCED_RECYCLE Disable this library from allocating memory, i.e.,
-**  force usage of LUA_GLM_RECYCLE. Note, polygons other geom/ structures ignore
+@@ LUAGLM_FORCED_RECYCLE Disable this library from allocating memory, i.e.,
+**  force usage of LUAGLM_RECYCLE. Note, polygons other geom/ structures ignore
 **  this flag (this may change).
-@@ LUA_GLM_SAFE Enable a general try/catch wrapper for API functions. This
-**  should likely be disabled.
+@@ LUAGLM_SAFELIB Enable a general try/catch wrapper for API/binding functions.
+**  This should likely be disabled.
 **
 ** Experimental:
-@@ LUA_GLM_DRIFT Implicitly normalize parameters that expect direction vectors
+@@ LUAGLM_DRIFT Implicitly normalize parameters that expect direction vectors
 **  and quaternions.
-@@ LUA_GLM_INLINED_TEMPLATES Enable inlined-template resolution. Function names
+@@ LUAGLM_INLINED_TEMPLATES Enable inlined-template resolution. Function names
 **  include object types to be parsed, e.g., F_P1P2, up to template resolution.
 */
 #include "bindings.hpp"
@@ -80,11 +80,11 @@
 #define MATRIX_HPP
 #define TRIGONOMETRIC_HPP
 #define VECTOR_RELATIONAL_HPP
-#if defined(LUA_GLM_INCLUDE_ALL)
+#if defined(LUAGLM_INCLUDE_ALL)
   #define PACKING_HPP
 #endif
 
-#if defined(LUA_GLM_INCLUDE_ALL) || defined(LUA_GLM_INCLUDE_EXT)
+#if defined(LUAGLM_INCLUDE_ALL) || defined(LUAGLM_INCLUDE_EXT)
   #define EXT_MATRIX_CLIP_SPACE_HPP
   #define EXT_MATRIX_COMMON_HPP
   #define EXT_MATRIX_PROJECTION_HPP
@@ -106,7 +106,7 @@
   #define EXT_VECTOR_ULP_HPP
 #endif
 
-#if defined(LUA_GLM_INCLUDE_ALL) || defined(LUA_GLM_INCLUDE_GTC)
+#if defined(LUAGLM_INCLUDE_ALL) || defined(LUAGLM_INCLUDE_GTC)
   #define GTC_BITFIELD_HPP
   #define GTC_COLOR_SPACE_HPP
   #define GTC_EPSILON_HPP
@@ -122,7 +122,7 @@
   #define GTC_ULP_HPP
 #endif
 
-#if defined(LUA_GLM_INCLUDE_ALL) || defined(LUA_GLM_INCLUDE_GTX)
+#if defined(LUAGLM_INCLUDE_ALL) || defined(LUAGLM_INCLUDE_GTX)
   #if !defined(GLM_ENABLE_EXPERIMENTAL)
     #error "GLM_ENABLE_EXPERIMENTAL not enabled!"
   #endif
@@ -202,6 +202,7 @@
 ** ===================================================================
 */
 
+/* Template for matrix equals/not-equals */
 #define LAYOUT_MATRIX_EQUAL(LB, F, Tr, ...) \
   GENERIC_EQUAL(LB, F, Tr, gLuaTrait<typename Tr::type::row_type>)
 
@@ -301,6 +302,7 @@ GLM_BINDING_QUALIFIER(unpack) {
 ** ===================================================================
 */
 
+/* Layout for object addition: object + object || object + number */
 #define LAYOUT_ADDITION_OP(LB, F, Tr, type)            \
   LUA_MLM_BEGIN                                        \
   if (type == LUA_TNUMBER)                             \
@@ -308,13 +310,14 @@ GLM_BINDING_QUALIFIER(unpack) {
   TRAITS_FUNC(LB, F, Tr, Tr);                          \
   LUA_MLM_END
 
+/* Layout for generic matrix multiplication. */
 #define LAYOUT_MULTIPLICATION_OP(LB, F, Tr, type)                               \
   LUA_MLM_BEGIN                                                                 \
   switch (type) {                                                               \
     case LUA_TNUMBER: TRAITS_FUNC(LB, F, Tr, gLuaTrait<Tr::value_type>); break; \
     case LUA_TVECTOR: TRAITS_FUNC(LB, F, Tr, Tr::row_type); break;              \
     case LUA_TMATRIX: {                                                         \
-      switch (LUA_GLM_MATRIX_ROWS(mvalue_dims(_tv))) {                          \
+      switch (LUAGLM_MATRIX_ROWS(mvalue_dims(_tv))) {                           \
         case 2: TRAITS_FUNC(LB, F, Tr, Tr::rhs_mat_type<2>); break;             \
         case 3: TRAITS_FUNC(LB, F, Tr, Tr::rhs_mat_type<3>); break;             \
         case 4: TRAITS_FUNC(LB, F, Tr, Tr::rhs_mat_type<4>); break;             \
@@ -342,15 +345,15 @@ GLM_BINDING_QUALIFIER(mat_add) {
   const TValue *_tv2 = glm_i2v(LB.L, LB.idx + 1);
   if (l_likely(ttismatrix(_tv))) {
     switch (mvalue_dims(_tv)) {
-      case LUA_GLM_MATRIX_2x2: LAYOUT_ADDITION_OP(LB, operator+, gLuaMat2x2<>, ttype(_tv2)); break;
-      case LUA_GLM_MATRIX_2x3: LAYOUT_ADDITION_OP(LB, operator+, gLuaMat2x3<>, ttype(_tv2)); break;
-      case LUA_GLM_MATRIX_2x4: LAYOUT_ADDITION_OP(LB, operator+, gLuaMat2x4<>, ttype(_tv2)); break;
-      case LUA_GLM_MATRIX_3x2: LAYOUT_ADDITION_OP(LB, operator+, gLuaMat3x2<>, ttype(_tv2)); break;
-      case LUA_GLM_MATRIX_3x3: LAYOUT_ADDITION_OP(LB, operator+, gLuaMat3x3<>, ttype(_tv2)); break;
-      case LUA_GLM_MATRIX_3x4: LAYOUT_ADDITION_OP(LB, operator+, gLuaMat3x4<>, ttype(_tv2)); break;
-      case LUA_GLM_MATRIX_4x2: LAYOUT_ADDITION_OP(LB, operator+, gLuaMat4x2<>, ttype(_tv2)); break;
-      case LUA_GLM_MATRIX_4x3: LAYOUT_ADDITION_OP(LB, operator+, gLuaMat4x3<>, ttype(_tv2)); break;
-      case LUA_GLM_MATRIX_4x4: LAYOUT_ADDITION_OP(LB, operator+, gLuaMat4x4<>, ttype(_tv2)); break;
+      case LUAGLM_MATRIX_2x2: LAYOUT_ADDITION_OP(LB, operator+, gLuaMat2x2<>, ttype(_tv2)); break;
+      case LUAGLM_MATRIX_2x3: LAYOUT_ADDITION_OP(LB, operator+, gLuaMat2x3<>, ttype(_tv2)); break;
+      case LUAGLM_MATRIX_2x4: LAYOUT_ADDITION_OP(LB, operator+, gLuaMat2x4<>, ttype(_tv2)); break;
+      case LUAGLM_MATRIX_3x2: LAYOUT_ADDITION_OP(LB, operator+, gLuaMat3x2<>, ttype(_tv2)); break;
+      case LUAGLM_MATRIX_3x3: LAYOUT_ADDITION_OP(LB, operator+, gLuaMat3x3<>, ttype(_tv2)); break;
+      case LUAGLM_MATRIX_3x4: LAYOUT_ADDITION_OP(LB, operator+, gLuaMat3x4<>, ttype(_tv2)); break;
+      case LUAGLM_MATRIX_4x2: LAYOUT_ADDITION_OP(LB, operator+, gLuaMat4x2<>, ttype(_tv2)); break;
+      case LUAGLM_MATRIX_4x3: LAYOUT_ADDITION_OP(LB, operator+, gLuaMat4x3<>, ttype(_tv2)); break;
+      case LUAGLM_MATRIX_4x4: LAYOUT_ADDITION_OP(LB, operator+, gLuaMat4x4<>, ttype(_tv2)); break;
       default: {
         break;
       }
@@ -367,15 +370,15 @@ GLM_BINDING_QUALIFIER(mat_sub) {
   const TValue *_tv2 = glm_i2v(LB.L, LB.idx + 1);
   if (l_likely(ttismatrix(_tv))) {
     switch (mvalue_dims(_tv)) {
-      case LUA_GLM_MATRIX_2x2: LAYOUT_ADDITION_OP(LB, operator-, gLuaMat2x2<>, ttype(_tv2)); break;
-      case LUA_GLM_MATRIX_2x3: LAYOUT_ADDITION_OP(LB, operator-, gLuaMat2x3<>, ttype(_tv2)); break;
-      case LUA_GLM_MATRIX_2x4: LAYOUT_ADDITION_OP(LB, operator-, gLuaMat2x4<>, ttype(_tv2)); break;
-      case LUA_GLM_MATRIX_3x2: LAYOUT_ADDITION_OP(LB, operator-, gLuaMat3x2<>, ttype(_tv2)); break;
-      case LUA_GLM_MATRIX_3x3: LAYOUT_ADDITION_OP(LB, operator-, gLuaMat3x3<>, ttype(_tv2)); break;
-      case LUA_GLM_MATRIX_3x4: LAYOUT_ADDITION_OP(LB, operator-, gLuaMat3x4<>, ttype(_tv2)); break;
-      case LUA_GLM_MATRIX_4x2: LAYOUT_ADDITION_OP(LB, operator-, gLuaMat4x2<>, ttype(_tv2)); break;
-      case LUA_GLM_MATRIX_4x3: LAYOUT_ADDITION_OP(LB, operator-, gLuaMat4x3<>, ttype(_tv2)); break;
-      case LUA_GLM_MATRIX_4x4: LAYOUT_ADDITION_OP(LB, operator-, gLuaMat4x4<>, ttype(_tv2)); break;
+      case LUAGLM_MATRIX_2x2: LAYOUT_ADDITION_OP(LB, operator-, gLuaMat2x2<>, ttype(_tv2)); break;
+      case LUAGLM_MATRIX_2x3: LAYOUT_ADDITION_OP(LB, operator-, gLuaMat2x3<>, ttype(_tv2)); break;
+      case LUAGLM_MATRIX_2x4: LAYOUT_ADDITION_OP(LB, operator-, gLuaMat2x4<>, ttype(_tv2)); break;
+      case LUAGLM_MATRIX_3x2: LAYOUT_ADDITION_OP(LB, operator-, gLuaMat3x2<>, ttype(_tv2)); break;
+      case LUAGLM_MATRIX_3x3: LAYOUT_ADDITION_OP(LB, operator-, gLuaMat3x3<>, ttype(_tv2)); break;
+      case LUAGLM_MATRIX_3x4: LAYOUT_ADDITION_OP(LB, operator-, gLuaMat3x4<>, ttype(_tv2)); break;
+      case LUAGLM_MATRIX_4x2: LAYOUT_ADDITION_OP(LB, operator-, gLuaMat4x2<>, ttype(_tv2)); break;
+      case LUAGLM_MATRIX_4x3: LAYOUT_ADDITION_OP(LB, operator-, gLuaMat4x3<>, ttype(_tv2)); break;
+      case LUAGLM_MATRIX_4x4: LAYOUT_ADDITION_OP(LB, operator-, gLuaMat4x4<>, ttype(_tv2)); break;
       default: {
         break;
       }
@@ -400,15 +403,15 @@ GLM_BINDING_QUALIFIER(mat_mul) {
     case LUA_VNUMFLT: {  // number * matrix
       if (l_likely(ttismatrix(_tv2))) {
         switch (mvalue_dims(_tv2)) {
-          case LUA_GLM_MATRIX_2x2: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat2x2<>); break;
-          case LUA_GLM_MATRIX_2x3: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat2x3<>); break;
-          case LUA_GLM_MATRIX_2x4: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat2x4<>); break;
-          case LUA_GLM_MATRIX_3x2: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat3x2<>); break;
-          case LUA_GLM_MATRIX_3x3: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat3x3<>); break;
-          case LUA_GLM_MATRIX_3x4: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat3x4<>); break;
-          case LUA_GLM_MATRIX_4x2: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat4x2<>); break;
-          case LUA_GLM_MATRIX_4x3: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat4x3<>); break;
-          case LUA_GLM_MATRIX_4x4: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat4x4<>); break;
+          case LUAGLM_MATRIX_2x2: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat2x2<>); break;
+          case LUAGLM_MATRIX_2x3: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat2x3<>); break;
+          case LUAGLM_MATRIX_2x4: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat2x4<>); break;
+          case LUAGLM_MATRIX_3x2: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat3x2<>); break;
+          case LUAGLM_MATRIX_3x3: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat3x3<>); break;
+          case LUAGLM_MATRIX_3x4: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat3x4<>); break;
+          case LUAGLM_MATRIX_4x2: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat4x2<>); break;
+          case LUAGLM_MATRIX_4x3: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat4x3<>); break;
+          case LUAGLM_MATRIX_4x4: TRAITS_FUNC(LB, operator*, gLuaFloat, gLuaMat4x4<>); break;
           default: {
             break;
           }
@@ -421,15 +424,15 @@ GLM_BINDING_QUALIFIER(mat_mul) {
     case LUA_VVECTOR4: LAYOUT_MULTIPLICATION_OP(LB, operator*, gLuaVec4<>, ttype(_tv2)); break;
     case LUA_VMATRIX: {
       switch (mvalue_dims(_tv)) {
-        case LUA_GLM_MATRIX_2x2: LAYOUT_MULTIPLICATION_OP(LB, operator*, gLuaMat2x2<>, ttype(_tv2)); break;
-        case LUA_GLM_MATRIX_2x3: LAYOUT_MULTIPLICATION_OP(LB, operator*, gLuaMat2x3<>, ttype(_tv2)); break;
-        case LUA_GLM_MATRIX_2x4: LAYOUT_MULTIPLICATION_OP(LB, operator*, gLuaMat2x4<>, ttype(_tv2)); break;
-        case LUA_GLM_MATRIX_3x2: LAYOUT_MULTIPLICATION_OP(LB, operator*, gLuaMat3x2<>, ttype(_tv2)); break;
-        case LUA_GLM_MATRIX_3x3: LAYOUT_MULTIPLICATION_OP(LB, operator*, gLuaMat3x3<>, ttype(_tv2)); break;
-        case LUA_GLM_MATRIX_3x4: LAYOUT_MULTIPLICATION_OP(LB, operator*, gLuaMat3x4<>, ttype(_tv2)); break;
-        case LUA_GLM_MATRIX_4x2: LAYOUT_MULTIPLICATION_OP(LB, operator*, gLuaMat4x2<>, ttype(_tv2)); break;
-        case LUA_GLM_MATRIX_4x3: LAYOUT_MULTIPLICATION_OP(LB, operator*, gLuaMat4x3<>, ttype(_tv2)); break;
-        case LUA_GLM_MATRIX_4x4: LAYOUT_MULTIPLICATION_OP(LB, operator*, gLuaMat4x4<>, ttype(_tv2)); break;
+        case LUAGLM_MATRIX_2x2: LAYOUT_MULTIPLICATION_OP(LB, operator*, gLuaMat2x2<>, ttype(_tv2)); break;
+        case LUAGLM_MATRIX_2x3: LAYOUT_MULTIPLICATION_OP(LB, operator*, gLuaMat2x3<>, ttype(_tv2)); break;
+        case LUAGLM_MATRIX_2x4: LAYOUT_MULTIPLICATION_OP(LB, operator*, gLuaMat2x4<>, ttype(_tv2)); break;
+        case LUAGLM_MATRIX_3x2: LAYOUT_MULTIPLICATION_OP(LB, operator*, gLuaMat3x2<>, ttype(_tv2)); break;
+        case LUAGLM_MATRIX_3x3: LAYOUT_MULTIPLICATION_OP(LB, operator*, gLuaMat3x3<>, ttype(_tv2)); break;
+        case LUAGLM_MATRIX_3x4: LAYOUT_MULTIPLICATION_OP(LB, operator*, gLuaMat3x4<>, ttype(_tv2)); break;
+        case LUAGLM_MATRIX_4x2: LAYOUT_MULTIPLICATION_OP(LB, operator*, gLuaMat4x2<>, ttype(_tv2)); break;
+        case LUAGLM_MATRIX_4x3: LAYOUT_MULTIPLICATION_OP(LB, operator*, gLuaMat4x3<>, ttype(_tv2)); break;
+        case LUAGLM_MATRIX_4x4: LAYOUT_MULTIPLICATION_OP(LB, operator*, gLuaMat4x4<>, ttype(_tv2)); break;
         default: {
           break;
         }
@@ -449,15 +452,15 @@ GLM_BINDING_QUALIFIER(mat_negate) {
   const TValue *_tv = glm_i2v(LB.L, LB.idx);
   if (l_likely(ttismatrix(_tv))) {
     switch (mvalue_dims(_tv)) {
-      case LUA_GLM_MATRIX_2x2: TRAITS_FUNC(LB, operator-, gLuaMat2x2<>); break;
-      case LUA_GLM_MATRIX_2x3: TRAITS_FUNC(LB, operator-, gLuaMat2x3<>); break;
-      case LUA_GLM_MATRIX_2x4: TRAITS_FUNC(LB, operator-, gLuaMat2x4<>); break;
-      case LUA_GLM_MATRIX_3x2: TRAITS_FUNC(LB, operator-, gLuaMat3x2<>); break;
-      case LUA_GLM_MATRIX_3x3: TRAITS_FUNC(LB, operator-, gLuaMat3x3<>); break;
-      case LUA_GLM_MATRIX_3x4: TRAITS_FUNC(LB, operator-, gLuaMat3x4<>); break;
-      case LUA_GLM_MATRIX_4x2: TRAITS_FUNC(LB, operator-, gLuaMat4x2<>); break;
-      case LUA_GLM_MATRIX_4x3: TRAITS_FUNC(LB, operator-, gLuaMat4x3<>); break;
-      case LUA_GLM_MATRIX_4x4: TRAITS_FUNC(LB, operator-, gLuaMat4x4<>); break;
+      case LUAGLM_MATRIX_2x2: TRAITS_FUNC(LB, operator-, gLuaMat2x2<>); break;
+      case LUAGLM_MATRIX_2x3: TRAITS_FUNC(LB, operator-, gLuaMat2x3<>); break;
+      case LUAGLM_MATRIX_2x4: TRAITS_FUNC(LB, operator-, gLuaMat2x4<>); break;
+      case LUAGLM_MATRIX_3x2: TRAITS_FUNC(LB, operator-, gLuaMat3x2<>); break;
+      case LUAGLM_MATRIX_3x3: TRAITS_FUNC(LB, operator-, gLuaMat3x3<>); break;
+      case LUAGLM_MATRIX_3x4: TRAITS_FUNC(LB, operator-, gLuaMat3x4<>); break;
+      case LUAGLM_MATRIX_4x2: TRAITS_FUNC(LB, operator-, gLuaMat4x2<>); break;
+      case LUAGLM_MATRIX_4x3: TRAITS_FUNC(LB, operator-, gLuaMat4x3<>); break;
+      case LUAGLM_MATRIX_4x4: TRAITS_FUNC(LB, operator-, gLuaMat4x4<>); break;
       default: {
         break;
       }
@@ -668,9 +671,9 @@ GLM_BINDING_QUALIFIER(inverse) {
     case LUA_VQUAT: TRAITS_FUNC(LB, glm::inverse, gLuaQuat<>); break;
     case LUA_VMATRIX: {
       switch (mvalue_dims(_tv)) {
-        case LUA_GLM_MATRIX_2x2: TRAITS_FUNC(LB, glm::inverse, gLuaMat2x2<>); break;
-        case LUA_GLM_MATRIX_3x3: TRAITS_FUNC(LB, glm::inverse, gLuaMat3x3<>); break;
-        case LUA_GLM_MATRIX_4x4: TRAITS_FUNC(LB, glm::inverse, gLuaMat4x4<>); break;
+        case LUAGLM_MATRIX_2x2: TRAITS_FUNC(LB, glm::inverse, gLuaMat2x2<>); break;
+        case LUAGLM_MATRIX_3x3: TRAITS_FUNC(LB, glm::inverse, gLuaMat3x3<>); break;
+        case LUAGLM_MATRIX_4x4: TRAITS_FUNC(LB, glm::inverse, gLuaMat4x4<>); break;
         default: {
           return luaL_typeerror(LB.L, LB.idx, GLM_INVALID_MAT_DIMENSIONS);
         }
@@ -851,16 +854,16 @@ GLM_BINDING_QUALIFIER(identity) {
   GLM_BINDING_BEGIN
   const lua_Integer size = gLuaInteger::Next(LB);
   const lua_Integer secondary = gLuaInteger::Next(LB);
-  switch (LUA_GLM_MATRIX_TYPE(size, secondary)) {
-    case LUA_GLM_MATRIX_2x2: return gLuaBase::Push(LB, glm::identity<gLuaMat2x2<>::type>());
-    case LUA_GLM_MATRIX_2x3: return gLuaBase::Push(LB, glm::identity<gLuaMat2x3<>::type>());
-    case LUA_GLM_MATRIX_2x4: return gLuaBase::Push(LB, glm::identity<gLuaMat2x4<>::type>());
-    case LUA_GLM_MATRIX_3x2: return gLuaBase::Push(LB, glm::identity<gLuaMat3x2<>::type>());
-    case LUA_GLM_MATRIX_3x3: return gLuaBase::Push(LB, glm::identity<gLuaMat3x3<>::type>());
-    case LUA_GLM_MATRIX_3x4: return gLuaBase::Push(LB, glm::identity<gLuaMat3x4<>::type>());
-    case LUA_GLM_MATRIX_4x2: return gLuaBase::Push(LB, glm::identity<gLuaMat4x2<>::type>());
-    case LUA_GLM_MATRIX_4x3: return gLuaBase::Push(LB, glm::identity<gLuaMat4x3<>::type>());
-    case LUA_GLM_MATRIX_4x4: return gLuaBase::Push(LB, glm::identity<gLuaMat4x4<>::type>());
+  switch (LUAGLM_MATRIX_TYPE(size, secondary)) {
+    case LUAGLM_MATRIX_2x2: return gLuaBase::Push(LB, glm::identity<gLuaMat2x2<>::type>());
+    case LUAGLM_MATRIX_2x3: return gLuaBase::Push(LB, glm::identity<gLuaMat2x3<>::type>());
+    case LUAGLM_MATRIX_2x4: return gLuaBase::Push(LB, glm::identity<gLuaMat2x4<>::type>());
+    case LUAGLM_MATRIX_3x2: return gLuaBase::Push(LB, glm::identity<gLuaMat3x2<>::type>());
+    case LUAGLM_MATRIX_3x3: return gLuaBase::Push(LB, glm::identity<gLuaMat3x3<>::type>());
+    case LUAGLM_MATRIX_3x4: return gLuaBase::Push(LB, glm::identity<gLuaMat3x4<>::type>());
+    case LUAGLM_MATRIX_4x2: return gLuaBase::Push(LB, glm::identity<gLuaMat4x2<>::type>());
+    case LUAGLM_MATRIX_4x3: return gLuaBase::Push(LB, glm::identity<gLuaMat4x3<>::type>());
+    case LUAGLM_MATRIX_4x4: return gLuaBase::Push(LB, glm::identity<gLuaMat4x4<>::type>());
     default: {
       break;
     }
@@ -1043,9 +1046,9 @@ GLM_BINDING_QUALIFIER(axisAngle) {
       case LUA_VVECTOR4: LAYOUT_QUATERNARY(LB, MAJOR(F, 4), gLuaVec4<>); break; \
       case LUA_VMATRIX: {                                                       \
         switch (mvalue_dims(_tv)) {                                             \
-          case LUA_GLM_MATRIX_2x2: return gLuaBase::Push(LB, MAJOR(F, 2)(gLuaMat2x2<>::Next(LB))); \
-          case LUA_GLM_MATRIX_3x3: return gLuaBase::Push(LB, MAJOR(F, 3)(gLuaMat3x3<>::Next(LB))); \
-          case LUA_GLM_MATRIX_4x4: return gLuaBase::Push(LB, MAJOR(F, 4)(gLuaMat4x4<>::Next(LB))); \
+          case LUAGLM_MATRIX_2x2: return gLuaBase::Push(LB, MAJOR(F, 2)(gLuaMat2x2<>::Next(LB))); \
+          case LUAGLM_MATRIX_3x3: return gLuaBase::Push(LB, MAJOR(F, 3)(gLuaMat3x3<>::Next(LB))); \
+          case LUAGLM_MATRIX_4x4: return gLuaBase::Push(LB, MAJOR(F, 4)(gLuaMat4x4<>::Next(LB))); \
           default:                                                              \
             break;                                                              \
         }                                                                       \
@@ -1115,7 +1118,7 @@ TRAITS_LAYOUT_DEFN(shearX, glm::shearX, LAYOUT_BINARY_SCALAR, gLuaMat3x3<>)
 TRAITS_LAYOUT_DEFN(shearY, glm::shearY, LAYOUT_BINARY_SCALAR, gLuaMat3x3<>)
 #endif
 
-#if defined(GTX_PCA_HPP)
+#if defined(GTX_PCA_HPP) /* @COMPAT pca.hpp introduced in 0.9.9.9 */
 #include <glm/gtx/pca.hpp>
 #define LAYOUT_FIND_EIGEN(LB, F, Tr, ...)                                 \
   LUA_MLM_BEGIN                                                           \
@@ -1361,12 +1364,12 @@ GLM_BINDING_QUALIFIER(mix) {
   #if GLM_VERSION >= 994  // @COMPAT ext/matrix_common.hpp introduced in 0.9.9.4
     case LUA_VMATRIX: {
       switch (mvalue_dims(_tv)) {
-        case LUA_GLM_MATRIX_2x2: LAYOUT_TERNARY_OPTIONAL(LB, glm::mix, gLuaMat2x2<>); break;
-        case LUA_GLM_MATRIX_3x3: LAYOUT_TERNARY_OPTIONAL(LB, glm::mix, gLuaMat3x3<>); break;
+        case LUAGLM_MATRIX_2x2: LAYOUT_TERNARY_OPTIONAL(LB, glm::mix, gLuaMat2x2<>); break;
+        case LUAGLM_MATRIX_3x3: LAYOUT_TERNARY_OPTIONAL(LB, glm::mix, gLuaMat3x3<>); break;
   #if defined(LUAGLM_ALIGNED)
-        case LUA_GLM_MATRIX_4x4: LAYOUT_TERNARY_OPTIONAL(LB, glm::__mix, gLuaMat4x4<>); break;
+        case LUAGLM_MATRIX_4x4: LAYOUT_TERNARY_OPTIONAL(LB, glm::__mix, gLuaMat4x4<>); break;
   #else
-        case LUA_GLM_MATRIX_4x4: LAYOUT_TERNARY_OPTIONAL(LB, glm::mix, gLuaMat4x4<>); break;
+        case LUAGLM_MATRIX_4x4: LAYOUT_TERNARY_OPTIONAL(LB, glm::mix, gLuaMat4x4<>); break;
   #endif
         default: {
           return luaL_typeerror(LB.L, LB.idx, GLM_INVALID_MAT_DIMENSIONS);
@@ -1865,7 +1868,7 @@ GLM_BINDING_QUALIFIER(orthonormalize) {
   const TValue *_tv = glm_i2v(LB.L, LB.idx);
   if (ttisvector3(_tv))
     TRAITS_FUNC(LB, glm::orthonormalize, gLuaVec3<>, gLuaVec3<>);
-  else if (ttismatrix(_tv) && mvalue_dims(_tv) == LUA_GLM_MATRIX_3x3)
+  else if (ttismatrix(_tv) && mvalue_dims(_tv) == LUAGLM_MATRIX_3x3)
     TRAITS_FUNC(LB, glm::orthonormalize, gLuaMat3x3<>);
   return luaL_typeerror(LB.L, LB.idx, LABEL_VECTOR3 " or " LABEL_MATRIX "3x3");
   GLM_BINDING_END
@@ -1888,6 +1891,7 @@ GLM_BINDING_QUALIFIER(orthonormalize3) {  /* LUA_VECTOR_EXTENSIONS */
 #endif
 
 #if defined(GTX_PERPENDICULAR_HPP)
+/* Layout for decomposing a vector into two basis vectors */
 #define LAYOUT_PERPBASIS(LB, F, Tr, ...) \
   LUA_MLM_BEGIN                          \
   Tr::type u, v;                         \
@@ -1933,8 +1937,8 @@ GLM_BINDING_QUALIFIER(components) {  // An optimized variant of glm::components
   switch (ttype(_tv)) {
     case LUA_TVECTOR: return gLuaBase::Push(LB, glm_dimensions(ttypetag(_tv)));
     case LUA_TMATRIX: {
-      gLuaBase::Push(LB, LUA_GLM_MATRIX_COLS(mvalue_dims(_tv)));
-      gLuaBase::Push(LB, LUA_GLM_MATRIX_ROWS(mvalue_dims(_tv)));
+      gLuaBase::Push(LB, LUAGLM_MATRIX_COLS(mvalue_dims(_tv)));
+      gLuaBase::Push(LB, LUAGLM_MATRIX_ROWS(mvalue_dims(_tv)));
       return 2;
     }
     default: {
@@ -1986,8 +1990,8 @@ GLM_BINDING_QUALIFIER(rotate) {
     }
     case LUA_VMATRIX: {
       switch (mvalue_dims(_tv)) {
-        case LUA_GLM_MATRIX_3x3: TRAITS_FUNC(LB, glm::rotate, gLuaMat3x3<>, gLuaTrait<gLuaMat3x3<>::value_type>); break;
-        case LUA_GLM_MATRIX_4x4: TRAITS_FUNC(LB, glm::rotate, gLuaMat4x4<>, gLuaTrait<gLuaMat4x4<>::value_type>, gLuaDir3<>); break;
+        case LUAGLM_MATRIX_3x3: TRAITS_FUNC(LB, glm::rotate, gLuaMat3x3<>, gLuaTrait<gLuaMat3x3<>::value_type>); break;
+        case LUAGLM_MATRIX_4x4: TRAITS_FUNC(LB, glm::rotate, gLuaMat4x4<>, gLuaTrait<gLuaMat4x4<>::value_type>, gLuaDir3<>); break;
         default: {
           break;
         }
@@ -2007,7 +2011,7 @@ TRAITS_LAYOUT_DEFN(rotateFromTo, glm::rotateFromTo, LAYOUT_BINARY, gLuaVec3<>) /
 ROTATION_MATRIX_DEFN(transformDir, glm::transformDir, LAYOUT_UNARY, gLuaVec3<>) /* LUA_MATRIX_EXTENSIONS */
 ROTATION_MATRIX_DEFN(transformPos, glm::transformPos, LAYOUT_UNARY, gLuaVec3<>)
 TRAITS_DEFN(transformPosPerspective, glm::transformPosPerspective, gLuaMat4x4<>, gLuaVec3<>)
-#if defined(LUA_GLM_INLINED_TEMPLATES)
+#if defined(LUAGLM_INLINED_TEMPLATES)
 TRAITS_DEFN(rotate_mat3, glm::rotate, gLuaMat3x3<>, gLuaTrait<gLuaMat3x3<>::value_type>)
 TRAITS_DEFN(rotate_mat4, glm::rotate, gLuaMat4x4<>, gLuaTrait<gLuaMat4x4<>::value_type>, gLuaDir3<>)
 #endif
@@ -2031,8 +2035,8 @@ GLM_BINDING_QUALIFIER(scale) {
     case LUA_VVECTOR3: TRAITS_FUNC(LB, glm::scale, gLuaVec3<>); break;
     case LUA_VMATRIX: {
       switch (mvalue_dims(_tv)) {
-        case LUA_GLM_MATRIX_3x3: TRAITS_FUNC(LB, glm::scale, gLuaMat3x3<>, gLuaVec2<>); break;
-        case LUA_GLM_MATRIX_4x4: TRAITS_FUNC(LB, glm::scale, gLuaMat4x4<>, gLuaVec3<>); break;
+        case LUAGLM_MATRIX_3x3: TRAITS_FUNC(LB, glm::scale, gLuaMat3x3<>, gLuaVec2<>); break;
+        case LUAGLM_MATRIX_4x4: TRAITS_FUNC(LB, glm::scale, gLuaMat4x4<>, gLuaVec3<>); break;
         default: {
           break;
         }
@@ -2055,8 +2059,8 @@ GLM_BINDING_QUALIFIER(translate) {
     case LUA_VVECTOR3: TRAITS_FUNC(LB, glm::translate, gLuaVec3<>); break;
     case LUA_VMATRIX: {
       switch (mvalue_dims(_tv)) {
-        case LUA_GLM_MATRIX_3x3: TRAITS_FUNC(LB, glm::translate, gLuaMat3x3<>, gLuaVec2<>); break;
-        case LUA_GLM_MATRIX_4x4: TRAITS_FUNC(LB, glm::translate, gLuaMat4x4<>, gLuaVec3<>); break;
+        case LUAGLM_MATRIX_3x3: TRAITS_FUNC(LB, glm::translate, gLuaMat3x3<>, gLuaVec2<>); break;
+        case LUAGLM_MATRIX_4x4: TRAITS_FUNC(LB, glm::translate, gLuaMat4x4<>, gLuaVec3<>); break;
         default: {
           break;
         }

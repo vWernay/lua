@@ -147,7 +147,7 @@ static void dumpConstants (DumpState *D, const Proto *f) {
   for (i = 0; i < n; i++) {
     const TValue *o = &f->k[i];
     int tt = ttypetag(o);
-#if defined(GRIT_POWER_BLOB)  /* Blobs are dumped as long strings */
+#if defined(LUAGLM_EXT_BLOB)  /* Blobs are dumped as long strings */
     dumpByte(D, tt == LUA_VBLOBSTR ? LUA_VLNGSTR : tt);
 #else
     dumpByte(D, tt);
@@ -166,7 +166,7 @@ static void dumpConstants (DumpState *D, const Proto *f) {
         dumpVectorType(D, vvalue(o), tt);
         break;
       case LUA_VSHRSTR:
-#if defined(GRIT_POWER_BLOB)
+#if defined(LUAGLM_EXT_BLOB)
       case LUA_VBLOBSTR:
 #endif
       case LUA_VLNGSTR:

@@ -33,7 +33,7 @@
 */
 int luaS_eqlngstr (TString *a, TString *b) {
   size_t len = a->u.lnglen;
-#if defined(GRIT_POWER_BLOB)
+#if defined(LUAGLM_EXT_BLOB)
   lua_assert(islongstring(a->tt) && islongstring(b->tt));
 #else
   lua_assert(a->tt == LUA_VLNGSTR && b->tt == LUA_VLNGSTR);
@@ -53,14 +53,14 @@ unsigned int luaS_hash (const char *str, size_t l, unsigned int seed) {
 
 
 unsigned int luaS_hashlongstr (TString *ts) {
-#if defined(GRIT_POWER_BLOB)
+#if defined(LUAGLM_EXT_BLOB)
   lua_assert(islongstring(ts->tt));
 #else
   lua_assert(ts->tt == LUA_VLNGSTR);
 #endif
   if (ts->extra == 0) {  /* no hash? */
     size_t len = ts->u.lnglen;
-#if defined(GRIT_POWER_BLOB)
+#if defined(LUAGLM_EXT_BLOB)
     if (ts->tt == LUA_VBLOBSTR)
       return luaS_hash(getstr(ts), len, ts->hash);
 #endif
@@ -243,7 +243,7 @@ TString *luaS_newlstr (lua_State *L, const char *str, size_t l) {
   }
 }
 
-#if defined(GRIT_POWER_BLOB)
+#if defined(LUAGLM_EXT_BLOB)
 #define blob_length(l) (((l) <= LUAI_MAXSHORTLEN) ? (LUAI_MAXSHORTLEN + 1) : (l));
 TString *luaS_newblob (lua_State *L, size_t l) {
   l = blob_length(l);

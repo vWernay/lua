@@ -49,7 +49,7 @@
 #endif
 
 /* Check runtime preconditions on geom structures (often related to ensuring normalized vectors) */
-#if defined(LUA_GLM_SAFE)
+#if defined(LUAGLM_SAFELIB)
   #define GLM_GEOM_ASSUME(x, onError) \
     do {                              \
       if (!(x))                       \

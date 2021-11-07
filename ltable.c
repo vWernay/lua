@@ -188,7 +188,7 @@ static Node *mainposition (const Table *t, int ktt, const Value kvl) {
       lua_CFunction f = fvalueraw(kvl);
       return hashpointer(t, f);
     }
-#if defined(GRIT_POWER_BLOB)
+#if defined(LUAGLM_EXT_BLOB)
     case LUA_VBLOBSTR:  /* blobs stored by pointer */
 #endif
     default: {
@@ -249,7 +249,7 @@ static int equalkey (const TValue *k1, const Node *n2, int deadok) {
     case LUA_VVECTOR4:
     case LUA_VQUAT:
       return glmVec_equalKey(k1, n2, keytt(n2));
-#if defined(GRIT_POWER_BLOB)
+#if defined(LUAGLM_EXT_BLOB)
     case ctb(LUA_VBLOBSTR):  /* blobs stored by pointer */
 #endif
     default:
@@ -648,7 +648,7 @@ Table *luaH_new (lua_State *L) {
   Table *t = gco2t(o);
   t->metatable = NULL;
   t->flags = cast_byte(maskflags);  /* table has no metamethod fields */
-#if defined(GRIT_POWER_READONLY)
+#if defined(LUAGLM_EXT_READONLY)
   t->readonly = 0;
 #endif
   t->array = NULL;
@@ -996,14 +996,14 @@ lua_Unsigned luaH_getn (Table *t) {
 }
 
 
-#if defined(GRIT_POWER_READONLY)
+#if defined(LUAGLM_EXT_READONLY)
 void luaH_setreadonly (Table *t, int readonly) {
   t->readonly = cast_byte(readonly);
 }
 #endif
 
 
-#if defined(GRIT_POWER_WOW)
+#if defined(LUAGLM_EXT_API)
 #include <string.h>
 
 int luaH_type (const Table *t) {
@@ -1093,7 +1093,7 @@ void luaH_clonetable (lua_State *L, const Table *from, Table *to) {
   to->lastfree = newt.lastfree;
   to->lsizenode = newt.lsizenode;
   to->flags = ((to->flags & ~BITRAS) | (from->flags & BITRAS));
-#if defined(GRIT_POWER_READONLY)
+#if defined(LUAGLM_EXT_READONLY)
   to->readonly = 0;
 #endif
   if (isblack(obj2gco(to)))

@@ -134,7 +134,7 @@ static void checkclosemth (lua_State *L, StkId level) {
 }
 
 
-#if defined(GRIT_POWER_DEFER)
+#if defined(LUAGLM_EXT_DEFER)
 static void calldefermethod(lua_State *L, TValue *func, TValue *err) {
   if (l_likely(ttisfunction(func))) {
     StkId top = L->top;
@@ -163,7 +163,7 @@ static void prepcallclosemth (lua_State *L, StkId level, int status, int yy) {
     errobj = s2v(level + 1);  /* error object goes after 'uv' */
     luaD_seterrorobj(L, status, level + 1);  /* set error object */
   }
-#if defined(GRIT_POWER_DEFER)
+#if defined(LUAGLM_EXT_DEFER)
   if (level->tbclist.is_deferred)
     calldefermethod(L, uv, errobj);
   else
@@ -184,7 +184,7 @@ static void prepcallclosemth (lua_State *L, StkId level, int status, int yy) {
 /*
 ** Insert a variable in the list of to-be-closed variables.
 */
-#if defined(GRIT_POWER_DEFER)
+#if defined(LUAGLM_EXT_DEFER)
 void luaF_newtbcupval (lua_State *L, StkId level, int deferred) {
   lua_assert(level > L->tbclist);
   if (!deferred) {

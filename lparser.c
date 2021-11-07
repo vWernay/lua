@@ -169,7 +169,7 @@ static void codename (LexState *ls, expdesc *e) {
 }
 
 
-#if defined(GRIT_POWER_JOAAT)
+#if defined(LUAGLM_EXT_JOAAT)
 static void codehash (expdesc *e, TString *s) {
   init_exp(e, VKINT, 0);
   e->u.ival = luaO_HashString(getstr(s), tsslen(s), 0);
@@ -727,7 +727,7 @@ static Proto *addprototype (LexState *ls) {
 ** are in use at that time.
 
 */
-#if defined(GRIT_POWER_DEFER)
+#if defined(LUAGLM_EXT_DEFER)
 static void codeclosure (LexState *ls, expdesc *v, int deferred) {
   FuncState *fs = ls->fs->prev;
   int pc = deferred ? luaK_codeABC(fs, OP_DEFER, 0, 0, 0) : -1;
@@ -873,7 +873,7 @@ static void recfield (LexState *ls, ConsControl *cc) {
     checklimit(fs, cc->nh, MAX_INT, "items in a constructor");
     codename(ls, &key);
   }
-#if defined(GRIT_POWER_TABINIT)
+#if defined(LUAGLM_EXT_TABINIT)
   else if (ls->t.token == '.') {
     luaX_next(ls);
     codename(ls, &key);
@@ -883,7 +883,7 @@ static void recfield (LexState *ls, ConsControl *cc) {
     yindex(ls, &key);
   cc->nh++;
   tab = *cc->t;
-#if defined(GRIT_POWER_TABINIT)
+#if defined(LUAGLM_EXT_TABINIT)
   if (ls->t.token == '=') {
     luaX_next(ls);
     luaK_indexed(fs, &tab, &key);
@@ -948,7 +948,7 @@ static void field (LexState *ls, ConsControl *cc) {
         recfield(ls, cc);
       break;
     }
-#if defined(GRIT_POWER_TABINIT)
+#if defined(LUAGLM_EXT_TABINIT)
     case '.':
 #endif
     case '[': {
@@ -997,7 +997,7 @@ static void setvararg (FuncState *fs, int nparams) {
 }
 
 
-#if defined(GRIT_POWER_LAMBDA)
+#if defined(LUAGLM_EXT_LAMBDA)
 static void parlist_ext (LexState *ls, int end_token);
 static void parlist (LexState *ls) {
   parlist_ext(ls, ')');
@@ -1012,7 +1012,7 @@ static void parlist (LexState *ls) {
   Proto *f = fs->f;
   int nparams = 0;
   int isvararg = 0;
-#if defined(GRIT_POWER_LAMBDA)
+#if defined(LUAGLM_EXT_LAMBDA)
   if (ls->t.token != end_token) {  /* is 'parlist' not empty? */
 #else
   if (ls->t.token != ')') {  /* is 'parlist' not empty? */
@@ -1058,7 +1058,7 @@ static void body (LexState *ls, expdesc *e, int ismethod, int line) {
   statlist(ls);
   new_fs.f->lastlinedefined = ls->linenumber;
   check_match(ls, TK_END, TK_FUNCTION, line);
-#if defined(GRIT_POWER_DEFER)
+#if defined(LUAGLM_EXT_DEFER)
   codeclosure(ls, e, 0);
 #else
   codeclosure(ls, e);
@@ -1067,7 +1067,7 @@ static void body (LexState *ls, expdesc *e, int ismethod, int line) {
 }
 
 
-#if defined(GRIT_POWER_LAMBDA)
+#if defined(LUAGLM_EXT_LAMBDA)
 static void simplebody(LexState *ls, expdesc *e, int line) {
   /* simplebody ->  parlist `|' expr END */
   expdesc ebody;
@@ -1083,7 +1083,7 @@ static void simplebody(LexState *ls, expdesc *e, int line) {
   reg = luaK_exp2anyreg(&new_fs, &ebody);
   luaK_ret(&new_fs, reg, 1);
   new_fs.f->lastlinedefined = ls->linenumber;
-#if defined(GRIT_POWER_DEFER)
+#if defined(LUAGLM_EXT_DEFER)
   codeclosure(ls, e, 0);
 #else
   codeclosure(ls, e);
@@ -1093,7 +1093,7 @@ static void simplebody(LexState *ls, expdesc *e, int line) {
 #endif
 
 
-#if defined(GRIT_POWER_DEFER)
+#if defined(LUAGLM_EXT_DEFER)
 static void body_noparms (LexState *ls, expdesc *e, int line, int deferred) {
   /* body -> chunk END */
   FuncState new_fs;
@@ -1149,7 +1149,7 @@ static void funcargs (LexState *ls, expdesc *f, int line) {
       luaX_next(ls);  /* must use 'seminfo' before 'next' */
       break;
     }
-#if defined(GRIT_POWER_JOAAT)
+#if defined(LUAGLM_EXT_JOAAT)
     case TK_HASH: {  /* funcargs -> STRING */
       codehash(&args, ls->t.seminfo.ts);
       luaX_next(ls);  /* must use `seminfo' before `next' */
@@ -1206,7 +1206,7 @@ static void primaryexp (LexState *ls, expdesc *v) {
   }
 }
 
-#if defined(GRIT_POWER_SAFENAV)
+#if defined(LUAGLM_EXT_SAFENAV)
 static void safe_navigation (LexState *ls, expdesc *v) {
   expdesc key;
   int old_free, vreg, j;
@@ -1262,7 +1262,7 @@ static void suffixedexp (LexState *ls, expdesc *v) {
         fieldsel(ls, v);
         break;
       }
-#if defined(GRIT_POWER_SAFENAV)
+#if defined(LUAGLM_EXT_SAFENAV)
       case '?': {
         safe_navigation(ls, v);
         break;
@@ -1283,7 +1283,7 @@ static void suffixedexp (LexState *ls, expdesc *v) {
         funcargs(ls, v, line);
         break;
       }
-#if defined(GRIT_POWER_JOAAT)
+#if defined(LUAGLM_EXT_JOAAT)
       case TK_HASH:
 #endif
       case '(':
@@ -1345,13 +1345,13 @@ static void simpleexp (LexState *ls, expdesc *v) {
       body(ls, v, 0, ls->linenumber);
       return;
     }
-#if defined(GRIT_POWER_JOAAT)
+#if defined(LUAGLM_EXT_JOAAT)
     case TK_HASH: {
       codehash(v, ls->t.seminfo.ts);
       break;
     }
 #endif
-#if defined(GRIT_POWER_LAMBDA)
+#if defined(LUAGLM_EXT_LAMBDA)
     case '|': {
       luaX_next(ls);
       simplebody(ls, v, ls->linenumber);
@@ -1401,7 +1401,7 @@ static BinOpr getbinopr (int op) {
     case TK_GE: return OPR_GE;
     case TK_AND: return OPR_AND;
     case TK_OR: return OPR_OR;
-#if defined(GRIT_POWER_COMPOUND)
+#if defined(LUAGLM_EXT_COMPOUND)
     case TK_PLUSEQ: return OPR_ADD;
     case TK_MINUSEQ: return OPR_SUB;
     case TK_MULTEQ: return OPR_MUL;
@@ -1552,7 +1552,7 @@ static void check_conflict (LexState *ls, struct LHS_assign *lh, expdesc *v) {
 }
 
 
-#if defined(GRIT_POWER_COMPOUND)
+#if defined(LUAGLM_EXT_COMPOUND)
 static void compound_assignment (LexState *ls, expdesc* v) {
   expdesc e, infix;
   lu_byte top;
@@ -1603,7 +1603,7 @@ static void compound_assignment (LexState *ls, expdesc* v) {
 #endif
 
 
-#if defined(GRIT_POWER_INTABLE)
+#if defined(LUAGLM_EXT_INTABLE)
 #define RET_ASSIGN_RESULT int
 #define RET_ASSIGN_RETURN 0
 #define RET_ASSIGN_SKIP_ASSIGNMENTS 1
@@ -1672,7 +1672,7 @@ static RET_ASSIGN_RESULT restassign (LexState *ls, struct LHS_assign *lh, int nv
     if (!vkisindexed(nv.v.k))
       check_conflict(ls, lh, &nv.v);
     enterlevel(ls);  /* control recursion depth */
-#if defined(GRIT_POWER_INTABLE)
+#if defined(LUAGLM_EXT_INTABLE)
     if (restassign(ls, &nv, nvars + 1)) {  /* skip_assignments */
       leavelevel(ls);
       return RET_ASSIGN_SKIP_ASSIGNMENTS;
@@ -1682,12 +1682,12 @@ static RET_ASSIGN_RESULT restassign (LexState *ls, struct LHS_assign *lh, int nv
 #endif
     leavelevel(ls);
   }
-#if defined(GRIT_POWER_INTABLE)
+#if defined(LUAGLM_EXT_INTABLE)
   else if (ls->t.token == TK_IN) {  /* hook for table unpack */
     return get_table_unpack(ls, lh, &e);
   }
 #endif
-#if defined(GRIT_POWER_COMPOUND)
+#if defined(LUAGLM_EXT_COMPOUND)
   else if (testnext(ls, '=')) {  /* restassign -> '=' explist */
     int nexps;
 #else
@@ -1704,7 +1704,7 @@ static RET_ASSIGN_RESULT restassign (LexState *ls, struct LHS_assign *lh, int nv
       return RET_ASSIGN_RETURN;  /* avoid default */
     }
   }
-#if defined(GRIT_POWER_COMPOUND)
+#if defined(LUAGLM_EXT_COMPOUND)
   else if (opeqexpr(ls->t.token)) {  /* restassign -> opeq expr */
     check_condition(ls, nvars == 1, "compound assignment not allowed on tuples");
     compound_assignment(ls,&lh->v);
@@ -2004,7 +2004,7 @@ static void ifstat (LexState *ls, int line) {
 }
 
 
-#if defined(GRIT_POWER_DEFER)
+#if defined(LUAGLM_EXT_DEFER)
 static void localfunc (LexState *ls, int deferred) {
 #else
 static void localfunc (LexState *ls) {
@@ -2012,7 +2012,7 @@ static void localfunc (LexState *ls) {
   expdesc b;
   FuncState *fs = ls->fs;
   int fvar = fs->nactvar;  /* function's variable index */
-#if defined(GRIT_POWER_DEFER)
+#if defined(LUAGLM_EXT_DEFER)
   if (deferred) {
     static const char funcname[] = "(deferred function)";
     new_localvar(ls, luaX_newstring(ls, funcname, sizeof(funcname) - 1)); /* new local variable */
@@ -2026,7 +2026,7 @@ static void localfunc (LexState *ls) {
   new_localvar(ls, str_checkname(ls));  /* new local variable */
 #endif
   adjustlocalvars(ls, 1);  /* enter its scope */
-#if defined(GRIT_POWER_DEFER)
+#if defined(LUAGLM_EXT_DEFER)
   if (deferred)
     body_noparms(ls, &b, ls->linenumber, deferred);
   else
@@ -2082,7 +2082,7 @@ static void localstat (LexState *ls) {
     }
     nvars++;
   } while (testnext(ls, ','));
-#if defined(GRIT_POWER_INTABLE)
+#if defined(LUAGLM_EXT_INTABLE)
   if (testnext(ls, TK_IN)) {
     lu_byte from_var;
     int regs = ls->fs->freereg;
@@ -2163,7 +2163,7 @@ static void exprstat (LexState *ls) {
   FuncState *fs = ls->fs;
   struct LHS_assign v;
   suffixedexp(ls, &v.v);
-#if defined(GRIT_POWER_COMPOUND)
+#if defined(LUAGLM_EXT_COMPOUND)
   if (ls->t.token == '=' || ls->t.token == ',' || opeqexpr(ls->t.token)) { /* stat -> assignment ? */
 #else
   if (ls->t.token == '=' || ls->t.token == ',') { /* stat -> assignment ? */
@@ -2171,7 +2171,7 @@ static void exprstat (LexState *ls) {
     v.prev = NULL;
     restassign(ls, &v, 1);
   }
-#if defined(GRIT_POWER_INTABLE)
+#if defined(LUAGLM_EXT_INTABLE)
   else if (ls->t.token == TK_IN) {
     v.prev = NULL;
     restassign(ls, &v, 1);
@@ -2255,7 +2255,7 @@ static void statement (LexState *ls) {
     case TK_LOCAL: {  /* stat -> localstat */
       luaX_next(ls);  /* skip LOCAL */
       if (testnext(ls, TK_FUNCTION))  /* local function? */
-#if defined(GRIT_POWER_DEFER)
+#if defined(LUAGLM_EXT_DEFER)
         localfunc(ls, 0);
 #else
         localfunc(ls);
@@ -2264,7 +2264,7 @@ static void statement (LexState *ls) {
         localstat(ls);
       break;
     }
-#if defined(GRIT_POWER_DEFER)
+#if defined(LUAGLM_EXT_DEFER)
     case TK_DEFER: { /* stat -> deferstat */
       luaX_next(ls); /* skip DEFER */
       localfunc(ls, 1);

@@ -7,10 +7,10 @@
 #ifndef lglmlib_hpp
 #define lglmlib_hpp
 
-#define LUA_GLM_NAME "lua-glm"
-#define LUA_GLM_VERSION "lua-glm 0.1.12"
-#define LUA_GLM_COPYRIGHT "Copyright (C) 2020, Gottfried Leibniz"
-#define LUA_GLM_DESCRIPTION "glm bindings for Lua"
+#define LUAGLM_NAME "lua-glm"
+#define LUAGLM_VERSION "lua-glm 0.1.13"
+#define LUAGLM_COPYRIGHT "Copyright (C) 2020, Gottfried Leibniz"
+#define LUAGLM_DESCRIPTION "glm bindings for Lua"
 
 #include <lua.hpp>
 #if defined(__cplusplus)

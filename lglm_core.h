@@ -14,14 +14,14 @@
 
 /*
 @@ LUAGLM_QUAT_WXYZ Quaternion layout (i.e., wxyz vs xyzw).
-@@ LUAGLM_VERSION Version number of the included GLM library. This value is
+@@ LUAGLM_LIBVERSION Version number of the included GLM library. This value is
 **  manually redefined so it can be used by the strictly-C defined portions of
 **  this runtime.
 **
 ** Temporary until 820a2c0e625f26000c688d841836bb10483be34d is remedied.
 */
-#if !defined(LUAGLM_VERSION)
-  #define LUAGLM_VERSION 999
+#if !defined(LUAGLM_LIBVERSION)
+  #define LUAGLM_LIBVERSION 999
 #endif
 
 /* Handle should-be-deprecated-instead-of-removed GLM_FORCE_QUAT_DATA_WXYZ */
@@ -29,7 +29,7 @@
   #undef GLM_FORCE_QUAT_DATA_XYZW
 #endif
 
-#if LUAGLM_VERSION < 999
+#if LUAGLM_LIBVERSION < 999
   #if defined(GLM_FORCE_QUAT_DATA_WXYZ)
     #define LUAGLM_QUAT_WXYZ 1
   #else

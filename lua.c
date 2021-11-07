@@ -411,7 +411,7 @@ static int handle_luainit (lua_State *L) {
 #endif				/* } */
 
 
-#if defined(GRIT_POWER_READLINE_HISTORY)
+#if defined(LUAGLM_EXT_READLINE_HISTORY)
   /*
   ** LUA_HISTORY is the name of the environment variable that Lua checks
   ** to load its command-line history.
@@ -448,7 +448,7 @@ static int handle_luainit (lua_State *L) {
 #define lua_readline(L,b,p)	((void)L, ((b)=readline(p)) != NULL)
 #define lua_saveline(L,line)	((void)L, add_history(line))
 #define lua_freeline(L,b)	((void)L, free(b))
-#if defined(GRIT_POWER_READLINE_HISTORY)
+#if defined(LUAGLM_EXT_READLINE_HISTORY)
   #define lua_readlinehistory(L,f) ((void)L, (void)read_history(f))
   #define lua_writelinehistory(L,f) ((void)L, (void)write_history(f))
 #endif
@@ -461,7 +461,7 @@ static int handle_luainit (lua_State *L) {
         fgets(b, LUA_MAXINPUT, stdin) != NULL)  /* get line */
 #define lua_saveline(L,line)	{ (void)L; (void)line; }
 #define lua_freeline(L,b)	{ (void)L; (void)b; }
-#if defined(GRIT_POWER_READLINE_HISTORY)
+#if defined(LUAGLM_EXT_READLINE_HISTORY)
   #define lua_readlinehistory(L,f) { (void)L; (void)f; }
   #define lua_writelinehistory(L,f) { (void)L; (void)f; }
 #endif
@@ -613,7 +613,7 @@ static void l_print (lua_State *L) {
 static void doREPL (lua_State *L) {
   int status;
   const char *oldprogname = progname;
-#if defined(GRIT_POWER_READLINE_HISTORY)
+#if defined(LUAGLM_EXT_READLINE_HISTORY)
   const char *history_path = getenv(LUA_HISTORY);
   if (history_path == NULL)  /* no environment variable? */
     history_path = LUA_HISTORY_DEFAULT;  /* use default */
@@ -629,7 +629,7 @@ static void doREPL (lua_State *L) {
   }
   lua_settop(L, 0);  /* clear stack */
   lua_writeline();
-#if defined(GRIT_POWER_READLINE_HISTORY)
+#if defined(LUAGLM_EXT_READLINE_HISTORY)
   lua_writelinehistory(L, history_path);
 #endif
   progname = oldprogname;

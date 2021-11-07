@@ -53,7 +53,7 @@ LUAI_FUNC TString *luaS_newlstr (lua_State *L, const char *str, size_t l);
 LUAI_FUNC TString *luaS_new (lua_State *L, const char *str);
 LUAI_FUNC TString *luaS_createlngstrobj (lua_State *L, size_t l);
 
-#if defined(GRIT_POWER_BLOB)
+#if defined(LUAGLM_EXT_BLOB)
 /*
 ** Create a string blob whose length (l) is clamped from below to at least
 ** LUAI_MAXSHORTLEN + 1 characters.

@@ -22,7 +22,7 @@
 #include "lgrit_lib.h"
 
 
-#if defined(GRIT_POWER_READONLY)
+#if defined(LUAGLM_EXT_READONLY)
   #define luaB_readonly_argcheck(L, I) \
     luaL_argcheck((L), !lua_isreadonly((L), (I)), (I), "table is readonly")
 #endif
@@ -145,7 +145,7 @@ static int luaB_setmetatable (lua_State *L) {
   int t = lua_type(L, 2);
   luaL_checktype(L, 1, LUA_TTABLE);
   luaL_argexpected(L, t == LUA_TNIL || t == LUA_TTABLE, 2, "nil or table");
-#if defined(GRIT_POWER_READONLY)
+#if defined(LUAGLM_EXT_READONLY)
   luaB_readonly_argcheck(L, 1);
 #endif
   if (l_unlikely(luaL_getmetafield(L, 1, "__metatable") != LUA_TNIL))
@@ -190,7 +190,7 @@ static int luaB_rawset (lua_State *L) {
     luaL_typeerror(L, 1, lua_typename(L, LUA_TTABLE));
   luaL_checkany(L, 2);
   luaL_checkany(L, 3);
-#if defined(GRIT_POWER_READONLY)
+#if defined(LUAGLM_EXT_READONLY)
   luaB_readonly_argcheck(L, 1);
 #endif
   lua_settop(L, 3);
@@ -306,7 +306,7 @@ static int luaB_pairs (lua_State *L) {
 }
 
 
-#if defined(GRIT_POWER_EACH)
+#if defined(LUAGLM_EXT_EACH)
 static int eachcont (lua_State *L, int status, lua_KContext k) {
   (void)L; (void)status; (void)k;  /* unused */
   return 4;
@@ -340,7 +340,7 @@ static int ipairsaux (lua_State *L) {
   return (lua_geti(L, 1, i) == LUA_TNIL) ? 1 : 2;
 }
 
-#if defined(GRIT_COMPAT_IPAIRS)
+#if defined(LUAGLM_COMPAT_IPAIRS)
 /*
 ** Traversal function for 'ipairs' for raw tables
 */
@@ -582,7 +582,7 @@ static int luaB_tostring (lua_State *L) {
 }
 
 
-#if defined(GRIT_POWER_DEFER) || defined(GRIT_POWER_DEFER_OLD)
+#if defined(LUAGLM_EXT_DEFER) || defined(LUAGLM_EXT_DEFER_OLD)
 /* func2close */
 static int luaB_defer (lua_State *L) {
   luaL_checktype(L, 1, LUA_TFUNCTION);  /* check defer function */
@@ -598,7 +598,7 @@ static int luaB_defer (lua_State *L) {
 #endif
 
 
-#if defined(GRIT_POWER_JOAAT)
+#if defined(LUAGLM_EXT_JOAAT)
 static int luaB_joaat (lua_State *L) {
   /* Handling numbers/booleans is an undocumented hand-holding feature */
   const int type = lua_type(L, 1);
@@ -611,7 +611,7 @@ static int luaB_joaat (lua_State *L) {
 #endif
 
 
-#if defined(GRIT_POWER_WOW)
+#if defined(LUAGLM_EXT_API)
 static int luaB_scrub (lua_State *L) {
   int i;
   const int top = lua_gettop(L);
@@ -638,7 +638,7 @@ static const luaL_Reg base_funcs[] = {
   {"load", luaB_load},
   {"next", luaB_next},
   {"pairs", luaB_pairs},
-#if defined(GRIT_POWER_EACH)
+#if defined(LUAGLM_EXT_EACH)
   {"each", luaB_each},
 #endif
   {"pcall", luaB_pcall},
@@ -654,18 +654,18 @@ static const luaL_Reg base_funcs[] = {
   {"tostring", luaB_tostring},
   {"type", luaB_type},
   {"xpcall", luaB_xpcall},
-#if defined(GRIT_POWER_DEFER_OLD)
-  #if defined(GRIT_POWER_DEFER)
+#if defined(LUAGLM_EXT_DEFER_OLD)
+  #if defined(LUAGLM_EXT_DEFER)
     #error "Inconsistent defer configuration"
   #endif
   {"defer", luaB_defer},
-#elif defined(GRIT_POWER_DEFER)
+#elif defined(LUAGLM_EXT_DEFER)
   {"func2close", luaB_defer},
 #endif
-#if defined(GRIT_POWER_JOAAT)
+#if defined(LUAGLM_EXT_JOAAT)
   {"joaat", luaB_joaat},
 #endif
-#if defined(GRIT_POWER_WOW)
+#if defined(LUAGLM_EXT_API)
   {"scrub", luaB_scrub},
 #endif
   /* placeholders */

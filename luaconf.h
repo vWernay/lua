@@ -846,7 +846,7 @@
 ** Libraries linked against this runtime that use any GLM/vector feature will
 ** require knowledge of changes to:
 **
-**    1. LUA_GLM_NUMBER_TYPE
+**    1. LUAGLM_NUMBER_TYPE
 **    2. GLM_FORCE_SIZE_T_LENGTH
 **    3. GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
 **
@@ -857,12 +857,12 @@
 
 #define LUA_GRIT_API
 
-/* @NOTE: GRIT_LONG_FLOAT has been deprecated and replaced by LUA_GLM_NUMBER_TYPE */
-#if defined(GRIT_LONG_FLOAT) && !defined(LUA_GLM_NUMBER_TYPE)
-  #define LUA_GLM_NUMBER_TYPE
+/* @NOTE: GRIT_LONG_FLOAT has been deprecated and replaced by LUAGLM_NUMBER_TYPE */
+#if defined(GRIT_LONG_FLOAT) && !defined(LUAGLM_NUMBER_TYPE)
+  #define LUAGLM_NUMBER_TYPE
 #endif
 
-#if defined(LUA_GLM_NUMBER_TYPE) && LUA_FLOAT_TYPE != LUA_FLOAT_LONGDOUBLE
+#if defined(LUAGLM_NUMBER_TYPE) && LUA_FLOAT_TYPE != LUA_FLOAT_LONGDOUBLE
   #define LUA_VEC_TYPE LUA_FLOAT_TYPE
   #define LUA_VEC_NUMBER LUA_NUMBER
 #else
@@ -883,49 +883,49 @@
   #if LUA_VEC_TYPE == LUA_FLOAT_DOUBLE
     #error "__m256 advanced vector extnesions are not supported!"
   #else
-    #define LUA_GLM_ALIGN LUA_ALIGNED_(16)
+    #define LUAGLM_ALIGN LUA_ALIGNED_(16)
   #endif
 #endif
 #endif
 
 /* Helper macro for defining aligned types; see GLM_ALIGNED_TYPEDEF */
-#if defined(LUA_GLM_ALIGN)
-  #define LUA_GLM_ALIGNED_TYPE(type, name) type LUA_GLM_ALIGN name
-  #define LUA_GLM_ALIGNED_TYPEDEF(type, name) typedef LUA_GLM_ALIGN type name
+#if defined(LUAGLM_ALIGN)
+  #define LUAGLM_ALIGNED_TYPE(type, name) type LUAGLM_ALIGN name
+  #define LUAGLM_ALIGNED_TYPEDEF(type, name) typedef LUAGLM_ALIGN type name
 #else
-  #define LUA_GLM_ALIGNED_TYPE(type, name) type name
-  #define LUA_GLM_ALIGNED_TYPEDEF(type, name) typedef type name
+  #define LUAGLM_ALIGNED_TYPE(type, name) type name
+  #define LUAGLM_ALIGNED_TYPEDEF(type, name) typedef type name
 #endif
 
 /*
 ** Helpers for packing matrix dimensions into a single unit. @TODO Optimize.
 **
-@@ LUA_GLM_MATRIX_COLS Unpack the number of matrix columns for a given type.
-@@ LUA_GLM_MATRIX_ROWS Unpack the number of matrix rows for a given type.
-@@ LUA_GLM_MATRIX_TYPE Utility macro for packing column/row dimensions into
+@@ LUAGLM_MATRIX_COLS Unpack the number of matrix columns for a given type.
+@@ LUAGLM_MATRIX_ROWS Unpack the number of matrix rows for a given type.
+@@ LUAGLM_MATRIX_TYPE Utility macro for packing column/row dimensions into
 **  a single value. Type-casting related to this macro should be considered.
 **
 ** @TODO Consider creating macros (or future-proofing) for the chance that this
 ** runtime offers the option to represent Lua matrices in a row-major format.
 **
 ** @NOTE: Previous definition:
-**  #define LUA_GLM_MATRIX_TYPE(C, R) ((C) | ((R) << 8))
-**  #define LUA_GLM_MATRIX_COLS(T) ((T) & 0xFF)
-**  #define LUA_GLM_MATRIX_ROWS(T) (((T) >> 8) & 0xFF)
+**  #define LUAGLM_MATRIX_TYPE(C, R) ((C) | ((R) << 8))
+**  #define LUAGLM_MATRIX_COLS(T) ((T) & 0xFF)
+**  #define LUAGLM_MATRIX_ROWS(T) (((T) >> 8) & 0xFF)
 */
-#define LUA_GLM_MATRIX_TYPE(C, R) (((R) - 2) | (((C) - 2) << 2))
-#define LUA_GLM_MATRIX_COLS(T) ((((T) >> 2) & 0x3) + 2)
-#define LUA_GLM_MATRIX_ROWS(T) (((T) & 0x3) + 2)
+#define LUAGLM_MATRIX_TYPE(C, R) (((R) - 2) | (((C) - 2) << 2))
+#define LUAGLM_MATRIX_COLS(T) ((((T) >> 2) & 0x3) + 2)
+#define LUAGLM_MATRIX_ROWS(T) (((T) & 0x3) + 2)
 
-#define LUA_GLM_MATRIX_2x2 LUA_GLM_MATRIX_TYPE(2, 2)
-#define LUA_GLM_MATRIX_2x3 LUA_GLM_MATRIX_TYPE(2, 3)
-#define LUA_GLM_MATRIX_2x4 LUA_GLM_MATRIX_TYPE(2, 4)
-#define LUA_GLM_MATRIX_3x2 LUA_GLM_MATRIX_TYPE(3, 2)
-#define LUA_GLM_MATRIX_3x3 LUA_GLM_MATRIX_TYPE(3, 3)
-#define LUA_GLM_MATRIX_3x4 LUA_GLM_MATRIX_TYPE(3, 4)
-#define LUA_GLM_MATRIX_4x2 LUA_GLM_MATRIX_TYPE(4, 2)
-#define LUA_GLM_MATRIX_4x3 LUA_GLM_MATRIX_TYPE(4, 3)
-#define LUA_GLM_MATRIX_4x4 LUA_GLM_MATRIX_TYPE(4, 4)
+#define LUAGLM_MATRIX_2x2 LUAGLM_MATRIX_TYPE(2, 2)
+#define LUAGLM_MATRIX_2x3 LUAGLM_MATRIX_TYPE(2, 3)
+#define LUAGLM_MATRIX_2x4 LUAGLM_MATRIX_TYPE(2, 4)
+#define LUAGLM_MATRIX_3x2 LUAGLM_MATRIX_TYPE(3, 2)
+#define LUAGLM_MATRIX_3x3 LUAGLM_MATRIX_TYPE(3, 3)
+#define LUAGLM_MATRIX_3x4 LUAGLM_MATRIX_TYPE(3, 4)
+#define LUAGLM_MATRIX_4x2 LUAGLM_MATRIX_TYPE(4, 2)
+#define LUAGLM_MATRIX_4x3 LUAGLM_MATRIX_TYPE(4, 3)
+#define LUAGLM_MATRIX_4x4 LUAGLM_MATRIX_TYPE(4, 4)
 
 /*
 ** GLM_FORCE_SIZE_T_LENGTH forces length_t to be size_t. Otherwise it is
@@ -949,7 +949,7 @@ typedef struct lua_CFloat2 { lua_VecF x, y; } lua_CFloat2;
 ** byte-wise equivalent/alias to glmVector in lglm.hpp and operates within the C
 ** boundaries of the Lua runtime.
 */
-LUA_GLM_ALIGNED_TYPEDEF(struct, lua_CFloat4) lua_Float4;
+LUAGLM_ALIGNED_TYPEDEF(struct, lua_CFloat4) lua_Float4;
 
 /*
 ** gritLua column-oriented matrix extension. This structure is intended to be a
@@ -976,11 +976,11 @@ LUA_GLM_ALIGNED_TYPEDEF(struct, lua_CFloat4) lua_Float4;
 ** without 'GLM_FORCE_XYZW_ONLY' being defined in the meantime. 'matgeti' in
 ** lglm.cpp compensates for this issue, however, external dependencies may not.
 */
-LUA_GLM_ALIGNED_TYPEDEF(struct, lua_Mat4) {
+LUAGLM_ALIGNED_TYPEDEF(struct, lua_Mat4) {
   union Columns {
-    LUA_GLM_ALIGNED_TYPE(lua_CFloat2, m2[4]);  /* Aligned 2-by-X matrix */
-    LUA_GLM_ALIGNED_TYPE(lua_CFloat3, m3[4]);  /* Aligned 3-by-X matrix */
-    LUA_GLM_ALIGNED_TYPE(lua_CFloat4, m4[4]);  /* Aligned 4-by-X matrix */
+    LUAGLM_ALIGNED_TYPE(lua_CFloat2, m2[4]);  /* Aligned 2-by-X matrix */
+    LUAGLM_ALIGNED_TYPE(lua_CFloat3, m3[4]);  /* Aligned 3-by-X matrix */
+    LUAGLM_ALIGNED_TYPE(lua_CFloat4, m4[4]);  /* Aligned 4-by-X matrix */
   } m;
   grit_length_t dimensions;  /* Number of columns & size of each column vector */
 } lua_Mat4;

@@ -221,7 +221,7 @@ static int byteoffset (lua_State *L) {
 }
 
 
-#if defined(GRIT_POWER_WOW)
+#if defined(LUAGLM_EXT_API)
 static LUA_INLINE size_t utf8_codepointlen(char ch) {
   return ((0xe5000000 >> ((((unsigned char)ch) >> 3) & 0x1e)) & 3) + 1;
 }
@@ -382,7 +382,7 @@ static const luaL_Reg funcs[] = {
   {"codepoint", codepoint},
   {"char", utfchar},
   {"len", utflen},
-#if defined(GRIT_POWER_WOW)
+#if defined(LUAGLM_EXT_API)
   {"strlenutf8", utflen},
   {"strcmputf8i", strcmputf8i},
   {"len16", utf16len},

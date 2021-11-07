@@ -315,7 +315,7 @@ static void printobj (global_State *g, GCObject *o) {
            ttypename(novariant(o->tt)), (void *)o,
            isdead(g,o) ? 'd' : isblack(o) ? 'b' : iswhite(o) ? 'w' : 'g',
            "ns01oTt"[getage(o)], o->marked);
-#if defined(GRIT_POWER_BLOB)
+#if defined(LUAGLM_EXT_BLOB)
   if (novariant((o)->tt) == LUA_TSTRING)
 #else
   if (o->tt == LUA_VSHRSTR || o->tt == LUA_VLNGSTR)
@@ -494,7 +494,7 @@ static void checkrefs (global_State *g, GCObject *o) {
     }
     case LUA_VMATRIX:
     case LUA_VSHRSTR:
-#if defined(GRIT_POWER_BLOB)
+#if defined(LUAGLM_EXT_BLOB)
     case LUA_VBLOBSTR:
 #endif
     case LUA_VLNGSTR: {
@@ -1646,7 +1646,7 @@ static int runC (lua_State *L, lua_State *L1, const char *pc) {
       int t = getindex;
       lua_rawsetp(L1, t, cast_voidp(cast_sizet(getnum)));
     }
-#if defined(GRIT_POWER_READONLY)
+#if defined(LUAGLM_EXT_READONLY)
     else if EQ("isreadonly") {
       lua_pushboolean(L, lua_isreadonly(L1, getindex));
     }
@@ -1655,7 +1655,7 @@ static int runC (lua_State *L, lua_State *L1, const char *pc) {
       lua_setreadonly(L1, t, getnum);
     }
 #endif
-#if defined(GRIT_POWER_WOW)
+#if defined(LUAGLM_EXT_API)
     else if EQ("wipetable") {
       lua_wipetable(L1, getindex);
     }

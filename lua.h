@@ -292,7 +292,7 @@ LUA_API int   (lua_setiuservalue) (lua_State *L, int idx, int n);
 /*
 ** extended API
 */
-#if defined(GRIT_POWER_WOW)
+#if defined(LUAGLM_EXT_API)
 #define LUA_TTEMPTY 0
 #define LUA_TTARRAY 1
 #define LUA_TTHASH  2
@@ -307,7 +307,7 @@ LUA_API int   (lua_tabletype) (lua_State *L, int idx);
 /*
 ** readonly API
 */
-#if defined(GRIT_POWER_READONLY)
+#if defined(LUAGLM_EXT_READONLY)
 LUA_API int   (lua_isreadonly) (lua_State* L, int idx);
 LUA_API void  (lua_setreadonly) (lua_State* L, int idx, int value);
 #endif
@@ -315,7 +315,7 @@ LUA_API void  (lua_setreadonly) (lua_State* L, int idx, int value);
 /*
 ** string blob API
 */
-#if defined(GRIT_POWER_BLOB)
+#if defined(LUAGLM_EXT_BLOB)
 /* Returns 1 if the value at the given index is a blob variant */
 LUA_API int (lua_isstringblob) (lua_State *L, int idx);
 

@@ -128,7 +128,7 @@ GLM_LUA_REG(remainder),
 GLM_LUA_REG(scalbn),
 { "remquo", GLM_NAME(remainder) }, /* c99, ignore quot */
 #endif
-#if defined(LUA_GLM_ALIASES)
+#if defined(LUAGLM_ALIASES)
 GLM_LUA_REG(toint),
 #endif
 #endif
@@ -188,7 +188,7 @@ GLM_LUA_REG(distance),
 GLM_LUA_REG(faceforward),
 GLM_LUA_REG(reflect),
 GLM_LUA_REG(refract),
-#if defined(LUA_GLM_ALIASES)
+#if defined(LUAGLM_ALIASES)
 { "distance_to", GLM_NAME(distance) },
 #endif
 #endif
@@ -200,7 +200,7 @@ GLM_LUA_REG(normalize),
 GLM_LUA_REG(clampLength), /* LUA_VECTOR_EXTENSIONS */
 GLM_LUA_REG(scaleLength),
 GLM_LUA_REG(direction),
-#if defined(LUA_GLM_ALIASES)
+#if defined(LUAGLM_ALIASES)
 { "norm", GLM_NAME(normalize) },
 { "magnitude", GLM_NAME(length) },
 { "direction_to", GLM_NAME(direction) },
@@ -247,7 +247,7 @@ GLM_LUA_REG(sinh),
 GLM_LUA_REG(tan),
 GLM_LUA_REG(tanh),
 GLM_LUA_REG(sincos), /* LUA_VECTOR_EXTENSION */
-#if defined(LUA_GLM_ALIASES)
+#if defined(LUAGLM_ALIASES)
 { "deg", GLM_NAME(degrees) }, /* NOTE: lmathlib compat */
 { "rad", GLM_NAME(radians) }, /* NOTE: lmathlib compat */
 #endif
@@ -269,7 +269,7 @@ GLM_LUA_REG(prevPowerOfTwo),
 #if defined(GTC_EPSILON_HPP)
 GLM_LUA_REG(epsilonEqual),
 GLM_LUA_REG(epsilonNotEqual),
-#if defined(LUA_GLM_ALIASES)
+#if defined(LUAGLM_ALIASES)
 { "approx", GLM_NAME(epsilonEqual) },
 { "approximately", GLM_NAME(epsilonEqual) },
 #endif
@@ -464,7 +464,7 @@ GLM_LUA_REG(erfc),
 GLM_LUA_REG(lgamma),
 GLM_LUA_REG(tgamma),
 #endif
-#if defined(LUA_GLM_ALIASES)
+#if defined(LUAGLM_ALIASES)
 { "move_toward", GLM_NAME(moveTowards) },
 #endif
 #endif
@@ -505,7 +505,7 @@ GLM_LUA_REG(lxNorm),
 #if GLM_VERSION >= 996  // @COMPAT Added in 0.9.9.6
 GLM_LUA_REG(lMaxNorm),
 #endif
-#if defined(LUA_GLM_ALIASES)
+#if defined(LUAGLM_ALIASES)
 { "sqrLength", GLM_NAME(length2) },
 { "sqrMagnitude", GLM_NAME(length2) },
 { "lengthSquared", GLM_NAME(length2) },
@@ -545,7 +545,7 @@ GLM_LUA_REG(perpendicular),
 GLM_LUA_REG(perpendicular2),
 GLM_LUA_REG(perpendicularBasis),
 GLM_LUA_REG(perpendicularFast),
-#if defined(LUA_GLM_ALIASES)
+#if defined(LUAGLM_ALIASES)
 { "basis", GLM_NAME(perpendicularBasis) },
 { "from_z", GLM_NAME(perpendicularFast) },
 #endif
@@ -588,7 +588,7 @@ GLM_LUA_REG(transformPos), /* LUA_MATRIX_EXTENSIONS */
 GLM_LUA_REG(transformPosPerspective),
 GLM_LUA_REG(transformDir),
 GLM_LUA_REG(rotateFromTo), /* LUA_QUATERNION_EXTENSIONS */
-#if defined(LUA_GLM_INLINED_TEMPLATES)
+#if defined(LUAGLM_INLINED_TEMPLATES)
 GLM_LUA_REG(rotate_mat3),
 GLM_LUA_REG(rotate_mat4),
 #endif
@@ -598,7 +598,7 @@ GLM_LUA_REG(rotate_mat4),
 GLM_LUA_REG(catmullRom),
 GLM_LUA_REG(cubic),
 GLM_LUA_REG(hermite),
-#if defined(LUA_GLM_ALIASES)
+#if defined(LUAGLM_ALIASES)
 { "cubic_interpolate", GLM_NAME(catmullRom) },
 #endif
 #endif
@@ -617,7 +617,7 @@ GLM_LUA_REG(trs), /* LUA_MATRIX_EXTENSIONS */
 #if defined(GTX_VECTOR_ANGLE_HPP)
 GLM_LUA_REG(angle),
 GLM_LUA_REG(orientedAngle),
-#if defined(LUA_GLM_ALIASES)
+#if defined(LUAGLM_ALIASES)
 { "angle_to", GLM_NAME(angle) },
 { "signedAngle", GLM_NAME(orientedAngle) },
 { "signed_angle_to", GLM_NAME(orientedAngle) },
@@ -635,7 +635,7 @@ GLM_LUA_REG(isCompNull),
 GLM_LUA_REG(isNormalized),
 GLM_LUA_REG(isNull),
 GLM_LUA_REG(isUniform), /* LUA_VECTOR_EXTENSIONS */
-#if defined(LUA_GLM_ALIASES)
+#if defined(LUAGLM_ALIASES)
 { "isZero", GLM_NAME(isNull) },
 { "isEmpty", GLM_NAME(isNull) },
 { "is_normalized", GLM_NAME(isNormalized) },
@@ -818,7 +818,7 @@ GLM_LUA_REG(quatLookAtRH),
 GLM_LUA_REG(quatbillboardRH), /* LUA_QUATERNION_EXTENSIONS */
 GLM_LUA_REG(quatbillboardLH),
 GLM_LUA_REG(quatbillboard),
-#if defined(LUA_GLM_ALIASES)
+#if defined(LUAGLM_ALIASES)
 { "quatlookRotation", glm_quatLookAt },
 { "quatlookRotationRH", glm_quatLookAtRH },
 { "quatlookRotationLH", glm_quatLookAtLH },
@@ -921,7 +921,7 @@ GLM_LUA_REG(containsProjection), /* LUA_MATRIX_EXTENSIONS */
 #if defined(GTC_MATRIX_ACCESS_HPP)
 GLM_LUA_REG(column),
 GLM_LUA_REG(row),
-#if defined(LUA_GLM_ALIASES)
+#if defined(LUAGLM_ALIASES)
 { "getColumn", GLM_NAME(column) }, /* Unity Alias */
 { "getRow", GLM_NAME(row) }, /* Unity Alias */
 #endif
@@ -994,7 +994,7 @@ GLM_LUA_REG(quatEulerAngleZXZ),
 GLM_LUA_REG(quatEulerAngleZY),
 GLM_LUA_REG(quatEulerAngleZYX),
 GLM_LUA_REG(quatEulerAngleZYZ),
-#if defined(LUA_GLM_ALIASES)
+#if defined(LUAGLM_ALIASES)
 { "eulerX", glm_eulerAngleX },
 { "eulerXY", glm_eulerAngleXY },
 { "eulerXYX", glm_eulerAngleXYX },

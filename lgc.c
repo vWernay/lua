@@ -184,7 +184,7 @@ static void clearkey (Node *n) {
 */
 static int iscleared (global_State *g, const GCObject *o) {
   if (o == NULL) return 0;  /* non-collectable value */
-#if defined(GRIT_POWER_BLOB)  /* blobs are to be removed from weak tables */
+#if defined(LUAGLM_EXT_BLOB)  /* blobs are to be removed from weak tables */
   else if (novariant(o->tt) == LUA_TSTRING && withvariant(o->tt) != LUA_VBLOBSTR) {
 #else
   else if (novariant(o->tt) == LUA_TSTRING) {
@@ -296,7 +296,7 @@ static void reallymarkobject (global_State *g, GCObject *o) {
   switch (o->tt) {
     case LUA_VMATRIX:
     case LUA_VSHRSTR:
-#if defined(GRIT_POWER_BLOB)
+#if defined(LUAGLM_EXT_BLOB)
     case LUA_VBLOBSTR:
 #endif
     case LUA_VLNGSTR: {
@@ -807,7 +807,7 @@ static void freeobj (lua_State *L, GCObject *o) {
       luaM_freemem(L, ts, sizelstring(ts->shrlen));
       break;
     }
-#if defined(GRIT_POWER_BLOB)
+#if defined(LUAGLM_EXT_BLOB)
     case LUA_VBLOBSTR:
 #endif
     case LUA_VLNGSTR: {

@@ -219,7 +219,7 @@ static void loadConstants (LoadState *S, Proto *f) {
         setvvalue(o, loadVectorType(S, t), cast_byte(t));
         break;
       case LUA_VSHRSTR:
-#if defined(GRIT_POWER_BLOB)
+#if defined(LUAGLM_EXT_BLOB)
       case LUA_VBLOBSTR:
 #endif
       case LUA_VLNGSTR:

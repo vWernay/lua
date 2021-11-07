@@ -6,8 +6,8 @@
 ** painless as possible). With key differences being:
 **  1. Static versus Dynamic typing (or 'auto' versus 'local' syntax);
 **  2. Namespace resolution (::) versus table access (.) syntax. However, the
-**    'GRIT_POWER_NAMESPACE_SEL' build option removes this case at the cost of
-**    'goto' no longer being a language feature.
+**    'LUAGLM_EXT_SCOPE_RESOLUTION' build option removes this case at the cost
+**     of 'goto' no longer being a language feature.
 **  3. Constants in luaglm are stored by value, e.g. glm.pi. However in cpp,
 **    they are templated constant expressions, e.g., glm::pi<float>().
 **  4. Floating-point literals (1.0f) vs. lua_Number (1.0).
@@ -39,7 +39,7 @@
 
 #include "api.hpp"
 #include "lglmlib.hpp"
-#if defined(LUA_GLM_GEOM_EXTENSIONS)
+#if defined(LUAGLM_INCLUDE_GEOM)
   #include "geom.hpp"
 #endif
 
@@ -74,7 +74,7 @@ static int glm_libraryindex(lua_State *L) {
   return 1;
 }
 
-#if defined(LUA_GLM_GEOM_EXTENSIONS)
+#if defined(LUAGLM_INCLUDE_GEOM)
 /// <summary>
 /// Helper function for creating meta/library tables.
 /// </summary>
@@ -110,7 +110,7 @@ static const luaL_Reg luaglm_lib[] = {
   /* Metamethods */
   { "__index", GLM_NULLPTR },
   /* Geometry API */
-#if defined(LUA_GLM_GEOM_EXTENSIONS)
+#if defined(LUAGLM_INCLUDE_GEOM)
   { "aabb", GLM_NULLPTR },
   { "line", GLM_NULLPTR },
   { "ray", GLM_NULLPTR },
@@ -141,7 +141,7 @@ static const luaL_Reg luaglm_metamethods[] = {
 extern "C" {
   LUAMOD_API int luaopen_glm(lua_State *L) {
     luaL_newlib(L, luaglm_lib);  // Initialize GLM library
-#if defined(LUA_GLM_GEOM_EXTENSIONS)
+#if defined(LUAGLM_INCLUDE_GEOM)
     luaL_newlib(L, luaglm_aabblib); lua_setfield(L, -2, "aabb");
     luaL_newlib(L, luaglm_linelib); lua_setfield(L, -2, "line");
     luaL_newlib(L, luaglm_raylib); lua_setfield(L, -2, "ray");
@@ -153,7 +153,7 @@ extern "C" {
     luaL_newlib(L, luaglm_segment2dlib); lua_setfield(L, -2, "segment2d");
     luaL_newlib(L, luaglm_circlelib); lua_setfield(L, -2, "circle");
     // The "polygon" API is a reference to the polygon metatable stored in the registry.
-    glm_newmetatable(L, LUA_GLM_POLYGON_META, "polygon", luaglm_polylib);
+    glm_newmetatable(L, LUAGLM_POLYGON_META, "polygon", luaglm_polylib);
 #endif
 #if defined(CONSTANTS_HPP) || defined(EXT_SCALAR_CONSTANTS_HPP)
   #if GLM_VERSION >= 997  // @COMPAT Added in 0.9.9.7
@@ -206,10 +206,10 @@ extern "C" {
     luaL_setfuncs(L, luaglm_metamethods, 1);
 
     /* Library details */
-    lua_pushliteral(L, LUA_GLM_NAME); lua_setfield(L, -2, "_NAME");
-    lua_pushliteral(L, LUA_GLM_VERSION); lua_setfield(L, -2, "_VERSION");
-    lua_pushliteral(L, LUA_GLM_COPYRIGHT); lua_setfield(L, -2, "_COPYRIGHT");
-    lua_pushliteral(L, LUA_GLM_DESCRIPTION); lua_setfield(L, -2, "_DESCRIPTION");
+    lua_pushliteral(L, LUAGLM_NAME); lua_setfield(L, -2, "_NAME");
+    lua_pushliteral(L, LUAGLM_VERSION); lua_setfield(L, -2, "_VERSION");
+    lua_pushliteral(L, LUAGLM_COPYRIGHT); lua_setfield(L, -2, "_COPYRIGHT");
+    lua_pushliteral(L, LUAGLM_DESCRIPTION); lua_setfield(L, -2, "_DESCRIPTION");
     lua_pushinteger(L, GLM_VERSION); lua_setfield(L, -2, "_GLM_VERSION");
 
     /* Copy lmathlib functions not supported by library. */
@@ -224,7 +224,7 @@ extern "C" {
     lua_pop(L, 1);
 
     /* If enabled, replace _G.math with the binding library */
-#if defined(LUA_GLM_REPLACE_MATH)
+#if defined(LUAGLM_REPLACE_MATH)
     lua_pushvalue(L, -1);
     lua_setglobal(L, LUA_MATHLIBNAME);
 #endif

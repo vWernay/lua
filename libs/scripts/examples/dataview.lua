@@ -1,5 +1,5 @@
 --[[
-    A DataView implementation based on GRIT_POWER_BLOB
+    A DataView implementation based on LUAGLM_EXT_BLOB
 
 API:
     -- Creates a new ArrayBuffer object.

@@ -49,7 +49,7 @@ extern LUA_API_LINKAGE {
   #include "lglm_core.h"
 }
 
-#if defined(LUA_GLM_GEOM_EXTENSIONS)
+#if defined(LUAGLM_INCLUDE_GEOM)
   #include "allocator.hpp"
   #include "ext/geom/aabb.hpp"
   #include "ext/geom/line.hpp"
@@ -76,10 +76,10 @@ extern LUA_API_LINKAGE {
 #define GLM_INVALID_MAT_COLUMN ("unexpected " LABEL_MATRIX " column")
 
 /* Metatable name for polygon userdata. */
-#define LUA_GLM_POLYGON_META "GLM_POLYGON"
+#define LUAGLM_POLYGON_META "GLM_POLYGON"
 
 /* Macro for implicitly handling floating point drift where possible */
-#if defined(LUA_GLM_DRIFT)
+#if defined(LUAGLM_DRIFT)
   #define gm_drift(x) glm::normalize((x))
 #else
   #define gm_drift(x) x
@@ -233,7 +233,7 @@ struct gLuaBase {
   /// recyclable, data structure.
   /// </summary>
   GLM_INLINE bool can_recycle() {
-#if defined(LUA_GLM_RECYCLE)
+#if defined(LUAGLM_RECYCLE)
     return (idx < 0 || idx <= top());
 #else
     return false;
@@ -571,7 +571,7 @@ struct gLuaBase {
     const TValue *o = glm_i2v(LB.L, idx_);
     if (l_likely(ttismatrix(o))) {
       const glmMatrix &mat = glm_mvalue(o);
-      if (mat.dimensions == LUA_GLM_MATRIX_TYPE(C, R))
+      if (mat.dimensions == LUAGLM_MATRIX_TYPE(C, R))
         return mat.Get(m);
     }
     return luaL_error(LB.L, GLM_INVALID_MAT_STRUCTURE);
@@ -596,7 +596,7 @@ struct gLuaBase {
       lua_unlock(L_);
     }
 
-#if defined(LUA_GLM_FORCED_RECYCLE)
+#if defined(LUAGLM_FORCED_RECYCLE)
     /* This library allocating memory is verboten! */
     return luaL_error(LB.L, "library configured to not allocate additional memory; use recycling mechanisms")
 #else
@@ -604,7 +604,7 @@ struct gLuaBase {
 #endif
   }
 
-#if defined(LUA_GLM_GEOM_EXTENSIONS)
+#if defined(LUAGLM_INCLUDE_GEOM)
   template<glm::length_t D, typename T>
   LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::AABB<D, T> &v) {
     Pull(LB, idx_, v.minPoint);
@@ -623,7 +623,7 @@ struct gLuaBase {
   LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::Line<D, T> &l) {
     Pull(LB, idx_, l.pos);
     Pull(LB, idx_ + 1, l.dir);
-#if defined(LUA_GLM_DRIFT)
+#if defined(LUAGLM_DRIFT)
     l.dir = gm_drift(l.dir);
 #endif
     return 2;
@@ -654,7 +654,7 @@ struct gLuaBase {
   LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::Ray<D, T> &r) {
     Pull(LB, idx_, r.pos);
     Pull(LB, idx_ + 1, r.dir);
-#if defined(LUA_GLM_DRIFT)
+#if defined(LUAGLM_DRIFT)
     r.dir = gm_drift(r.dir);
 #endif
     return 2;
@@ -716,7 +716,7 @@ struct gLuaBase {
     void *ptr = GLM_NULLPTR;
     if (idx_ <= 0)
       return luaL_error(LB.L, "Invalid PolygonPull operation; incorrect API usage");
-    else if ((ptr = luaL_checkudata(LB.L, idx_, LUA_GLM_POLYGON_META)) == GLM_NULLPTR)
+    else if ((ptr = luaL_checkudata(LB.L, idx_, LUAGLM_POLYGON_META)) == GLM_NULLPTR)
       return luaL_error(LB.L, "Invalid PolygonPull operation; not userdata");
 
     p = *(static_cast<glm::Polygon<3, T> *>(ptr));
@@ -904,20 +904,20 @@ struct gLuaTrait<glm::mat<C, R, T>> : gLuaSharedTrait<T, glm::mat<C, R, T>> {
   LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::mat<C, R, T> zero() { return glm::mat<C, R, T>(T(0)); }
   LUA_TRAIT_QUALIFIER bool Is(const gLuaBase &LB, int idx) {
     glm::length_t dimensions = 0;
-    return glm_ismatrix(LB.L, idx, dimensions) && dimensions == LUA_GLM_MATRIX_TYPE(C, R);
+    return glm_ismatrix(LB.L, idx, dimensions) && dimensions == LUAGLM_MATRIX_TYPE(C, R);
   }
 
   static GLM_CONSTEXPR const char *Label() {
-    switch (LUA_GLM_MATRIX_TYPE(C, R)) {
-      case LUA_GLM_MATRIX_2x2: return LABEL_MATRIX "2x2";
-      case LUA_GLM_MATRIX_2x3: return LABEL_MATRIX "2x3";
-      case LUA_GLM_MATRIX_2x4: return LABEL_MATRIX "2x4";
-      case LUA_GLM_MATRIX_3x2: return LABEL_MATRIX "3x2";
-      case LUA_GLM_MATRIX_3x3: return LABEL_MATRIX "3x3";
-      case LUA_GLM_MATRIX_3x4: return LABEL_MATRIX "3x4";
-      case LUA_GLM_MATRIX_4x2: return LABEL_MATRIX "4x2";
-      case LUA_GLM_MATRIX_4x3: return LABEL_MATRIX "4x3";
-      case LUA_GLM_MATRIX_4x4: return LABEL_MATRIX "4x4";
+    switch (LUAGLM_MATRIX_TYPE(C, R)) {
+      case LUAGLM_MATRIX_2x2: return LABEL_MATRIX "2x2";
+      case LUAGLM_MATRIX_2x3: return LABEL_MATRIX "2x3";
+      case LUAGLM_MATRIX_2x4: return LABEL_MATRIX "2x4";
+      case LUAGLM_MATRIX_3x2: return LABEL_MATRIX "3x2";
+      case LUAGLM_MATRIX_3x3: return LABEL_MATRIX "3x3";
+      case LUAGLM_MATRIX_3x4: return LABEL_MATRIX "3x4";
+      case LUAGLM_MATRIX_4x2: return LABEL_MATRIX "4x2";
+      case LUAGLM_MATRIX_4x3: return LABEL_MATRIX "4x3";
+      case LUAGLM_MATRIX_4x4: return LABEL_MATRIX "4x4";
       default: {
         break;
       }
@@ -951,7 +951,7 @@ template<typename T = glm_Float> using gLuaMat4x4 = gLuaTrait<glm::mat<4, 4, T>>
 /// <summary>
 /// Specialization for implicitly normalizing direction vectors/quaternions.
 /// </summary>
-#if defined(LUA_GLM_DRIFT)
+#if defined(LUAGLM_DRIFT)
 template<glm::length_t L, typename T = glm_Float>
 struct gLuaDir : gLuaTrait<glm::vec<L, T>> {
   LUA_TRAIT_QUALIFIER glm::vec<L, T> Next(gLuaBase &LB) {
@@ -1352,21 +1352,21 @@ struct gLuaEps : gLuaTrait<T> {
 ** @NOTE: This parser does not throw an error if the Value is not a known matrix
 **  value. This is to simplify the EQUAL/HASH operations.
 */
-#define PARSE_MATRIX(LB, Value, F, ArgLayout, ...)                                 \
-  LUA_MLM_BEGIN                                                                    \
-  switch (mvalue_dims(Value)) {                                                    \
-    case LUA_GLM_MATRIX_2x2: ArgLayout(LB, F, gLuaMat2x2<>, ##__VA_ARGS__); break; \
-    case LUA_GLM_MATRIX_2x3: ArgLayout(LB, F, gLuaMat2x3<>, ##__VA_ARGS__); break; \
-    case LUA_GLM_MATRIX_2x4: ArgLayout(LB, F, gLuaMat2x4<>, ##__VA_ARGS__); break; \
-    case LUA_GLM_MATRIX_3x2: ArgLayout(LB, F, gLuaMat3x2<>, ##__VA_ARGS__); break; \
-    case LUA_GLM_MATRIX_3x3: ArgLayout(LB, F, gLuaMat3x3<>, ##__VA_ARGS__); break; \
-    case LUA_GLM_MATRIX_3x4: ArgLayout(LB, F, gLuaMat3x4<>, ##__VA_ARGS__); break; \
-    case LUA_GLM_MATRIX_4x2: ArgLayout(LB, F, gLuaMat4x2<>, ##__VA_ARGS__); break; \
-    case LUA_GLM_MATRIX_4x3: ArgLayout(LB, F, gLuaMat4x3<>, ##__VA_ARGS__); break; \
-    case LUA_GLM_MATRIX_4x4: ArgLayout(LB, F, gLuaMat4x4<>, ##__VA_ARGS__); break; \
-    default:                                                                       \
-      break;                                                                       \
-  }                                                                                \
+#define PARSE_MATRIX(LB, Value, F, ArgLayout, ...)                                \
+  LUA_MLM_BEGIN                                                                   \
+  switch (mvalue_dims(Value)) {                                                   \
+    case LUAGLM_MATRIX_2x2: ArgLayout(LB, F, gLuaMat2x2<>, ##__VA_ARGS__); break; \
+    case LUAGLM_MATRIX_2x3: ArgLayout(LB, F, gLuaMat2x3<>, ##__VA_ARGS__); break; \
+    case LUAGLM_MATRIX_2x4: ArgLayout(LB, F, gLuaMat2x4<>, ##__VA_ARGS__); break; \
+    case LUAGLM_MATRIX_3x2: ArgLayout(LB, F, gLuaMat3x2<>, ##__VA_ARGS__); break; \
+    case LUAGLM_MATRIX_3x3: ArgLayout(LB, F, gLuaMat3x3<>, ##__VA_ARGS__); break; \
+    case LUAGLM_MATRIX_3x4: ArgLayout(LB, F, gLuaMat3x4<>, ##__VA_ARGS__); break; \
+    case LUAGLM_MATRIX_4x2: ArgLayout(LB, F, gLuaMat4x2<>, ##__VA_ARGS__); break; \
+    case LUAGLM_MATRIX_4x3: ArgLayout(LB, F, gLuaMat4x3<>, ##__VA_ARGS__); break; \
+    case LUAGLM_MATRIX_4x4: ArgLayout(LB, F, gLuaMat4x4<>, ##__VA_ARGS__); break; \
+    default:                                                                      \
+      break;                                                                      \
+  }                                                                               \
   LUA_MLM_END
 
 /* A glm::function that operates only on NxN matrices */
@@ -1375,9 +1375,9 @@ struct gLuaEps : gLuaTrait<T> {
   const TValue *_tv = glm_i2v((LB).L, (LB).idx);                             \
   if (l_likely(ttismatrix(_tv))) {                                           \
     switch (mvalue_dims(_tv)) {                                              \
-      case LUA_GLM_MATRIX_2x2: ArgLayout(LB, F, gLuaMat2x2<>, ##__VA_ARGS__); break; \
-      case LUA_GLM_MATRIX_3x3: ArgLayout(LB, F, gLuaMat3x3<>, ##__VA_ARGS__); break; \
-      case LUA_GLM_MATRIX_4x4: ArgLayout(LB, F, gLuaMat4x4<>, ##__VA_ARGS__); break; \
+      case LUAGLM_MATRIX_2x2: ArgLayout(LB, F, gLuaMat2x2<>, ##__VA_ARGS__); break; \
+      case LUAGLM_MATRIX_3x3: ArgLayout(LB, F, gLuaMat3x3<>, ##__VA_ARGS__); break; \
+      case LUAGLM_MATRIX_4x4: ArgLayout(LB, F, gLuaMat4x4<>, ##__VA_ARGS__); break; \
       default:                                                               \
         return luaL_typeerror((LB).L, (LB).idx, GLM_INVALID_MAT_DIMENSIONS); \
     }                                                                        \
@@ -1398,10 +1398,10 @@ struct gLuaEps : gLuaTrait<T> {
     case LUA_VQUAT: ArgLayout(LB, F, gLuaQuat<>, ##__VA_ARGS__); break;       \
     case LUA_VMATRIX: {                                                       \
       switch (mvalue_dims(_tv)) {                                             \
-        case LUA_GLM_MATRIX_3x3: ArgLayout(LB, F, gLuaMat3x3<>, ##__VA_ARGS__); break; \
-        case LUA_GLM_MATRIX_3x4: ArgLayout(LB, F, gLuaMat3x4<>, ##__VA_ARGS__); break; \
-        case LUA_GLM_MATRIX_4x3: ArgLayout(LB, F, gLuaMat4x3<>, ##__VA_ARGS__); break; \
-        case LUA_GLM_MATRIX_4x4: ArgLayout(LB, F, gLuaMat4x4<>, ##__VA_ARGS__); break; \
+        case LUAGLM_MATRIX_3x3: ArgLayout(LB, F, gLuaMat3x3<>, ##__VA_ARGS__); break; \
+        case LUAGLM_MATRIX_3x4: ArgLayout(LB, F, gLuaMat3x4<>, ##__VA_ARGS__); break; \
+        case LUAGLM_MATRIX_4x3: ArgLayout(LB, F, gLuaMat4x3<>, ##__VA_ARGS__); break; \
+        case LUAGLM_MATRIX_4x4: ArgLayout(LB, F, gLuaMat4x4<>, ##__VA_ARGS__); break; \
         default:                                                              \
             return luaL_typeerror((LB).L, (LB).idx, GLM_INVALID_MAT_DIMENSIONS); \
       }                                                                       \
@@ -1460,7 +1460,7 @@ struct gLuaEps : gLuaTrait<T> {
 **    long as LUAI_TRY handles exceptions via try/catch. Although, the flags
 **    LUA_USE_LONGJMP & LUA_CPP_EXCEPTIONS can change that functionality.
 */
-#if defined(LUA_GLM_SAFE)
+#if defined(LUAGLM_SAFELIB)
   #define GLM_BINDING_BEGIN         \
     gLuaBase LB(L);                 \
     /* Ensure LB.top() is cached */ \

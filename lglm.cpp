@@ -66,7 +66,7 @@ extern LUA_API_LINKAGE {
 #endif
 
 /* @TEMP Ensure C boundary is correct */
-#if LUAGLM_VERSION != GLM_VERSION
+#if LUAGLM_LIBVERSION != GLM_VERSION
   #error "GLM error: A different version of LUAGLM is already defined."
 #endif
 
@@ -220,7 +220,7 @@ static void vec_finishget(lua_State *L, const TValue *obj, TValue *key, StkId re
         glm_setvvalue2s(res, out, LUA_VVECTOR3);
       }
       else {
-#if defined(LUA_GLM_APICHECK)
+#if defined(LUAGLM_APICHECK)
         luaG_runerror(L, "invalid " LABEL_QUATERN " field: '%s'", svalue(key));
 #else
         setnilvalue(s2v(res));
@@ -228,7 +228,7 @@ static void vec_finishget(lua_State *L, const TValue *obj, TValue *key, StkId re
       }
     }
     else {
-#if defined(LUA_GLM_APICHECK)
+#if defined(LUAGLM_APICHECK)
       luaG_runerror(L, "invalid " LABEL_VECTOR " field: '%s'", svalue(key));
 #else
       setnilvalue(s2v(res));
@@ -616,8 +616,8 @@ static int glmMat_auxset(lua_State *L, const TValue *obj, TValue *key, TValue *v
   }
 
   glmMatrix &m = glm_mat_boundary(mvalue_ref(obj));
-  const glm::length_t m_size = LUA_GLM_MATRIX_COLS(m.dimensions);
-  const glm::length_t m_secondary = LUA_GLM_MATRIX_ROWS(m.dimensions);
+  const glm::length_t m_size = LUAGLM_MATRIX_COLS(m.dimensions);
+  const glm::length_t m_secondary = LUAGLM_MATRIX_ROWS(m.dimensions);
   const glm::length_t dim = i_glmlen(glm_tointeger(key));
   if (ttisvector(val)) {
     const bool expanding = dim <= 4 && (dim == (m_size + 1));
@@ -647,12 +647,12 @@ static int glmMat_auxset(lua_State *L, const TValue *obj, TValue *key, TValue *v
       }
     }
 
-    m.dimensions = LUA_GLM_MATRIX_TYPE(m_size + (expanding ? 1 : 0), m_secondary);
+    m.dimensions = LUAGLM_MATRIX_TYPE(m_size + (expanding ? 1 : 0), m_secondary);
     return 1;
   }
   else if (ttisnil(val)) {  // Attempt to shrink the dimension of the matrix
     if (dim == m_size && dim > 2) {  // Matrices must have at least two columns; >= 2x2
-      m.dimensions = LUA_GLM_MATRIX_TYPE(m_size - 1, m_secondary);
+      m.dimensions = LUAGLM_MATRIX_TYPE(m_size - 1, m_secondary);
       return 1;
     }
     return raw ? glm_runerror(L, LABEL_MATRIX " must have at least two columns")
@@ -666,8 +666,8 @@ static int glmMat_auxset(lua_State *L, const TValue *obj, TValue *key, TValue *v
 static LUA_INLINE int matgeti (const TValue *obj, lua_Integer n, StkId res) {
   const grit_length_t gidx = cast(grit_length_t, n);
   const lua_Mat4 *m = mvalue_ref(obj);
-  if (l_likely(gidx >= 1 && gidx <= LUA_GLM_MATRIX_COLS(m->dimensions))) {
-    switch (LUA_GLM_MATRIX_ROWS(m->dimensions)) {
+  if (l_likely(gidx >= 1 && gidx <= LUAGLM_MATRIX_COLS(m->dimensions))) {
+    switch (LUAGLM_MATRIX_ROWS(m->dimensions)) {
       case 2: {
         const lua_CFloat2& col = m->m.m2[gidx - 1];
         const lua_Float4 f4 = { col.x, col.y, 0, 0 };
@@ -756,7 +756,7 @@ void glmMat_seti(lua_State *L, const TValue *obj, lua_Integer c, TValue *val) {
 }
 
 void glmMat_objlen(const TValue *obj, StkId res) {
-  setivalue(s2v(res), static_cast<lua_Integer>(LUA_GLM_MATRIX_COLS(mvalue_dims(obj))));
+  setivalue(s2v(res), static_cast<lua_Integer>(LUAGLM_MATRIX_COLS(mvalue_dims(obj))));
 }
 
 int glmMat_tostr(const TValue *obj, char *buff, size_t len) {
@@ -767,15 +767,15 @@ int glmMat_tostr(const TValue *obj, char *buff, size_t len) {
   // and CRT allocator use. In addition, gtx/string_cast is broken for GCC when
   // GLM_FORCE_INLINE is enabled.
   switch (m.dimensions) {
-    case LUA_GLM_MATRIX_2x2: copy = glm::detail::format_type(buff, len, m.m22); break;
-    case LUA_GLM_MATRIX_2x3: copy = glm::detail::format_type(buff, len, m.m23); break;
-    case LUA_GLM_MATRIX_2x4: copy = glm::detail::format_type(buff, len, m.m24); break;
-    case LUA_GLM_MATRIX_3x2: copy = glm::detail::format_type(buff, len, m.m32); break;
-    case LUA_GLM_MATRIX_3x3: copy = glm::detail::format_type(buff, len, m.m33); break;
-    case LUA_GLM_MATRIX_3x4: copy = glm::detail::format_type(buff, len, m.m34); break;
-    case LUA_GLM_MATRIX_4x2: copy = glm::detail::format_type(buff, len, m.m42); break;
-    case LUA_GLM_MATRIX_4x3: copy = glm::detail::format_type(buff, len, m.m43); break;
-    case LUA_GLM_MATRIX_4x4: copy = glm::detail::format_type(buff, len, m.m44); break;
+    case LUAGLM_MATRIX_2x2: copy = glm::detail::format_type(buff, len, m.m22); break;
+    case LUAGLM_MATRIX_2x3: copy = glm::detail::format_type(buff, len, m.m23); break;
+    case LUAGLM_MATRIX_2x4: copy = glm::detail::format_type(buff, len, m.m24); break;
+    case LUAGLM_MATRIX_3x2: copy = glm::detail::format_type(buff, len, m.m32); break;
+    case LUAGLM_MATRIX_3x3: copy = glm::detail::format_type(buff, len, m.m33); break;
+    case LUAGLM_MATRIX_3x4: copy = glm::detail::format_type(buff, len, m.m34); break;
+    case LUAGLM_MATRIX_4x2: copy = glm::detail::format_type(buff, len, m.m42); break;
+    case LUAGLM_MATRIX_4x3: copy = glm::detail::format_type(buff, len, m.m43); break;
+    case LUAGLM_MATRIX_4x4: copy = glm::detail::format_type(buff, len, m.m44); break;
     default: {
       break;
     }
@@ -797,7 +797,7 @@ int glmMat_next(const TValue *obj, StkId key) {
     l_nextIdx = luaL_intop(+, l_nextIdx, 1);  /* first empty element */
 
     const glm::length_t nextIdx = i_glmlen(l_nextIdx);
-    if (nextIdx >= 1 && nextIdx <= LUA_GLM_MATRIX_COLS(mvalue_dims(obj))) {
+    if (nextIdx >= 1 && nextIdx <= LUAGLM_MATRIX_COLS(mvalue_dims(obj))) {
       setivalue(key_value, l_nextIdx);  // Iterator values are 1-based
       glmMat_rawgeti(obj, l_nextIdx, key + 1);
       return 1;
@@ -812,15 +812,15 @@ int glmMat_equalObj(lua_State *L, const TValue *o1, const TValue *o2) {
   const glmMatrix &other_m = glm_mvalue(o2);
   if (m.dimensions == other_m.dimensions) {
     switch (m.dimensions) {
-      case LUA_GLM_MATRIX_2x2: result = _glmeq(m.m22, other_m.m22); break;
-      case LUA_GLM_MATRIX_2x3: result = _glmeq(m.m23, other_m.m23); break;
-      case LUA_GLM_MATRIX_2x4: result = _glmeq(m.m24, other_m.m24); break;
-      case LUA_GLM_MATRIX_3x2: result = _glmeq(m.m32, other_m.m32); break;
-      case LUA_GLM_MATRIX_3x3: result = _glmeq(m.m33, other_m.m33); break;
-      case LUA_GLM_MATRIX_3x4: result = _glmeq(m.m34, other_m.m34); break;
-      case LUA_GLM_MATRIX_4x2: result = _glmeq(m.m42, other_m.m42); break;
-      case LUA_GLM_MATRIX_4x3: result = _glmeq(m.m43, other_m.m43); break;
-      case LUA_GLM_MATRIX_4x4: result = _glmeq(m.m44, other_m.m44); break;
+      case LUAGLM_MATRIX_2x2: result = _glmeq(m.m22, other_m.m22); break;
+      case LUAGLM_MATRIX_2x3: result = _glmeq(m.m23, other_m.m23); break;
+      case LUAGLM_MATRIX_2x4: result = _glmeq(m.m24, other_m.m24); break;
+      case LUAGLM_MATRIX_3x2: result = _glmeq(m.m32, other_m.m32); break;
+      case LUAGLM_MATRIX_3x3: result = _glmeq(m.m33, other_m.m33); break;
+      case LUAGLM_MATRIX_3x4: result = _glmeq(m.m34, other_m.m34); break;
+      case LUAGLM_MATRIX_4x2: result = _glmeq(m.m42, other_m.m42); break;
+      case LUAGLM_MATRIX_4x3: result = _glmeq(m.m43, other_m.m43); break;
+      case LUAGLM_MATRIX_4x4: result = _glmeq(m.m44, other_m.m44); break;
       default: {
         break;
       }
@@ -846,8 +846,8 @@ LUA_API int glm_unpack_matrix(lua_State *L, int idx) {
   const TValue *o = glm_index2value(L, idx);
   if (ttismatrix(o)) {
     const glmMatrix &m = glm_mvalue(o);
-    for (glm::length_t i = 0; i < LUA_GLM_MATRIX_COLS(m.dimensions); ++i) {
-      switch (LUA_GLM_MATRIX_ROWS(m.dimensions)) {
+    for (glm::length_t i = 0; i < LUAGLM_MATRIX_COLS(m.dimensions); ++i) {
+      switch (LUAGLM_MATRIX_ROWS(m.dimensions)) {
         case 2: glm_pushvec2(L, m.m42[i]); break;
         case 3: glm_pushvec3(L, m.m43[i]); break;
         case 4: glm_pushvec4(L, m.m44[i]); break;
@@ -857,7 +857,7 @@ LUA_API int glm_unpack_matrix(lua_State *L, int idx) {
         }
       }
     }
-    return cast_int(LUA_GLM_MATRIX_COLS(m.dimensions));
+    return cast_int(LUAGLM_MATRIX_COLS(m.dimensions));
   }
   return 0;
 }
@@ -896,7 +896,7 @@ static glm::mat<C, R, T> glm_tomat(lua_State *L, int idx) {
   const TValue *o = glm_index2value(L, idx);
   if (ttismatrix(o)) {
     const glmMatrix &m = glm_mvalue(o);
-    if (LUA_GLM_MATRIX_COLS(m.dimensions) >= C && LUA_GLM_MATRIX_ROWS(m.dimensions) == R) {
+    if (LUAGLM_MATRIX_COLS(m.dimensions) >= C && LUAGLM_MATRIX_ROWS(m.dimensions) == R) {
       m.Get(result);
     }
   }
@@ -933,8 +933,8 @@ LUA_API int glm_pushvec_quat(lua_State *L, const glmVector &q) {
 LUA_API int glm_pushmat(lua_State *L, const glmMatrix &m) {
   GCMatrix *mat = GLM_NULLPTR;
 
-  const glm::length_t m_size = LUA_GLM_MATRIX_COLS(m.dimensions);
-  const glm::length_t m_secondary = LUA_GLM_MATRIX_ROWS(m.dimensions);
+  const glm::length_t m_size = LUAGLM_MATRIX_COLS(m.dimensions);
+  const glm::length_t m_secondary = LUAGLM_MATRIX_ROWS(m.dimensions);
   if (m_size < 2 || m_size > 4 || m_secondary < 2 || m_secondary > 4) {
 #if defined(LUA_USE_APICHECK)
     luaG_runerror(L, INVALID_MATRIX_DIMENSIONS);
@@ -1116,10 +1116,12 @@ lua_Integer luaO_HashString(const char *string, size_t length, int ignore_case) 
   hash ^= (hash >> 11);
   hash += (hash << 15);
 
-#if defined(GRIT_POWER_UHASH)
+  /*
+  @@ LUAGLM_EXT_UHASH Hidden flag that ensures hashes are not sign extended.
+  */
+#if defined(LUAGLM_EXT_UHASH)
   return l_castU2S(hash);
 #else
-  // @TODO: Eventually avoid sign-extension issues. If ever...
   return (lua_Integer)(int)hash;
 #endif
 }
@@ -1258,9 +1260,9 @@ LUA_API int glmVec_inverse(lua_State *L) {
   else if (ttismatrix(x)) {
     const glmMatrix &m = glm_mvalue(x);
     switch (m.dimensions) {
-      case LUA_GLM_MATRIX_2x2: return glm_pushmat2x2(L, glm::inverse(m.m22));
-      case LUA_GLM_MATRIX_3x3: return glm_pushmat3x3(L, glm::inverse(m.m33));
-      case LUA_GLM_MATRIX_4x4: return glm_pushmat4x4(L, glm::inverse(m.m44));
+      case LUAGLM_MATRIX_2x2: return glm_pushmat2x2(L, glm::inverse(m.m22));
+      case LUAGLM_MATRIX_3x3: return glm_pushmat3x3(L, glm::inverse(m.m33));
+      case LUAGLM_MATRIX_4x4: return glm_pushmat4x4(L, glm::inverse(m.m44));
       default: {
         break;
       }
@@ -1547,15 +1549,15 @@ static bool PopulateMatrix(lua_State *L, int idx, bool fixed_size, glmMatrix &m,
   else if (stack_count == 1 && ttismatrix(o)) {
     const glmMatrix &_m = glm_mvalue(o);
     switch ((outDimensions = fixed_size ? m.dimensions : _m.dimensions)) {
-      case LUA_GLM_MATRIX_2x2: m.m44 = glm::mat<4, 4, glm_Float>(_m.m22); break;
-      case LUA_GLM_MATRIX_2x3: m.m44 = glm::mat<4, 4, glm_Float>(_m.m23); break;
-      case LUA_GLM_MATRIX_2x4: m.m44 = glm::mat<4, 4, glm_Float>(_m.m24); break;
-      case LUA_GLM_MATRIX_3x2: m.m44 = glm::mat<4, 4, glm_Float>(_m.m32); break;
-      case LUA_GLM_MATRIX_3x3: m.m44 = glm::mat<4, 4, glm_Float>(_m.m33); break;
-      case LUA_GLM_MATRIX_3x4: m.m44 = glm::mat<4, 4, glm_Float>(_m.m34); break;
-      case LUA_GLM_MATRIX_4x2: m.m44 = glm::mat<4, 4, glm_Float>(_m.m42); break;
-      case LUA_GLM_MATRIX_4x3: m.m44 = glm::mat<4, 4, glm_Float>(_m.m43); break;
-      case LUA_GLM_MATRIX_4x4: m.m44 = _m.m44; break;
+      case LUAGLM_MATRIX_2x2: m.m44 = glm::mat<4, 4, glm_Float>(_m.m22); break;
+      case LUAGLM_MATRIX_2x3: m.m44 = glm::mat<4, 4, glm_Float>(_m.m23); break;
+      case LUAGLM_MATRIX_2x4: m.m44 = glm::mat<4, 4, glm_Float>(_m.m24); break;
+      case LUAGLM_MATRIX_3x2: m.m44 = glm::mat<4, 4, glm_Float>(_m.m32); break;
+      case LUAGLM_MATRIX_3x3: m.m44 = glm::mat<4, 4, glm_Float>(_m.m33); break;
+      case LUAGLM_MATRIX_3x4: m.m44 = glm::mat<4, 4, glm_Float>(_m.m34); break;
+      case LUAGLM_MATRIX_4x2: m.m44 = glm::mat<4, 4, glm_Float>(_m.m42); break;
+      case LUAGLM_MATRIX_4x3: m.m44 = glm::mat<4, 4, glm_Float>(_m.m43); break;
+      case LUAGLM_MATRIX_4x4: m.m44 = _m.m44; break;
       default: {
         return false;
       }
@@ -1567,8 +1569,8 @@ static bool PopulateMatrix(lua_State *L, int idx, bool fixed_size, glmMatrix &m,
     // If there is only one element to be parsed and it is a table, assume the
     // matrix is packed within an array; otherwise, use the elements on the stack.
     const bool as_table = stack_count == 1 && ttistable(o);
-    const glm::length_t m_size = LUA_GLM_MATRIX_COLS(m.dimensions);
-    const glm::length_t m_secondary = LUA_GLM_MATRIX_ROWS(m.dimensions);
+    const glm::length_t m_size = LUAGLM_MATRIX_COLS(m.dimensions);
+    const glm::length_t m_secondary = LUAGLM_MATRIX_ROWS(m.dimensions);
     const glm::length_t column_limit = as_table ? m_size : glm::min(m_size, i_glmlen(stack_count));
     if (fixed_size && column_limit < m_size)
       return false;
@@ -1599,7 +1601,7 @@ static bool PopulateMatrix(lua_State *L, int idx, bool fixed_size, glmMatrix &m,
     }
 
     if (size >= 2 && size <= 4 && secondary >= 2 && secondary <= 4) {
-      outDimensions = LUA_GLM_MATRIX_TYPE(size, secondary);
+      outDimensions = LUAGLM_MATRIX_TYPE(size, secondary);
       return true;
     }
   }
@@ -1668,10 +1670,10 @@ static int glm_createMatrix(lua_State *L, glm::length_t dimensions) {
   const int top = _gettop(L);
 
   glmMatrix result;
-  result.dimensions = dimensions != INVALID_PACKED_DIM ? dimensions : LUA_GLM_MATRIX_4x4;
+  result.dimensions = dimensions != INVALID_PACKED_DIM ? dimensions : LUAGLM_MATRIX_4x4;
 
   if (top == 0) {  // If there are no elements, return the identity matrix
-    switch (LUA_GLM_MATRIX_ROWS(result.dimensions)) {
+    switch (LUAGLM_MATRIX_ROWS(result.dimensions)) {
       case 2: result.m42 = glm::identity<glm::mat<4, 2, T>>(); break;
       case 3: result.m43 = glm::identity<glm::mat<4, 3, T>>(); break;
       case 4: result.m44 = glm::identity<glm::mat<4, 4, T>>(); break;
@@ -1687,7 +1689,7 @@ static int glm_createMatrix(lua_State *L, glm::length_t dimensions) {
     if (PopulateMatrix(L, recycle ? 2 : 1, dimensions != INVALID_PACKED_DIM, result, result.dimensions)) {
       // Realign column-vectors, ensuring the matrix can be faithfully
       // represented by its m.mCR union value.
-      switch (LUA_GLM_MATRIX_ROWS(result.dimensions)) {
+      switch (LUAGLM_MATRIX_ROWS(result.dimensions)) {
         case 2: result.m42 = glm::mat<4, 2, glm_Float>(result.m44); break;
         case 3: result.m43 = glm::mat<4, 3, glm_Float>(result.m44); break;
         case 4: /* result.m44 = glm::mat<4, 4, glm_Float>(result.m44); */ break;
@@ -1731,15 +1733,15 @@ LUA_API int glmVec_bvec2(lua_State *L) { return glm_createVector<bool>(L, 2); }
 LUA_API int glmVec_bvec3(lua_State *L) { return glm_createVector<bool>(L, 3); }
 LUA_API int glmVec_bvec4(lua_State *L) { return glm_createVector<bool>(L, 4); }
 
-LUA_API int glmMat_mat2x2(lua_State *L) { return glm_createMatrix<glm_Float>(L, LUA_GLM_MATRIX_2x2); }
-LUA_API int glmMat_mat2x3(lua_State *L) { return glm_createMatrix<glm_Float>(L, LUA_GLM_MATRIX_2x3); }
-LUA_API int glmMat_mat2x4(lua_State *L) { return glm_createMatrix<glm_Float>(L, LUA_GLM_MATRIX_2x4); }
-LUA_API int glmMat_mat3x2(lua_State *L) { return glm_createMatrix<glm_Float>(L, LUA_GLM_MATRIX_3x2); }
-LUA_API int glmMat_mat3x3(lua_State *L) { return glm_createMatrix<glm_Float>(L, LUA_GLM_MATRIX_3x3); }
-LUA_API int glmMat_mat3x4(lua_State *L) { return glm_createMatrix<glm_Float>(L, LUA_GLM_MATRIX_3x4); }
-LUA_API int glmMat_mat4x2(lua_State *L) { return glm_createMatrix<glm_Float>(L, LUA_GLM_MATRIX_4x2); }
-LUA_API int glmMat_mat4x3(lua_State *L) { return glm_createMatrix<glm_Float>(L, LUA_GLM_MATRIX_4x3); }
-LUA_API int glmMat_mat4x4(lua_State *L) { return glm_createMatrix<glm_Float>(L, LUA_GLM_MATRIX_4x4); }
+LUA_API int glmMat_mat2x2(lua_State *L) { return glm_createMatrix<glm_Float>(L, LUAGLM_MATRIX_2x2); }
+LUA_API int glmMat_mat2x3(lua_State *L) { return glm_createMatrix<glm_Float>(L, LUAGLM_MATRIX_2x3); }
+LUA_API int glmMat_mat2x4(lua_State *L) { return glm_createMatrix<glm_Float>(L, LUAGLM_MATRIX_2x4); }
+LUA_API int glmMat_mat3x2(lua_State *L) { return glm_createMatrix<glm_Float>(L, LUAGLM_MATRIX_3x2); }
+LUA_API int glmMat_mat3x3(lua_State *L) { return glm_createMatrix<glm_Float>(L, LUAGLM_MATRIX_3x3); }
+LUA_API int glmMat_mat3x4(lua_State *L) { return glm_createMatrix<glm_Float>(L, LUAGLM_MATRIX_3x4); }
+LUA_API int glmMat_mat4x2(lua_State *L) { return glm_createMatrix<glm_Float>(L, LUAGLM_MATRIX_4x2); }
+LUA_API int glmMat_mat4x3(lua_State *L) { return glm_createMatrix<glm_Float>(L, LUAGLM_MATRIX_4x3); }
+LUA_API int glmMat_mat4x4(lua_State *L) { return glm_createMatrix<glm_Float>(L, LUAGLM_MATRIX_4x4); }
 LUA_API int glmMat_mat(lua_State *L) { return glm_createMatrix<glm_Float>(L, INVALID_PACKED_DIM); }
 
 /// <summary>
@@ -1788,8 +1790,8 @@ LUA_API int glmVec_qua(lua_State *L) {
   else if (ttismatrix(o1)) {
     const glmMatrix &m = glm_mvalue(o1);
     switch (m.dimensions) {
-      case LUA_GLM_MATRIX_3x3: return glm_pushquat(L, glm::qua<glm_Float>(m.m33));
-      case LUA_GLM_MATRIX_4x4: return glm_pushquat(L, glm::qua<glm_Float>(m.m44));
+      case LUAGLM_MATRIX_3x3: return glm_pushquat(L, glm::qua<glm_Float>(m.m33));
+      case LUAGLM_MATRIX_4x4: return glm_pushquat(L, glm::qua<glm_Float>(m.m44));
       default: {
         return luaL_typeerror(L, 1, LABEL_MATRIX "3x3 or " LABEL_MATRIX "4x4");
       }
@@ -1846,7 +1848,7 @@ LUA_API int glmVec_qua(lua_State *L) {
 #define INDEP_MATRIX_OPERATION(L, F, res, m, p2)                             \
   LUA_MLM_BEGIN                                                              \
   const glmMatrix &m2 = glm_mvalue((p2));                                    \
-  switch (LUA_GLM_MATRIX_COLS(m.dimensions)) {                               \
+  switch (LUAGLM_MATRIX_COLS(m.dimensions)) {                                \
     case 2: glm_newmvalue(L, res, F(m.m24, m2.m24), m.dimensions); return 1; \
     case 3: glm_newmvalue(L, res, F(m.m34, m2.m34), m.dimensions); return 1; \
     case 4: glm_newmvalue(L, res, F(m.m44, m2.m44), m.dimensions); return 1; \
@@ -1859,7 +1861,7 @@ LUA_API int glmVec_qua(lua_State *L) {
 #define INDEP_SCALAR_MATRIX_OPERATION(L, F, res, s, p2)                   \
   LUA_MLM_BEGIN                                                           \
   const glmMatrix &m2 = glm_mvalue(p2);                                   \
-  switch (LUA_GLM_MATRIX_COLS(m2.dimensions)) {                           \
+  switch (LUAGLM_MATRIX_COLS(m2.dimensions)) {                            \
     case 2: glm_newmvalue(L, res, F(s, m2.m24), m2.dimensions); return 1; \
     case 3: glm_newmvalue(L, res, F(s, m2.m34), m2.dimensions); return 1; \
     case 4: glm_newmvalue(L, res, F(s, m2.m44), m2.dimensions); return 1; \
@@ -1872,7 +1874,7 @@ LUA_API int glmVec_qua(lua_State *L) {
 #define MATRIX_SCALAR_OPERATION(L, F, res, m, p2)                       \
   LUA_MLM_BEGIN                                                         \
   const glm_Float s = glm_toflt(p2);                                    \
-  switch (LUA_GLM_MATRIX_COLS(m.dimensions)) {                          \
+  switch (LUAGLM_MATRIX_COLS(m.dimensions)) {                           \
     case 2: glm_newmvalue(L, res, F(m.m24, s), m.dimensions); return 1; \
     case 3: glm_newmvalue(L, res, F(m.m34, s), m.dimensions); return 1; \
     case 4: glm_newmvalue(L, res, F(m.m44, s), m.dimensions); return 1; \
@@ -1884,10 +1886,10 @@ LUA_API int glmVec_qua(lua_State *L) {
 #define MATRIX_DIMS(A, B) m##A##B
 #define MATRIX_MULTIPLICATION_OPERATION(L, res, m1, m2, C, R) \
   LUA_MLM_BEGIN                                               \
-  switch (LUA_GLM_MATRIX_COLS(m2.dimensions)) {               \
-    case 2: glm_newmvalue(L, res, (m1.MATRIX_DIMS(C, R) * m2.MATRIX_DIMS(2, C)), LUA_GLM_MATRIX_TYPE(2, R)); return 1; \
-    case 3: glm_newmvalue(L, res, (m1.MATRIX_DIMS(C, R) * m2.MATRIX_DIMS(3, C)), LUA_GLM_MATRIX_TYPE(3, R)); return 1; \
-    case 4: glm_newmvalue(L, res, (m1.MATRIX_DIMS(C, R) * m2.MATRIX_DIMS(4, C)), LUA_GLM_MATRIX_TYPE(4, R)); return 1; \
+  switch (LUAGLM_MATRIX_COLS(m2.dimensions)) {                \
+    case 2: glm_newmvalue(L, res, (m1.MATRIX_DIMS(C, R) * m2.MATRIX_DIMS(2, C)), LUAGLM_MATRIX_TYPE(2, R)); return 1; \
+    case 3: glm_newmvalue(L, res, (m1.MATRIX_DIMS(C, R) * m2.MATRIX_DIMS(3, C)), LUAGLM_MATRIX_TYPE(3, R)); return 1; \
+    case 4: glm_newmvalue(L, res, (m1.MATRIX_DIMS(C, R) * m2.MATRIX_DIMS(4, C)), LUAGLM_MATRIX_TYPE(4, R)); return 1; \
     default:                                                  \
       break;                                                  \
   }                                                           \
@@ -1902,9 +1904,9 @@ static int num_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
         case LUA_TMATRIX: {
           const glmMatrix &m2 = glm_mvalue(p2);
           switch (m2.dimensions) {
-            case LUA_GLM_MATRIX_2x2: glm_newmvalue(L, res, s + m2.m22, LUA_GLM_MATRIX_2x2); return 1;
-            case LUA_GLM_MATRIX_3x3: glm_newmvalue(L, res, s + m2.m33, LUA_GLM_MATRIX_3x3); return 1;
-            case LUA_GLM_MATRIX_4x4: glm_newmvalue(L, res, s + m2.m44, LUA_GLM_MATRIX_4x4); return 1;
+            case LUAGLM_MATRIX_2x2: glm_newmvalue(L, res, s + m2.m22, LUAGLM_MATRIX_2x2); return 1;
+            case LUAGLM_MATRIX_3x3: glm_newmvalue(L, res, s + m2.m33, LUAGLM_MATRIX_3x3); return 1;
+            case LUAGLM_MATRIX_4x4: glm_newmvalue(L, res, s + m2.m44, LUAGLM_MATRIX_4x4); return 1;
             default: {
               break;
             }
@@ -1923,9 +1925,9 @@ static int num_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
         case LUA_TMATRIX: {
           const glmMatrix &m2 = glm_mvalue(p2);
           switch (m2.dimensions) {
-            case LUA_GLM_MATRIX_2x2: glm_newmvalue(L, res, s - m2.m22, LUA_GLM_MATRIX_2x2); return 1;
-            case LUA_GLM_MATRIX_3x3: glm_newmvalue(L, res, s - m2.m33, LUA_GLM_MATRIX_3x3); return 1;
-            case LUA_GLM_MATRIX_4x4: glm_newmvalue(L, res, s - m2.m44, LUA_GLM_MATRIX_4x4); return 1;
+            case LUAGLM_MATRIX_2x2: glm_newmvalue(L, res, s - m2.m22, LUAGLM_MATRIX_2x2); return 1;
+            case LUAGLM_MATRIX_3x3: glm_newmvalue(L, res, s - m2.m33, LUAGLM_MATRIX_3x3); return 1;
+            case LUAGLM_MATRIX_4x4: glm_newmvalue(L, res, s - m2.m44, LUAGLM_MATRIX_4x4); return 1;
             default: {
               break;
             }
@@ -2041,24 +2043,24 @@ static int vec_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
       }
       else if (tt_p2 == LUA_VMATRIX) {
         const glmMatrix &m2 = glm_mvalue(p2);
-        if (LUA_GLM_MATRIX_ROWS(m2.dimensions) == glm_dimensions(tt_p1)) {
+        if (LUAGLM_MATRIX_ROWS(m2.dimensions) == glm_dimensions(tt_p1)) {
           switch (m2.dimensions) {
-            case LUA_GLM_MATRIX_2x2: glm_setvvalue2s(res, v.v2 * m2.m22, LUA_VVECTOR2); return 1;
-            case LUA_GLM_MATRIX_2x3: glm_setvvalue2s(res, v.v3 * m2.m23, LUA_VVECTOR2); return 1;
-            case LUA_GLM_MATRIX_2x4: glm_setvvalue2s(res, v.v4 * m2.m24, LUA_VVECTOR2); return 1;
-            case LUA_GLM_MATRIX_3x2: glm_setvvalue2s(res, v.v2 * m2.m32, LUA_VVECTOR3); return 1;
-            case LUA_GLM_MATRIX_3x3: glm_setvvalue2s(res, v.v3 * m2.m33, LUA_VVECTOR3); return 1;
-            case LUA_GLM_MATRIX_3x4: glm_setvvalue2s(res, v.v4 * m2.m34, LUA_VVECTOR3); return 1;
-            case LUA_GLM_MATRIX_4x2: glm_setvvalue2s(res, v.v2 * m2.m42, LUA_VVECTOR4); return 1;
-            case LUA_GLM_MATRIX_4x3: glm_setvvalue2s(res, v.v3 * m2.m43, LUA_VVECTOR4); return 1;
-            case LUA_GLM_MATRIX_4x4: glm_setvvalue2s(res, v.v4 * m2.m44, LUA_VVECTOR4); return 1;
+            case LUAGLM_MATRIX_2x2: glm_setvvalue2s(res, v.v2 * m2.m22, LUA_VVECTOR2); return 1;
+            case LUAGLM_MATRIX_2x3: glm_setvvalue2s(res, v.v3 * m2.m23, LUA_VVECTOR2); return 1;
+            case LUAGLM_MATRIX_2x4: glm_setvvalue2s(res, v.v4 * m2.m24, LUA_VVECTOR2); return 1;
+            case LUAGLM_MATRIX_3x2: glm_setvvalue2s(res, v.v2 * m2.m32, LUA_VVECTOR3); return 1;
+            case LUAGLM_MATRIX_3x3: glm_setvvalue2s(res, v.v3 * m2.m33, LUA_VVECTOR3); return 1;
+            case LUAGLM_MATRIX_3x4: glm_setvvalue2s(res, v.v4 * m2.m34, LUA_VVECTOR3); return 1;
+            case LUAGLM_MATRIX_4x2: glm_setvvalue2s(res, v.v2 * m2.m42, LUA_VVECTOR4); return 1;
+            case LUAGLM_MATRIX_4x3: glm_setvvalue2s(res, v.v3 * m2.m43, LUA_VVECTOR4); return 1;
+            case LUAGLM_MATRIX_4x4: glm_setvvalue2s(res, v.v4 * m2.m44, LUA_VVECTOR4); return 1;
             default: {
               break;
             }
           }
         }
         // Alternatively: rotate a point by only the rotation part of a transformation matrix.
-        else if (tt_p1 == LUA_VVECTOR3 && m2.dimensions == LUA_GLM_MATRIX_4x4) {
+        else if (tt_p1 == LUA_VVECTOR3 && m2.dimensions == LUAGLM_MATRIX_4x4) {
           glm_setvvalue2s(res, (glm::mat<4, 4, glm_Float>::col_type(v.v3, glm_Float(1)) * m2.m44), LUA_VVECTOR4);
           return 1;
         }
@@ -2076,8 +2078,8 @@ static int vec_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
       }
       else if (tt_p2 == LUA_VMATRIX) {
         const glmMatrix &m2 = glm_mvalue(p2);
-        const grit_length_t cols = LUA_GLM_MATRIX_COLS(m2.dimensions);
-        if (cols == LUA_GLM_MATRIX_ROWS(m2.dimensions) && tt_p2 == glm_variant(cols)) {
+        const grit_length_t cols = LUAGLM_MATRIX_COLS(m2.dimensions);
+        if (cols == LUAGLM_MATRIX_ROWS(m2.dimensions) && tt_p2 == glm_variant(cols)) {
           switch (tt_p1) {
             case LUA_VVECTOR2: glm_setvvalue2s(res, v.v2 / m2.m22, LUA_VVECTOR2); return 1;
             case LUA_VVECTOR3: glm_setvvalue2s(res, v.v3 / m2.m33, LUA_VVECTOR3); return 1;
@@ -2244,7 +2246,7 @@ static int quat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId
 
 static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId res, TMS event) {
   const glmMatrix &m = glm_mvalue(p1);
-  const grit_length_t cols = LUA_GLM_MATRIX_COLS(m.dimensions);
+  const grit_length_t cols = LUAGLM_MATRIX_COLS(m.dimensions);
 
   const lu_byte tt_p2 = ttypetag(p2);
   switch (event) {
@@ -2266,9 +2268,9 @@ static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
       if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT)
         MATRIX_SCALAR_OPERATION(L, operator*, res, m, p2);
       // Special case for handling Mat4x4 * vec3; implicily handle.
-      else if (tt_p2 == LUA_VVECTOR3 && m.dimensions == LUA_GLM_MATRIX_4x4) {
+      else if (tt_p2 == LUA_VVECTOR3 && m.dimensions == LUAGLM_MATRIX_4x4) {
         const typename glm::mat<4, 4, glm_Float>::col_type &r =
-#if defined(LUA_GLM_ROTATE_DIRECTION)
+#if defined(LUAGLM_MUL_DIRECTION)
           // Transforms the given direction vector by this matrix m: M * (x, y, z, 0).
           m.m44 * glm::mat<4, 4, glm_Float>::col_type(glm_v3value(p2), glm_Float(0));
 #else
@@ -2280,17 +2282,17 @@ static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
       }
       else if (tt_p2 == LUA_VMATRIX) {
         const glmMatrix &m2 = glm_mvalue(p2);
-        if (cols == LUA_GLM_MATRIX_ROWS(m2.dimensions)) {
+        if (cols == LUAGLM_MATRIX_ROWS(m2.dimensions)) {
           switch (m.dimensions) {
-            case LUA_GLM_MATRIX_2x2: MATRIX_MULTIPLICATION_OPERATION(L, res, m, m2, 2, 2); return 1;
-            case LUA_GLM_MATRIX_2x3: MATRIX_MULTIPLICATION_OPERATION(L, res, m, m2, 2, 3); return 1;
-            case LUA_GLM_MATRIX_2x4: MATRIX_MULTIPLICATION_OPERATION(L, res, m, m2, 2, 4); return 1;
-            case LUA_GLM_MATRIX_3x2: MATRIX_MULTIPLICATION_OPERATION(L, res, m, m2, 3, 2); return 1;
-            case LUA_GLM_MATRIX_3x3: MATRIX_MULTIPLICATION_OPERATION(L, res, m, m2, 3, 3); return 1;
-            case LUA_GLM_MATRIX_3x4: MATRIX_MULTIPLICATION_OPERATION(L, res, m, m2, 3, 4); return 1;
-            case LUA_GLM_MATRIX_4x2: MATRIX_MULTIPLICATION_OPERATION(L, res, m, m2, 4, 2); return 1;
-            case LUA_GLM_MATRIX_4x3: MATRIX_MULTIPLICATION_OPERATION(L, res, m, m2, 4, 3); return 1;
-            case LUA_GLM_MATRIX_4x4: MATRIX_MULTIPLICATION_OPERATION(L, res, m, m2, 4, 4); return 1;
+            case LUAGLM_MATRIX_2x2: MATRIX_MULTIPLICATION_OPERATION(L, res, m, m2, 2, 2); return 1;
+            case LUAGLM_MATRIX_2x3: MATRIX_MULTIPLICATION_OPERATION(L, res, m, m2, 2, 3); return 1;
+            case LUAGLM_MATRIX_2x4: MATRIX_MULTIPLICATION_OPERATION(L, res, m, m2, 2, 4); return 1;
+            case LUAGLM_MATRIX_3x2: MATRIX_MULTIPLICATION_OPERATION(L, res, m, m2, 3, 2); return 1;
+            case LUAGLM_MATRIX_3x3: MATRIX_MULTIPLICATION_OPERATION(L, res, m, m2, 3, 3); return 1;
+            case LUAGLM_MATRIX_3x4: MATRIX_MULTIPLICATION_OPERATION(L, res, m, m2, 3, 4); return 1;
+            case LUAGLM_MATRIX_4x2: MATRIX_MULTIPLICATION_OPERATION(L, res, m, m2, 4, 2); return 1;
+            case LUAGLM_MATRIX_4x3: MATRIX_MULTIPLICATION_OPERATION(L, res, m, m2, 4, 3); return 1;
+            case LUAGLM_MATRIX_4x4: MATRIX_MULTIPLICATION_OPERATION(L, res, m, m2, 4, 4); return 1;
             default: {
               break;
             }
@@ -2300,15 +2302,15 @@ static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
       else if (tt_p2 == glm_variant(cols)) {
         const glmVector &v2 = glm_vvalue(p2);
         switch (m.dimensions) {
-          case LUA_GLM_MATRIX_2x2: glm_setvvalue2s(res, m.m22 * v2.v2, LUA_VVECTOR2); return 1;
-          case LUA_GLM_MATRIX_2x3: glm_setvvalue2s(res, m.m23 * v2.v2, LUA_VVECTOR3); return 1;
-          case LUA_GLM_MATRIX_2x4: glm_setvvalue2s(res, m.m24 * v2.v2, LUA_VVECTOR4); return 1;
-          case LUA_GLM_MATRIX_3x2: glm_setvvalue2s(res, m.m32 * v2.v3, LUA_VVECTOR2); return 1;
-          case LUA_GLM_MATRIX_3x3: glm_setvvalue2s(res, m.m33 * v2.v3, LUA_VVECTOR3); return 1;
-          case LUA_GLM_MATRIX_3x4: glm_setvvalue2s(res, m.m34 * v2.v3, LUA_VVECTOR4); return 1;
-          case LUA_GLM_MATRIX_4x2: glm_setvvalue2s(res, m.m42 * v2.v4, LUA_VVECTOR2); return 1;
-          case LUA_GLM_MATRIX_4x3: glm_setvvalue2s(res, m.m43 * v2.v4, LUA_VVECTOR3); return 1;
-          case LUA_GLM_MATRIX_4x4: glm_setvvalue2s(res, m.m44 * v2.v4, LUA_VVECTOR4); return 1;
+          case LUAGLM_MATRIX_2x2: glm_setvvalue2s(res, m.m22 * v2.v2, LUA_VVECTOR2); return 1;
+          case LUAGLM_MATRIX_2x3: glm_setvvalue2s(res, m.m23 * v2.v2, LUA_VVECTOR3); return 1;
+          case LUAGLM_MATRIX_2x4: glm_setvvalue2s(res, m.m24 * v2.v2, LUA_VVECTOR4); return 1;
+          case LUAGLM_MATRIX_3x2: glm_setvvalue2s(res, m.m32 * v2.v3, LUA_VVECTOR2); return 1;
+          case LUAGLM_MATRIX_3x3: glm_setvvalue2s(res, m.m33 * v2.v3, LUA_VVECTOR3); return 1;
+          case LUAGLM_MATRIX_3x4: glm_setvvalue2s(res, m.m34 * v2.v3, LUA_VVECTOR4); return 1;
+          case LUAGLM_MATRIX_4x2: glm_setvvalue2s(res, m.m42 * v2.v4, LUA_VVECTOR2); return 1;
+          case LUAGLM_MATRIX_4x3: glm_setvvalue2s(res, m.m43 * v2.v4, LUA_VVECTOR3); return 1;
+          case LUAGLM_MATRIX_4x4: glm_setvvalue2s(res, m.m44 * v2.v4, LUA_VVECTOR4); return 1;
           default: {
             break;
           }
@@ -2319,11 +2321,11 @@ static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
     case TM_DIV: {
       if (tt_p2 == LUA_VMATRIX) {  // operator/(matNxN, matNxN)
         const glmMatrix &m2 = glm_mvalue(p2);
-        if (m.dimensions == m2.dimensions && cols == LUA_GLM_MATRIX_ROWS(m.dimensions)) {
+        if (m.dimensions == m2.dimensions && cols == LUAGLM_MATRIX_ROWS(m.dimensions)) {
           switch (m.dimensions) {
-            case LUA_GLM_MATRIX_2x2: glm_newmvalue(L, res, m.m22 / m2.m22, LUA_GLM_MATRIX_2x2); return 1;
-            case LUA_GLM_MATRIX_3x3: glm_newmvalue(L, res, m.m33 / m2.m33, LUA_GLM_MATRIX_3x3); return 1;
-            case LUA_GLM_MATRIX_4x4: glm_newmvalue(L, res, m.m44 / m2.m44, LUA_GLM_MATRIX_4x4); return 1;
+            case LUAGLM_MATRIX_2x2: glm_newmvalue(L, res, m.m22 / m2.m22, LUAGLM_MATRIX_2x2); return 1;
+            case LUAGLM_MATRIX_3x3: glm_newmvalue(L, res, m.m33 / m2.m33, LUAGLM_MATRIX_3x3); return 1;
+            case LUAGLM_MATRIX_4x4: glm_newmvalue(L, res, m.m44 / m2.m44, LUAGLM_MATRIX_4x4); return 1;
             default: {
               break;
             }

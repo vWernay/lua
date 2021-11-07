@@ -174,7 +174,7 @@ static int str_rep (lua_State *L) {
 }
 
 
-#if defined(GRIT_POWER_WOW)
+#if defined(LUAGLM_EXT_API)
 static int str_trim (lua_State *L) {
   size_t len = 0;
   const char *str = luaL_checklstring(L, 1, &len);
@@ -274,7 +274,7 @@ static int str_tostringall (lua_State *L) {
 #endif
 
 
-#if defined(GRIT_POWER_BLOB)
+#if defined(LUAGLM_EXT_BLOB)
 static int str_blob (lua_State *L) {
   const int type = lua_type(L, 1);
   if (type == LUA_TNUMBER) {  /* Create a string blob */
@@ -1961,7 +1961,7 @@ static int str_unpack (lua_State *L) {
 }
 
 
-#if defined(GRIT_POWER_BLOB)
+#if defined(LUAGLM_EXT_BLOB)
 /* blob_pack(blob, pos (optional), fmt, v1, v2, ···) */
 static int str_blobpack (lua_State *L) {
   luaL_Buffer b;
@@ -2048,7 +2048,7 @@ static const luaL_Reg strlib[] = {
   {"lower", str_lower},
   {"match", str_match},
   {"rep", str_rep},
-#if defined(GRIT_POWER_WOW)
+#if defined(LUAGLM_EXT_API)
   {"strtrim", str_trim},
   {"strsplit", str_split},
   {"strjoin", str_join},
@@ -2061,7 +2061,7 @@ static const luaL_Reg strlib[] = {
   {"pack", str_pack},
   {"packsize", str_packsize},
   {"unpack", str_unpack},
-#if defined(GRIT_POWER_BLOB)
+#if defined(LUAGLM_EXT_BLOB)
   {"blob", str_blob},
   {"isblob", str_isblob},
   {"blob_pack", str_blobpack},

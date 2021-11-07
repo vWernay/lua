@@ -331,7 +331,7 @@ void luaV_finishget (lua_State *L, const TValue *t, TValue *key, StkId val,
 }
 
 
-#if defined(GRIT_POWER_READONLY)
+#if defined(LUAGLM_EXT_READONLY)
   #define luaV_readonly_check(L, T) \
     if ((T)->readonly) luaG_runerror((L), "table configured as readonly")
 #endif
@@ -354,7 +354,7 @@ void luaV_finishset (lua_State *L, const TValue *t, TValue *key,
       lua_assert(isempty(slot));  /* slot must be empty */
       tm = fasttm(L, h->metatable, TM_NEWINDEX);  /* get metamethod */
       if (tm == NULL) {  /* no metamethod? */
-#if defined(GRIT_POWER_READONLY)
+#if defined(LUAGLM_EXT_READONLY)
         luaV_readonly_check(L, hvalue(t));
 #endif
         luaH_finishset(L, h, key, slot, val);  /* set new value */
@@ -376,7 +376,7 @@ void luaV_finishset (lua_State *L, const TValue *t, TValue *key,
     }
     t = tm;  /* else repeat assignment over 'tm' */
     if (luaV_fastget(L, t, key, slot, luaH_get)) {
-#if defined(GRIT_POWER_READONLY)
+#if defined(LUAGLM_EXT_READONLY)
       luaV_readonly_check(L, hvalue(t));
 #endif
       luaV_finishfastset(L, t, slot, val);
@@ -608,7 +608,7 @@ int luaV_equalobj (lua_State *L, const TValue *t1, const TValue *t2) {
     case LUA_VLIGHTUSERDATA: return pvalue(t1) == pvalue(t2);
     case LUA_VLCF: return fvalue(t1) == fvalue(t2);
     case LUA_VSHRSTR: return eqshrstr(tsvalue(t1), tsvalue(t2));
-#if defined(GRIT_POWER_BLOB)
+#if defined(LUAGLM_EXT_BLOB)
     case LUA_VBLOBSTR: return luaS_eqlngstr(tsvalue(t1), tsvalue(t2));
 #endif
     case LUA_VLNGSTR: return luaS_eqlngstr(tsvalue(t1), tsvalue(t2));
@@ -734,7 +734,7 @@ void luaV_objlen (lua_State *L, StkId ra, const TValue *rb) {
       setivalue(s2v(ra), tsvalue(rb)->shrlen);
       return;
     }
-#if defined(GRIT_POWER_BLOB)
+#if defined(LUAGLM_EXT_BLOB)
     case LUA_VBLOBSTR:
 #endif
     case LUA_VLNGSTR: {
@@ -1373,7 +1373,7 @@ LUA_JUMPTABLE_ATTRIBUTE void luaV_execute (lua_State *L, CallInfo *ci) {
           const TValue *slot;
           TString *key = tsvalue(rb);  /* key must be a string */
           if (luaV_fastget(L, upval, key, slot, luaH_getshortstr)) {
-#if defined(GRIT_POWER_READONLY)
+#if defined(LUAGLM_EXT_READONLY)
             luaV_readonly_check(L, hvalue(upval));
 #endif
             luaV_finishfastset(L, upval, slot, rc);
@@ -1394,7 +1394,7 @@ LUA_JUMPTABLE_ATTRIBUTE void luaV_execute (lua_State *L, CallInfo *ci) {
           if (ttisinteger(rb)  /* fast track for integers? */
               ? (cast_void(n = ivalue(rb)), luaV_fastgeti(L, s2v(ra), n, slot))
               : luaV_fastget(L, s2v(ra), rb, slot, luaH_get)) {
-#if defined(GRIT_POWER_READONLY)
+#if defined(LUAGLM_EXT_READONLY)
             luaV_readonly_check(L, hvalue(s2v(ra)));
 #endif
             luaV_finishfastset(L, s2v(ra), slot, rc);
@@ -1412,7 +1412,7 @@ LUA_JUMPTABLE_ATTRIBUTE void luaV_execute (lua_State *L, CallInfo *ci) {
         else {
           const TValue *slot;
           if (luaV_fastgeti(L, s2v(ra), c, slot)) {
-#if defined(GRIT_POWER_READONLY)
+#if defined(LUAGLM_EXT_READONLY)
             luaV_readonly_check(L, hvalue(s2v(ra)));
 #endif
             luaV_finishfastset(L, s2v(ra), slot, rc);
@@ -1431,7 +1431,7 @@ LUA_JUMPTABLE_ATTRIBUTE void luaV_execute (lua_State *L, CallInfo *ci) {
         TValue *rc = RKC(i);
         TString *key = tsvalue(rb);  /* key must be a string */
         if (luaV_fastget(L, s2v(ra), key, slot, luaH_getshortstr)) {
-#if defined(GRIT_POWER_READONLY)
+#if defined(LUAGLM_EXT_READONLY)
           luaV_readonly_check(L, hvalue(s2v(ra)));
 #endif
           luaV_finishfastset(L, s2v(ra), slot, rc);
@@ -1663,7 +1663,7 @@ LUA_JUMPTABLE_ATTRIBUTE void luaV_execute (lua_State *L, CallInfo *ci) {
       }
       vmcase(OP_TBC) {
         /* create new to-be-closed upvalue */
-#if defined(GRIT_POWER_DEFER)
+#if defined(LUAGLM_EXT_DEFER)
         halfProtect(luaF_newtbcupval(L, ra, 0));
 #else
         halfProtect(luaF_newtbcupval(L, ra));
@@ -1879,7 +1879,7 @@ LUA_JUMPTABLE_ATTRIBUTE void luaV_execute (lua_State *L, CallInfo *ci) {
       }
       vmcase(OP_TFORPREP) {
         /* create to-be-closed upvalue (if needed) */
-#if defined(GRIT_POWER_DEFER)
+#if defined(LUAGLM_EXT_DEFER)
         halfProtect(luaF_newtbcupval(L, ra + 3, 0));
 #else
         halfProtect(luaF_newtbcupval(L, ra + 3));
@@ -1942,7 +1942,7 @@ LUA_JUMPTABLE_ATTRIBUTE void luaV_execute (lua_State *L, CallInfo *ci) {
         checkGC(L, ra + 1);
         vmbreak;
       }
-#if defined(GRIT_POWER_DEFER)
+#if defined(LUAGLM_EXT_DEFER)
       vmcase(OP_DEFER) {
         halfProtect(luaF_newtbcupval(L, ra, 1));
         vmbreak;
