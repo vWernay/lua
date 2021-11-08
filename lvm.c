@@ -355,7 +355,7 @@ void luaV_finishset (lua_State *L, const TValue *t, TValue *key,
       tm = fasttm(L, h->metatable, TM_NEWINDEX);  /* get metamethod */
       if (tm == NULL) {  /* no metamethod? */
 #if defined(LUAGLM_EXT_READONLY)
-        luaV_readonly_check(L, hvalue(t));
+        luaV_readonly_check(L, h);
 #endif
         luaH_finishset(L, h, key, slot, val);  /* set new value */
         invalidateTMcache(h);
@@ -1919,7 +1919,7 @@ LUA_JUMPTABLE_ATTRIBUTE void luaV_execute (lua_State *L, CallInfo *ci) {
         }
 #if defined(LUAGLM_EXT_READONLY)
         /*
-        ** SETLIST only emitted by 'tableconstructor'. The table *should* never
+        ** SETLIST is only emitted by 'tableconstructor'. The table should never
         ** be readonly in this instance; future-proof anyway.
         */
         luaV_readonly_check(L, h);

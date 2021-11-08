@@ -193,6 +193,7 @@ echo "#if defined(LUA_IMPL)" >> ${OUTFILE}
       cat ${LUA_DIR}/libs/glm-binding/ext/matrix_extensions.hpp >> ${OUTFILE}
       cat ${LUA_DIR}/libs/glm-binding/ext/quat_extensions.hpp >> ${OUTFILE}
 
+      cat ${LUA_DIR}/libs/glm-binding/allocator.hpp >> ${OUTFILE}
       cat ${LUA_DIR}/libs/glm-binding/ext/geom/setup.hpp >> ${OUTFILE}
       cat ${LUA_DIR}/libs/glm-binding/ext/geom/aabb.hpp >> ${OUTFILE}
       cat ${LUA_DIR}/libs/glm-binding/ext/geom/triangle.hpp >> ${OUTFILE}
@@ -203,7 +204,6 @@ echo "#if defined(LUA_IMPL)" >> ${OUTFILE}
       cat ${LUA_DIR}/libs/glm-binding/ext/geom/ray.hpp >> ${OUTFILE}
       cat ${LUA_DIR}/libs/glm-binding/ext/geom/sphere.hpp >> ${OUTFILE}
 
-      cat ${LUA_DIR}/libs/glm-binding/allocator.hpp >> ${OUTFILE}
       cat ${LUA_DIR}/libs/glm-binding/bindings.hpp >> ${OUTFILE}
       cat ${LUA_DIR}/libs/glm-binding/iterators.hpp >> ${OUTFILE}
       cat ${LUA_DIR}/libs/glm-binding/api.hpp >> ${OUTFILE}
