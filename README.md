@@ -763,6 +763,8 @@ these added features.
 Ordered by priority.
 
 1. Cleanup testing scripts/environment and publish.
+1. Optimize vector/matrix tagmethod codegen: reduce branching or consider PGOing the object.
+1. Improve support for `glm::mat3x4` and `glm::mat4x3`.
 1. Optimize `binding` codegen and functions that use `glm_i2v`.
 1. Utility API that resembles `glUniformMatrix*v`-style functions, i.e., extracting/parsing array of matrices/vectors.
 1. Modify implementation to follow updated "Avoid taking the address of a 'TValue' field" (or reference) convention.
@@ -773,7 +775,6 @@ Ordered by priority.
 1. Add support for two-dimensional structures: Ray2D, Line2D, Plane2D.
 1. Optimize `glm_createMatrix`. Profiling case '4x4 matrix creation (lua\_Alloc)' is the one of the slowest operations in the added vector/matrix API. Worse when using the default Windows allocator.
 1. Optimize runtime swizzling: `swizzle` and `glmVec_get`. It is likely possible to improve this operation by 15/20 percent.
-1. Improve support for `glm::mat3x4` and `glm::mat4x3`.
 1. `glmMat_set` support for tables, e.g., `mat[i] = { ... }`, by using `glmH_tovector`.
 1. Features/configurations to reduce size of binding library.
 1. Consider replacing the 'blob' variant with an [FFI](https://github.com/facebookarchive/luaffifb) library: advanced use is required.
