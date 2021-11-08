@@ -2059,11 +2059,6 @@ static int vec_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
             }
           }
         }
-        // Alternatively: rotate a point by only the rotation part of a transformation matrix.
-        else if (tt_p1 == LUA_VVECTOR3 && m2.dimensions == LUAGLM_MATRIX_4x4) {
-          glm_setvvalue2s(res, (glm::mat<4, 4, glm_Float>::col_type(v.v3, glm_Float(1)) * m2.m44), LUA_VVECTOR4);
-          return 1;
-        }
       }
       break;
     }
@@ -2244,6 +2239,16 @@ static int quat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId
   return 0;
 }
 
+/*
+@@ LUAGLM_MUL_DIRECTION: Define how the runtime handles: `TM_MUL(mat4x4, vec3)`,
+** i.e., transform the vec3 as a 'direction' or a 'position'.
+*/
+#if defined(LUAGLM_MUL_DIRECTION)
+  #define MAT_VEC3_W 0 /* Transforms the given vector by: M * (x, y, z, 0) */
+#else
+  #define MAT_VEC3_W 1 /* Transforms the given vector by: M * (x, y, z, 1) */
+#endif
+
 static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId res, TMS event) {
   const glmMatrix &m = glm_mvalue(p1);
   const grit_length_t cols = LUAGLM_MATRIX_COLS(m.dimensions);
@@ -2265,22 +2270,7 @@ static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
       break;
     }
     case TM_MUL: {
-      if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT)
-        MATRIX_SCALAR_OPERATION(L, operator*, res, m, p2);
-      // Special case for handling Mat4x4 * vec3; implicily handle.
-      else if (tt_p2 == LUA_VVECTOR3 && m.dimensions == LUAGLM_MATRIX_4x4) {
-        const typename glm::mat<4, 4, glm_Float>::col_type &r =
-#if defined(LUAGLM_MUL_DIRECTION)
-          // Transforms the given direction vector by this matrix m: M * (x, y, z, 0).
-          m.m44 * glm::mat<4, 4, glm_Float>::col_type(glm_v3value(p2), glm_Float(0));
-#else
-          // Transforms the given point vector by this matrix M: M * (x, y, z, 1).
-          m.m44 * glm::mat<4, 4, glm_Float>::col_type(glm_v3value(p2), glm_Float(1));
-#endif
-        glm_setvvalue2s(res, (glm::vec<3, glm_Float>(r.x, r.y, r.z)), LUA_VVECTOR3);
-        return 1;
-      }
-      else if (tt_p2 == LUA_VMATRIX) {
+      if (tt_p2 == LUA_VMATRIX) {
         const glmMatrix &m2 = glm_mvalue(p2);
         if (cols == LUAGLM_MATRIX_ROWS(m2.dimensions)) {
           switch (m.dimensions) {
@@ -2316,6 +2306,19 @@ static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
           }
         }
       }
+      // Special case for handling mat4x4 * vec3 and mat4x3 * vec3; see LUAGLM_MUL_DIRECTION.
+      else if (tt_p2 == LUA_VVECTOR3) {
+        const glm::mat<4, 4, glm_Float>::col_type p(glm_v3value(p2), MAT_VEC3_W);
+        switch (m.dimensions) {
+          case LUAGLM_MATRIX_4x3: glm_setvvalue2s(res, m.m43 * p, LUA_VVECTOR3); return 1;
+          case LUAGLM_MATRIX_4x4: glm_setvvalue2s(res, m.m44 * p, LUA_VVECTOR3); return 1;
+          default:
+            break;
+        }
+        break;
+      }
+      else if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT)
+        MATRIX_SCALAR_OPERATION(L, operator*, res, m, p2);
       break;
     }
     case TM_DIV: {

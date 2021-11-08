@@ -1926,6 +1926,13 @@ LUA_JUMPTABLE_ATTRIBUTE void luaV_execute (lua_State *L, CallInfo *ci) {
           last += GETARG_Ax(*pc) * (MAXARG_C + 1);
           pc++;
         }
+#if defined(LUAGLM_EXT_READONLY)
+        /*
+        ** SETLIST only emitted by 'tableconstructor'. The table *should* never
+        ** be readonly in this instance; future-proof anyway.
+        */
+        luaV_readonly_check(L, h);
+#endif
         if (last > luaH_realasize(h))  /* needs more space? */
           luaH_resizearray(L, h, last);  /* preallocate it at once */
         for (; n > 0; n--) {

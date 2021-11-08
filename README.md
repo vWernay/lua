@@ -649,7 +649,7 @@ Note, not all Lua-specific options are listed.
 * **LuaGLM Options**:
   + **LUAGLM\_APICHECK**: Enable additional apicheck handling.
   + **LUAGLM\_EPS\_EQUAL**: `luaV_equalobj` uses approximately equal (within glm::epsilon) for vector/matrix types (beware of hashing caveats).
-  + **LUAGLM\_MUL\_DIRECTION**: Define how the runtime handles ``TM_MUL(mat4x4, vec3)`.
+  + **LUAGLM\_MUL\_DIRECTION**: Define how the runtime handles `TM_MUL(mat4x4, vec3)`.
   + **LUAGLM\_NUMBER\_TYPE**: Use lua\_Number as the vector primitive; float otherwise.
 * **Power Patches**: See Lua Power Patches section.
   + **LUAGLM\_COMPAT\_IPAIRS**: Enable '\_\_ipairs'.
