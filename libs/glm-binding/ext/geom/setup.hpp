@@ -29,6 +29,11 @@
 #include "ext/matrix_extensions.hpp"
 #include <lglm_string.hpp> // @LuaGLM
 
+/* @COMPAT GLM_CONFIG_DEFAULTED_DEFAULT_CTOR introduced in 0.9.9.9 */
+#if !defined(GLM_CONFIG_DEFAULTED_DEFAULT_CTOR)
+  #define GLM_CONFIG_DEFAULTED_DEFAULT_CTOR GLM_CONFIG_DEFAULTED_FUNCTIONS
+#endif
+
 /* Redefinition of GLM_FUNC_QUALIFIER for "geom/" */
 #define GLM_GEOM_QUALIFIER static GLM_FUNC_QUALIFIER
 

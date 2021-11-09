@@ -26,9 +26,16 @@ namespace glm {
     Point minPoint;  // minimum extent of this AABB in the world space
     Point maxPoint;  // maximum extent of this AABB in the world space
 
+#if GLM_CONFIG_DEFAULTED_DEFAULT_CTOR == GLM_ENABLE
+    AABB() GLM_DEFAULT_CTOR;
+#else
     AABB()
-      : minPoint(T(0)), maxPoint(T(0)) {
+  #if GLM_CONFIG_CTOR_INIT != GLM_CTOR_INIT_DISABLE
+      : minPoint(T(0)), maxPoint(T(0))
+  #endif
+    {
     }
+#endif
 
     AABB(T scalar)
       : minPoint(scalar), maxPoint(scalar) {

@@ -24,9 +24,16 @@ namespace glm {
     Point pos;  // The center point of this sphere.
     value_type r;  // The radius of this sphere.
 
+#if GLM_CONFIG_DEFAULTED_DEFAULT_CTOR == GLM_ENABLE
+    Sphere() GLM_DEFAULT_CTOR;
+#else
     Sphere()
-      : pos(T(0)), r(T(0)) {
+  #if GLM_CONFIG_CTOR_INIT != GLM_CTOR_INIT_DISABLE
+      : pos(T(0)), r(T(0))
+  #endif
+    {
     }
+#endif
 
     Sphere(T scalar)
       : pos(scalar), r(scalar) {

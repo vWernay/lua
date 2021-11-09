@@ -19,7 +19,16 @@ namespace glm {
     Point a;  // The starting point of this line segment.
     Point b;  // The end point of this line segment.
 
+#if GLM_CONFIG_DEFAULTED_DEFAULT_CTOR == GLM_ENABLE
     LineSegment() GLM_DEFAULT_CTOR;
+#else
+    LineSegment()
+  #if GLM_CONFIG_CTOR_INIT != GLM_CTOR_INIT_DISABLE
+      : a(T(0)), b(T(0))
+  #endif
+    {
+    }
+#endif
 
     LineSegment(T scalar)
       : a(scalar), b(scalar) {
