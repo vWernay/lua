@@ -763,6 +763,7 @@ these added features.
 Ordered by priority.
 
 1. Cleanup testing scripts/environment and publish.
+1. Rewrite build scripts.
 1. Optimize vector/matrix tagmethod codegen: reduce branching or consider PGOing the object.
 1. Improve support for `glm::mat3x4` and `glm::mat4x3`.
 1. Optimize `binding` codegen and functions that use `glm_i2v`.
