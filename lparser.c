@@ -1208,10 +1208,12 @@ static void primaryexp (LexState *ls, expdesc *v) {
 
 #if defined(LUAGLM_EXT_SAFENAV)
 static void safe_navigation (LexState *ls, expdesc *v) {
-  expdesc key;
-  int old_free, vreg, j;
-  unsigned int b = NO_JUMP + OFFSET_sBx;
+  int vreg; /* Cache of generic use register */
+  int old_free; /* Cache of first free register */
+  int jump_inst; /* Index of jump instruction */
+  const unsigned int k = NO_JUMP + OFFSET_sJ;
 
+  expdesc key;
   FuncState *fs = ls->fs;
   luaX_next(ls);
   luaK_exp2nextreg(fs, v);
@@ -1219,18 +1221,18 @@ static void safe_navigation (LexState *ls, expdesc *v) {
 
   vreg = v->u.info;
   old_free = fs->freereg;
-  j = luaK_code(fs, CREATE_ABx(OP_JMP, 0, b));
-  switch(ls->t.token) {
+  jump_inst = luaK_code(fs, CREATE_sJ(OP_JMP, 0, k));
+  switch (ls->t.token) {
     case '[':
       yindex(ls, &key);
       luaK_indexed(fs, v, &key);
-      luaK_exp2nextreg(fs, v);
       break;
     case '.':
       luaX_next(ls);
       codename(ls, &key);
       luaK_indexed(fs, v, &key);
       break;
+    /* @TODO: case ':': */
     default:
       luaX_syntaxerror(ls, "unexpected symbol");
   }
@@ -1239,14 +1241,14 @@ static void safe_navigation (LexState *ls, expdesc *v) {
   fs->freereg = old_free;
 
   /*
-  ** I think this check is unnecessary, as any complex key expressions should
-  ** be courteous enough to leave the top of the stack where they found it.
+  ** Complex key expressions should be courteous enough to leave the top of the
+  ** stack where they found it.
   */
-  if(v->u.info != vreg) {
-    luaK_codeABC(fs, OP_MOVE, vreg, v->u.info, 0 );
-    v->u.info=vreg;
+  if (v->u.info != vreg) {
+    luaK_codeABC(fs, OP_MOVE, vreg, v->u.info, 0);
+    v->u.info = vreg;
   }
-  SETARG_sBx(fs->f->code[j], fs->pc-j-1);
+  SETARG_sJ(fs->f->code[jump_inst], fs->pc - jump_inst - 1);
 }
 #endif
 

@@ -907,6 +907,7 @@ LUA_API void lua_setreadonly (lua_State* L, int idx, int value) {
   lua_lock(L);
   o = index2value(L, idx);
   api_check(L, ttistable(o), "table expected");
+  api_check(L, hvalue(o) != hvalue(&G(L)->l_registry), "freezing registry");
   luaH_setreadonly(hvalue(o), value);
   lua_unlock(L);
 }

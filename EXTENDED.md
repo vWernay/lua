@@ -464,10 +464,10 @@ vecN = rotateTowards(
 -- Gradually changes a vector position to reach the target position over time.
 -- This calculation is derived from a smoothing time (an approximate time to
 -- reach the target position) and an optional maximum speed
-newPos --[[ vecN ]], newVelo --[[ vecN ]] = smoothDamp(
+newPos --[[ vecN ]], newVelocity --[[ vecN ]] = smoothDamp(
     currentPos --[[ vecN ]],
     targetPos --[[ vecN ]],
-    currentVelo --[[ vecN ]],
+    currentVelocity --[[ vecN ]],
     smooth_time --[[ number ]],
     maxSpeed --[[ number ]],
     deltaTime --[[ number ]]

@@ -330,11 +330,11 @@ public:
     LUA_ALLOC_IF_CONSTEXPR(LUA_ALLOC_IS_TRIVIAL(T)) {
       void *data = realloc_(static_cast<void *>(m_data), internal_capacity(), new_cap * sizeof(T));
       m_data = static_cast<T *>(data);
-      assert(m_data != LUA_ALLOC_NULLPTR);  // "Reallocation failed"
+      assert(m_data != LUA_ALLOC_NULLPTR && "Reallocation failed");
     }
     else {
       T *new_data = static_cast<T *>(malloc_(new_cap * sizeof(T)));
-      assert(new_data != LUA_ALLOC_NULLPTR);  // "Allocation failed"
+      assert(new_data != LUA_ALLOC_NULLPTR && "Allocation failed");
 
       copyInPlace(begin(), end(), new_data);
       destroyInPlace(begin(), end());
@@ -367,11 +367,11 @@ public:
 
     LUA_ALLOC_IF_CONSTEXPR(LUA_ALLOC_IS_TRIVIAL(T)) {
       m_data = static_cast<T *>(realloc_(static_cast<void *>(m_data), internal_capacity(), m_size * sizeof(T)));
-      assert(m_data != LUA_ALLOC_NULLPTR);  // "Reallocation failed"
+      assert(m_data != LUA_ALLOC_NULLPTR && "Reallocation failed");
     }
     else {
       T *new_data = static_cast<T *>(malloc_(m_size * sizeof(T)));
-      assert(new_data != LUA_ALLOC_NULLPTR);  // "Allocation failed"
+      assert(new_data != LUA_ALLOC_NULLPTR && "Allocation failed");
 
       copyInPlace(begin(), end(), new_data);
       destroyInPlace(begin(), end());
@@ -422,7 +422,7 @@ public:
   /// checking is performed.
   /// </summary>
   reference operator[](LuaVector<T>::size_type pos) {
-    assert(pos < m_size);  // "Position is out of bounds"
+    assert(pos < m_size && "Position is out of bounds");
     return m_data[pos];
   }
 
@@ -431,7 +431,7 @@ public:
   /// checking is performed.
   /// </summary>
   const_reference operator[](LuaVector<T>::size_type pos) const {
-    assert(pos < m_size);  // "Position is out of bounds"
+    assert(pos < m_size && "Position is out of bounds");
     return m_data[pos];
   }
 
@@ -442,7 +442,7 @@ public:
   /// @NOTE: std::out_of_range exception is avoided for the time being.
   /// </summary>
   reference at(LuaVector<T>::size_type pos) {
-    assert(pos < m_size);  // "Position is out of bounds"
+    assert(pos < m_size && "Position is out of bounds");
     return m_data[pos];
   }
 
@@ -451,7 +451,7 @@ public:
   /// checking. (C++20)
   /// </summary>
   const_reference at(LuaVector<T>::size_type pos) const {
-    assert(pos < m_size);  // "Position is out of bounds"
+    assert(pos < m_size && "Position is out of bounds");
     return m_data[pos];
   }
 
@@ -459,7 +459,7 @@ public:
   /// Returns a reference to the first element in the container.
   /// </summary>
   reference front() {
-    assert(m_size > 0);  // "Container is empty"
+    assert(m_size > 0 && "Container is empty");
     return m_data[0];
   }
 
@@ -467,7 +467,7 @@ public:
   /// Returns a reference to the first element in the container.
   /// </summary>
   const_reference front() const {
-    assert(m_size > 0);  // "Container is empty"
+    assert(m_size > 0 && "Container is empty");
     return m_data[0];
   }
 
@@ -475,7 +475,7 @@ public:
   /// Returns a reference to the last element in the container.
   /// </summary>
   reference back() {
-    assert(m_size > 0);  // "Container is empty"
+    assert(m_size > 0 && "Container is empty");
     return m_data[m_size - 1];
   }
 
@@ -483,7 +483,7 @@ public:
   /// Returns a reference to the last element in the container.
   /// </summary>
   const_reference back() const {
-    assert(m_size > 0);  // "Container is empty"
+    assert(m_size > 0 && "Container is empty");
     return m_data[m_size - 1];
   }
 
@@ -587,7 +587,7 @@ public:
   /// iterator, are invalidated.
   /// </summary>
   void pop_back() {
-    assert(m_size > 0);  // "Container is empty"
+    assert(m_size > 0 && "Container is empty");
     LUA_ALLOC_IF_CONSTEXPR(!LUA_ALLOC_IS_TRIVIAL(T)) {
       m_data[m_size - 1].~T();
     }
