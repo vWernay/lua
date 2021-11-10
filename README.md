@@ -45,7 +45,7 @@ vec3(16.597618, 12.059830, 3.618034)
 > #v
 4.4583287239075
 
--- Vector dimensionality
+-- Vector dimensions
 > v.n
 3
 
@@ -76,7 +76,7 @@ rules exist prior to a `__index` metamethod lookup:
 1. If a string key has less-than-or-equal-to four characters it is first passed through a swizzling filter. Returning a vector if all characters are valid fields, e.g., `v.zyx == vec3(v.z, v.y, v.x)`.
     * Note: If swizzling a quaternion results in a four dimensional unit vector, the object remains a quaternion.
 1. The `angle` and `axis` strings are reserved for the angle (in degrees) and normalized axis of rotation for quaternion types (grit-lua compatibility).
-1. The dimensionality of a vector/quaternion can be accessed by the `n` and `dim` strings as the length operator returns the vector magnitude (grit-lua compatibility).
+1. The dimensions of a vector/quaternion can be accessed by the `n` and `dim` strings as the length operator returns the vector magnitude (grit-lua compatibility).
 
 Vector and quaternion types do not maintain an explicit metatable reference.
 The Lua functions `getmetatable` and `debug.setmetatable` and C API functions
@@ -95,7 +95,7 @@ the same C API functions:
 * [`lua_rawgeti`](https://www.lua.org/manual/5.4/manual.html#lua_rawgeti)
 * [`lua_geti`](https://www.lua.org/manual/5.4/manual.html#lua_geti)
 * [`lua_getfield`](https://www.lua.org/manual/5.4/manual.html#lua_getfield)
-* [`lua_rawlen`](https://www.lua.org/manual/5.4/manual.html#lua_rawlen): Returns the dimensionality of the vector.
+* [`lua_rawlen`](https://www.lua.org/manual/5.4/manual.html#lua_rawlen): Returns the dimensions of the vector.
 * [`lua_len`](https://www.lua.org/manual/5.4/manual.html#lua_len): Pushes the magnitude of the vector at the given index onto the stack (grit-lua compatibility).
 * [`lua_next`](https://www.lua.org/manual/5.4/manual.html#lua_next)
 
@@ -160,7 +160,7 @@ components can be done using the same C API functions:
 * [`lua_geti`](https://www.lua.org/manual/5.4/manual.html#lua_geti), [`lua_seti`](https://www.lua.org/manual/5.4/manual.html#lua_seti)
 * [`lua_rawget`](https://www.lua.org/manual/5.4/manual.html#lua_rawget), [`lua_rawset`](https://www.lua.org/manual/5.4/manual.html#lua_rawset)
 * [`lua_rawgeti`](https://www.lua.org/manual/5.4/manual.html#lua_rawgeti), [`lua_rawseti`](https://www.lua.org/manual/5.4/manual.html#lua_rawseti).
-* [`lua_rawlen`](https://www.lua.org/manual/5.4/manual.html#lua_rawlen), [`lua_len`](https://www.lua.org/manual/5.4/manual.html#lua_len): Returns the dimensionality (number of columns) of the matrix.
+* [`lua_rawlen`](https://www.lua.org/manual/5.4/manual.html#lua_rawlen), [`lua_len`](https://www.lua.org/manual/5.4/manual.html#lua_len): Returns the dimensions of the matrix (number of columns).
 * [`lua_next`](https://www.lua.org/manual/5.4/manual.html#lua_next)
 
 Following vectors, matrix types do not maintain an explicit metatable
@@ -229,8 +229,8 @@ floating point values (see sections 4.6-4.9 in your favorite `ISO/IEC 14882`
 document):
 
 1. A `glm::vec<1, ...>` structure is represented by `lua_Integer`, `lua_Number`, or `bool` Lua value and all `glm::vec<1, ...>` bindings are templated to those Lua types.
-1. All other `glm::vec` structures are float-casted (and/or bound to float-templated functions). Consequently, bitfield and integer operations, e.g., [packUnorm](http://glm.g-truc.net/0.9.9/api/a00716.html#gaccd3f27e6ba5163eb7aa9bc8ff96251a) and [floatBitsToInt](http://glm.g-truc.net/0.9.9/api/a00662.html#ga99f7d62f78ac5ea3b49bae715c9488ed), are considered unsafe when operating on multi-dimensional vectors (consider inexact IEEE754).
-1. Matrices are represented by a collection of column-vectors that abide by the vector rules above. Prior to GLM 0.9.9.9, there has been little practical use for integer/bool templated matrices given the lack of an API.
+1. All other `glm::vec` structures are float-casted (and/or bound to float-template functions). Consequently, bitfield and integer operations, e.g., [packUnorm](http://glm.g-truc.net/0.9.9/api/a00716.html#gaccd3f27e6ba5163eb7aa9bc8ff96251a) and [floatBitsToInt](http://glm.g-truc.net/0.9.9/api/a00662.html#ga99f7d62f78ac5ea3b49bae715c9488ed), are considered unsafe when operating on multi-dimensional vectors (consider inexact IEEE754).
+1. Matrices are represented by a collection of column-vectors that abide by the vector rules above. Prior to GLM 0.9.9.9, there has been little practical use for integer/bool matrix templates given the lack of an API.
 
 ### Geometry API
 
@@ -576,7 +576,7 @@ history.
 ## Building
 
 The Lua core can be compiled as C or as C++ code. All functions required to
-integrate GLM into Lua are defined in [lglm_core.h](lglm_core.h). The mechanism
+integrate GLM into Lua are defined in [lglm\_core.h](lglm_core.h). The mechanism
 for aliasing the GLM structures across C/C++ boundaries is provided in
 [luaconf.h](luaconf.h) and [lglm.hpp](lglm.hpp). GLM/Lua integration is
 implemented in [lglm.cpp](lglm.cpp).
@@ -632,81 +632,81 @@ the complete list of build options.
 Note, not all Lua-specific options are listed.
 
 * **Compilation**
-  + **ONE\_LUA**: Compile Lua core, libraries, and interpreter as a single file.
-  + **LUA\_C\_LINKAGE**: An indication to `lglm.cpp` that the Lua core has C linkage.
-  + **LUA\_NATIVE\_ARCH**: Enable compiler optimizations for the native processor architecture.
-  + **LUA\_NO\_DUMP**: Disable the dump module (dumping Lua functions as precompiled chunks).
-  + **LUA\_NO\_BYTECODE**: Disables the usage of lua\_load with binary chunks.
-  + **LUA\_NO\_PARSER**: Compile the Lua core so it does not contain the parsing modules (lcode, llex, lparser). Only binary files and strings, precompiled with luac, can be loaded.
+  + **ONE_LUA**: Compile Lua core, libraries, and interpreter as a single file.
+  + **LUA_C_LINKAGE**: An indication to `lglm.cpp` that the Lua core has C linkage.
+  + **LUA_NATIVE_ARCH**: Enable compiler optimizations for the native processor architecture.
+  + **LUA_NO_DUMP**: Disable the dump module (dumping Lua functions as precompiled chunks).
+  + **LUA_NO_BYTECODE**: Disables the usage of lua\_load with binary chunks.
+  + **LUA_NO_PARSER**: Compile the Lua core so it does not contain the parsing modules (lcode, llex, lparser). Only binary files and strings, precompiled with luac, can be loaded.
 * **Testing**
-  + **LUA\_INCLUDE\_TEST**: Include ltests.h and testing modules. Note this option enables many of the following flags by default.
-  + **LUAI\_ASSERT**: Turn on all assertions inside Lua.
-  + **LUA\_USE\_APICHECK**: Turns on several consistency checks on the C API.
+  + **LUA_INCLUDE_TEST**: Include ltests.h and testing modules. Note this option enables many of the following flags by default.
+  + **LUAI_ASSERT**: Turn on all assertions inside Lua.
+  + **LUA_USE_APICHECK**: Turns on several consistency checks on the C API.
   + **HARDSTACKTESTS**: Force a reallocation of the stack at every point where the stack can be reallocated.
   + **HARDMEMTESTS**: Force a full collection at all points where the collector can run.
   + **EMERGENCYGCTESTS**: Force an emergency collection at every single allocation.
   + **EXTERNMEMCHECK**: Removes internal consistency checking of blocks being deallocated.
 * **LuaGLM Options**:
-  + **LUAGLM\_APICHECK**: Enable additional apicheck handling.
-  + **LUAGLM\_EPS\_EQUAL**: `luaV_equalobj` uses approximately equal (within glm::epsilon) for vector/matrix types (beware of hashing caveats).
-  + **LUAGLM\_MUL\_DIRECTION**: Define how the runtime handles `TM_MUL(mat4x4, vec3)`.
-  + **LUAGLM\_NUMBER\_TYPE**: Use lua\_Number as the vector primitive; float otherwise.
+  + **LUAGLM_APICHECK**: Enable additional apicheck handling.
+  + **LUAGLM_EPS_EQUAL**: `luaV_equalobj` uses approximately equal (within glm::epsilon) for vector/matrix types (beware of hashing caveats).
+  + **LUAGLM_MUL_DIRECTION**: Define how the runtime handles `TM_MUL(mat4x4, vec3)`.
+  + **LUAGLM_NUMBER_TYPE**: Use lua\_Number as the vector primitive; float otherwise.
 * **Power Patches**: See Lua Power Patches section.
-  + **LUAGLM\_COMPAT\_IPAIRS**: Enable '\_\_ipairs'.
-  + **LUAGLM\_EXT\_API**: Enable 'Extended API'.
-  + **LUAGLM\_EXT\_BLOB**: Enable 'String Blobs'.
-  + **LUAGLM\_EXT\_CCOMMENT**: Enable 'C-Style Comments'.
-  + **LUAGLM\_EXT\_CHRONO**: Enable nanosecond resolution timers and x86 rdtsc sampling.
-  + **LUAGLM\_EXT\_COMPOUND**: Enable 'Compound Operators'.
-  + **LUAGLM\_EXT\_DEFER**: Enable 'Defer'.
-  + **LUAGLM\_EXT\_EACH**: Enable 'Each Iteration'.
-  + **LUAGLM\_EXT\_INTABLE**:: Enable 'In Unpacking'.
-  + **LUAGLM\_EXT\_JOAAT**: Enable 'Compile Time Jenkins' Hashes'.
-  + **LUAGLM\_EXT\_LAMBDA**: Enable 'Short Function Notation'.
-  + **LUAGLM\_EXT\_READLINE\_HISTORY**: Enable 'Readline History'.
-  + **LUAGLM\_EXT\_READONLY**: Enable 'Readonly'
-  + **LUAGLM\_EXT\_SAFENAV**: Enable 'Safe Navigation'.
-  + **LUAGLM\_EXT\_TABINIT**: Enable 'Set Constructors'
-  + **LUAGLM\_EXT\_SCOPE\_RESOLUTION**
+  + **LUAGLM_COMPAT_IPAIRS**: Enable '\_\_ipairs'.
+  + **LUAGLM_EXT_API**: Enable 'Extended API'.
+  + **LUAGLM_EXT_BLOB**: Enable 'String Blobs'.
+  + **LUAGLM_EXT_CCOMMENT**: Enable 'C-Style Comments'.
+  + **LUAGLM_EXT_CHRONO**: Enable nanosecond resolution timers and x86 rdtsc sampling.
+  + **LUAGLM_EXT_COMPOUND**: Enable 'Compound Operators'.
+  + **LUAGLM_EXT_DEFER**: Enable 'Defer'.
+  + **LUAGLM_EXT_EACH**: Enable 'Each Iteration'.
+  + **LUAGLM_EXT_INTABLE**:: Enable 'In Unpacking'.
+  + **LUAGLM_EXT_JOAAT**: Enable 'Compile Time Jenkins' Hashes'.
+  + **LUAGLM_EXT_LAMBDA**: Enable 'Short Function Notation'.
+  + **LUAGLM_EXT_READLINE_HISTORY**: Enable 'Readline History'.
+  + **LUAGLM_EXT_READONLY**: Enable 'Readonly'
+  + **LUAGLM_EXT_SAFENAV**: Enable 'Safe Navigation'.
+  + **LUAGLM_EXT_TABINIT**: Enable 'Set Constructors'
+  + **LUAGLM_EXT_SCOPE_RESOLUTION**
 
 #### GLM Preprocessor Configurations
 
-* **GLM\_FORCE\_MESSAGES**: Platform auto detection and default configuration.
-* **GLM\_FORCE\_INLINE**: Force inline.
-* **GLM\_FORCE\_ALIGNED\_GENTYPES**: Force GLM to enable aligned types.
-* **GLM\_FORCE\_DEFAULT\_ALIGNED\_GENTYPES**: Force GLM to use aligned types by default.
-* **GLM\_FORCE\_INTRINSICS**: Using SIMD optimizations.
-* **GLM\_FORCE\_PRECISION\_**: Default precision.
-* **GLM\_FORCE\_SINGLE\_ONLY**: Removed explicit 64-bits floating point types.
-* **GLM\_FORCE\_XYZW\_ONLY**: Only exposes x, y, z and w components. Note: when enabled disables all **COLOR\_SPACE** bindings.
-* **GLM\_FORCE\_LEFT\_HANDED**: Force left handed coordinate system.
-* **GLM\_FORCE\_DEPTH\_ZERO\_TO\_ONE**: Force the use of a clip space between 0 to 1.
-* **GLM\_FORCE\_SIZE\_T\_LENGTH**: Vector and matrix static size type.
-* **GLM\_FORCE\_UNRESTRICTED\_GENTYPE**: Removing genType restriction.
-* **GLM\_FORCE\_SILENT\_WARNINGS**: Silent C++ warnings from language extensions.
-* **GLM\_FORCE\_QUAT\_DATA\_WXYZ**: Force GLM to store quat data as w,x,y,z instead of x,y,z,w.
+* **GLM_FORCE_MESSAGES**: Platform auto detection and default configuration.
+* **GLM_FORCE_INLINE**: Force inline.
+* **GLM_FORCE_ALIGNED_GENTYPES**: Force GLM to enable aligned types.
+* **GLM_FORCE_DEFAULT_ALIGNED_GENTYPES**: Force GLM to use aligned types by default.
+* **GLM_FORCE_INTRINSICS**: Using SIMD optimizations.
+* **GLM_FORCE_PRECISION_**: Default precision.
+* **GLM_FORCE_SINGLE_ONLY**: Removed explicit 64-bits floating point types.
+* **GLM_FORCE_XYZW_ONLY**: Only exposes x, y, z and w components. Note: when enabled disables all **COLOR_SPACE** bindings.
+* **GLM_FORCE_LEFT_HANDED**: Force left handed coordinate system.
+* **GLM_FORCE_DEPTH_ZERO_TO_ONE**: Force the use of a clip space between 0 to 1.
+* **GLM_FORCE_SIZE_T_LENGTH**: Vector and matrix static size type.
+* **GLM_FORCE_UNRESTRICTED_GENTYPE**: Removing genType restriction.
+* **GLM_FORCE_SILENT_WARNINGS**: Silent C++ warnings from language extensions.
+* **GLM_FORCE_QUAT_DATA_WXYZ**: Force GLM to store quat data as w,x,y,z instead of x,y,z,w.
 
 For all GLM preprocessor, see the [GLM manual](https://github.com/g-truc/glm/blob/master/manual.md#section2).
 
 #### Added GLM Preprocessor Configurations
 
-* **GLM\_FAST\_MATH**: Enable fast math optimizations (see `-ffast-math` caveats).
-* **GLM\_FORCE\_Z\_UP**: Unit "up" vector is along the Z-axis (Y-axis otherwise).
+* **GLM_FAST_MATH**: Enable fast math optimizations (see `-ffast-math` caveats).
+* **GLM_FORCE_Z_UP**: Unit "up" vector is along the Z-axis (Y-axis otherwise).
 
 #### Binding Library Configuration
 
-* **LUAGLM\_INCLUDE\_ALL**: Create bindings for all declared GLM headers. To create module-only, extension-only, or header-only bindings see **EXTENDED.md** for a list of all headers.
-* **LUAGLM\_INCLUDE\_EXT**: Include ext headers: Stable extensions not specified by GLSL specification.
-* **LUAGLM\_INCLUDE\_GTC**: Include gtc headers: Recommended extensions not specified by GLSL specification.
-* **LUAGLM\_INCLUDE\_GTX**: Include gtx headers: Experimental extensions not specified by GLSL specification.
-* **LUAGLM\_INCLUDE\_GEOM**: Include support for geometric structures (`ext/geom/`).
-* **LUAGLM\_ALIASES**: Create aliases for common (alternate) names when registering the library.
-* **LUAGLM\_SAFELIB**: Enable a general try/catch wrapper for all binding functions.
-* **LUAGLM\_REPLACE\_MATH**: Replace the global math table with the glm binding library on loading.
-* **LUAGLM\_RECYCLE**: Treat all trailing and unused values on the Lua stack (but passed as parameters to the `CClosure`) as a 'cache' of recyclable structures.
-* **LUAGLM\_FORCED\_RECYCLE**: Disable this library from allocating memory, i.e., force usage of LUAGLM\_RECYCLE.
-* **LUAGLM\_DRIFT**: Experimental: Implicitly normalize all direction vector parameters (to avoid floating-point drift).
-* **LUAGLM\_INLINED\_TEMPLATES**: Experimental: Enable inlined-template resolution. Function names include object types to be parsed, e.g., F_P1P2, up to template resolution.
+* **LUAGLM_INCLUDE_ALL**: Create bindings for all declared GLM headers. To create module-only, extension-only, or header-only bindings see **EXTENDED.md** for a list of all headers.
+* **LUAGLM_INCLUDE_EXT**: Include ext headers: Stable extensions not specified by GLSL specification.
+* **LUAGLM_INCLUDE_GTC**: Include gtc headers: Recommended extensions not specified by GLSL specification.
+* **LUAGLM_INCLUDE_GTX**: Include gtx headers: Experimental extensions not specified by GLSL specification.
+* **LUAGLM_INCLUDE_GEOM**: Include support for geometric structures (`ext/geom/`).
+* **LUAGLM_ALIASES**: Create aliases for common (alternate) names when registering the library.
+* **LUAGLM_SAFELIB**: Enable a general try/catch wrapper for all binding functions.
+* **LUAGLM_REPLACE_MATH**: Replace the global math table with the glm binding library on loading.
+* **LUAGLM_RECYCLE**: Treat all trailing and unused values on the Lua stack (but passed as parameters to the `CClosure`) as a 'cache' of recyclable structures.
+* **LUAGLM_FORCED_RECYCLE**: Disable this library from allocating memory, i.e., force usage of LUAGLM\_RECYCLE.
+* **LUAGLM_DRIFT**: Experimental: Implicitly normalize all direction vector parameters (to avoid floating-point drift).
+* **LUAGLM_INLINED_TEMPLATES**: Experimental: Enable inlined-template resolution. Function names include object types to be parsed, e.g., F\_P1P2, up to template resolution.
 
 Recycling Example:
 

@@ -480,7 +480,7 @@ ENDIF()
 #######################################
 
 OPTION(LUA_C99_MATHLIB "Enable extended C99/C++11 " ON)
-OPTION(LUA_SANDBOX "Initial sandboxing support (hide additional ldblib fields)" OFF)
+OPTION(LUA_SANDBOX_DBLIB "Sandboxing support for ldblib.c" OFF)
 OPTION(LUA_NO_DUMP "Disable the dump module (dump Lua functions as precompiled chunk) " OFF)
 OPTION(LUA_NO_BYTECODE "Disables the usage of lua_load with binary (precompiled) chunks" OFF)
 OPTION(LUA_NO_PARSER "Compile the Lua core so it does not contain the parsing \
@@ -518,8 +518,8 @@ IF( LUA_C99_MATHLIB )
   ADD_COMPILE_DEFINITIONS(LUA_C99_MATHLIB)
 ENDIF()
 
-IF( LUA_SANDBOX )
-  ADD_COMPILE_DEFINITIONS(LUA_SANDBOX)
+IF( LUA_SANDBOX_DBLIB )
+  ADD_COMPILE_DEFINITIONS(LUA_SANDBOX_DBLIB)
 ENDIF()
 
 IF( LUAGLM_NUMBER_TYPE )

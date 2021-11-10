@@ -23,24 +23,14 @@
 /*
 ** The hook table at registry[HOOKKEY] maps threads to their current
 ** hook function.
-*/
-static const char *const HOOKKEY = "_HOOKKEY";
-
-/*
-** A registry subtable registry[REGISTRY_SUBKEY] exposed to cfxLua scripts. It
-** is likely some power-users are using the registry. However, many of the
-** fields are already (and should be accessed via) other API methods
-** (e.g., IO_OUTPUT).
-**
-** In the worst case, the registry subtable can be given an __index metamethod
-** that exposes acceptable fields to the script runtime.
 **
 ** @TODO: LUA_SANDBOX the base macro for improved runtime sandboxing;
 **        see: http://lua-users.org/wiki/SandBoxes
 */
-#if defined(LUA_SANDBOX)
-static const char *const REGISTRY_SUBKEY = "_REGISTRYKEY";
+#if !defined(LUA_SANDBOX_DBLIB)
+static const char *const HOOKKEY = "_HOOKKEY";
 #endif
+
 
 /*
 ** If L1 != L, L1 can be in any state, and therefore there are no
@@ -53,14 +43,9 @@ static void checkstack (lua_State *L, lua_State *L1, int n) {
 }
 
 
+#if !defined(LUA_SANDBOX_DBLIB)
 static int db_getregistry (lua_State *L) {
-#if defined(LUA_SANDBOX)
-  if (!luaL_getsubtable(L, LUA_REGISTRYINDEX, REGISTRY_SUBKEY)) {
-    /* table just created; initialize it ... */
-  }
-#else
   lua_pushvalue(L, LUA_REGISTRYINDEX);
-#endif
   return 1;
 }
 
@@ -104,6 +89,7 @@ static int db_setuservalue (lua_State *L) {
     luaL_pushfail(L);
   return 1;
 }
+#endif
 
 
 /*
@@ -166,6 +152,8 @@ static void treatstackoption (lua_State *L, lua_State *L1, const char *fname) {
 ** L1 needs stack space for an optional input (function) plus
 ** two optional outputs (function and line table) from function
 ** 'lua_getinfo'.
+**
+** @TODO: LUA_SANDBOX_DBLIB
 */
 static int db_getinfo (lua_State *L) {
   lua_Debug ar;
@@ -221,6 +209,7 @@ static int db_getinfo (lua_State *L) {
 }
 
 
+#if !defined(LUA_SANDBOX_DBLIB)
 static int db_getlocal (lua_State *L) {
   int arg;
   lua_State *L1 = getthread(L, &arg);
@@ -438,7 +427,6 @@ static int db_gethook (lua_State *L) {
 }
 
 
-#if !defined(LUA_SANDBOX)
 static int db_debug (lua_State *L) {
   for (;;) {
     char buffer[250];
@@ -469,7 +457,7 @@ static int db_traceback (lua_State *L) {
 }
 
 
-#if !defined(LUA_SANDBOX)
+#if !defined(LUA_SANDBOX_DBLIB)
 static int db_setcstacklimit (lua_State *L) {
   int limit = (int)luaL_checkinteger(L, 1);
   int res = lua_setcstacklimit(L, limit);
@@ -480,27 +468,27 @@ static int db_setcstacklimit (lua_State *L) {
 
 
 static const luaL_Reg dblib[] = {
-#if !defined(LUA_SANDBOX)
+#if !defined(LUA_SANDBOX_DBLIB)
   {"debug", db_debug},
   {"getuservalue", db_getuservalue},
-#endif
   {"gethook", db_gethook},
+#endif
   {"getinfo", db_getinfo},
+#if !defined(LUA_SANDBOX_DBLIB)
   {"getlocal", db_getlocal},
   {"getregistry", db_getregistry},
   {"getmetatable", db_getmetatable},
   {"getupvalue", db_getupvalue},
   {"upvaluejoin", db_upvaluejoin},
   {"upvalueid", db_upvalueid},
-#if !defined(LUA_SANDBOX)
   {"setuservalue", db_setuservalue},
-#endif
   {"sethook", db_sethook},
   {"setlocal", db_setlocal},
   {"setmetatable", db_setmetatable},
   {"setupvalue", db_setupvalue},
+#endif
   {"traceback", db_traceback},
-#if !defined(LUA_SANDBOX)
+#if !defined(LUA_SANDBOX_DBLIB)
   {"setcstacklimit", db_setcstacklimit},
 #endif
   {NULL, NULL}

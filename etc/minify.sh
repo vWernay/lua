@@ -12,11 +12,11 @@
 #		./etc/minify.sh ${PWD} minilua.hpp
 #
 # 	minilua: minilua.hpp
-#		echo "#define LUA_IMPL\n#define MAKE_LUA\n#define LUA_INCLUDE_LIBGLM\n#include \"minilua.hpp\"" | \
+#		echo "#define LUA_IMPLEMENTATION\n#define MAKE_LUA\n#define LUA_INCLUDE_LIBGLM\n#include \"minilua.hpp\"" | \
 #		$(CPP) $(CFLAGS) $(CPERF_FLAGS) -DLUA_USE_READLINE -o lua -x c++ - -Wl,-E -ldl -lreadline
 #
 # 	miniluac: minilua.hpp
-#		echo "#define LUA_IMPL\n#define MAKE_LUAC\n#include \"minilua.hpp\"" | \
+#		echo "#define LUA_IMPLEMENTATION\n#define MAKE_LUAC\n#include \"minilua.hpp\"" | \
 #		$(CPP) $(CFLAGS) $(CPERF_FLAGS) -o luac -x c++ -
 #
 # Inspired by:
@@ -29,8 +29,8 @@ OUTFILE=${2-"minilua.hpp"}
 rm -f ${OUTFILE}
 cat << EOF >> ${OUTFILE}
 /*
-** Lua core, libraries, and interpreter in a single header. Define 'LUA_IMPL' in
-** a single unit to build the implementation.
+** Lua core, libraries, and interpreter in a single header. Define
+** 'LUA_IMPLEMENTATION' in a single unit to build the implementation.
 **
 ** @OPTIONS:
 **  MAKE_LUA - include the Lua command line interpreter (lua.c)
@@ -38,7 +38,7 @@ cat << EOF >> ${OUTFILE}
 **  LUA_INCLUDE_LIBGLM - include GLM binding library; this library is disabled-by-default.
 **
 ** @EXAMPLE: Build the Lua interpreter:
-**    #define LUA_IMPL
+**    #define LUA_IMPLEMENTATION
 **    #define MAKE_LUA
 **    #include \"${OUTFILE}\"
 **
@@ -84,9 +84,9 @@ cat << EOF >> ${OUTFILE}
 /* no need to change anything below this line ----------------------------- */
 EOF
 
-echo "#if defined(LUA_IMPL)" >> ${OUTFILE}
+echo "#if defined(LUA_IMPLEMENTATION)" >> ${OUTFILE}
   cat ${LUA_DIR}/lprefix.h >> ${OUTFILE}
-echo "#endif /* LUA_IMPL */" >> ${OUTFILE}
+echo "#endif /* LUA_IMPLEMENTATION */" >> ${OUTFILE}
 
 cat << EOF >> ${OUTFILE}
 /* #include <assert.h> */
@@ -131,7 +131,7 @@ echo "/* auxiliary library -- used by all */" >> ${OUTFILE}
 cat ${LUA_DIR}/lauxlib.h >> ${OUTFILE}
 
 # Internal headers. Only included when compiling the interpreter.
-echo "#if defined(LUA_IMPL)" >> ${OUTFILE}
+echo "#if defined(LUA_IMPLEMENTATION)" >> ${OUTFILE}
   echo "/* core -- used by all */" >> ${OUTFILE}
   cat ${LUA_DIR}/llimits.h >> ${OUTFILE}
   cat ${LUA_DIR}/lobject.h >> ${OUTFILE}
@@ -227,7 +227,7 @@ echo "#if defined(LUA_IMPL)" >> ${OUTFILE}
     echo "#endif /* LUA_INCLUDE_LIBGLM */" >> ${OUTFILE}
     cat ${LUA_DIR}/linit.c >> ${OUTFILE}
   echo "#endif /* MAKE_LUAC */" >> ${OUTFILE}
-echo "#endif /* LUA_IMPL */" >> ${OUTFILE}
+echo "#endif /* LUA_IMPLEMENTATION */" >> ${OUTFILE}
 
 echo "#if defined(MAKE_LUA)" >> ${OUTFILE}
   echo "/* lua */" >> ${OUTFILE}
