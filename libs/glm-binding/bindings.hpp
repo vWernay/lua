@@ -342,7 +342,11 @@ struct gLuaBase {
   /* Float */
 
   /// <summary>
-  /// lua_tonumber with additional rules for casting booleans
+  /// lua_tonumber with additional rules for casting booleans.
+  ///
+  /// string coercion must exist for this binding to be a superset of lmathlib.
+  /// As much of the luaL_checknumber logic is redundant, this should be
+  /// optimized. However, luaV_tonumber_ is not an exported function.
   /// </summary>
   template<typename T>
   static int tonumberx(lua_State *L_, int idx_, T &v) {
@@ -352,9 +356,6 @@ struct gLuaBase {
       case LUA_VFALSE: v = static_cast<T>(0); break;
       case LUA_VNUMINT: v = static_cast<T>(ivalue(o)); break;
       case LUA_VNUMFLT: v = static_cast<T>(fltvalue(o)); break;
-      // string coercion must exist for this binding to be a superset of lmathlib.
-      // As much of the luaL_checknumber logic is redundant, this should be optimized.
-      // However, luaV_tonumber_ is not an exported function.
       default: {
         v = static_cast<T>(luaL_checknumber(L_, idx_));
         break;
@@ -584,7 +585,7 @@ struct gLuaBase {
 
       lua_lock(L_);
       const TValue *o = glm_i2v(L_, LB.idx);
-      if (ttismatrix(o)) {
+      if (l_likely(ttismatrix(o))) {
         LB.idx++;
 
         glm_mat_boundary(mvalue_ref(o)) = m;
@@ -602,6 +603,15 @@ struct gLuaBase {
 #else
     return glm_pushmat(LB.L, glmMatrix(m));
 #endif
+  }
+
+  /// <summary>
+  /// Helper for double-precision matrices: instead of casting the function
+  /// arguments from double-to-float, cast the result.
+  /// </summary>
+  template<typename T, glm::length_t C, glm::length_t R>
+  LUA_TRAIT_QUALIFIER typename std::enable_if<!std::is_same<T, glm_Float>::value, int>::type Push(gLuaBase &LB, const glm::mat<C, R, T> &m) {
+    return Push(LB, glm::mat<C, R, glm_Float>(m));
   }
 
 #if defined(LUAGLM_INCLUDE_GEOM)
@@ -714,7 +724,7 @@ struct gLuaBase {
   template<typename T>
   LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::Polygon<3, T> &p) {
     void *ptr = GLM_NULLPTR;
-    if (idx_ <= 0)
+    if (l_unlikely(idx_ <= 0))
       return luaL_error(LB.L, "Invalid PolygonPull operation; incorrect API usage");
     else if ((ptr = luaL_checkudata(LB.L, idx_, LUAGLM_POLYGON_META)) == GLM_NULLPTR)
       return luaL_error(LB.L, "Invalid PolygonPull operation; not userdata");
@@ -731,7 +741,7 @@ struct gLuaBase {
   /// </summary>
   template<typename T>
   LUA_TRAIT_QUALIFIER int Push(const gLuaBase &LB, const glm::Polygon<3, T> &p) {
-    if (p.stack_idx >= 1) {
+    if (l_likely(p.stack_idx >= 1)) {
       lua_pushvalue(LB.L, p.stack_idx);
       return 1;
     }
@@ -949,7 +959,16 @@ template<typename T = glm_Float> using gLuaMat4x3 = gLuaTrait<glm::mat<4, 3, T>>
 template<typename T = glm_Float> using gLuaMat4x4 = gLuaTrait<glm::mat<4, 4, T>>;
 
 /// <summary>
-/// Specialization for implicitly normalizing direction vectors/quaternions.
+/// See @LUAGLM_NUMBER_ARGS.
+/// </summary>
+#if defined(LUAGLM_NUMBER_ARGS)
+using gLuaFloatOnly = gLuaNumber;
+#else
+using gLuaFloatOnly = gLuaFloat;
+#endif
+
+/// <summary>
+/// See @LUAGLM_DRIFT
 /// </summary>
 #if defined(LUAGLM_DRIFT)
 template<glm::length_t L, typename T = glm_Float>
@@ -1256,10 +1275,6 @@ struct gLuaEps : gLuaTrait<T> {
     VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr, gLuaTrait<Tr::value_type>, ##__VA_ARGS__); \
   VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr, Tr, ##__VA_ARGS__);                          \
   LUA_MLM_END
-
-/* */
-#define LAYOUT_UNARY_NUMINT(LB, F, Tr, ...) \
-  return gLuaBase::PushNumInt(LB, F(Tr::Next(LB)));
 
 /* A binary integer layout that sanitizes the second argument (division/modulo zero) */
 #define LAYOUT_BINARY_INTEGER(LB, F, Tr, ...)                           \

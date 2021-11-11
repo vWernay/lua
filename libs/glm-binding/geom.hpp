@@ -1445,7 +1445,7 @@ GLM_BINDING_QUALIFIER(polygon_new) {
     // Create a std::vector backed by the Lua allocator.
     using PolyList = glm::List<gLuaPolygon<>::Point::type>;
     PolyList *list = static_cast<PolyList *>(allocator.realloc(GLM_NULLPTR, 0, sizeof(PolyList)));
-    if (list == GLM_NULLPTR) {
+    if (l_unlikely(list == GLM_NULLPTR)) {
       lua_pop(L, 1);
       return luaL_error(L, "polygon allocation error");
     }
@@ -1456,7 +1456,7 @@ GLM_BINDING_QUALIFIER(polygon_new) {
   #endif
       polygon->p = ::new (list) PolyList(allocator);
 
-      if (top >= 1 && lua_istable(LB.L, LB.idx)) {
+      if (l_likely(top >= 1 && lua_istable(LB.L, LB.idx))) {
         glmLuaArray<gLuaVec3<>> lArray(LB.L, LB.idx);
         const auto e = lArray.end();
         for (auto b = lArray.begin(); b != e; ++b) {
@@ -1480,7 +1480,7 @@ GLM_BINDING_QUALIFIER(polygon_new) {
 
 GLM_BINDING_QUALIFIER(polygon_to_string) {
   gLuaPolygon<>::type *ud = static_cast<gLuaPolygon<>::type *>(luaL_checkudata(L, 1, LUAGLM_POLYGON_META));
-  if (ud->p != GLM_NULLPTR) {
+  if (l_likely(ud->p != GLM_NULLPTR)) {
     ud->p->Validate(L);
     lua_pushfstring(L, "Polygon<%I>", ud->p->size());
     return 1;
@@ -1494,7 +1494,7 @@ GLM_BINDING_QUALIFIER(polygon_to_string) {
 /// </summary>
 GLM_BINDING_QUALIFIER(polygon__gc) {
   gLuaPolygon<>::type *ud = static_cast<gLuaPolygon<>::type *>(luaL_checkudata(L, 1, LUAGLM_POLYGON_META));
-  if (ud->p != GLM_NULLPTR) {
+  if (l_likely(ud->p != GLM_NULLPTR)) {
     LuaCrtAllocator<void> allocator(L);
     ud->p->Validate(L);
     ud->p->~LuaVector();  // Invoke destructor.
@@ -1517,7 +1517,7 @@ GLM_BINDING_QUALIFIER(polygon__call) {
   const gLuaPolygon<>::type poly = gLuaPolygon<>::Next(LB);
   lua_createtable(LB.L, static_cast<int>(poly.size()), 0);
   for (size_t i = 0; i < poly.size(); ++i) {
-    if (gLuaBase::Push(LB, poly[i]) != 1)
+    if (l_unlikely(gLuaBase::Push(LB, poly[i]) != 1))
       return luaL_error(LB.L, GLM_INVALID_VECTOR_STRUCTURE);
     lua_rawseti(LB.L, -2, i_luaint(i) + 1);
   }
@@ -1549,7 +1549,7 @@ GLM_BINDING_QUALIFIER(polygon__index) {
 GLM_BINDING_QUALIFIER(polygon__newindex) {
   GLM_BINDING_BEGIN
   gLuaPolygon<>::type poly = gLuaPolygon<>::Next(LB);
-  if (poly.p != GLM_NULLPTR) {
+  if (l_likely(poly.p != GLM_NULLPTR)) {
     const size_t index = gLuaTrait<size_t>::Next(LB);
     const gLuaVec3<>::type value = gLuaVec3<>::Next(LB);
 
@@ -1558,8 +1558,9 @@ GLM_BINDING_QUALIFIER(polygon__newindex) {
       poly[index - 1] = value;
     else if (index == poly.size() + 1)
       poly.p->push_back(value);
-    else
+    else {
       return luaL_error(LB.L, "Invalid %s index", gLuaPolygon<>::Label());
+    }
   }
   return 0;
   GLM_BINDING_END
@@ -1573,8 +1574,8 @@ extern "C" {
     GLM_BINDING_BEGIN
     if (!gLuaPolygon<>::Is(LB, LB.idx))
       return luaL_argerror(LB.L, LB.idx, gLuaPolygon<>::Label());
-    lua_settop(LB.L, LB.idx + 1);  // create a 2nd argument if there isn't one
 
+    lua_settop(LB.L, LB.idx + 1);  // create a 2nd argument if there isn't one
     const gLuaPolygon<>::type poly = gLuaPolygon<>::Next(LB);  // Polygon
     if (gLuaTrait<size_t>::Is(LB, LB.idx)) {  // Index
       const gLuaTrait<size_t>::type key = gLuaTrait<size_t>::Next(LB);

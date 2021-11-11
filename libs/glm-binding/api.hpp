@@ -31,6 +31,9 @@
 **  This should likely be disabled.
 **
 ** Experimental:
+@@ LUAGLM_NUMBER_ARGS Control where the lua_Number-to-float typecasting happens
+**  during the binding to *float-only* functions: parsing parameters (default)
+**  or pushing result, e.g., glm::eulerAngleXYZ.
 @@ LUAGLM_DRIFT Implicitly normalize parameters that expect direction vectors
 **  and quaternions.
 @@ LUAGLM_INLINED_TEMPLATES Enable inlined-template resolution. Function names
@@ -237,7 +240,7 @@ GLM_BINDING_QUALIFIER(to_string) {
   for (int i = LB.idx; i <= LB.top(); ++i)
     lua_tostring(LB.L, i);
   return LB.top();
-  GLM_BINDING_END;
+  GLM_BINDING_END
 }
 
 /* glm/ext/scalar_relational.hpp, glm/ext/vector_common.hpp, glm/ext/vector_relational.hpp, glm/ext/quaternion_relational.hpp, glm/ext/matrix_relational.hpp */
@@ -268,7 +271,7 @@ GLM_BINDING_QUALIFIER(hash) {
     }
   }
   return _gettop(LB.L) - LB.top();
-  GLM_BINDING_END;
+  GLM_BINDING_END
 }
 #endif
 
@@ -291,7 +294,7 @@ GLM_BINDING_QUALIFIER(unpack) {
     }
   }
   return _gettop(LB.L) - LB.top();
-  GLM_BINDING_END;
+  GLM_BINDING_END
 }
 
 /* }================================================================== */
@@ -795,56 +798,56 @@ GLM_BINDING_QUALIFIER(outerProduct) {
 #endif
 
 #if defined(EXT_MATRIX_CLIP_SPACE_HPP)
-TRAITS_LAYOUT_DEFN(frustum, glm::frustum, LAYOUT_SENARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(frustumLH, glm::frustumLH, LAYOUT_SENARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(frustumLH_NO, glm::frustumLH_NO, LAYOUT_SENARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(frustumLH_ZO, glm::frustumLH_ZO, LAYOUT_SENARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(frustumNO, glm::frustumNO, LAYOUT_SENARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(frustumRH, glm::frustumRH, LAYOUT_SENARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(frustumRH_NO, glm::frustumRH_NO, LAYOUT_SENARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(frustumRH_ZO, glm::frustumRH_ZO, LAYOUT_SENARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(frustumZO, glm::frustumZO, LAYOUT_SENARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(infinitePerspective, glm::infinitePerspective, LAYOUT_TERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(infinitePerspectiveLH, glm::infinitePerspectiveLH, LAYOUT_TERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(infinitePerspectiveRH, glm::infinitePerspectiveRH, LAYOUT_TERNARY, gLuaFloat)
+TRAITS_LAYOUT_DEFN(frustum, glm::frustum, LAYOUT_SENARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(frustumLH, glm::frustumLH, LAYOUT_SENARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(frustumLH_NO, glm::frustumLH_NO, LAYOUT_SENARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(frustumLH_ZO, glm::frustumLH_ZO, LAYOUT_SENARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(frustumNO, glm::frustumNO, LAYOUT_SENARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(frustumRH, glm::frustumRH, LAYOUT_SENARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(frustumRH_NO, glm::frustumRH_NO, LAYOUT_SENARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(frustumRH_ZO, glm::frustumRH_ZO, LAYOUT_SENARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(frustumZO, glm::frustumZO, LAYOUT_SENARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(infinitePerspective, glm::infinitePerspective, LAYOUT_TERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(infinitePerspectiveLH, glm::infinitePerspectiveLH, LAYOUT_TERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(infinitePerspectiveRH, glm::infinitePerspectiveRH, LAYOUT_TERNARY, gLuaFloatOnly)
 GLM_BINDING_QUALIFIER(ortho) {
   GLM_BINDING_BEGIN
-  if (gLuaFloat::Is(LB, LB.idx + 4) && gLuaFloat::Is(LB, LB.idx + 5))
-    LAYOUT_SENARY(LB, glm::ortho, gLuaFloat);
-  LAYOUT_QUATERNARY(LB, glm::ortho, gLuaFloat);
+  if (gLuaFloatOnly::Is(LB, LB.idx + 4) && gLuaFloatOnly::Is(LB, LB.idx + 5))
+    LAYOUT_SENARY(LB, glm::ortho, gLuaFloatOnly);
+  LAYOUT_QUATERNARY(LB, glm::ortho, gLuaFloatOnly);
   GLM_BINDING_END
 }
-TRAITS_LAYOUT_DEFN(orthoLH, glm::orthoLH, LAYOUT_SENARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(orthoLH_NO, glm::orthoLH_NO, LAYOUT_SENARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(orthoLH_ZO, glm::orthoLH_ZO, LAYOUT_SENARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(orthoNO, glm::orthoNO, LAYOUT_SENARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(orthoRH, glm::orthoRH, LAYOUT_SENARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(orthoRH_NO, glm::orthoRH_NO, LAYOUT_SENARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(orthoRH_ZO, glm::orthoRH_ZO, LAYOUT_SENARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(orthoZO, glm::orthoZO, LAYOUT_SENARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(perspective, glm::perspective, LAYOUT_QUATERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(perspectiveFov, glm::perspectiveFov, LAYOUT_QUINARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(perspectiveFovLH, glm::perspectiveFovLH, LAYOUT_QUINARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(perspectiveFovLH_NO, glm::perspectiveFovLH_NO, LAYOUT_QUINARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(perspectiveFovLH_ZO, glm::perspectiveFovLH_ZO, LAYOUT_QUINARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(perspectiveFovNO, glm::perspectiveFovNO, LAYOUT_QUINARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(perspectiveFovRH, glm::perspectiveFovRH, LAYOUT_QUINARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(perspectiveFovRH_NO, glm::perspectiveFovRH_NO, LAYOUT_QUINARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(perspectiveFovRH_ZO, glm::perspectiveFovRH_ZO, LAYOUT_QUINARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(perspectiveFovZO, glm::perspectiveFovZO, LAYOUT_QUINARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(perspectiveLH, glm::perspectiveLH, LAYOUT_QUATERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(perspectiveLH_NO, glm::perspectiveLH_NO, LAYOUT_QUATERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(perspectiveLH_ZO, glm::perspectiveLH_ZO, LAYOUT_QUATERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(perspectiveNO, glm::perspectiveNO, LAYOUT_QUATERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(perspectiveRH, glm::perspectiveRH, LAYOUT_QUATERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(perspectiveRH_NO, glm::perspectiveRH_NO, LAYOUT_QUATERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(perspectiveRH_ZO, glm::perspectiveRH_ZO, LAYOUT_QUATERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(perspectiveZO, glm::perspectiveZO, LAYOUT_QUATERNARY, gLuaFloat)
+TRAITS_LAYOUT_DEFN(orthoLH, glm::orthoLH, LAYOUT_SENARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(orthoLH_NO, glm::orthoLH_NO, LAYOUT_SENARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(orthoLH_ZO, glm::orthoLH_ZO, LAYOUT_SENARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(orthoNO, glm::orthoNO, LAYOUT_SENARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(orthoRH, glm::orthoRH, LAYOUT_SENARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(orthoRH_NO, glm::orthoRH_NO, LAYOUT_SENARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(orthoRH_ZO, glm::orthoRH_ZO, LAYOUT_SENARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(orthoZO, glm::orthoZO, LAYOUT_SENARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(perspective, glm::perspective, LAYOUT_QUATERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(perspectiveFov, glm::perspectiveFov, LAYOUT_QUINARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(perspectiveFovLH, glm::perspectiveFovLH, LAYOUT_QUINARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(perspectiveFovLH_NO, glm::perspectiveFovLH_NO, LAYOUT_QUINARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(perspectiveFovLH_ZO, glm::perspectiveFovLH_ZO, LAYOUT_QUINARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(perspectiveFovNO, glm::perspectiveFovNO, LAYOUT_QUINARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(perspectiveFovRH, glm::perspectiveFovRH, LAYOUT_QUINARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(perspectiveFovRH_NO, glm::perspectiveFovRH_NO, LAYOUT_QUINARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(perspectiveFovRH_ZO, glm::perspectiveFovRH_ZO, LAYOUT_QUINARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(perspectiveFovZO, glm::perspectiveFovZO, LAYOUT_QUINARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(perspectiveLH, glm::perspectiveLH, LAYOUT_QUATERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(perspectiveLH_NO, glm::perspectiveLH_NO, LAYOUT_QUATERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(perspectiveLH_ZO, glm::perspectiveLH_ZO, LAYOUT_QUATERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(perspectiveNO, glm::perspectiveNO, LAYOUT_QUATERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(perspectiveRH, glm::perspectiveRH, LAYOUT_QUATERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(perspectiveRH_NO, glm::perspectiveRH_NO, LAYOUT_QUATERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(perspectiveRH_ZO, glm::perspectiveRH_ZO, LAYOUT_QUATERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(perspectiveZO, glm::perspectiveZO, LAYOUT_QUATERNARY, gLuaFloatOnly)
 GLM_BINDING_QUALIFIER(tweakedInfinitePerspective) {
   GLM_BINDING_BEGIN
-  if (gLuaFloat::Is(LB, LB.idx + 4))
-    LAYOUT_QUATERNARY(LB, glm::tweakedInfinitePerspective, gLuaFloat);
-  LAYOUT_TERNARY(LB, glm::tweakedInfinitePerspective, gLuaFloat);
+  if (gLuaFloatOnly::Is(LB, LB.idx + 4))
+    LAYOUT_QUATERNARY(LB, glm::tweakedInfinitePerspective, gLuaFloatOnly);
+  LAYOUT_TERNARY(LB, glm::tweakedInfinitePerspective, gLuaFloatOnly);
   GLM_BINDING_END
 }
 #endif
@@ -914,34 +917,34 @@ SYMMETRIC_MATRIX_DEFN(inverseTranspose, glm::inverseTranspose, LAYOUT_UNARY)
   TRAITS_PUSH(LB, a, b, c);                    \
   LUA_MLM_END
 
-TRAITS_LAYOUT_DEFN(derivedEulerAngleX, glm::derivedEulerAngleX, LAYOUT_BINARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(derivedEulerAngleY, glm::derivedEulerAngleY, LAYOUT_BINARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(derivedEulerAngleZ, glm::derivedEulerAngleZ, LAYOUT_BINARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(eulerAngleX, glm::eulerAngleX, LAYOUT_UNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(eulerAngleXY, glm::eulerAngleXY, LAYOUT_BINARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(eulerAngleXYX, glm::eulerAngleXYX, LAYOUT_TERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(eulerAngleXYZ, glm::eulerAngleXYZ, LAYOUT_TERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(eulerAngleXZ, glm::eulerAngleXZ, LAYOUT_BINARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(eulerAngleXZX, glm::eulerAngleXZX, LAYOUT_TERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(eulerAngleXZY, glm::eulerAngleXZY, LAYOUT_TERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(eulerAngleY, glm::eulerAngleY, LAYOUT_UNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(eulerAngleYX, glm::eulerAngleYX, LAYOUT_BINARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(eulerAngleYXY, glm::eulerAngleYXY, LAYOUT_TERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(eulerAngleYXZ, glm::eulerAngleYXZ, LAYOUT_TERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(eulerAngleYZ, glm::eulerAngleYZ, LAYOUT_BINARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(eulerAngleYZX, glm::eulerAngleYZX, LAYOUT_TERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(eulerAngleYZY, glm::eulerAngleYZY, LAYOUT_TERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(eulerAngleZ, glm::eulerAngleZ, LAYOUT_UNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(eulerAngleZX, glm::eulerAngleZX, LAYOUT_BINARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(eulerAngleZXY, glm::eulerAngleZXY, LAYOUT_TERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(eulerAngleZXZ, glm::eulerAngleZXZ, LAYOUT_TERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(eulerAngleZY, glm::eulerAngleZY, LAYOUT_BINARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(eulerAngleZYX, glm::eulerAngleZYX, LAYOUT_TERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(eulerAngleZYZ, glm::eulerAngleZYZ, LAYOUT_TERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(orientate2, glm::orientate2, LAYOUT_UNARY, gLuaFloat)
+TRAITS_LAYOUT_DEFN(derivedEulerAngleX, glm::derivedEulerAngleX, LAYOUT_BINARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(derivedEulerAngleY, glm::derivedEulerAngleY, LAYOUT_BINARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(derivedEulerAngleZ, glm::derivedEulerAngleZ, LAYOUT_BINARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(eulerAngleX, glm::eulerAngleX, LAYOUT_UNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(eulerAngleXY, glm::eulerAngleXY, LAYOUT_BINARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(eulerAngleXYX, glm::eulerAngleXYX, LAYOUT_TERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(eulerAngleXYZ, glm::eulerAngleXYZ, LAYOUT_TERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(eulerAngleXZ, glm::eulerAngleXZ, LAYOUT_BINARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(eulerAngleXZX, glm::eulerAngleXZX, LAYOUT_TERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(eulerAngleXZY, glm::eulerAngleXZY, LAYOUT_TERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(eulerAngleY, glm::eulerAngleY, LAYOUT_UNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(eulerAngleYX, glm::eulerAngleYX, LAYOUT_BINARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(eulerAngleYXY, glm::eulerAngleYXY, LAYOUT_TERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(eulerAngleYXZ, glm::eulerAngleYXZ, LAYOUT_TERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(eulerAngleYZ, glm::eulerAngleYZ, LAYOUT_BINARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(eulerAngleYZX, glm::eulerAngleYZX, LAYOUT_TERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(eulerAngleYZY, glm::eulerAngleYZY, LAYOUT_TERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(eulerAngleZ, glm::eulerAngleZ, LAYOUT_UNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(eulerAngleZX, glm::eulerAngleZX, LAYOUT_BINARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(eulerAngleZXY, glm::eulerAngleZXY, LAYOUT_TERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(eulerAngleZXZ, glm::eulerAngleZXZ, LAYOUT_TERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(eulerAngleZY, glm::eulerAngleZY, LAYOUT_BINARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(eulerAngleZYX, glm::eulerAngleZYX, LAYOUT_TERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(eulerAngleZYZ, glm::eulerAngleZYZ, LAYOUT_TERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(orientate2, glm::orientate2, LAYOUT_UNARY, gLuaFloatOnly)
 TRAITS_BINARY_LAYOUT_DEFN(orientate3, glm::orientate3, LAYOUT_UNARY, gLuaFloat, gLuaVec3<>)
 TRAITS_LAYOUT_DEFN(orientate4, glm::orientate4, LAYOUT_UNARY, gLuaVec3<>)
-TRAITS_LAYOUT_DEFN(yawPitchRoll, glm::yawPitchRoll, LAYOUT_TERNARY, gLuaFloat)
+TRAITS_LAYOUT_DEFN(yawPitchRoll, glm::yawPitchRoll, LAYOUT_TERNARY, gLuaFloatOnly)
 ROTATION_MATRIX_DEFN(extractEulerAngleXYX, glm::extractEulerAngleXYX, LAYOUT_EULER_DECOMPOSE)
 ROTATION_MATRIX_DEFN(extractEulerAngleXYZ, glm::extractEulerAngleXYZ, LAYOUT_EULER_DECOMPOSE)
 ROTATION_MATRIX_DEFN(extractEulerAngleXZX, glm::extractEulerAngleXZX, LAYOUT_EULER_DECOMPOSE)
@@ -954,27 +957,27 @@ ROTATION_MATRIX_DEFN(extractEulerAngleZXY, glm::extractEulerAngleZXY, LAYOUT_EUL
 ROTATION_MATRIX_DEFN(extractEulerAngleZXZ, glm::extractEulerAngleZXZ, LAYOUT_EULER_DECOMPOSE)
 ROTATION_MATRIX_DEFN(extractEulerAngleZYX, glm::extractEulerAngleZYX, LAYOUT_EULER_DECOMPOSE)
 ROTATION_MATRIX_DEFN(extractEulerAngleZYZ, glm::extractEulerAngleZYZ, LAYOUT_EULER_DECOMPOSE)
-TRAITS_LAYOUT_DEFN(quatEulerAngleX, glm::quatEulerAngleX, LAYOUT_UNARY, gLuaFloat) /* LUA_QUATERNION_EXTENSIONS */
-TRAITS_LAYOUT_DEFN(quatEulerAngleXY, glm::quatEulerAngleXY, LAYOUT_BINARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(quatEulerAngleXYX, glm::quatEulerAngleXYX, LAYOUT_TERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(quatEulerAngleXYZ, glm::quatEulerAngleXYZ, LAYOUT_TERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(quatEulerAngleXZ, glm::quatEulerAngleXZ, LAYOUT_BINARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(quatEulerAngleXZX, glm::quatEulerAngleXZX, LAYOUT_TERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(quatEulerAngleXZY, glm::quatEulerAngleXZY, LAYOUT_TERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(quatEulerAngleY, glm::quatEulerAngleY, LAYOUT_UNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(quatEulerAngleYX, glm::quatEulerAngleYX, LAYOUT_BINARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(quatEulerAngleYXY, glm::quatEulerAngleYXY, LAYOUT_TERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(quatEulerAngleYXZ, glm::quatEulerAngleYXZ, LAYOUT_TERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(quatEulerAngleYZ, glm::quatEulerAngleYZ, LAYOUT_BINARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(quatEulerAngleYZX, glm::quatEulerAngleYZX, LAYOUT_TERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(quatEulerAngleYZY, glm::quatEulerAngleYZY, LAYOUT_TERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(quatEulerAngleZ, glm::quatEulerAngleZ, LAYOUT_UNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(quatEulerAngleZX, glm::quatEulerAngleZX, LAYOUT_BINARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(quatEulerAngleZXY, glm::quatEulerAngleZXY, LAYOUT_TERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(quatEulerAngleZXZ, glm::quatEulerAngleZXZ, LAYOUT_TERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(quatEulerAngleZY, glm::quatEulerAngleZY, LAYOUT_BINARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(quatEulerAngleZYX, glm::quatEulerAngleZYX, LAYOUT_TERNARY, gLuaFloat)
-TRAITS_LAYOUT_DEFN(quatEulerAngleZYZ, glm::quatEulerAngleZYZ, LAYOUT_TERNARY, gLuaFloat)
+TRAITS_LAYOUT_DEFN(quatEulerAngleX, glm::quatEulerAngleX, LAYOUT_UNARY, gLuaFloatOnly) /* LUA_QUATERNION_EXTENSIONS */
+TRAITS_LAYOUT_DEFN(quatEulerAngleXY, glm::quatEulerAngleXY, LAYOUT_BINARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(quatEulerAngleXYX, glm::quatEulerAngleXYX, LAYOUT_TERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(quatEulerAngleXYZ, glm::quatEulerAngleXYZ, LAYOUT_TERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(quatEulerAngleXZ, glm::quatEulerAngleXZ, LAYOUT_BINARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(quatEulerAngleXZX, glm::quatEulerAngleXZX, LAYOUT_TERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(quatEulerAngleXZY, glm::quatEulerAngleXZY, LAYOUT_TERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(quatEulerAngleY, glm::quatEulerAngleY, LAYOUT_UNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(quatEulerAngleYX, glm::quatEulerAngleYX, LAYOUT_BINARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(quatEulerAngleYXY, glm::quatEulerAngleYXY, LAYOUT_TERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(quatEulerAngleYXZ, glm::quatEulerAngleYXZ, LAYOUT_TERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(quatEulerAngleYZ, glm::quatEulerAngleYZ, LAYOUT_BINARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(quatEulerAngleYZX, glm::quatEulerAngleYZX, LAYOUT_TERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(quatEulerAngleYZY, glm::quatEulerAngleYZY, LAYOUT_TERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(quatEulerAngleZ, glm::quatEulerAngleZ, LAYOUT_UNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(quatEulerAngleZX, glm::quatEulerAngleZX, LAYOUT_BINARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(quatEulerAngleZXY, glm::quatEulerAngleZXY, LAYOUT_TERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(quatEulerAngleZXZ, glm::quatEulerAngleZXZ, LAYOUT_TERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(quatEulerAngleZY, glm::quatEulerAngleZY, LAYOUT_BINARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(quatEulerAngleZYX, glm::quatEulerAngleZYX, LAYOUT_TERNARY, gLuaFloatOnly)
+TRAITS_LAYOUT_DEFN(quatEulerAngleZYZ, glm::quatEulerAngleZYZ, LAYOUT_TERNARY, gLuaFloatOnly)
 #endif
 
 #if defined(GTX_MATRIX_CROSS_PRODUCT_HPP)
@@ -1106,9 +1109,9 @@ GLM_BINDING_QUALIFIER(scaleBias) {
   if (gLuaMat4x4<>::Is(LB, LB.idx))
     TRAITS_FUNC(LB, glm::__scaleBias, gLuaMat4x4<>, gLuaFloat, gLuaFloat);
 
-  const gLuaFloat::type a = gLuaFloat::Next(LB);
-  const gLuaFloat::type b = gLuaFloat::Next(LB);
-  return gLuaBase::Push(LB, glm::__scaleBias<glm_Float, glm::qualifier::defaultp>(a, b));
+  const gLuaFloatOnly::type a = gLuaFloatOnly::Next(LB);
+  const gLuaFloatOnly::type b = gLuaFloatOnly::Next(LB);
+  return gLuaBase::Push(LB, glm::__scaleBias<typename gLuaFloatOnly::type, glm::qualifier::defaultp>(a, b));
   GLM_BINDING_END
 }
 #endif
@@ -1190,6 +1193,9 @@ GLM_BINDING_QUALIFIER(computeCovarianceMatrix) {
   return __a + __b;                             \
   LUA_MLM_END
 
+#define LAYOUT_UNARY_NUMINT(LB, F, Tr, ...) \
+  return gLuaBase::PushNumInt(LB, F(Tr::Next(LB)));
+
 #if defined(COMMON_HPP)
 INTEGER_NUMBER_VECTOR_DEFN(abs, glm::abs, LAYOUT_UNARY)
 NUMBER_VECTOR_DEFN(fract, glm::fract, LAYOUT_UNARY)
@@ -1234,9 +1240,9 @@ GLM_BINDING_QUALIFIER(toint) {
     case LUA_VVECTOR3: return gLuaBase::Push(LB, cast_vec3(glm_v3value(_tv), glm_Integer));
     case LUA_VVECTOR4: return gLuaBase::Push(LB, cast_vec4(glm_v4value(_tv), glm_Integer));
     default: {
-      int valid;
+      int valid = 0;
       const lua_Integer n = lua_tointegerx(LB.L, LB.idx, &valid);
-      if (valid)
+      if (l_likely(valid))
         lua_pushinteger(LB.L, n);
       else {
         luaL_checkany(LB.L, 1);
@@ -1606,9 +1612,9 @@ TRAITS_LAYOUT_DEFN(rgbColor, glm::rgbColor, LAYOUT_UNARY, gLuaVec3<>)
 GLM_BINDING_QUALIFIER(saturation) {
   GLM_BINDING_BEGIN
   const TValue *_tv2 = glm_i2v(LB.L, LB.idx + 1);
-  if (!_isvalid(LB.L, _tv2)) TRAITS_FUNC(LB, glm::saturation, gLuaFloat);
-  else if (ttisvector3(_tv2)) TRAITS_FUNC(LB, glm::saturation, gLuaFloat, gLuaVec3<>);
-  else if (ttisvector4(_tv2)) TRAITS_FUNC(LB, glm::saturation, gLuaFloat, gLuaVec4<>);
+  if (!_isvalid(LB.L, _tv2)) TRAITS_FUNC(LB, glm::saturation, gLuaFloatOnly);
+  if (ttisvector3(_tv2)) TRAITS_FUNC(LB, glm::saturation, gLuaFloat, gLuaVec3<>);
+  if (ttisvector4(_tv2)) TRAITS_FUNC(LB, glm::saturation, gLuaFloat, gLuaVec4<>);
   return luaL_typeerror(LB.L, LB.idx, LABEL_NUMBER " or " LABEL_VECTOR);
   GLM_BINDING_END
 }
@@ -1731,8 +1737,7 @@ NUMBER_VECTOR_DEFN(smoothDamp, glm::smoothDamp, LAYOUT_SMOOTH_DAMP) /* LUA_VECTO
 NUMBER_VECTOR_DEFN(moveTowards, glm::moveTowards, LAYOUT_TERNARY_SCALAR)
 GLM_BINDING_QUALIFIER(rotateTowards) {
   GLM_BINDING_BEGIN
-  if (gLuaQuat<>::Is(LB, LB.idx))
-    TRAITS_FUNC(LB, glm::rotateTowards, gLuaQuat<>, gLuaQuat<>, gLuaFloat);
+  if (gLuaQuat<>::Is(LB, LB.idx)) TRAITS_FUNC(LB, glm::rotateTowards, gLuaQuat<>, gLuaQuat<>, gLuaFloat);
   TRAITS_FUNC(LB, glm::rotateTowards, gLuaVec3<>, gLuaVec3<>, gLuaFloat, gLuaFloat);
   GLM_BINDING_END
 }
@@ -2153,7 +2158,7 @@ NUMBER_VECTOR_DEFN(isUniform, glm::isUniform, LAYOUT_UNARY) /* LUA_VECTOR_EXTENS
 NUMBER_VECTOR_DEFN(mirrorClamp, glm::mirrorClamp, LAYOUT_UNARY)
 NUMBER_VECTOR_DEFN(mirrorRepeat, glm::mirrorRepeat, LAYOUT_UNARY)
 NUMBER_VECTOR_DEFN(repeat, glm::repeat, LAYOUT_UNARY)
-TRAITS_LAYOUT_DEFN(deltaAngle, glm::deltaAngle, LAYOUT_BINARY, gLuaFloat) /* LUA_VECTOR_EXTENSIONS */
+TRAITS_LAYOUT_DEFN(deltaAngle, glm::deltaAngle, LAYOUT_BINARY, gLuaFloatOnly) /* LUA_VECTOR_EXTENSIONS */
 NUMBER_VECTOR_DEFN(loopRepeat, glm::loopRepeat, LAYOUT_BINARY_OPTIONAL)
 NUMBER_VECTOR_DEFN(pingPong, glm::pingPong, LAYOUT_BINARY)
 NUMBER_VECTOR_DEFN(lerpAngle, glm::lerpAngle, LAYOUT_TERNARY_OPTIONAL)

@@ -53,6 +53,12 @@
   #define GLM_CONFIG_DEFAULTED_DEFAULT_CTOR GLM_CONFIG_DEFAULTED_FUNCTIONS
 #endif
 
+/* @COMPAT: fix GLM_NEVER_INLINE on COMPILER_VC */
+#if defined(GLM_FORCE_INLINE) && (GLM_COMPILER & GLM_COMPILER_VC)
+  #undef GLM_NEVER_INLINE
+  #define GLM_NEVER_INLINE __declspec(noinline)
+#endif
+
 /*
 ** @COMPAT defaulted constructors fixed in PR #1027
 **  Compensating for that change will require expanding the glmVector, glmMatrix,
