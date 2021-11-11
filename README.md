@@ -738,7 +738,6 @@ these added features.
 ### Planned Features
 
 1. Support for integer vectors/matrices. Either by introducing an additional type, e.g., `LUA_TVECTORI`, or splitting the vector tag `LUA_TVECTOR` into `LUA_TVECTOR2`, `LUA_TVECTOR3`, `LUA_TVECTOR4`, and `LUA_TQUAT` and use variant bits for the primitive type.
-1. One downside to vectors/quaternions being an explicit `Value` is that they increase the minimum Value size to at least 16 bytes. Given that types in Lua are fairly transparent, it may be beneficial to introduce, or at least experiment with, a compile-time option to make vector/quaternion types collectible.
 1. Support for meshes and retrofit current spatial indexing structures for triangles; consider BSPs.
 1. Include broad phase collision scripting examples, e.g., dynamic AABB tree and/or multibox sweep-and-prune.
 1. Initial support for frustums (both orthographic and perspective) and OBBs, or, at minimum, the more computationally complex parts of these structures.
@@ -765,6 +764,8 @@ Ordered by priority.
 1. Cleanup testing scripts/environment and publish.
 1. Rewrite build scripts.
 1. Optimize vector/matrix tagmethod codegen: reduce branching or consider PGOing the object.
+1. One downside to vectors/quaternions being an explicit `Value` is that they increase the minimum Value size to at least 16 bytes. Given that types in Lua are fairly transparent, it may be beneficial to introduce, or at least experiment with, a compile-time option to make vector/quaternion types collectible.
+1. Features/configurations to reduce size of binding library.
 1. Improve support for `glm::mat3x4` and `glm::mat4x3`.
 1. Optimize `binding` codegen and functions that use `glm_i2v`.
 1. Utility API that resembles `glUniformMatrix*v`-style functions, i.e., extracting/parsing array of matrices/vectors.
@@ -777,7 +778,6 @@ Ordered by priority.
 1. Optimize `glm_createMatrix`. Profiling case '4x4 matrix creation (lua\_Alloc)' is the one of the slowest operations in the added vector/matrix API. Worse when using the default Windows allocator.
 1. Optimize runtime swizzling: `swizzle` and `glmVec_get`. It is likely possible to improve this operation by 15/20 percent.
 1. `glmMat_set` support for tables, e.g., `mat[i] = { ... }`, by using `glmH_tovector`.
-1. Features/configurations to reduce size of binding library.
 1. Consider replacing the 'blob' variant with an [FFI](https://github.com/facebookarchive/luaffifb) library: advanced use is required.
 
 ## Benchmarking
