@@ -238,22 +238,12 @@ struct gLuaPolygon : gLuaSharedTrait<T, glm::Polygon<3, T>> {
 /// </summary>
 GLM_BINDING_QUALIFIER(aabb_new) {
   GLM_BINDING_BEGIN
-  if (lua_istable(LB.L, LB.idx)) {
-    using value_type = gLuaVec3<>::value_type;
-    using Iterator = glmLuaArray<gLuaVec3<>>::Iterator;
-    glmLuaArray<gLuaVec3<>> lArray(LB.L, LB.idx);
-    return gLuaBase::Push(LB, glm::minimalEnclosingAABB<Iterator, 3, value_type>(
-      lArray.begin(), lArray.end())
-    );
-  }
-  else {
-    using value_type = gLuaVec3<>::value_type;
-    using Iterator = glmLuaStack<gLuaVec3<>>::Iterator;
-    glmLuaStack<gLuaVec3<>> lStack(LB.L, LB.idx);
-    return gLuaBase::Push(LB, glm::minimalEnclosingAABB<Iterator, 3, value_type>(
-      lStack.begin(), lStack.end())
-    );
-  }
+  luaL_checktype(L, LB.idx, LUA_TTABLE);
+
+  using value_type = gLuaVec3<>::value_type;
+  using Iterator = glmLuaArray<gLuaVec3<>>::Iterator;
+  glmLuaArray<gLuaVec3<>> lArray(LB.L, LB.idx);
+  return gLuaBase::Push(LB, glm::minimalEnclosingAABB<Iterator, 3, value_type>(lArray.begin(), lArray.end()));
   GLM_BINDING_END
 }
 
@@ -398,22 +388,12 @@ static const luaL_Reg luaglm_aabblib[] = {
 
 GLM_BINDING_QUALIFIER(aabb2d_new) {
   GLM_BINDING_BEGIN
-  if (lua_istable(LB.L, LB.idx)) {
-    using value_type = gLuaVec2<>::value_type;
-    using Iterator = glmLuaArray<gLuaVec2<>>::Iterator;
-    glmLuaArray<gLuaVec2<>> lArray(LB.L, LB.idx);
-    return gLuaBase::Push(LB, glm::minimalEnclosingAABB<Iterator, 2, value_type>(
-      lArray.begin(), lArray.end())
-    );
-  }
-  else {
-    using value_type = gLuaVec2<>::value_type;
-    using Iterator = glmLuaStack<gLuaVec2<>>::Iterator;
-    glmLuaStack<gLuaVec2<>> lStack(LB.L, LB.idx);
-    return gLuaBase::Push(LB, glm::minimalEnclosingAABB<Iterator, 2, value_type>(
-      lStack.begin(), lStack.end())
-    );
-  }
+  luaL_checktype(L, LB.idx, LUA_TTABLE);
+
+  using value_type = gLuaVec2<>::value_type;
+  using Iterator = glmLuaArray<gLuaVec2<>>::Iterator;
+  glmLuaArray<gLuaVec2<>> lArray(LB.L, LB.idx);
+  return gLuaBase::Push(LB, glm::minimalEnclosingAABB<Iterator, 2, value_type>(lArray.begin(), lArray.end()));
   GLM_BINDING_END
 }
 
@@ -946,29 +926,21 @@ GLM_BINDING_QUALIFIER(sphere_fitThroughPoints) {
   GLM_BINDING_END
 }
 
-GLM_BINDING_QUALIFIER(sphere_optimalEnclosingSphere) {
-  GLM_BINDING_BEGIN
-  switch (LB.top()) {
-    case 2: TRAITS_FUNC(LB, glm::optimalEnclosingSphere, gLuaVec3<>, gLuaVec3<>); break;
-    case 3: TRAITS_FUNC(LB, glm::optimalEnclosingSphere, gLuaVec3<>, gLuaVec3<>, gLuaVec3<>); break;
-    case 4: TRAITS_FUNC(LB, glm::optimalEnclosingSphere, gLuaVec3<>, gLuaVec3<>, gLuaVec3<>, gLuaVec3<>); break;
-    default: {
-      if (lua_istable(LB.L, LB.idx)) {
-        glmLuaArray<gLuaVec3<>> lArray(LB.L, LB.idx);
-        return gLuaBase::Push(LB,
-          glm::optimalEnclosingSphere<glm_Float, glm::defaultp, glmLuaArray<gLuaVec3<>>>(lArray)
-        );
-      }
-      else {
-        glmLuaStack<gLuaVec3<>> lStack(LB.L, LB.idx);
-        return gLuaBase::Push(LB,
-          glm::optimalEnclosingSphere<glm_Float, glm::defaultp, glmLuaStack<gLuaVec3<>>>(lStack)
-        );
-      }
-    }
-  }
-  GLM_BINDING_END
-}
+// @TODO(Bloat):
+//GLM_BINDING_QUALIFIER(sphere_optimalEnclosingSphere) {
+//  GLM_BINDING_BEGIN
+//  switch (LB.top()) {
+//    case 2: TRAITS_FUNC(LB, glm::optimalEnclosingSphere, gLuaVec3<>, gLuaVec3<>); break;
+//    case 3: TRAITS_FUNC(LB, glm::optimalEnclosingSphere, gLuaVec3<>, gLuaVec3<>, gLuaVec3<>); break;
+//    case 4: TRAITS_FUNC(LB, glm::optimalEnclosingSphere, gLuaVec3<>, gLuaVec3<>, gLuaVec3<>, gLuaVec3<>); break;
+//    default: {
+//      luaL_checktype(L, LB.idx, LUA_TTABLE);
+//      glmLuaArray<gLuaVec3<>> lArray(LB.L, LB.idx);
+//      return gLuaBase::Push(LB, glm::optimalEnclosingSphere<glm_Float, glm::defaultp, glmLuaArray<gLuaVec3<>>>(lArray));
+//    }
+//  }
+//  GLM_BINDING_END
+//}
 
 TRAITS_DEFN(sphere_operator_negate, operator-, gLuaSphere<>)
 TRAITS_DEFN(sphere_operator_equals, operator==, gLuaSphere<>, gLuaSphere<>)
@@ -1060,7 +1032,7 @@ static const luaL_Reg luaglm_spherelib[] = {
   { "extendRadiusToContainSphere", glm_sphere_extendRadiusToContainSphere },
   { "maximalContainedAABB", glm_sphere_maximalContainedAABB },
   { "fitThroughPoints", glm_sphere_fitThroughPoints },
-  { "optimalEnclosingSphere", glm_sphere_optimalEnclosingSphere },
+  //{ "optimalEnclosingSphere", glm_sphere_optimalEnclosingSphere }, // @TODO(Bloat)
   { "projectToAxis", glm_sphere_projectToAxis },
   /* @DEPRECATED intersectsObject */
   { "intersectSphere", glm_sphere_intersectsSphere },
@@ -1454,7 +1426,7 @@ GLM_BINDING_QUALIFIER(polygon_new) {
   #if GLM_GEOM_EXCEPTIONS
     try {
   #endif
-      polygon->p = ::new (list) PolyList(allocator);
+      polygon->p = ::new (list) PolyList(LB.L, allocator);
 
       if (l_likely(top >= 1 && lua_istable(LB.L, LB.idx))) {
         glmLuaArray<gLuaVec3<>> lArray(LB.L, LB.idx);
@@ -1559,7 +1531,7 @@ GLM_BINDING_QUALIFIER(polygon__newindex) {
     else if (index == poly.size() + 1)
       poly.p->push_back(value);
     else {
-      return luaL_error(LB.L, "Invalid %s index", gLuaPolygon<>::Label());
+      return luaL_error(LB.L, "Invalid polygon index");
     }
   }
   return 0;

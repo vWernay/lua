@@ -612,6 +612,14 @@ GLM_LUA_REG(scale),
 //GLM_LUA_REG(scale_slow), /* @COMPAT: Defined in ext/matrix_transform.inl */
 GLM_LUA_REG(translate),
 GLM_LUA_REG(trs), /* LUA_MATRIX_EXTENSIONS */
+#if defined(LUAGLM_INLINED_TEMPLATES)
+GLM_LUA_REG(translate_vec3),
+GLM_LUA_REG(translate_mat3),
+GLM_LUA_REG(translate_mat4),
+GLM_LUA_REG(scale_vec3),
+GLM_LUA_REG(scale_mat3),
+GLM_LUA_REG(scale_mat4),
+#endif
 #endif
 
 #if defined(GTX_VECTOR_ANGLE_HPP)

@@ -279,12 +279,22 @@ public:
     return arraySize;
   }
 
-  typename Tr::type operator[](int pos) const {
+  /// <summary>
+  /// @TODO: Optimize
+  /// @NOTE: With how this binding is implemented, Lua stack adjustments, i.e.,
+  /// luaD_growstack, should be prevented. Avoid handing control of the runtime
+  /// to lua_geti (and potential __index metamethod).
+  /// </summary>
+  typename Tr::type operator[](size_type pos) const {
     typename Tr::type value = Tr::zero();
     if (pos >= 0 && pos < size()) {
-      if (!gLuaBase::Pull(*this, pos + 1, value)) {
-        luaL_error(gLuaBase::L, "Invalid %s structure", Tr::Label());
+      lua_State *L_ = gLuaBase::L;
+      lua_rawgeti(L_, gLuaBase::idx, static_cast<lua_Integer>(pos + 1));  // [..., element]
+      if (!gLuaBase::Pull(*this, lua_absindex(L_, -1), value)) {
+        lua_pop(L_, 1);
+        luaL_error(L_, "Invalid %s structure", Tr::Label());
       }
+      lua_pop(L_, 1);  // [...]
     }
     return value;
   }

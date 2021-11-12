@@ -163,6 +163,7 @@ public:
 private:
   static LUA_ALLOC_CONSTEXPR size_type grow_factor = 2;
 
+  lua_State *m_state;
   LuaCrtAllocator<T> m_alloc;
   T *m_data = LUA_ALLOC_NULLPTR;
   size_type m_size = 0;
@@ -181,14 +182,20 @@ private:
   /// outside of Lua environments with as few changes possible.
   /// </summary>
   inline void *realloc_(void *block, size_t osize, size_t nsize) {
-    return m_alloc.realloc(block, osize, nsize);
+    void *p = m_alloc.realloc(block, osize, nsize);
+    if (p == GLM_NULLPTR)  // @TODO: parameter that controls luaL_error vs apicheck
+      luaL_error(m_state, "LuaVector allocation failure");
+    return p;
   }
 
   /// <summary>
   /// lua_Alloc 'malloc' helper.
   /// </summary>
   inline void *malloc_(size_t size) {
-    return m_alloc.realloc(LUA_ALLOC_NULLPTR, 0, size);
+    void *p = m_alloc.realloc(LUA_ALLOC_NULLPTR, 0, size);
+    if (p == GLM_NULLPTR)
+      luaL_error(m_state, "LuaVector allocation failure");
+    return p;
   }
 
   /// <summary>
@@ -225,15 +232,17 @@ private:
 public:
   /* Constructors */
 
-  LuaVector(LuaCrtAllocator<T> &alloc)
-    : m_alloc(alloc),
+  LuaVector(lua_State *L, LuaCrtAllocator<T> &alloc)
+    : m_state(L),
+      m_alloc(alloc),
       m_data(LUA_ALLOC_NULLPTR),
       m_size(0),
       m_capacity(0) {
   }
 
   LuaVector(const LuaVector<T> &other)
-    : m_alloc(other.m_alloc),
+    : m_state(other.m_state),
+      m_alloc(other.m_alloc),
       m_data(LUA_ALLOC_NULLPTR),
       m_size(other.m_size),
       m_capacity(other.m_capacity) {
@@ -248,15 +257,18 @@ public:
   }
 
   LuaVector(LuaVector<T> &&other) LUA_ALLOC_NOEXCEPT
-    : m_alloc(other.m_alloc),
+    : m_state(other.m_state),
+      m_alloc(other.m_alloc),
       m_data(other.m_data),
       m_size(other.m_size),
       m_capacity(other.m_capacity) {
 
     other.m_data = LUA_ALLOC_NULLPTR;
+    other.m_state = LUA_ALLOC_NULLPTR;
   }
 
   LuaVector<T> &operator=(const LuaVector<T> &other) {
+    m_state = other.m_state;
     m_alloc = other.m_alloc;
     m_size = other.m_size;
     m_capacity = other.m_capacity;
@@ -273,12 +285,14 @@ public:
   }
 
   LuaVector<T> &operator=(LuaVector<T> &&other) LUA_ALLOC_NOEXCEPT {
+    m_state = other.m_state;
     m_alloc = other.m_alloc;
     m_data = other.m_data;
     m_size = other.m_size;
     m_capacity = other.m_capacity;
 
     other.m_data = LUA_ALLOC_NULLPTR;
+    other.m_state = LUA_ALLOC_NULLPTR;
     return *this;
   }
 
@@ -289,6 +303,7 @@ public:
 
     free_(static_cast<void *>(m_data), internal_capacity());
     m_data = LUA_ALLOC_NULLPTR;
+    m_state = LUA_ALLOC_NULLPTR;
     m_capacity = 0;
     m_size = 0;
   }
@@ -299,6 +314,7 @@ public:
   ///   opaque pointer are still (cache) coherent.
   /// </summary>
   void Validate(lua_State *L) LUA_ALLOC_NOEXCEPT {
+    m_state = L;
     m_alloc.Validate(L);
   }
 

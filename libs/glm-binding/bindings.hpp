@@ -134,6 +134,7 @@ static LUA_INLINE const TValue *glm_i2v(lua_State *L, int idx) {
 **  size of the shared-object/static-library.
 */
 #define LUA_TRAIT_QUALIFIER static GLM_INLINE
+#define LUA_TRAIT_QUALIFIER_NIL static GLM_NEVER_INLINE
 
 /* Trait declaration for non-boolean integral types. */
 #define LUA_TRAIT_INT(Name, R) template<typename T> \
@@ -300,7 +301,7 @@ struct gLuaBase {
   /// lua_tointeger with additional rules for casting booleans.
   /// </summary>
   template<typename T>
-  static int tointegerx(lua_State *L_, int idx_, T &v) {
+  LUA_TRAIT_QUALIFIER_NIL int tointegerx(lua_State *L_, int idx_, T &v) {
     const TValue *o = glm_i2v(L_, idx_);
     switch (ttypetag(o)) {
       case LUA_VTRUE: v = static_cast<T>(1); break;
@@ -349,7 +350,7 @@ struct gLuaBase {
   /// optimized. However, luaV_tonumber_ is not an exported function.
   /// </summary>
   template<typename T>
-  static int tonumberx(lua_State *L_, int idx_, T &v) {
+  LUA_TRAIT_QUALIFIER_NIL int tonumberx(lua_State *L_, int idx_, T &v) {
     const TValue *o = glm_i2v(L_, idx_);
     switch (ttypetag(o)) {
       case LUA_VTRUE: v = static_cast<T>(1); break;
@@ -724,10 +725,8 @@ struct gLuaBase {
   template<typename T>
   LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::Polygon<3, T> &p) {
     void *ptr = GLM_NULLPTR;
-    if (l_unlikely(idx_ <= 0))
-      return luaL_error(LB.L, "Invalid PolygonPull operation; incorrect API usage");
-    else if ((ptr = luaL_checkudata(LB.L, idx_, LUAGLM_POLYGON_META)) == GLM_NULLPTR)
-      return luaL_error(LB.L, "Invalid PolygonPull operation; not userdata");
+    if ((ptr = luaL_checkudata(LB.L, idx_, LUAGLM_POLYGON_META)) == GLM_NULLPTR)
+      return luaL_error(LB.L, "Invalid polygon userdata");
 
     p = *(static_cast<glm::Polygon<3, T> *>(ptr));
     p.stack_idx = idx_;
@@ -812,7 +811,9 @@ struct gLuaSharedTrait : glm::type<T> {
     else GLM_IF_CONSTEXPR (std::is_same<T, const char *>::value) return "string";
     else GLM_IF_CONSTEXPR (std::is_integral<T>::value) return LABEL_INTEGER;
     else GLM_IF_CONSTEXPR (std::is_floating_point<T>::value) return LABEL_NUMBER;
-    return "Unknown_Type";
+    else {
+      return "Unknown_Type";
+    }
   }
 
   /// <summary>

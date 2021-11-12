@@ -59,6 +59,23 @@ namespace glm {
       : p(poly.p), stack_idx(poly.stack_idx) {
     }
 
+#if __cplusplus >= 201103L
+    Polygon(Polygon<L, T, Q> &&poly)
+      : p(poly.p), stack_idx(poly.stack_idx) {
+      poly.p = GLM_NULLPTR;
+      poly.stack_idx = -1;
+    }
+
+    Polygon<L, T, Q> &operator=(Polygon<L, T, Q> &&poly) {
+      p = poly.p;
+      stack_idx = poly.stack_idx;
+
+      poly.p = GLM_NULLPTR;
+      poly.stack_idx = -1;
+      return *this;
+    }
+#endif
+
     Polygon<L, T, Q> &operator=(const Polygon<L, T, Q> &poly) {
       p = poly.p;
       stack_idx = poly.stack_idx;
