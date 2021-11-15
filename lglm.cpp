@@ -71,8 +71,16 @@ extern LUA_API_LINKAGE {
 #endif
 
 /*
-** @HACK: Functions with C linkage should avoid SIMD functions that directly
+** @GCCHack: Functions with C linkage should avoid SIMD functions that directly
 ** reference __builtin_*, e.g., _mm_shuffle_ps and ia32_shufps (avoid gxx_personality).
+**
+** @QuatHack: workarounds for incorrect SIMD implementations:
+**    type_quat_simd.inl:180:31: error: ‘const struct glm::vec<4, float, glm::aligned_highp>’
+**    has no member named ‘Data’
+**
+**    type_quat_simd.inl:94:11: error: could not convert ‘Result’ from
+**    ‘glm::vec<4, float, glm::aligned_highp>’ to ‘glm::qua<float, glm::aligned_highp>’
+**
 ** @TODO: __arm__/_M_ARM
 */
 #undef LUAGLM_ALIGNED
@@ -102,8 +110,10 @@ extern LUA_API_LINKAGE {
 
 #define _ispseudo(i) ((i) <= LUA_REGISTRYINDEX)
 
-/* index2value copied from lapi.c */
-static TValue *glm_index2value(lua_State *L, int idx) {
+/// <summary>
+/// index2value copied from lapi.c
+/// </summary>
+static inline TValue *glm_index2value(lua_State *L, int idx) {
   CallInfo *ci = L->ci;
   if (idx > 0) {
     StkId o = ci->func + idx;
@@ -133,7 +143,7 @@ static TValue *glm_index2value(lua_State *L, int idx) {
 /// <summary>
 /// Parse the given number object as a vector/matrix accessible index.
 /// </summary>
-static LUA_INLINE lua_Integer glm_flttointeger(const TValue *obj) {
+static inline lua_Integer glm_flttointeger(const TValue *obj) {
   const lua_Number n = l_floor(fltvalue(obj));
   if (n >= cast_num(LUA_MININTEGER) && n < -cast_num(LUA_MININTEGER))
     return static_cast<lua_Integer>(n);
@@ -663,7 +673,7 @@ static int glmMat_auxset(lua_State *L, const TValue *obj, TValue *key, TValue *v
 }
 
 /* Helper function for generalized matrix int-access. */
-static LUA_INLINE int matgeti (const TValue *obj, lua_Integer n, StkId res) {
+static int matgeti (const TValue *obj, lua_Integer n, StkId res) {
   const grit_length_t gidx = cast(grit_length_t, n);
   const lua_Mat4 *m = mvalue_ref(obj);
   if (l_likely(gidx >= 1 && gidx <= LUAGLM_MATRIX_COLS(m->dimensions))) {
@@ -675,11 +685,7 @@ static LUA_INLINE int matgeti (const TValue *obj, lua_Integer n, StkId res) {
         return LUA_VVECTOR2;
       }
       case 3: {
-        /*
-        ** @NOTE: See documentation in luaconf.h about GLM implicitly aligning
-        ** glm::vec3 under certain compilation flags.
-        */
-#if defined(LUAGLM_ALIGNED) && GLM_CONFIG_ANONYMOUS_STRUCT == GLM_ENABLE && !GLM_CONFIG_XYZW_ONLY
+#if defined(LUAGLM_ALIGNED) && GLM_CONFIG_ANONYMOUS_STRUCT == GLM_ENABLE && !GLM_CONFIG_XYZW_ONLY  // @ImplicitAlign
         setvvalue(s2v(res), m->m.m4[gidx - 1], LUA_VVECTOR3);
 #else
         const lua_CFloat3& col = m->m.m3[gidx - 1];
@@ -1207,7 +1213,7 @@ LUA_API int glmVec_cross(lua_State *L) {
       return luaL_typeerror(L, 2, LABEL_VECTOR2);
     }
     case LUA_VVECTOR3: {
-#if defined(LUAGLM_FORCE_HIGHP)
+#if defined(LUAGLM_FORCE_HIGHP)  // @GCCHack
       if (ttypetag(y) == LUA_VQUAT) {
         const glm::vec<3, glm_Float, glm::qualifier::highp> v(glm_v3value(x));
         const glm::qua<glm_Float, glm::qualifier::highp> q(glm_qvalue(y));
@@ -1227,7 +1233,7 @@ LUA_API int glmVec_cross(lua_State *L) {
       return luaL_typeerror(L, 2, LABEL_VECTOR3 " or " LABEL_QUATERN);
     }
     case LUA_VQUAT: {
-#if defined(LUAGLM_FORCE_HIGHP)
+#if defined(LUAGLM_FORCE_HIGHP)  // @GCCHack
       if (ttypetag(y) == LUA_VQUAT) {
         const glm::qua<glm_Float, glm::qualifier::highp> q(glm_qvalue(x));
         const glm::qua<glm_Float, glm::qualifier::highp> q2(glm_qvalue(y));
@@ -1495,7 +1501,7 @@ static glm::length_t PopulateVectorObject(lua_State *L, int idx, glm::vec<4, T> 
     }
     else {
       const glm::length_t dims = glm_dimensions(ttypetag(value));
-      const glm::length_t length = std::min(dims, v_desired - v_idx);
+      const glm::length_t length = glm::min(dims, v_desired - v_idx);
       for (glm::length_t j = 0; j < length; ++j)
         vec[v_idx++] = static_cast<T>(v.v4[j]);
       return length;
@@ -1530,25 +1536,23 @@ static glm::length_t PopulateVectorObject(lua_State *L, int idx, glm::vec<4, T> 
 /// Otherwise, this function will infer the dimensions of matrix according to
 /// supplied columns vectors and their dimensionality.
 /// </summary>
-static bool PopulateMatrix(lua_State *L, int idx, bool fixed_size, glmMatrix &m, glm::length_t &outDimensions) {
+static bool PopulateMatrix(lua_State *L, int idx, int top, bool fixed_size, glmMatrix &m) {
   // Maximum number of stack values to parse from the starting "idx"
   // idx = lua_absindex(L, idx); @NOTE: Assume 'idx' is positive.
-  const int stack_count = (_gettop(L) - idx + 1);
+  const int stack_count = (top - idx + 1);
   const TValue *o = glm_index2value(L, idx);
 
   if (stack_count == 1 && ttisnumber(o)) {
-    outDimensions = m.dimensions;
     m.m44 = glm::mat<4, 4, glm_Float>(cast_glmfloat(nvalue(o)));
     return true;
   }
   else if (stack_count == 1 && ttisquat(o)) {
-    outDimensions = m.dimensions;
     m.m44 = glm::mat4_cast<glm_Float, glm::defaultp>(glm_qvalue(o));
     return true;
   }
   else if (stack_count == 1 && ttismatrix(o)) {
     const glmMatrix &_m = glm_mvalue(o);
-    switch ((outDimensions = fixed_size ? m.dimensions : _m.dimensions)) {
+    switch ((m.dimensions = fixed_size ? m.dimensions : _m.dimensions)) {
       case LUAGLM_MATRIX_2x2: m.m44 = glm::mat<4, 4, glm_Float>(_m.m22); break;
       case LUAGLM_MATRIX_2x3: m.m44 = glm::mat<4, 4, glm_Float>(_m.m23); break;
       case LUAGLM_MATRIX_2x4: m.m44 = glm::mat<4, 4, glm_Float>(_m.m24); break;
@@ -1601,7 +1605,7 @@ static bool PopulateMatrix(lua_State *L, int idx, bool fixed_size, glmMatrix &m,
     }
 
     if (size >= 2 && size <= 4 && secondary >= 2 && secondary <= 4) {
-      outDimensions = LUAGLM_MATRIX_TYPE(size, secondary);
+      m.dimensions = LUAGLM_MATRIX_TYPE(size, secondary);
       return true;
     }
   }
@@ -1667,11 +1671,10 @@ static int glm_createVector(lua_State *L, glm::length_t desiredSize = 0) {
 /// </summary>
 template<typename T>
 static int glm_createMatrix(lua_State *L, glm::length_t dimensions) {
-  const int top = _gettop(L);
-
   glmMatrix result;
   result.dimensions = dimensions != INVALID_PACKED_DIM ? dimensions : LUAGLM_MATRIX_4x4;
 
+  const int top = _gettop(L);
   if (top == 0) {  // If there are no elements, return the identity matrix
     switch (LUAGLM_MATRIX_ROWS(result.dimensions)) {
       case 2: result.m42 = glm::identity<glm::mat<4, 2, T>>(); break;
@@ -1686,7 +1689,7 @@ static int glm_createMatrix(lua_State *L, glm::length_t dimensions) {
   else {  // Parse the contents of the stack and populate 'result'
     const TValue *o = glm_index2value(L, 1);
     const bool recycle = top > 1 && ttismatrix(o);
-    if (PopulateMatrix(L, recycle ? 2 : 1, dimensions != INVALID_PACKED_DIM, result, result.dimensions)) {
+    if (PopulateMatrix(L, recycle ? 2 : 1, top, dimensions != INVALID_PACKED_DIM, result)) {
       // Realign column-vectors, ensuring the matrix can be faithfully
       // represented by its m.mCR union value.
       switch (LUAGLM_MATRIX_ROWS(result.dimensions)) {
@@ -1698,15 +1701,11 @@ static int glm_createMatrix(lua_State *L, glm::length_t dimensions) {
         }
       }
 
-      // The first argument was a 'matrix' intended to be recycled.
+      // The first argument was a 'matrix' intended to be recycled. The stack
+      // *should* be untouched during PopulateMatrix so using 'o' should be safe
       if (recycle) {
-        const TValue *orec = GLM_NULLPTR;
-
+        glm_mat_boundary(mvalue_ref(o)) = result;
         lua_pushvalue(L, 1);
-        lua_lock(L);
-        orec = glm_index2value(L, -1);
-        glm_mat_boundary(mvalue_ref(orec)) = result;
-        lua_unlock(L);
         return 1;
       }
       return glm_pushmat(L, result);
@@ -2012,7 +2011,7 @@ static int vec_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
       }
       else if (tt_p2 == LUA_VQUAT) {
         switch (tt_p1) {
-#if defined(LUAGLM_FORCE_HIGHP)
+#if defined(LUAGLM_FORCE_HIGHP)  // @GCCHack
           case LUA_VVECTOR3: {
             const glm::vec<3, glm_Float, glm::qualifier::highp> vx(v.v3);
             const glm::qua<glm_Float, glm::qualifier::highp> qy(glm_qvalue(p2));
@@ -2023,9 +2022,7 @@ static int vec_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
 #else
           case LUA_VVECTOR3: glm_setvvalue2s(res, v.v3 * glm_qvalue(p2), LUA_VVECTOR3); return 1;
 #endif
-          // type_quat_simd.inl:180:31: error: ‘const struct glm::vec<4, float, glm::aligned_highp>’
-          // has no member named ‘Data’
-#if defined(LUAGLM_ALIGNED)
+#if defined(LUAGLM_ALIGNED)  // @QuatHack
           case LUA_VVECTOR4: {
             const glm::vec<4, glm_Float, glm::qualifier::highp> vx(v.v4);
             const glm::qua<glm_Float, glm::qualifier::highp> qy(glm_qvalue(p2));
@@ -2162,9 +2159,7 @@ static int quat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId
     }
     case TM_SUB: {
       if (tt_p2 == LUA_VQUAT) {
-        // type_quat_simd.inl:94:11: error: could not convert ‘Result’ from
-        // ‘glm::vec<4, float, glm::aligned_highp>’ to ‘glm::qua<float, glm::aligned_highp>’
-#if defined(LUAGLM_ALIGNED)
+#if defined(LUAGLM_ALIGNED)  // @QuatHack
         const glm::qua<glm_Float, glm::qualifier::highp> qx(glm_qvalue(p1));
         const glm::qua<glm_Float, glm::qualifier::highp> qy(glm_qvalue(p2));
         glm_setvvalue2s(res, glm::qua<glm_Float>(qx - qy), LUA_VQUAT);
@@ -2187,7 +2182,7 @@ static int quat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId
       switch (tt_p2) {
         case LUA_VNUMINT: glm_setvvalue2s(res, v.q * cast_glmfloat(ivalue(p2)), LUA_VQUAT); return 1;
         case LUA_VNUMFLT: glm_setvvalue2s(res, v.q * cast_glmfloat(fltvalue(p2)), LUA_VQUAT); return 1;
-#if defined(LUAGLM_FORCE_HIGHP)
+#if defined(LUAGLM_FORCE_HIGHP)  // @GCCHack
         case LUA_VVECTOR3: {
           const glm::qua<glm_Float, glm::qualifier::highp> qx(glm_qvalue(p1));
           const glm::vec<3, glm_Float, glm::qualifier::highp> vy(glm_v3value(p2));
@@ -2198,9 +2193,7 @@ static int quat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId
 #else
         case LUA_VVECTOR3: glm_setvvalue2s(res, v.q * glm_v3value(p2), LUA_VVECTOR3); return 1;
 #endif
-        // type_quat_simd.inl:180:31: error: ‘const struct glm::vec<4, float, glm::aligned_highp>’
-        // has no member named ‘Data’
-#if defined(LUAGLM_ALIGNED)
+#if defined(LUAGLM_ALIGNED)  // @QuatHack
         case LUA_VVECTOR4: {
           const glm::qua<glm_Float, glm::qualifier::highp> qx(glm_qvalue(p1));
           const glm::vec<4, glm_Float, glm::qualifier::highp> vy(glm_v4value(p2));

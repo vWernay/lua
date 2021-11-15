@@ -246,7 +246,7 @@ SunOS solaris:
 
 # lua-glm binding
 GLM_A = glm.so
-LIBGLM_FLAGS := $(MYCFLAGS) $(CPERF_FLAGS) $(TESTS) -fno-exceptions -fPIC -I. -Ilibs/glm-binding -shared
+LIBGLM_FLAGS := $(CFLAGS) $(CPERF_FLAGS) $(TESTS) -fno-exceptions -fPIC -I. -Ilibs/glm-binding -shared
 
 lib-glm:
 	$(CPP) $(LUA_LINKAGE) $(LIBGLM_FLAGS) -o $(GLM_A) libs/glm-binding/lglmlib.cpp $(LIBS)

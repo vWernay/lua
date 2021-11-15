@@ -969,6 +969,7 @@ LUAGLM_ALIGNED_TYPEDEF(struct, lua_CFloat4) lua_Float4;
 ** compiled runtime. As the "C" parts of this runtime may use the structs
 ** defined in lglm.hpp
 **
+** @ImplicitAlign:
 ** @TODO: Compensate for: detail::storage<3, T, detail::is_aligned<Q>::value>::type
 ** data implicitly aligning vec3 types. This requires 'GLM_HAS_ALIGNOF' emulation.
 **
