@@ -768,7 +768,6 @@ Ordered by priority.
 1. Optimize vector/matrix tagmethod codegen: reduce branching or consider PGOing the object.
 1. One downside to vectors/quaternions being an explicit `Value` is that they increase the minimum Value size to at least 16 bytes. Given that types in Lua are fairly transparent, it may be beneficial to introduce, or at least experiment with, a compile-time option to make vector/quaternion types collectible.
 1. Improve support for `glm::mat3x4` and `glm::mat4x3`.
-1. Optimize `binding` codegen and functions that use `glm_i2v`.
 1. Utility API that resembles `glUniformMatrix*v`-style functions, i.e., extracting/parsing array of matrices/vectors.
 1. Modify implementation to follow updated "Avoid taking the address of a 'TValue' field" (or reference) convention.
 1. Experiment with spitting the vector definition between 'union Value' and 'struct TValue', ensuring Value remains eight bytes (Source: Luau).
