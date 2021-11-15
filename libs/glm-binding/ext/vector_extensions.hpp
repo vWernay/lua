@@ -17,6 +17,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/packing.hpp>
+#include <glm/gtc/bitfield.hpp>
 #include <glm/gtc/color_space.hpp>
 #include <glm/gtx/orthonormalize.hpp>
 #include <glm/gtx/projection.hpp>
@@ -1296,6 +1297,16 @@ namespace glm {
     return detail::functor1<vec, L, T, T, Q>::call(std::tgamma, v);
   }
 #endif
+
+  /*
+  ** Fix -Werror when using bitfieldFillOne and bitfieldFillZero:
+  ** libs/glm/glm/./gtc/bitfield.inl:229:29: warning: comparison of integer expressions of different signedness: ‘int’ and ‘long unsigned int’ [-Wsign-compare]
+  **   229 | return Bits >= sizeof(genIUType) * 8 ? ~static_cast<genIUType>(0) : (static_cast<genIUType>(1) << Bits) - static_cast<genIUType>(1);
+  */
+  template<>
+  GLM_FUNC_QUALIFIER int mask(int Bits) {
+    return detail::mask(Bits);  // Use alternate/duplicate mask implementation
+  }
 
   /*
   ** {======================================================
