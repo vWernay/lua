@@ -80,7 +80,7 @@ LUA_LINKAGE= -DLUA_C_LINKAGE
 CC= gcc -std=gnu99 $(CWARNSCPP) $(CWARNSC) $(CWARNGCC) $(GCC_SANITIZE)
 CPP= g++ -std=c++11 $(CWARNSCPP) $(CWARNGCC) $(GCC_SANITIZE) $(GPP_SANITIZE)
 CFLAGS= -O2 -Wall -Wextra -DNDEBUG -DLUA_COMPAT_5_3 $(SYSCFLAGS) $(MYCFLAGS)
-CPERF_FLAGS = -O3 -march=native -ffast-math -fno-finite-math-only -fno-plt -fno-stack-protector # -flto
+CPERF_FLAGS = -O3 -march=native -ffast-math -fno-finite-math-only -fno-stack-protector # -flto -fno-plt
 LDFLAGS= $(SYSLDFLAGS) $(MYLDFLAGS) $(GCC_SANITIZE) $(GPP_SANITIZE)
 LIBS= -lm $(SYSLIBS) $(MYLIBS)
 
@@ -120,6 +120,7 @@ GLM_FLAGS = -DLUAGLM_LIBVERSION=999 \
 		-DLUAGLM_INCLUDE_GEOM \
 		-DLUAGLM_RECYCLE \
 		# -DGLM_FORCE_DEFAULT_ALIGNED_GENTYPES \
+		# -DGLM_FORCE_MESSAGES
 		# -DGLM_FORCE_XYZW_ONLY \
 		# -DGLM_FORCE_CTOR_INIT \
 		# -DGLM_FORCE_QUAT_DATA_XYZW \

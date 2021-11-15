@@ -16,7 +16,6 @@
 #include <glm/glm.hpp>
 #include <glm/common.hpp>
 #include <glm/gtx/compatibility.hpp>
-#include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/vector_query.hpp>
 #include <glm/ext/scalar_relational.hpp>
 #include <glm/ext/vector_relational.hpp>
@@ -48,6 +47,15 @@
   #define GLM_GEOM_EXCEPTIONS 1
 #else
   #define GLM_GEOM_EXCEPTIONS 0
+#endif
+
+/* gtx/string_cast.hpp is available */
+#if !((GLM_COMPILER & GLM_COMPILER_CUDA) || (GLM_COMPILER & GLM_COMPILER_HIP))
+  //#define GLM_GEOM_TOSTRING 1
+  //#include <glm/gtx/string_cast.hpp>
+  #define GLM_GEOM_TOSTRING 0
+#else
+  #define GLM_GEOM_TOSTRING 0
 #endif
 
 /* Check runtime preconditions on geom structures (often related to ensuring normalized vectors) */

@@ -7,8 +7,9 @@
 #ifndef lglm_string_h
 #define lglm_string_h
 
+#include <cstdio>
+#include <cctype>
 #include <glm/glm.hpp>
-#include <glm/gtx/string_cast.hpp>
 
 /*
 ** @COMPAT GCC explicitly forbids using forceinline on variadic functions.
@@ -20,16 +21,22 @@
   #define GLM_STRING_FUNC_QUALIFIER GLM_FUNC_QUALIFIER
 #endif
 
+/*
+** {==================================================================
+** glm::to_string implemented on the stack
+** ===================================================================
+*/
+
 /* Buffer size of format header */
-#define GLM_FORMAT_BUFFER 128
+#define GLM_FORMAT_BUFFER 256
 
 /* Simplify template casting */
-#define GLM_STRING_CAST(X) static_cast<typename cast<T>::value_type>((X))
+#define GLM_STRING_CAST(X) static_cast<typename lglmcast<T>::value_type>((X))
 
-/* Common format_lua_string header */
+/* Common lglm_compute_to_string header */
 #define GLM_STRING_HEADER                                                              \
-  char const *PrefixStr = prefix<T>::value();                                          \
-  char const *LiteralStr = lua_literal<T, std::numeric_limits<T>::is_iec559>::value(); \
+  char const *PrefixStr = lglmprefix<T>::value();                                      \
+  char const *LiteralStr = lglmliteral<T, std::numeric_limits<T>::is_iec559>::value(); \
   char format_text[GLM_FORMAT_BUFFER];
 
 /* Forward declare functor for pushing Lua strings without intermediate std::string */
@@ -43,7 +50,7 @@ namespace detail {
 #if (GLM_COMPILER & GLM_COMPILER_VC)
     length = vsprintf_s(buff, buff_len, msg, list);
 #else
-    length = std::vsnprintf(buff, buff_len, msg, list);
+    length = vsnprintf(buff, buff_len, msg, list);
 #endif
     va_end(list);
 
@@ -51,30 +58,50 @@ namespace detail {
     return length;
   }
 
-  /* Use the predefined literal floating-point format defined in luaconf.h if possible */
-  template<typename T, bool isFloat = false>
-  struct lua_literal {
-    static GLM_FUNC_QUALIFIER char const *value() {
-      return literal<T, std::numeric_limits<T>::is_iec559>::value();
-    }
-  };
+  /// <summary>
+  /// string_cast.inl: cast without the dependency
+  /// </summary>
+  template<typename T> struct lglmcast { typedef T value_type; };
+  template<> struct lglmcast<float> { typedef double value_type; };
 
+  /// <summary>
+  /// string_cast.inl: literal without the dependency
+  /// </summary>
+  template<typename T, bool isFloat = false>
+  struct lglmliteral { GLM_FUNC_QUALIFIER static char const *value() { return "%d"; } };
+
+  /// <summary>
+  /// @TODO Use the predefined literal floating-point format defined in
+  /// luaconf.h if possible
+  /// </summary>
   template<typename T>
-  struct lua_literal<T, true> {
-    static GLM_FUNC_QUALIFIER char const *value() {
-//#if defined(LUA_NUMBER_FMT)
-//      return LUA_NUMBER_FMT;
-//#else
-      return literal<T, true>::value();
-//#endif
-    }
-  };
+  struct lglmliteral<T, true> { GLM_FUNC_QUALIFIER static char const *value() { return "%f"; } };
+#if GLM_MODEL == GLM_MODEL_32 && GLM_COMPILER && GLM_COMPILER_VC
+  template<> struct lglmliteral<int64_t, false> { GLM_FUNC_QUALIFIER static char const *value() { return "%lld"; } };
+  template<> struct lglmliteral<uint64_t, false> { GLM_FUNC_QUALIFIER static char const *value() { return "%lld"; } };
+#endif  // GLM_MODEL == GLM_MODEL_32 && GLM_COMPILER && GLM_COMPILER_VC
+
+  /// <summary>
+  /// string_cast.inl: prefix without the dependency
+  /// </summary>
+  template<typename T> struct lglmprefix{};
+  template<> struct lglmprefix<float> { GLM_FUNC_QUALIFIER static char const * value() { return ""; } };
+  template<> struct lglmprefix<double> { GLM_FUNC_QUALIFIER static char const * value() { return "d"; } };
+  template<> struct lglmprefix<bool> { GLM_FUNC_QUALIFIER static char const * value() { return "b"; } };
+  template<> struct lglmprefix<uint8_t> { GLM_FUNC_QUALIFIER static char const * value() { return "u8"; } };
+  template<> struct lglmprefix<int8_t> { GLM_FUNC_QUALIFIER static char const * value() { return "i8"; } };
+  template<> struct lglmprefix<uint16_t> { GLM_FUNC_QUALIFIER static char const * value() { return "u16"; } };
+  template<> struct lglmprefix<int16_t> { GLM_FUNC_QUALIFIER static char const * value() { return "i16"; } };
+  template<> struct lglmprefix<uint32_t> { GLM_FUNC_QUALIFIER static char const * value() { return "u"; } };
+  template<> struct lglmprefix<int32_t> { GLM_FUNC_QUALIFIER static char const * value() { return "i"; } };
+  template<> struct lglmprefix<uint64_t> { GLM_FUNC_QUALIFIER static char const * value() { return "u64"; } };
+  template<> struct lglmprefix<int64_t> { GLM_FUNC_QUALIFIER static char const * value() { return "i64"; } };
 
   template<typename matType>
-  struct format_lua_string { };
+  struct lglm_compute_to_string { };
 
   template<typename T, qualifier Q>
-  struct format_lua_string<vec<1, T, Q>> {
+  struct lglm_compute_to_string<vec<1, T, Q>> {
     static GLM_FUNC_QUALIFIER int call(char *buff, size_t buff_len, vec<1, glm_Float> const &x) {
       GLM_STRING_HEADER
       _vsnprintf(format_text, GLM_FORMAT_BUFFER, "%svec1(%s)", PrefixStr, LiteralStr);
@@ -83,7 +110,7 @@ namespace detail {
   };
 
   template<typename T, qualifier Q>
-  struct format_lua_string<vec<2, T, Q>> {
+  struct lglm_compute_to_string<vec<2, T, Q>> {
     static GLM_FUNC_QUALIFIER int call(char *buff, size_t buff_len, vec<2, glm_Float> const &x) {
       GLM_STRING_HEADER
       _vsnprintf(format_text, GLM_FORMAT_BUFFER, "%svec2(%s, %s)", PrefixStr, LiteralStr, LiteralStr);
@@ -92,7 +119,7 @@ namespace detail {
   };
 
   template<typename T, qualifier Q>
-  struct format_lua_string<vec<3, T, Q>> {
+  struct lglm_compute_to_string<vec<3, T, Q>> {
     static GLM_FUNC_QUALIFIER int call(char *buff, size_t buff_len, vec<3, glm_Float> const &x) {
       GLM_STRING_HEADER
       _vsnprintf(format_text, GLM_FORMAT_BUFFER, "%svec3(%s, %s, %s)", PrefixStr, LiteralStr, LiteralStr, LiteralStr);
@@ -105,7 +132,7 @@ namespace detail {
   };
 
   template<typename T, qualifier Q>
-  struct format_lua_string<vec<4, T, Q>> {
+  struct lglm_compute_to_string<vec<4, T, Q>> {
     static GLM_FUNC_QUALIFIER int call(char *buff, size_t buff_len, vec<4, glm_Float> const &x) {
       GLM_STRING_HEADER
       _vsnprintf(format_text, GLM_FORMAT_BUFFER, "%svec4(%s, %s, %s, %s)", PrefixStr, LiteralStr, LiteralStr, LiteralStr, LiteralStr);
@@ -119,7 +146,7 @@ namespace detail {
   };
 
   template<typename T, qualifier Q>
-  struct format_lua_string<qua<T, Q>> {
+  struct lglm_compute_to_string<qua<T, Q>> {
     static GLM_FUNC_QUALIFIER int call(char *buff, size_t buff_len, qua<glm_Float> const &q) {
       GLM_STRING_HEADER
       _vsnprintf(format_text, GLM_FORMAT_BUFFER, "%squat(%s, {%s, %s, %s})", PrefixStr, LiteralStr, LiteralStr, LiteralStr, LiteralStr);
@@ -133,7 +160,7 @@ namespace detail {
   };
 
   template<typename T, qualifier Q>
-  struct format_lua_string<mat<2, 2, T, Q>> {
+  struct lglm_compute_to_string<mat<2, 2, T, Q>> {
     static GLM_FUNC_QUALIFIER int call(char *buff, size_t buff_len, mat<2, 2, T, Q> const &x) {
       GLM_STRING_HEADER
       _vsnprintf(format_text, GLM_FORMAT_BUFFER, "%smat2x2((%s, %s), (%s, %s))",
@@ -150,7 +177,7 @@ namespace detail {
   };
 
   template<typename T, qualifier Q>
-  struct format_lua_string<mat<2, 3, T, Q>> {
+  struct lglm_compute_to_string<mat<2, 3, T, Q>> {
     static GLM_FUNC_QUALIFIER int call(char *buff, size_t buff_len, mat<4, 3, T, Q> const &x) {
       GLM_STRING_HEADER
       _vsnprintf(format_text, GLM_FORMAT_BUFFER, "%smat2x3((%s, %s, %s), (%s, %s, %s))",
@@ -167,7 +194,7 @@ namespace detail {
   };
 
   template<typename T, qualifier Q>
-  struct format_lua_string<mat<2, 4, T, Q>> {
+  struct lglm_compute_to_string<mat<2, 4, T, Q>> {
     static GLM_FUNC_QUALIFIER int call(char *buff, size_t buff_len, mat<2, 4, T, Q> const &x) {
       GLM_STRING_HEADER
       _vsnprintf(format_text, GLM_FORMAT_BUFFER, "%smat2x4((%s, %s, %s, %s), (%s, %s, %s, %s))",
@@ -184,7 +211,7 @@ namespace detail {
   };
 
   template<typename T, qualifier Q>
-  struct format_lua_string<mat<3, 2, T, Q>> {
+  struct lglm_compute_to_string<mat<3, 2, T, Q>> {
     static GLM_FUNC_QUALIFIER int call(char *buff, size_t buff_len, mat<3, 2, T, Q> const &x) {
       GLM_STRING_HEADER
       _vsnprintf(format_text, GLM_FORMAT_BUFFER, "%smat3x2((%s, %s), (%s, %s), (%s, %s))",
@@ -203,7 +230,7 @@ namespace detail {
   };
 
   template<typename T, qualifier Q>
-  struct format_lua_string<mat<3, 3, T, Q>> {
+  struct lglm_compute_to_string<mat<3, 3, T, Q>> {
     static GLM_FUNC_QUALIFIER int call(char *buff, size_t buff_len, mat<3, 3, T, Q> const &x) {
       GLM_STRING_HEADER
       _vsnprintf(format_text, GLM_FORMAT_BUFFER, "%smat3x3((%s, %s, %s), (%s, %s, %s), (%s, %s, %s))",
@@ -222,7 +249,7 @@ namespace detail {
   };
 
   template<typename T, qualifier Q>
-  struct format_lua_string<mat<3, 4, T, Q>> {
+  struct lglm_compute_to_string<mat<3, 4, T, Q>> {
     static GLM_FUNC_QUALIFIER int call(char *buff, size_t buff_len, mat<3, 4, T, Q> const &x) {
       GLM_STRING_HEADER
       _vsnprintf(format_text, GLM_FORMAT_BUFFER, "%smat3x4((%s, %s, %s, %s), (%s, %s, %s, %s), (%s, %s, %s, %s))",
@@ -241,7 +268,7 @@ namespace detail {
   };
 
   template<typename T, qualifier Q>
-  struct format_lua_string<mat<4, 2, T, Q>> {
+  struct lglm_compute_to_string<mat<4, 2, T, Q>> {
     static GLM_FUNC_QUALIFIER int call(char *buff, size_t buff_len, mat<4, 2, T, Q> const &x) {
       GLM_STRING_HEADER
       _vsnprintf(format_text, GLM_FORMAT_BUFFER, "%smat4x2((%s, %s), (%s, %s), (%s, %s), (%s, %s))",
@@ -262,7 +289,7 @@ namespace detail {
   };
 
   template<typename T, qualifier Q>
-  struct format_lua_string<mat<4, 3, T, Q>> {
+  struct lglm_compute_to_string<mat<4, 3, T, Q>> {
     static GLM_FUNC_QUALIFIER int call(char *buff, size_t buff_len, mat<4, 3, T, Q> const &x) {
       GLM_STRING_HEADER
       _vsnprintf(format_text, GLM_FORMAT_BUFFER, "%smat4x3((%s, %s, %s), (%s, %s, %s), (%s, %s, %s), (%s, %s, %s))",
@@ -283,7 +310,7 @@ namespace detail {
   };
 
   template<typename T, qualifier Q>
-  struct format_lua_string<mat<4, 4, T, Q>> {
+  struct lglm_compute_to_string<mat<4, 4, T, Q>> {
     static GLM_FUNC_QUALIFIER int call(char *buff, size_t buff_len, mat<4, 4, T, Q> const &x) {
       GLM_STRING_HEADER
       _vsnprintf(format_text, GLM_FORMAT_BUFFER, "%smat4x4((%s, %s, %s, %s), (%s, %s, %s, %s), (%s, %s, %s, %s), (%s, %s, %s, %s))",
@@ -309,10 +336,12 @@ namespace detail {
   /// </summary>
   template<class matType>
   static GLM_FUNC_QUALIFIER int format_type(char *buff, size_t buff_len, matType const &x) {
-    return detail::format_lua_string<matType>::call(buff, buff_len, x);
+    return detail::lglm_compute_to_string<matType>::call(buff, buff_len, x);
   }
 }
 }
+
+/* }================================================================== */
 
 /*
 ** {==================================================================
@@ -351,37 +380,37 @@ namespace hash {
   template<typename T, glm::qualifier Q>
   GLM_FUNC_QUALIFIER typename std::enable_if<std::is_floating_point<T>::value, size_t>::type hash(glm::vec<2, T, Q> const &v) {
     size_t seed = 0;
-    glm::hash::hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.x)));
-    glm::hash::hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.y)));
+    hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.x)));
+    hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.y)));
     return seed;
   }
 
   template<typename T, glm::qualifier Q>
   GLM_FUNC_QUALIFIER typename std::enable_if<std::is_floating_point<T>::value, size_t>::type hash(glm::vec<3, T, Q> const &v) {
     size_t seed = 0;
-    glm::hash::hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.x)));
-    glm::hash::hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.y)));
-    glm::hash::hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.z)));
+    hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.x)));
+    hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.y)));
+    hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.z)));
     return seed;
   }
 
   template<typename T, glm::qualifier Q>
   GLM_FUNC_QUALIFIER typename std::enable_if<std::is_floating_point<T>::value, size_t>::type hash(glm::vec<4, T, Q> const &v) {
     size_t seed = 0;
-    glm::hash::hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.x)));
-    glm::hash::hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.y)));
-    glm::hash::hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.z)));
-    glm::hash::hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.w)));
+    hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.x)));
+    hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.y)));
+    hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.z)));
+    hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.w)));
     return seed;
   }
 
   template<typename T, glm::qualifier Q>
   GLM_FUNC_QUALIFIER typename std::enable_if<std::is_floating_point<T>::value, size_t>::type hash(glm::qua<T, Q> const &v) {
     size_t seed = 0;
-    glm::hash::hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.x)));
-    glm::hash::hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.y)));
-    glm::hash::hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.z)));
-    glm::hash::hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.w)));
+    hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.x)));
+    hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.y)));
+    hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.z)));
+    hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.w)));
     return seed;
   }
 }

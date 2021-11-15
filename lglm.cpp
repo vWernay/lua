@@ -45,8 +45,6 @@ extern LUA_API_LINKAGE {
 #include "lglm.hpp"
 #include "lglm_string.hpp"
 
-#include <string>
-
 #include <glm/glm.hpp>
 #include <glm/fwd.hpp>
 #include <glm/ext.hpp>

@@ -29,8 +29,6 @@
 #endif
 #endif
 
-#include <string>
-
 #include <glm/glm.hpp>
 #include <glm/detail/type_quat.hpp>
 #include <glm/gtx/type_trait.hpp>

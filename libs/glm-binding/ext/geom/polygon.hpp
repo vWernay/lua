@@ -870,6 +870,7 @@ namespace glm {
   }
 
   namespace detail {
+#if GLM_GEOM_TOSTRING
     template<length_t L, typename T, qualifier Q>
     struct compute_to_string<Polygon<L, T, Q>> {
       GLM_GEOM_QUALIFIER std::string call(const Polygon<L, T, Q> &polygon) {
@@ -877,6 +878,7 @@ namespace glm {
         return std::string("Polygon");
       }
     };
+#endif
   }
 }
 #endif

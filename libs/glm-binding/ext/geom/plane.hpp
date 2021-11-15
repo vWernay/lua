@@ -758,19 +758,20 @@ namespace glm {
   namespace detail {
     // @LuaGLM
     template<glm::length_t L, typename T, qualifier Q>
-    struct format_lua_string<Plane<L, T, Q>> {
+    struct lglm_compute_to_string<Plane<L, T, Q>> {
       static GLM_FUNC_QUALIFIER int call(char *buff, size_t buff_len, const Plane<L, T, Q> &plane) {
         char pos[GLM_STRING_BUFFER];
 
         char format_text[GLM_FORMAT_BUFFER];
-        char const *dirLiteral = lua_literal<T, std::numeric_limits<T>::is_iec559>::value();
-        format_lua_string<vec<L, T, Q>>::call(pos, GLM_STRING_BUFFER, plane.normal);
+        char const *dirLiteral = lglmliteral<T, std::numeric_limits<T>::is_iec559>::value();
+        lglm_compute_to_string<vec<L, T, Q>>::call(pos, GLM_STRING_BUFFER, plane.normal);
         _vsnprintf(format_text, GLM_FORMAT_BUFFER, "plane(%%s, %s)", dirLiteral);
 
         return _vsnprintf(buff, buff_len, format_text, pos, GLM_STRING_CAST(plane.d));
       }
     };
 
+#if GLM_GEOM_TOSTRING
     template<glm::length_t L, typename T, qualifier Q>
     struct compute_to_string<Plane<L, T, Q>> {
       GLM_GEOM_QUALIFIER std::string call(const Plane<L, T, Q> &plane) {
@@ -783,6 +784,7 @@ namespace glm {
         );
       }
     };
+#endif
   }
 }
 #endif
