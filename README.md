@@ -761,11 +761,12 @@ these added features.
 
 Ordered by priority.
 
+1. The initial implementation of the binding library hooked 'assert' in GLM to throw an appropriate Lua error. This was removed and never compensated for in the binding implementation. Some functions, e.g., glm::ballRound, will loop near-infinitely when passed incorrect values. Fix.
+1. Finalize features to reduce size of binding library.
 1. Cleanup testing scripts/environment and publish.
 1. Rewrite build scripts.
 1. Optimize vector/matrix tagmethod codegen: reduce branching or consider PGOing the object.
 1. One downside to vectors/quaternions being an explicit `Value` is that they increase the minimum Value size to at least 16 bytes. Given that types in Lua are fairly transparent, it may be beneficial to introduce, or at least experiment with, a compile-time option to make vector/quaternion types collectible.
-1. Features/configurations to reduce size of binding library.
 1. Improve support for `glm::mat3x4` and `glm::mat4x3`.
 1. Optimize `binding` codegen and functions that use `glm_i2v`.
 1. Utility API that resembles `glUniformMatrix*v`-style functions, i.e., extracting/parsing array of matrices/vectors.

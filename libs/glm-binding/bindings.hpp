@@ -134,6 +134,15 @@ static LUA_INLINE const TValue *glm_i2v(lua_State *L, int idx) {
 **  size of the shared-object/static-library.
 */
 #define LUA_TRAIT_QUALIFIER static GLM_INLINE
+
+/*
+** Override GLM_FORCE_INLINE for the 'heavier' binding functions. tointegerx and
+** tonumberx are quite heavy due the requirement that the binding can be a
+** complete superset of lmathlib.
+**
+** @TODO: Eventually include a compile-option.
+**  #define LUA_TRAIT_QUALIFIER_NIL static GLM_INLINE
+*/
 #define LUA_TRAIT_QUALIFIER_NIL static GLM_NEVER_INLINE
 
 /* Trait declaration for non-boolean integral types. */
@@ -282,8 +291,16 @@ struct gLuaBase {
   /// <summary>
   /// Converts the Lua value at the given index to a C boolean value (0 or 1).
   /// </summary>
-  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, bool &v) {
-    v = static_cast<bool>(lua_toboolean(LB.L, idx_));
+  template<typename T, bool FastPath = false>
+  LUA_TRAIT_QUALIFIER typename std::enable_if<std::is_same<T, bool>::value, int>::type Pull(const gLuaBase &LB, int idx_, T &v) {
+    if (FastPath) {
+      const TValue *o = glm_i2v(LB.L, idx_);
+      api_check(LB.L, ttisboolean(o), "bool expected");
+      v = static_cast<T>(!l_isfalse(o));
+    }
+    else {
+      v = static_cast<T>(lua_toboolean(LB.L, idx_));
+    }
     return 1;
   }
 
@@ -328,7 +345,14 @@ struct gLuaBase {
   /// Converts the value at the given index to a lua_Integer. Afterwards, that
   /// value is casted into the integer declaration.
   /// </summary>
-  LUA_TRAIT_INT(Pull, int)(const gLuaBase &LB, int idx_, T &v) {
+  template<typename T, bool FastPath = false>
+  LUA_TRAIT_QUALIFIER typename std::enable_if<std::is_integral<T>::value && !std::is_same<T, bool>::value, int>::type Pull(const gLuaBase &LB, int idx_, T &v) {
+    if (FastPath) {
+      const TValue *o = glm_i2v(LB.L, idx_);
+      api_check(LB.L, ttisinteger(o), "integer expected");
+      v = static_cast<T>(ivalue(o));
+      return 1;
+    }
     return tointegerx<T>(LB.L, idx_, v);
   }
 
@@ -377,7 +401,14 @@ struct gLuaBase {
   /// Converts the value at the given index to a lua_Number. Afterwards, that
   /// value is casted into the float declaration.
   /// </summary>
-  LUA_TRAIT_FLOAT(Pull, int)(const gLuaBase &LB, int idx_, T &v) {
+  template<typename T, bool FastPath = false>
+  LUA_TRAIT_QUALIFIER typename std::enable_if<std::is_floating_point<T>::value, int>::type Pull(const gLuaBase &LB, int idx_, T &v) {
+    if (FastPath) {
+      const TValue *o = glm_i2v(LB.L, idx_);
+      api_check(LB.L, ttisfloat(o), "number expected");
+      v = static_cast<T>(fltvalue(o));
+      return 1;
+    }
     return tonumberx<T>(LB.L, idx_, v);
   }
 
@@ -429,8 +460,19 @@ struct gLuaBase {
   /// NULL, this function will also set *len with the strings length.
   /// </summary>
   /// <returns></returns>
-  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, const char *&v, size_t *len = GLM_NULLPTR) {
-    v = lua_tolstring(LB.L, idx_, len);
+  template<typename T, bool FastPath = false>
+  LUA_TRAIT_QUALIFIER typename std::enable_if<std::is_same<T, const char *>::value, int>::type Pull(const gLuaBase &LB, int idx_, T &v, size_t *len = GLM_NULLPTR) {
+    if (FastPath) {
+      const TValue *o = glm_i2v(LB.L, idx_);
+      api_check(LB.L, ttisstring(o), "string expected");
+      v = svalue(o);
+      if (len != GLM_NULLPTR) {
+        *len = vslen(o);
+      }
+    }
+    else {
+      v = lua_tolstring(LB.L, idx_, len);
+    }
     return 1;
   }
 
@@ -448,78 +490,39 @@ struct gLuaBase {
   /// Convert one-or-more Lua values starting at idx into a suitable glm::vec<>
   /// structure; returning the number of stack values consumed to populate the
   /// vector.
+  ///
+  /// @NOTE: vec<1, ...> support removed from the binding as they were unused.
+  /// The statement would simply be: Pull<T, FastPath>(LB, idx_, v.x)
   /// </summary>
 
-  LUA_TRAIT_FLOAT(Pull, int)(const gLuaBase &LB, int idx_, glm::vec<1, T> &v) {
-    v.x = static_cast<T>(luaL_checknumber(LB.L, idx_));
-    return 1;
-  }
-
-  LUA_TRAIT_INT(Pull, int)(const gLuaBase &LB, int idx_, glm::vec<1, T> &v) {
-    v.x = static_cast<T>(luaL_checkinteger(LB.L, idx_));
-    return 1;
-  }
-
-  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::vec<1, bool> &v) {
-    v.x = static_cast<bool>(lua_toboolean(LB.L, idx_));
-    return 1;
-  }
-
-  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::vec<2, glm_Float> &v) {
-    const TValue *o = glm_i2v(LB.L, idx_);
-    if (l_likely(ttisvector2(o))) {
-      v = glm_v2value(o);
-      return 1;
-    }
-    return luaL_typeerror(LB.L, idx_, LABEL_VECTOR2);
-  }
-
-  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::vec<3, glm_Float> &v) {
-    const TValue *o = glm_i2v(LB.L, idx_);
-    if (l_likely(ttisvector3(o))) {
-      v = glm_v3value(o);
-      return 1;
-    }
-    return luaL_typeerror(LB.L, idx_, LABEL_VECTOR3);
-  }
-
-  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::vec<4, glm_Float> &v) {
-    const TValue *o = glm_i2v(LB.L, idx_);
-    if (l_likely(ttisvector4(o))) {
-      v = glm_v4value(o);
-      return 1;
-    }
-    return luaL_typeerror(LB.L, idx_, LABEL_VECTOR4);
-  }
-
-  template<typename T>
+  template<typename T, bool FastPath = false>
   LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::vec<2, T> &v) {
     const TValue *o = glm_i2v(LB.L, idx_);
-    if (l_likely(ttisvector2(o))) {
+    if (FastPath || l_likely(ttisvector2(o))) {
       const glm::vec<2, glm_Float> &_v = glm_v2value(o);
-      v = cast_vec2(_v, T);
+      GLM_IF_CONSTEXPR(std::is_same<T, glm_Float>::value) v = _v; else v = cast_vec2(_v, T);
       return 1;
     }
     return luaL_typeerror(LB.L, idx_, LABEL_VECTOR2);
   }
 
-  template<typename T>
+  template<typename T, bool FastPath = false>
   LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::vec<3, T> &v) {
     const TValue *o = glm_i2v(LB.L, idx_);
-    if (l_likely(ttisvector3(o))) {
+    if (FastPath || l_likely(ttisvector3(o))) {
       const glm::vec<3, glm_Float> &_v = glm_v3value(o);
-      v = cast_vec3(_v, T);
+      GLM_IF_CONSTEXPR(std::is_same<T, glm_Float>::value) v = _v; else v = cast_vec3(_v, T);
       return 1;
     }
     return luaL_typeerror(LB.L, idx_, LABEL_VECTOR3);
   }
 
-  template<typename T>
+  template<typename T, bool FastPath = false>
   LUA_TRAIT_QUALIFIER int Pull(const gLuaBase &LB, int idx_, glm::vec<4, T> &v) {
     const TValue *o = glm_i2v(LB.L, idx_);
-    if (l_likely(ttisvector4(o))) {
+    if (FastPath || l_likely(ttisvector4(o))) {
       const glm::vec<4, glm_Float> &_v = glm_v4value(o);
-      v = cast_vec4(_v, T);
+      GLM_IF_CONSTEXPR(std::is_same<T, glm_Float>::value) v = _v; else v = cast_vec4(_v, T);
       return 1;
     }
     return luaL_typeerror(LB.L, idx_, LABEL_VECTOR4);
@@ -550,10 +553,16 @@ struct gLuaBase {
   /// Convert one-or-more Lua values starting at idx into a suitable glm::qua<>
   /// structure.
   /// </summary>
-  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase LB, int idx_, glm::qua<glm_Float> &q) {
+  template <typename T, bool FastPath = false>
+  LUA_TRAIT_QUALIFIER int Pull(const gLuaBase LB, int idx_, glm::qua<T> &q) {
     const TValue *o = glm_i2v(LB.L, idx_);
-    if (l_likely(ttisquat(o))) {
-      q = gm_drift(glm_qvalue(o));
+    if (FastPath || l_likely(ttisquat(o))) {
+      GLM_IF_CONSTEXPR(std::is_same<T, glm_Float>::value)
+        q = gm_drift(glm_qvalue(o));
+      else {
+        const glm::qua<glm_Float>& tq = gm_drift(glm_qvalue(o));
+        q = cast_quat(tq, T);
+      }
       return 1;
     }
     return luaL_typeerror(LB.L, idx_, LABEL_QUATERN);
@@ -568,12 +577,12 @@ struct gLuaBase {
 
   /* mat<C, ?> */
 
-  template<glm::length_t C, glm::length_t R>
+  template<glm::length_t C, glm::length_t R, bool FastPath = false>
   static int Pull(const gLuaBase &LB, int idx_, glm::mat<C, R, glm_Float> &m) {
     const TValue *o = glm_i2v(LB.L, idx_);
-    if (l_likely(ttismatrix(o))) {
+    if (FastPath || l_likely(ttismatrix(o))) {
       const glmMatrix &mat = glm_mvalue(o);
-      if (mat.dimensions == LUAGLM_MATRIX_TYPE(C, R))
+      if (FastPath || mat.dimensions == LUAGLM_MATRIX_TYPE(C, R))
         return mat.Get(m);
     }
     return luaL_error(LB.L, GLM_INVALID_MAT_STRUCTURE);
@@ -761,14 +770,10 @@ struct gLuaBase {
 ** ===================================================================
 */
 
-#define AS_TYPE(...) VA_NARGS_CALL_OVERLOAD(AS_TYPE, __VA_ARGS__)
-#define AS_TYPE1(Tr) Tr::as_type<>
-#define AS_TYPE2(Tr, Type) Tr::as_type<Type>
-
 /// <summary>
 /// Forward declare (function) parameter trait.
 /// </summary>
-template<typename T>
+template<typename T, bool FastPath = false>
 struct gLuaTrait;
 
 /// <summary>
@@ -789,19 +794,30 @@ struct gLuaSharedTrait : glm::type<T> {
   using type = T;
 
   /// <summary>
-  /// Empty-initialized
+  /// Trait of the primitive type.
   /// </summary>
-  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR T zero() {
-    return T(0);
-  }
+  using value_trait = gLuaTrait<value_type>;
 
   /// <summary>
-  /// Return true if the value starting at "idx" on the Lua stack corresponds
-  /// to this type.
+  /// @CastBinding: Cast this trait to a new primitive.
   /// </summary>
-  LUA_TRAIT_QUALIFIER bool Is(const gLuaBase &LB, int idx) {
-    return gLuaBase::Is<T>(LB, idx);
-  }
+  template<typename Type = T>
+  using as_type = gLuaTrait<Type>;
+
+  /// <summary>
+  /// @SafeBinding: Cast this trait to one that type-checks its value on Next.
+  /// </summary>
+  using safe = gLuaTrait<T, false>;
+
+  /// <summary>
+  /// @UnsafeBinding: Cast this trait to one that pulls the value without
+  /// additional type checking.
+  ///
+  /// @NOTE: The idiom 'Tr::fast::Is' + 'Tr::fast::Next' may only be used when
+  /// its guaranteed the trait does not coerce types, e.g., string-to-float or
+  /// table-to-vector/matrix.
+  /// </summary>
+  using fast = gLuaTrait<T, true>;
 
   /// <summary>
   /// Return a descriptive parameter literal for debugging/error messaging.
@@ -817,6 +833,21 @@ struct gLuaSharedTrait : glm::type<T> {
   }
 
   /// <summary>
+  /// Zero initialize
+  /// </summary>
+  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR T zero() {
+    return T(0);
+  }
+
+  /// <summary>
+  /// Return true if the value starting at "idx" on the Lua stack corresponds
+  /// to this type.
+  /// </summary>
+  LUA_TRAIT_QUALIFIER bool Is(const gLuaBase &LB, int idx) {
+    return gLuaBase::Is<T>(LB, idx);
+  }
+
+  /// <summary>
   /// Given a current stack state, create a GLM object corresponding to the
   /// "type" this trait is capturing.
   ///
@@ -826,7 +857,7 @@ struct gLuaSharedTrait : glm::type<T> {
   ///   Instead, this function is beholden to GLM_FORCE_INLINE which is a
   ///   compile-time toggle.
   /// </summary>
-  static GLM_INLINE const T Next(gLuaBase &LB) {
+  static GLM_INLINE T Next(gLuaBase &LB) {
     T v = gLuaTrait<T>::zero();
     LB.idx += gLuaBase::Pull(LB, LB.idx, v);
     return v;
@@ -834,37 +865,63 @@ struct gLuaSharedTrait : glm::type<T> {
 };
 
 /// <summary>
-/// Trait for primitive types: integer, number, boolean, and string.
+/// gLuaTrait optimized for primitive types.
 /// </summary>
-template<typename T>
-struct gLuaTrait : gLuaSharedTrait<T, T> {
-  /// <summary>
-  /// Cast this primitive trait to a new type.
-  /// </summary>
-  template<typename Type = T>
-  using as_type = gLuaTrait<Type>;
+template<typename T, bool FastPath = false>
+struct gLuaPrimitive : gLuaSharedTrait<T, T> {
+  using safe = gLuaPrimitive<T, false>;  // @SafeBinding
+  using fast = gLuaPrimitive<T, true>;  // @UnsafeBinding
+  LUA_TRAIT_QUALIFIER T Next(gLuaBase &LB) {
+    T v(0);
+    gLuaBase::Pull<T, FastPath>(LB, LB.idx++, v);
+    return v;
+  }
 };
+
+/// <summary>
+/// Generic trait for all types: POD/Structs/Classes.
+/// </summary>
+template<typename T, bool FastPath> struct gLuaTrait : gLuaSharedTrait<T, T> {  };
+
+// Explicit trait specializations types declared in fwd.hpp
+template<bool FastPath> struct gLuaTrait<glm::int8, FastPath> : gLuaPrimitive<glm::int8, FastPath> { };
+template<bool FastPath> struct gLuaTrait<glm::int16, FastPath> : gLuaPrimitive<glm::int16, FastPath> { };
+template<bool FastPath> struct gLuaTrait<glm::int32, FastPath> : gLuaPrimitive<glm::int32, FastPath> { };
+template<bool FastPath> struct gLuaTrait<glm::int64, FastPath> : gLuaPrimitive<glm::int64, FastPath> { };
+template<bool FastPath> struct gLuaTrait<glm::uint8, FastPath> : gLuaPrimitive<glm::uint8, FastPath> { };
+template<bool FastPath> struct gLuaTrait<glm::uint16, FastPath> : gLuaPrimitive<glm::uint16, FastPath> { };
+template<bool FastPath> struct gLuaTrait<glm::uint32, FastPath> : gLuaPrimitive<glm::uint32, FastPath> { };
+template<bool FastPath> struct gLuaTrait<glm::uint64, FastPath> : gLuaPrimitive<glm::uint64, FastPath> { };
+template<bool FastPath> struct gLuaTrait<float, FastPath> : gLuaPrimitive<float, FastPath> { };
+template<bool FastPath> struct gLuaTrait<double, FastPath> : gLuaPrimitive<double, FastPath> { };
 
 /// <summary>
 /// Trait for quaternion types.
 /// </summary>
-template<typename T>
-struct gLuaTrait<glm::qua<T>> : gLuaSharedTrait<T, glm::qua<T>> {
+template<typename T, bool FastPath>
+struct gLuaTrait<glm::qua<T>, FastPath> : gLuaSharedTrait<T, glm::qua<T>> {
+  using safe = gLuaTrait<glm::qua<T>, false>;  // @SafeBinding
+  using fast = gLuaTrait<glm::qua<T>, true>;  // @UnsafeBinding
+
+  static GLM_CONSTEXPR const char *Label() { return LABEL_QUATERN; }
   LUA_TRAIT_QUALIFIER bool Is(const gLuaBase &LB, int idx) { return glm_isquat(LB.L, idx); }
   LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::qua<T> zero() { return glm::quat_identity<glm_Float, glm::defaultp>(); }
-  static GLM_CONSTEXPR const char *Label() { return LABEL_QUATERN; }
+  LUA_TRAIT_QUALIFIER glm::qua<T> Next(gLuaBase &LB) {
+    glm::qua<T> q = glm::quat_identity<glm_Float, glm::defaultp>();
+    gLuaBase::Pull<T, FastPath>(LB, LB.idx++, q);
+    return q;
+  }
 };
 
 /// <summary>
 /// Trait for vector types.
 /// </summary>
-template<glm::length_t D, typename T>
-struct gLuaTrait<glm::vec<D, T>> : gLuaSharedTrait<T, glm::vec<D, T>> {
-  /// <summary>
-  /// Cast the vector trait to a new vector type.
-  /// </summary>
+template<glm::length_t D, typename T, bool FastPath>
+struct gLuaTrait<glm::vec<D, T>, FastPath> : gLuaSharedTrait<T, glm::vec<D, T>> {
   template<typename Type = T>
-  using as_type = gLuaTrait<glm::vec<D, Type>>;
+  using as_type = gLuaTrait<glm::vec<D, Type>>;  // @CastBinding
+  using safe = gLuaTrait<glm::vec<D, T>, false>;  // @SafeBinding
+  using fast = gLuaTrait<glm::vec<D, T>, true>;  // @UnsafeBinding
 
   /// <summary>
   /// Cast the vector trait to a compatible matrix type.
@@ -879,8 +936,6 @@ struct gLuaTrait<glm::vec<D, T>> : gLuaSharedTrait<T, glm::vec<D, T>> {
   /// </summary>
   using row_type = gLuaTrait<glm::vec<D, T>>;
 
-  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::vec<D, T> zero() { return glm::vec<D, T>(T(0)); }
-  LUA_TRAIT_QUALIFIER bool Is(const gLuaBase &LB, int idx) { return glm_vector_length(LB.L, idx) == D; }
   static GLM_CONSTEXPR const char *Label() {
     switch (D) {
       case 1: return LABEL_VECTOR1;
@@ -892,10 +947,21 @@ struct gLuaTrait<glm::vec<D, T>> : gLuaSharedTrait<T, glm::vec<D, T>> {
       }
     }
   }
+
+  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::vec<D, T> zero() { return glm::vec<D, T>(T(0)); }
+  LUA_TRAIT_QUALIFIER bool Is(const gLuaBase &LB, int idx) { return glm_vector_length(LB.L, idx) == D; }
+  LUA_TRAIT_QUALIFIER glm::vec<D, T> Next(gLuaBase &LB) {
+    glm::vec<D, T> v(T(0));
+    gLuaBase::Pull<T, FastPath>(LB, LB.idx++, v);
+    return v;
+  }
 };
 
-template<glm::length_t C, glm::length_t R, typename T>
-struct gLuaTrait<glm::mat<C, R, T>> : gLuaSharedTrait<T, glm::mat<C, R, T>> {
+template<glm::length_t C, glm::length_t R, typename T, bool FastPath>
+struct gLuaTrait<glm::mat<C, R, T>, FastPath> : gLuaSharedTrait<T, glm::mat<C, R, T>> {
+  using safe = gLuaTrait<glm::mat<C, R, T>, false>;  // @SafeBinding
+  using fast = gLuaTrait<glm::mat<C, R, T>, true>;  // @UnsafeBinding
+
   /// <summary>
   /// Lua type trait equivalent to glm::mat<C, R, T>::col_type
   /// </summary>
@@ -911,12 +977,6 @@ struct gLuaTrait<glm::mat<C, R, T>> : gLuaSharedTrait<T, glm::mat<C, R, T>> {
   /// </summary>
   template<glm::length_t RNext>
   using rhs_mat_type = gLuaTrait<glm::mat<RNext, C, T>>;
-
-  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::mat<C, R, T> zero() { return glm::mat<C, R, T>(T(0)); }
-  LUA_TRAIT_QUALIFIER bool Is(const gLuaBase &LB, int idx) {
-    glm::length_t dimensions = 0;
-    return glm_ismatrix(LB.L, idx, dimensions) && dimensions == LUAGLM_MATRIX_TYPE(C, R);
-  }
 
   static GLM_CONSTEXPR const char *Label() {
     switch (LUAGLM_MATRIX_TYPE(C, R)) {
@@ -934,6 +994,17 @@ struct gLuaTrait<glm::mat<C, R, T>> : gLuaSharedTrait<T, glm::mat<C, R, T>> {
       }
     }
     return LABEL_MATRIX;
+  }
+
+  LUA_TRAIT_QUALIFIER bool Is(const gLuaBase &LB, int idx) {
+    glm::length_t d = 0;
+    return glm_ismatrix(LB.L, idx, d) && d == LUAGLM_MATRIX_TYPE(C, R);
+  }
+  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::mat<C, R, T> zero() { return glm::mat<C, R, T>(T(0)); }
+  LUA_TRAIT_QUALIFIER glm::mat<C, R, T> Next(gLuaBase &LB) {
+    glm::mat<C, R, T> m(T(0));
+    gLuaBase::Pull<C, R, FastPath>(LB, LB.idx++, m);
+    return m;
   }
 };
 
@@ -972,14 +1043,18 @@ using gLuaFloatOnly = gLuaFloat;
 /// See @LUAGLM_DRIFT
 /// </summary>
 #if defined(LUAGLM_DRIFT)
-template<glm::length_t L, typename T = glm_Float>
-struct gLuaDir : gLuaTrait<glm::vec<L, T>> {
+template<glm::length_t L, typename T, bool FastPath>
+struct gLuaDir : gLuaTrait<glm::vec<L, T>, FastPath> {
+  using safe = gLuaDir<L, T, false>;  // @SafeBinding
+  using fast = gLuaDir<L, T, true>;  // @UnsafeBinding
+
   LUA_TRAIT_QUALIFIER glm::vec<L, T> Next(gLuaBase &LB) {
-    return gm_drift(gLuaTrait<glm::vec<L, T>>::Next(LB));
+    const glm::vec<L, T> result = gLuaTrait<glm::vec<L, T>, FastPath>::Next(LB);
+    return gm_drift(result);
   }
 };
-template<typename T = glm_Float> using gLuaDir2 = gLuaDir<2, T>;
-template<typename T = glm_Float> using gLuaDir3 = gLuaDir<3, T>;
+template<typename T = glm_Float> using gLuaDir2 = gLuaDir<2, T, false>;
+template<typename T = glm_Float> using gLuaDir3 = gLuaDir<3, T, false>;
 #else
 template<typename T = glm_Float> using gLuaDir2 = gLuaTrait<glm::vec<2, T>>;
 template<typename T = glm_Float> using gLuaDir3 = gLuaTrait<glm::vec<3, T>>;
@@ -988,16 +1063,23 @@ template<typename T = glm_Float> using gLuaDir3 = gLuaTrait<glm::vec<3, T>>;
 /// <summary>
 /// Specialization for floating point epsilon arguments (and/or default arguments).
 /// </summary>
-template<typename T = glm_Float>
-struct gLuaEps : gLuaTrait<T> {
+template<typename T = glm_Float, bool FastPath = false>
+struct gLuaEps : gLuaTrait<T, FastPath> {
+  using safe = gLuaEps<T, false>;  // @SafeBinding
+  using fast = gLuaEps<T, true>;  // @UnsafeBinding
+
   static GLM_CONSTEXPR const char *Label() { return "epsilon"; }
-  LUA_TRAIT_QUALIFIER bool Is(const gLuaBase &LB, int idx) { return lua_isnoneornil(LB.L, idx) || gLuaTrait<T>::Is(LB, idx); }
+
+  LUA_TRAIT_QUALIFIER bool Is(const gLuaBase &LB, int idx) {
+    return lua_isnoneornil(LB.L, idx) || gLuaTrait<T>::Is(LB, idx);
+  }
+
   LUA_TRAIT_QUALIFIER T Next(gLuaBase &LB) {
     if (lua_isnoneornil(LB.L, LB.idx)) {
       LB.idx++;  // Skip the argument
       return glm::epsilon<T>();
     }
-    return gLuaTrait<T>::Next(LB);
+    return gLuaTrait<T, FastPath>::Next(LB);
   }
 };
 
@@ -1203,11 +1285,11 @@ struct gLuaEps : gLuaTrait<T> {
 
 /* Trait repetition */
 #define LAYOUT_UNARY(LB, F, Tr, ...) VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, ##__VA_ARGS__)
-#define LAYOUT_BINARY(LB, F, Tr, ...) VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr, ##__VA_ARGS__)
-#define LAYOUT_TERNARY(LB, F, Tr, ...) VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr, Tr, ##__VA_ARGS__)
-#define LAYOUT_QUATERNARY(LB, F, Tr, ...) VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr, Tr, Tr, ##__VA_ARGS__)
-#define LAYOUT_QUINARY(LB, F, Tr, ...) VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr, Tr, Tr, Tr, ##__VA_ARGS__)
-#define LAYOUT_SENARY(LB, F, Tr, ...) VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr, Tr, Tr, Tr, Tr, ##__VA_ARGS__)
+#define LAYOUT_BINARY(LB, F, Tr, ...) VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, ##__VA_ARGS__)
+#define LAYOUT_TERNARY(LB, F, Tr, ...) VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::safe, ##__VA_ARGS__)
+#define LAYOUT_QUATERNARY(LB, F, Tr, ...) VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::safe, Tr::safe, ##__VA_ARGS__)
+#define LAYOUT_QUINARY(LB, F, Tr, ...) VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::safe, Tr::safe, Tr::safe, ##__VA_ARGS__)
+#define LAYOUT_SENARY(LB, F, Tr, ...) VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::safe, Tr::safe, Tr::safe, Tr::safe, ##__VA_ARGS__)
 
 /* trait + eps op */
 #define LAYOUT_BINARY_EPS(LB, F, Tr, ...) \
@@ -1215,19 +1297,19 @@ struct gLuaEps : gLuaTrait<T> {
 
 /* trait + trait::primitive op */
 #define LAYOUT_BINARY_SCALAR(LB, F, Tr, ...) \
-  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, gLuaTrait<Tr::value_type>, ##__VA_ARGS__)
+  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::value_trait, ##__VA_ARGS__)
 
 /* trait + trait + eps op */
 #define LAYOUT_TERNARY_EPS(LB, F, Tr, ...) \
-  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr, gLuaEps<Tr::value_type>, ##__VA_ARGS__)
+  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, gLuaEps<Tr::value_type>, ##__VA_ARGS__)
 
 /* trait + trait + trait::primitive op */
 #define LAYOUT_TERNARY_SCALAR(LB, F, Tr, ...) \
-  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr, gLuaTrait<Tr::value_type>, ##__VA_ARGS__)
+  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::value_trait, ##__VA_ARGS__)
 
 /* trait + trait + trait + trait + trait::primitive op */
 #define LAYOUT_QUINARY_SCALAR(LB, F, Tr, ...) \
-  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr, Tr, Tr, gLuaTrait<Tr::value_type>, ##__VA_ARGS__)
+  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::safe, Tr::safe, Tr::value_trait, ##__VA_ARGS__)
 
 /* trait + trait<int> op */
 #define LAYOUT_VECTOR_INT(LB, F, Tr, ...) \
@@ -1235,54 +1317,54 @@ struct gLuaEps : gLuaTrait<T> {
 
 /* trait + trait + trait + trait::primitive + trait::primitive op */
 #define LAYOUT_BARYCENTRIC(LB, F, Tr, ...) \
-  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr, Tr, gLuaTrait<Tr::value_type>, gLuaTrait<Tr::value_type>, ##__VA_ARGS__)
+  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::safe, Tr::value_trait, Tr::value_trait, ##__VA_ARGS__)
 
 /* unary or binary operator depending on the state of the Lua stack */
-#define LAYOUT_UNARY_OR_BINARY(LB, F, Tr, ...)                       \
-  LUA_MLM_BEGIN                                                      \
-  if (lua_isnoneornil((LB).L, (LB).idx + 1))                         \
-    VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, ##__VA_ARGS__);   \
-  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr, ##__VA_ARGS__); \
+#define LAYOUT_UNARY_OR_BINARY(LB, F, Tr, ...)                             \
+  LUA_MLM_BEGIN                                                            \
+  if (lua_isnoneornil((LB).L, (LB).idx + 1))                               \
+    VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, ##__VA_ARGS__);         \
+  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, ##__VA_ARGS__); \
   LUA_MLM_END
 
 /* trait + {nil || trait::primitive} op */
-#define LAYOUT_UNARY_OPTIONAL(LB, F, Tr, ...)                                               \
-  LUA_MLM_BEGIN                                                                             \
-  if (lua_isnoneornil((LB).L, (LB).idx + 1))                                                \
-    VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, ##__VA_ARGS__);                          \
-  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, gLuaTrait<Tr::value_type>, ##__VA_ARGS__); \
+#define LAYOUT_UNARY_OPTIONAL(LB, F, Tr, ...)                                     \
+  LUA_MLM_BEGIN                                                                   \
+  if (lua_isnoneornil((LB).L, (LB).idx + 1))                                      \
+    VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, ##__VA_ARGS__);                \
+  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::value_trait, ##__VA_ARGS__); \
   LUA_MLM_END
 
 /* unary or ternary operator depending on state of Lua stack */
-#define LAYOUT_UNARY_OR_TERNARY(LB, F, Tr, ...)                          \
-  LUA_MLM_BEGIN                                                          \
-  if (lua_isnoneornil((LB).L, (LB).idx + 1))                             \
-    VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, ##__VA_ARGS__);       \
-  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr, Tr, ##__VA_ARGS__); \
+#define LAYOUT_UNARY_OR_TERNARY(LB, F, Tr, ...)                                      \
+  LUA_MLM_BEGIN                                                                      \
+  if (lua_isnoneornil((LB).L, (LB).idx + 1))                                         \
+    VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, ##__VA_ARGS__);                   \
+  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::safe, ##__VA_ARGS__); \
   LUA_MLM_END
 
 /* trait + {trait || trait::primitive} op */
-#define LAYOUT_BINARY_OPTIONAL(LB, F, Tr, ...)                                                \
-  LUA_MLM_BEGIN                                                                               \
-  if (gLuaTrait<Tr::value_type>::Is(LB, (LB).idx + 1))                                        \
-    VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, gLuaTrait<Tr::value_type>, ##__VA_ARGS__); \
-  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr, ##__VA_ARGS__);                          \
+#define LAYOUT_BINARY_OPTIONAL(LB, F, Tr, ...)                                      \
+  LUA_MLM_BEGIN                                                                     \
+  if (Tr::value_trait::Is((LB), (LB).idx + 1))                                      \
+    VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::value_trait, ##__VA_ARGS__); \
+  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, ##__VA_ARGS__);          \
   LUA_MLM_END
 
 /* trait + trait + {trait || trait::primitive} op */
-#define LAYOUT_TERNARY_OPTIONAL(LB, F, Tr, ...)                                                   \
-  LUA_MLM_BEGIN                                                                                   \
-  if (gLuaTrait<Tr::value_type>::Is(LB, (LB).idx + 2))                                            \
-    VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr, gLuaTrait<Tr::value_type>, ##__VA_ARGS__); \
-  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr, Tr, ##__VA_ARGS__);                          \
+#define LAYOUT_TERNARY_OPTIONAL(LB, F, Tr, ...)                                               \
+  LUA_MLM_BEGIN                                                                               \
+  if (Tr::value_trait::Is((LB), (LB).idx + 2))                                                \
+    VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::value_trait, ##__VA_ARGS__); \
+  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::safe, ##__VA_ARGS__);          \
   LUA_MLM_END
 
 /* A binary integer layout that sanitizes the second argument (division/modulo zero) */
 #define LAYOUT_BINARY_INTEGER(LB, F, Tr, ...)                           \
   LUA_MLM_BEGIN                                                         \
-  if (Tr::Is(LB, (LB).idx + 1)) {                                       \
-    const Tr::type __a = Tr::Next(LB);                                  \
-    const Tr::type __b = Tr::Next(LB);                                  \
+  if (Tr::safe::Is(LB, (LB).idx + 1)) {                                 \
+    const Tr::type __a = Tr::safe::Next(LB);                            \
+    const Tr::type __b = Tr::safe::Next(LB);                            \
     if ((lua_Unsigned)__b + 1u <= 1u) { /* special cases: -1 or 0 */    \
       luaL_argcheck((LB).L, __b != 0, (LB).idx - 1, "zero");            \
       return gLuaBase::Push(LB, 0); /* overflow with 0x80000... / -1 */ \
@@ -1290,7 +1372,7 @@ struct gLuaEps : gLuaTrait<T> {
     return gLuaBase::Push(LB, F(__a, __b));                             \
   }                                                                     \
   /* Second argument is a number, fall-back to <number, number> */      \
-  else if (gLuaNumber::Is(LB, (LB).idx + 1))                            \
+  else if (gLuaNumber::Is((LB), (LB).idx + 1))                          \
     LAYOUT_BINARY(LB, F, gLuaNumber, ##__VA_ARGS__);                    \
   return luaL_typeerror((LB).L, (LB).idx, Tr::Label());                 \
   LUA_MLM_END
@@ -1308,58 +1390,58 @@ struct gLuaEps : gLuaTrait<T> {
   ArgLayout(LB, F, Tr, ##__VA_ARGS__);
 
 /* Vector definition where the lua_Number operation takes priority */
-#define PARSE_NUMBER_VECTOR(LB, F, ArgLayout, ...)                           \
-  LUA_MLM_BEGIN                                                              \
-  const TValue *_tv = glm_i2v((LB).L, (LB).idx);                             \
-  switch (ttypetag(_tv)) {                                                   \
-    case LUA_VFALSE: case LUA_VTRUE:                                         \
-    case LUA_VSHRSTR: case LUA_VLNGSTR: /* string coercion */                \
-    case LUA_VNUMINT: /* integer to number */                                \
-    case LUA_VNUMFLT: ArgLayout(LB, F, gLuaNumber, ##__VA_ARGS__); break;    \
-    case LUA_VVECTOR2: ArgLayout(LB, F, gLuaVec2<>, ##__VA_ARGS__); break;   \
-    case LUA_VVECTOR3: ArgLayout(LB, F, gLuaVec3<>, ##__VA_ARGS__); break;   \
-    case LUA_VVECTOR4: ArgLayout(LB, F, gLuaVec4<>, ##__VA_ARGS__); break;   \
-    default:                                                                 \
-      break;                                                                 \
-  }                                                                          \
-  return luaL_typeerror((LB).L, (LB).idx, LABEL_NUMBER " or " LABEL_VECTOR); \
+#define PARSE_NUMBER_VECTOR(LB, F, ArgLayout, ...)                               \
+  LUA_MLM_BEGIN                                                                  \
+  const TValue *_tv = glm_i2v((LB).L, (LB).idx);                                 \
+  switch (ttypetag(_tv)) {                                                       \
+    case LUA_VFALSE: case LUA_VTRUE:                                             \
+    case LUA_VSHRSTR: case LUA_VLNGSTR: /* string coercion */                    \
+    case LUA_VNUMINT: /* integer to number */                                    \
+    case LUA_VNUMFLT: ArgLayout(LB, F, gLuaNumber, ##__VA_ARGS__); break;        \
+    case LUA_VVECTOR2: ArgLayout(LB, F, gLuaVec2<>::fast, ##__VA_ARGS__); break; \
+    case LUA_VVECTOR3: ArgLayout(LB, F, gLuaVec3<>::fast, ##__VA_ARGS__); break; \
+    case LUA_VVECTOR4: ArgLayout(LB, F, gLuaVec4<>::fast, ##__VA_ARGS__); break; \
+    default:                                                                     \
+      break;                                                                     \
+  }                                                                              \
+  return luaL_typeerror((LB).L, (LB).idx, LABEL_NUMBER " or " LABEL_VECTOR);     \
   LUA_MLM_END
 
 /* Vector definition where lua_Integer and lua_Number operations takes priority */
-#define PARSE_INTEGER_NUMBER_VECTOR(LB, F, ILayout, FLayout, VLayout, ...)   \
-  LUA_MLM_BEGIN                                                              \
-  const TValue *_tv = glm_i2v((LB).L, (LB).idx);                             \
-  switch (ttypetag(_tv)) {                                                   \
-    case LUA_VFALSE: case LUA_VTRUE:                                         \
-    case LUA_VNUMINT: ILayout(LB, F, gLuaInteger, ##__VA_ARGS__); break;     \
-    case LUA_VSHRSTR: case LUA_VLNGSTR: /* string coercion */                \
-    case LUA_VNUMFLT: FLayout(LB, F, gLuaNumber, ##__VA_ARGS__); break;      \
-    case LUA_VVECTOR2: VLayout(LB, F, gLuaVec2<>, ##__VA_ARGS__); break;     \
-    case LUA_VVECTOR3: VLayout(LB, F, gLuaVec3<>, ##__VA_ARGS__); break;     \
-    case LUA_VVECTOR4: VLayout(LB, F, gLuaVec4<>, ##__VA_ARGS__); break;     \
-    default:                                                                 \
-      break;                                                                 \
-  }                                                                          \
-  return luaL_typeerror((LB).L, (LB).idx, LABEL_NUMBER " or " LABEL_VECTOR); \
+#define PARSE_INTEGER_NUMBER_VECTOR(LB, F, ILayout, FLayout, VLayout, ...)     \
+  LUA_MLM_BEGIN                                                                \
+  const TValue *_tv = glm_i2v((LB).L, (LB).idx);                               \
+  switch (ttypetag(_tv)) {                                                     \
+    case LUA_VFALSE: case LUA_VTRUE:                                           \
+    case LUA_VNUMINT: ILayout(LB, F, gLuaInteger, ##__VA_ARGS__); break;       \
+    case LUA_VSHRSTR: case LUA_VLNGSTR: /* string coercion */                  \
+    case LUA_VNUMFLT: FLayout(LB, F, gLuaNumber, ##__VA_ARGS__); break;        \
+    case LUA_VVECTOR2: VLayout(LB, F, gLuaVec2<>::fast, ##__VA_ARGS__); break; \
+    case LUA_VVECTOR3: VLayout(LB, F, gLuaVec3<>::fast, ##__VA_ARGS__); break; \
+    case LUA_VVECTOR4: VLayout(LB, F, gLuaVec4<>::fast, ##__VA_ARGS__); break; \
+    default:                                                                   \
+      break;                                                                   \
+  }                                                                            \
+  return luaL_typeerror((LB).L, (LB).idx, LABEL_NUMBER " or " LABEL_VECTOR);   \
   LUA_MLM_END
 
 /* glm::function defined over the vector & quaternion space: vec1, vec2, vec3, vec4, quat */
-#define PARSE_NUMBER_VECTOR_QUAT(LB, F, FLayout, VLayout, QLayout, ...)       \
-  LUA_MLM_BEGIN                                                               \
-  const TValue *_tv = glm_i2v((LB).L, (LB).idx);                              \
-  switch (ttypetag(_tv)) {                                                    \
-    case LUA_VFALSE: case LUA_VTRUE:                                          \
-    case LUA_VSHRSTR: case LUA_VLNGSTR: /* string coercion */                 \
-    case LUA_VNUMINT: /* integer to number */                                 \
-    case LUA_VNUMFLT: FLayout(LB, F, gLuaNumber, ##__VA_ARGS__); break;       \
-    case LUA_VVECTOR2: VLayout(LB, F, gLuaVec2<>, ##__VA_ARGS__); break;      \
-    case LUA_VVECTOR3: VLayout(LB, F, gLuaVec3<>, ##__VA_ARGS__); break;      \
-    case LUA_VVECTOR4: VLayout(LB, F, gLuaVec4<>, ##__VA_ARGS__); break;      \
-    case LUA_VQUAT: QLayout(LB, F, gLuaQuat<>, ##__VA_ARGS__); break;         \
-    default:                                                                  \
-      break;                                                                  \
-  }                                                                           \
-  return luaL_typeerror((LB).L, (LB).idx, LABEL_VECTOR " or " LABEL_QUATERN); \
+#define PARSE_NUMBER_VECTOR_QUAT(LB, F, FLayout, VLayout, QLayout, ...)        \
+  LUA_MLM_BEGIN                                                                \
+  const TValue *_tv = glm_i2v((LB).L, (LB).idx);                               \
+  switch (ttypetag(_tv)) {                                                     \
+    case LUA_VFALSE: case LUA_VTRUE:                                           \
+    case LUA_VSHRSTR: case LUA_VLNGSTR: /* string coercion */                  \
+    case LUA_VNUMINT: /* integer to number */                                  \
+    case LUA_VNUMFLT: FLayout(LB, F, gLuaNumber, ##__VA_ARGS__); break;        \
+    case LUA_VVECTOR2: VLayout(LB, F, gLuaVec2<>::fast, ##__VA_ARGS__); break; \
+    case LUA_VVECTOR3: VLayout(LB, F, gLuaVec3<>::fast, ##__VA_ARGS__); break; \
+    case LUA_VVECTOR4: VLayout(LB, F, gLuaVec4<>::fast, ##__VA_ARGS__); break; \
+    case LUA_VQUAT: QLayout(LB, F, gLuaQuat<>::fast, ##__VA_ARGS__); break;    \
+    default:                                                                   \
+      break;                                                                   \
+  }                                                                            \
+  return luaL_typeerror((LB).L, (LB).idx, LABEL_VECTOR " or " LABEL_QUATERN);  \
   LUA_MLM_END
 
 /*
@@ -1368,37 +1450,37 @@ struct gLuaEps : gLuaTrait<T> {
 ** @NOTE: This parser does not throw an error if the Value is not a known matrix
 **  value. This is to simplify the EQUAL/HASH operations.
 */
-#define PARSE_MATRIX(LB, Value, F, ArgLayout, ...)                                \
-  LUA_MLM_BEGIN                                                                   \
-  switch (mvalue_dims(Value)) {                                                   \
-    case LUAGLM_MATRIX_2x2: ArgLayout(LB, F, gLuaMat2x2<>, ##__VA_ARGS__); break; \
-    case LUAGLM_MATRIX_2x3: ArgLayout(LB, F, gLuaMat2x3<>, ##__VA_ARGS__); break; \
-    case LUAGLM_MATRIX_2x4: ArgLayout(LB, F, gLuaMat2x4<>, ##__VA_ARGS__); break; \
-    case LUAGLM_MATRIX_3x2: ArgLayout(LB, F, gLuaMat3x2<>, ##__VA_ARGS__); break; \
-    case LUAGLM_MATRIX_3x3: ArgLayout(LB, F, gLuaMat3x3<>, ##__VA_ARGS__); break; \
-    case LUAGLM_MATRIX_3x4: ArgLayout(LB, F, gLuaMat3x4<>, ##__VA_ARGS__); break; \
-    case LUAGLM_MATRIX_4x2: ArgLayout(LB, F, gLuaMat4x2<>, ##__VA_ARGS__); break; \
-    case LUAGLM_MATRIX_4x3: ArgLayout(LB, F, gLuaMat4x3<>, ##__VA_ARGS__); break; \
-    case LUAGLM_MATRIX_4x4: ArgLayout(LB, F, gLuaMat4x4<>, ##__VA_ARGS__); break; \
-    default:                                                                      \
-      break;                                                                      \
-  }                                                                               \
+#define PARSE_MATRIX(LB, Value, F, ArgLayout, ...)                                      \
+  LUA_MLM_BEGIN                                                                         \
+  switch (mvalue_dims(Value)) {                                                         \
+    case LUAGLM_MATRIX_2x2: ArgLayout(LB, F, gLuaMat2x2<>::fast, ##__VA_ARGS__); break; \
+    case LUAGLM_MATRIX_2x3: ArgLayout(LB, F, gLuaMat2x3<>::fast, ##__VA_ARGS__); break; \
+    case LUAGLM_MATRIX_2x4: ArgLayout(LB, F, gLuaMat2x4<>::fast, ##__VA_ARGS__); break; \
+    case LUAGLM_MATRIX_3x2: ArgLayout(LB, F, gLuaMat3x2<>::fast, ##__VA_ARGS__); break; \
+    case LUAGLM_MATRIX_3x3: ArgLayout(LB, F, gLuaMat3x3<>::fast, ##__VA_ARGS__); break; \
+    case LUAGLM_MATRIX_3x4: ArgLayout(LB, F, gLuaMat3x4<>::fast, ##__VA_ARGS__); break; \
+    case LUAGLM_MATRIX_4x2: ArgLayout(LB, F, gLuaMat4x2<>::fast, ##__VA_ARGS__); break; \
+    case LUAGLM_MATRIX_4x3: ArgLayout(LB, F, gLuaMat4x3<>::fast, ##__VA_ARGS__); break; \
+    case LUAGLM_MATRIX_4x4: ArgLayout(LB, F, gLuaMat4x4<>::fast, ##__VA_ARGS__); break; \
+    default:                                                                            \
+      break;                                                                            \
+  }                                                                                     \
   LUA_MLM_END
 
 /* A glm::function that operates only on NxN matrices */
-#define PARSE_SYMMETRIC_MATRIX(LB, F, ArgLayout, ...)                        \
-  LUA_MLM_BEGIN                                                              \
-  const TValue *_tv = glm_i2v((LB).L, (LB).idx);                             \
-  if (l_likely(ttismatrix(_tv))) {                                           \
-    switch (mvalue_dims(_tv)) {                                              \
-      case LUAGLM_MATRIX_2x2: ArgLayout(LB, F, gLuaMat2x2<>, ##__VA_ARGS__); break; \
-      case LUAGLM_MATRIX_3x3: ArgLayout(LB, F, gLuaMat3x3<>, ##__VA_ARGS__); break; \
-      case LUAGLM_MATRIX_4x4: ArgLayout(LB, F, gLuaMat4x4<>, ##__VA_ARGS__); break; \
-      default:                                                               \
-        return luaL_typeerror((LB).L, (LB).idx, GLM_INVALID_MAT_DIMENSIONS); \
-    }                                                                        \
-  }                                                                          \
-  return luaL_typeerror((LB).L, (LB).idx, LABEL_SYMMETRIC_MATRIX);           \
+#define PARSE_SYMMETRIC_MATRIX(LB, F, ArgLayout, ...)                                     \
+  LUA_MLM_BEGIN                                                                           \
+  const TValue *_tv = glm_i2v((LB).L, (LB).idx);                                          \
+  if (l_likely(ttismatrix(_tv))) {                                                        \
+    switch (mvalue_dims(_tv)) {                                                           \
+      case LUAGLM_MATRIX_2x2: ArgLayout(LB, F, gLuaMat2x2<>::fast, ##__VA_ARGS__); break; \
+      case LUAGLM_MATRIX_3x3: ArgLayout(LB, F, gLuaMat3x3<>::fast, ##__VA_ARGS__); break; \
+      case LUAGLM_MATRIX_4x4: ArgLayout(LB, F, gLuaMat4x4<>::fast, ##__VA_ARGS__); break; \
+      default:                                                                            \
+        return luaL_typeerror((LB).L, (LB).idx, GLM_INVALID_MAT_DIMENSIONS);              \
+    }                                                                                     \
+  }                                                                                       \
+  return luaL_typeerror((LB).L, (LB).idx, LABEL_SYMMETRIC_MATRIX);                        \
   LUA_MLM_END
 
 /*
@@ -1407,25 +1489,25 @@ struct gLuaEps : gLuaTrait<T> {
 ** @NOTE: All geometric objects must support multiplication operations for
 **  quaternions, mat3x3, mat3x4, mat4x3, and mat4x4.
 */
-#define PARSE_ROTATION_MATRIX(LB, F, ArgLayout, ...)                          \
-  LUA_MLM_BEGIN                                                               \
-  const TValue *_tv = glm_i2v((LB).L, (LB).idx);                              \
-  switch (ttypetag(_tv)) {                                                    \
-    case LUA_VQUAT: ArgLayout(LB, F, gLuaQuat<>, ##__VA_ARGS__); break;       \
-    case LUA_VMATRIX: {                                                       \
-      switch (mvalue_dims(_tv)) {                                             \
-        case LUAGLM_MATRIX_3x3: ArgLayout(LB, F, gLuaMat3x3<>, ##__VA_ARGS__); break; \
-        case LUAGLM_MATRIX_3x4: ArgLayout(LB, F, gLuaMat3x4<>, ##__VA_ARGS__); break; \
-        case LUAGLM_MATRIX_4x3: ArgLayout(LB, F, gLuaMat4x3<>, ##__VA_ARGS__); break; \
-        case LUAGLM_MATRIX_4x4: ArgLayout(LB, F, gLuaMat4x4<>, ##__VA_ARGS__); break; \
-        default:                                                              \
-            return luaL_typeerror((LB).L, (LB).idx, GLM_INVALID_MAT_DIMENSIONS); \
-      }                                                                       \
-    }                                                                         \
-    default:                                                                  \
-      break;                                                                  \
-  }                                                                           \
-  return luaL_typeerror((LB).L, (LB).idx, LABEL_QUATERN " or " LABEL_MATRIX); \
+#define PARSE_ROTATION_MATRIX(LB, F, ArgLayout, ...)                                        \
+  LUA_MLM_BEGIN                                                                             \
+  const TValue *_tv = glm_i2v((LB).L, (LB).idx);                                            \
+  switch (ttypetag(_tv)) {                                                                  \
+    case LUA_VQUAT: ArgLayout(LB, F, gLuaQuat<>, ##__VA_ARGS__); break;                     \
+    case LUA_VMATRIX: {                                                                     \
+      switch (mvalue_dims(_tv)) {                                                           \
+        case LUAGLM_MATRIX_3x3: ArgLayout(LB, F, gLuaMat3x3<>::fast, ##__VA_ARGS__); break; \
+        case LUAGLM_MATRIX_3x4: ArgLayout(LB, F, gLuaMat3x4<>::fast, ##__VA_ARGS__); break; \
+        case LUAGLM_MATRIX_4x3: ArgLayout(LB, F, gLuaMat4x3<>::fast, ##__VA_ARGS__); break; \
+        case LUAGLM_MATRIX_4x4: ArgLayout(LB, F, gLuaMat4x4<>::fast, ##__VA_ARGS__); break; \
+        default:                                                                            \
+          return luaL_typeerror((LB).L, (LB).idx, GLM_INVALID_MAT_DIMENSIONS);              \
+      }                                                                                     \
+    }                                                                                       \
+    default:                                                                                \
+      break;                                                                                \
+  }                                                                                         \
+  return luaL_typeerror((LB).L, (LB).idx, LABEL_QUATERN " or " LABEL_MATRIX);               \
   LUA_MLM_END
 
 /*
@@ -1438,21 +1520,21 @@ struct gLuaEps : gLuaTrait<T> {
 **  Therefore, all INTEGER_VECTOR definitions are considered unsafe when the
 **  function isn't explicitly operating on lua_Integer types.
 */
-#define PARSE_VECTOR_TYPE(LB, F, ArgLayout, IType, ...)                         \
-  LUA_MLM_BEGIN                                                                 \
-  const TValue *_tv = glm_i2v((LB).L, (LB).idx);                                \
-  switch (ttypetag(_tv)) {                                                      \
-    case LUA_VFALSE: case LUA_VTRUE:                                            \
-    case LUA_VSHRSTR: case LUA_VLNGSTR: /* string coercion */                   \
-    case LUA_VNUMINT: /* integer to number */                                   \
-    case LUA_VNUMFLT: ArgLayout(LB, F, gLuaTrait<IType>, ##__VA_ARGS__); break; \
-    case LUA_VVECTOR2: ArgLayout(LB, F, gLuaVec2<IType>, ##__VA_ARGS__); break; \
-    case LUA_VVECTOR3: ArgLayout(LB, F, gLuaVec3<IType>, ##__VA_ARGS__); break; \
-    case LUA_VVECTOR4: ArgLayout(LB, F, gLuaVec4<IType>, ##__VA_ARGS__); break; \
-    default:                                                                    \
-      break;                                                                    \
-  }                                                                             \
-  return luaL_typeerror((LB).L, (LB).idx, LABEL_NUMBER " or " LABEL_VECTOR);    \
+#define PARSE_VECTOR_TYPE(LB, F, ArgLayout, IType, ...)                               \
+  LUA_MLM_BEGIN                                                                       \
+  const TValue *_tv = glm_i2v((LB).L, (LB).idx);                                      \
+  switch (ttypetag(_tv)) {                                                            \
+    case LUA_VFALSE: case LUA_VTRUE:                                                  \
+    case LUA_VSHRSTR: case LUA_VLNGSTR: /* string coercion */                         \
+    case LUA_VNUMINT: /* integer to number */                                         \
+    case LUA_VNUMFLT: ArgLayout(LB, F, gLuaTrait<IType>, ##__VA_ARGS__); break;       \
+    case LUA_VVECTOR2: ArgLayout(LB, F, gLuaVec2<IType>::fast, ##__VA_ARGS__); break; \
+    case LUA_VVECTOR3: ArgLayout(LB, F, gLuaVec3<IType>::fast, ##__VA_ARGS__); break; \
+    case LUA_VVECTOR4: ArgLayout(LB, F, gLuaVec4<IType>::fast, ##__VA_ARGS__); break; \
+    default:                                                                          \
+      break;                                                                          \
+  }                                                                                   \
+  return luaL_typeerror((LB).L, (LB).idx, LABEL_NUMBER " or " LABEL_VECTOR);          \
   LUA_MLM_END
 
 /* }================================================================== */
@@ -1515,7 +1597,11 @@ struct gLuaEps : gLuaTrait<T> {
     GLM_BINDING_END                                     \
   }
 
-/* A operation defined for two traits; often 2D/3D or 3D/4D vectors. */
+/*
+** A operation defined for two traits; often 2D/3D or 3D/4D vectors.
+**
+** Allows @UnsafeBinding when A/B are non-coerced types.
+*/
 #define TRAITS_BINARY_LAYOUT_DEFN(Name, F, ArgLayout, A, B, ...)            \
   GLM_BINDING_QUALIFIER(Name) {                                             \
     GLM_BINDING_BEGIN                                                       \
@@ -1572,14 +1658,14 @@ struct gLuaEps : gLuaTrait<T> {
   }
 
 /* A glm::function that defined over any NxM matrix */
-#define MATRIX_DEFN(Name, F, ArgLayout, ...)               \
-  GLM_BINDING_QUALIFIER(Name) {                            \
-    GLM_BINDING_BEGIN                                      \
-    const TValue *_m = glm_i2v((LB).L, (LB).idx);          \
-    if (l_likely(ttismatrix(_m)))                          \
-      PARSE_MATRIX(LB, _m, F, ArgLayout, ##__VA_ARGS__);   \
-    return luaL_typeerror((LB).L, (LB).idx, LABEL_MATRIX); \
-    GLM_BINDING_END                                        \
+#define MATRIX_DEFN(Name, F, ArgLayout, ...)             \
+  GLM_BINDING_QUALIFIER(Name) {                          \
+    GLM_BINDING_BEGIN                                    \
+    const TValue *_m = glm_i2v(LB.L, LB.idx);            \
+    if (l_likely(ttismatrix(_m)))                        \
+      PARSE_MATRIX(LB, _m, F, ArgLayout, ##__VA_ARGS__); \
+    return luaL_typeerror(LB.L, LB.idx, LABEL_MATRIX);   \
+    GLM_BINDING_END                                      \
   }
 
 /* A glm::function that operates only on NxN matrices */
@@ -1632,27 +1718,31 @@ struct gLuaEps : gLuaTrait<T> {
 
 /* @COMPAT max ULPs parameters for scalar numbers introduced in 0.9.9.3 */
 #if GLM_VERSION >= 993
-  #define _TR_EQUAL_ULPS(LB, F, A, B, Val)                                  \
-    else if (ttisinteger(Val)) {                                            \
-      return gLuaBase::Push((LB), F((A), (B), gLuaTrait<int>::Next((LB)))); \
+  #define _TR_EQUAL_ULPS(LB, F, A, B, Val)                                        \
+    else if (ttisinteger(Val)) {                                                  \
+      return gLuaBase::Push((LB), F((A), (B), gLuaTrait<int>::fast::Next((LB)))); \
     }
 #else
   #define _TR_EQUAL_ULPS(LB, F, A, B, Val)
 #endif
 
-/* Generic equals layout */
-#define GENERIC_EQUAL(LB, F, Tr, Tr_Row)                                       \
-  LUA_MLM_BEGIN                                                                \
-  const Tr::type __a = Tr::Next(LB);                                           \
-  const Tr::type __b = Tr::Next(LB);                                           \
-  const TValue *_tv3 = glm_i2v((LB).L, (LB).idx);                              \
-  if (!_isvalid((LB).L, _tv3)) /* <Tr, Tr> */                                  \
-    return gLuaBase::Push(LB, F(__a, __b));                                    \
-  else if (ttisfloat(_tv3)) /* <Tr, Tr, eps> */                                \
-    return gLuaBase::Push(LB, F(__a, __b, gLuaEps<Tr::value_type>::Next(LB))); \
-  else if (Tr_Row::Is(LB, (LB).idx)) /* <Tr, Tr, vec> */                       \
-    return gLuaBase::Push(LB, F(__a, __b, Tr_Row::Next(LB)));                  \
-  _TR_EQUAL_ULPS(LB, F, __a, __b, _tv3) /* <Tr, Tr, ULPs> */                   \
+/*
+** Generic equals layout
+**
+** Allows @UnsafeBinding when Tr_Row is a non-coerced type.
+*/
+#define LAYOUT_GENERIC_EQUAL(LB, F, Tr, Tr_Row)                                                \
+  LUA_MLM_BEGIN                                                                                \
+  const Tr::type __a = Tr::Next(LB);                                                           \
+  const Tr::safe::type __b = Tr::safe::Next(LB);                                               \
+  const TValue *_tv3 = glm_i2v((LB).L, (LB).idx);                                              \
+  if (!_isvalid((LB).L, _tv3)) /* <Tr, Tr> */                                                  \
+    return gLuaBase::Push(LB, F(__a, __b));                                                    \
+  else if (ttisfloat(_tv3)) /* <Tr, Tr, eps> */                                                \
+    return gLuaBase::Push(LB, F(__a, __b, gLuaEps<Tr::value_type>::Next(LB)));                 \
+  else if (Tr_Row::Is(LB, (LB).idx)) /* <Tr, Tr, vec> */                                       \
+    return gLuaBase::Push(LB, F(__a, __b, Tr_Row::Next(LB)));                                  \
+  _TR_EQUAL_ULPS(LB, F, __a, __b, _tv3) /* <Tr, Tr, ULPs> */                                   \
   return luaL_typeerror((LB).L, (LB).idx, "expected none, " LABEL_NUMBER " or " LABEL_VECTOR); \
   LUA_MLM_END
 

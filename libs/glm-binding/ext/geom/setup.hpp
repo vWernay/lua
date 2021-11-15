@@ -37,11 +37,8 @@
 /* Redefinition of GLM_FUNC_QUALIFIER for "geom/" */
 #define GLM_GEOM_QUALIFIER static GLM_FUNC_QUALIFIER
 
-/*
-** For MSVC, GLM_NEVER_INLINE cannot be applied as most binding functions
-** have no forward declarations and __declspec(noinline) cannot be used.
-*/
-#define GLM_GEOM_QUALIFIER_NOINLINE static
+/* @NOTE: Requires NEVER_INLINE fix in lglm.hpp. */
+#define GLM_GEOM_QUALIFIER_NOINLINE static GLM_NEVER_INLINE
 
 /*
 ** Basic exception-handling check. @TODO: Allow STL dependencies iff exception

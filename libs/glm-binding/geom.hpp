@@ -29,7 +29,7 @@
 
 /* All geometric objects adhere to the glm::equal/glm::notEqual API. */
 #define GEOM_EQUALS(LB, F, Tr, ...) \
-  GENERIC_EQUAL(LB, F, Tr, Tr::Point)
+  LAYOUT_GENERIC_EQUAL(LB, F, Tr, Tr::point_type::fast)
 
 /*
 ** Generic distance definition: returning the distance between a geometric
@@ -48,26 +48,26 @@
 ** parameter being tested against the structure passed as the second parameter.
 ** Returning the point of intersection and relative location along each object.
 */
-#define GEOM_INTERSECTS(LB, F, A, B)    \
-  LUA_MLM_BEGIN                         \
-  const A::type a = A::Next(LB);        \
-  const B::type b = B::Next(LB);        \
-  A::Near::type n = A::Near::Next(LB);  \
-  A::Far::type f = A::Far::Next(LB);    \
-  TRAITS_PUSH(LB, F(a, b, n, f), n, f); \
+#define GEOM_INTERSECTS(LB, F, A, B)                   \
+  LUA_MLM_BEGIN                                        \
+  const A::type a = A::Next(LB);                       \
+  const B::type b = B::Next(LB);                       \
+  A::zero_type::type n = A::safe::zero_type::Next(LB); \
+  A::one_type::type f = A::safe::one_type::Next(LB);   \
+  TRAITS_PUSH(LB, F(a, b, n, f), n, f);                \
   LUA_MLM_END
 
 /*
 ** The line/ray/segment is the second parameter being tested against the
 ** structure passed as the first parameter.
 */
-#define GEOM_INTERSECTS_RH(LB, F, A, B) \
-  LUA_MLM_BEGIN                         \
-  const A::type a = A::Next(LB);        \
-  const B::type b = B::Next(LB);        \
-  B::Near::type n = B::Near::Next(LB);  \
-  B::Far::type f = B::Far::Next(LB);    \
-  TRAITS_PUSH(LB, F(a, b, n, f), n, f); \
+#define GEOM_INTERSECTS_RH(LB, F, A, B)                \
+  LUA_MLM_BEGIN                                        \
+  const A::type a = A::Next(LB);                       \
+  const B::type b = B::Next(LB);                       \
+  B::zero_type::type n = B::safe::zero_type::Next(LB); \
+  B::one_type::type f = B::safe::one_type::Next(LB);   \
+  TRAITS_PUSH(LB, F(a, b, n, f), n, f);                \
   LUA_MLM_END
 
 /*
@@ -86,12 +86,12 @@
 ** Intersection test with a result (e.g., boolean) and a single intersection
 ** object that may also be returned.
 */
-#define GEOM_INTERSECTS_PT(LB, F, A, B) \
-  LUA_MLM_BEGIN                         \
-  A::Point::type pt = A::Point::zero(); \
-  const A::type a = A::Next(LB);        \
-  const B::type b = B::Next(LB);        \
-  TRAITS_PUSH(LB, F(a, b, pt), pt);     \
+#define GEOM_INTERSECTS_PT(LB, F, A, B)           \
+  LUA_MLM_BEGIN                                   \
+  A::point_type::type pt = A::point_type::zero(); \
+  const A::type a = A::Next(LB);                  \
+  const B::type b = B::Next(LB);                  \
+  TRAITS_PUSH(LB, F(a, b, pt), pt);               \
   LUA_MLM_END
 
 /*
@@ -111,8 +111,9 @@
 /// Relative position along a line, segment, ray for casting.
 /// </summary>
 template<bool isNear, bool isRelative, typename T = glm_Float>
-struct gLuaRelative : gLuaTrait<T> {
+struct gLuaRelativePosition : gLuaTrait<T> {
   static GLM_CONSTEXPR const char *Label() { return "RelativePosition"; }
+
   LUA_TRAIT_QUALIFIER bool Is(const gLuaBase &LB, int idx) { return lua_isnoneornil(LB.L, idx) || gLuaTrait<T>::Is(LB, idx); }
   LUA_TRAIT_QUALIFIER T Next(gLuaBase &LB) {
     if (lua_isnoneornil(LB.L, LB.idx)) {
@@ -128,84 +129,112 @@ struct gLuaRelative : gLuaTrait<T> {
 
 template<glm::length_t L = 3, typename T = glm_Float>
 struct gLuaAABB : gLuaSharedTrait<T, glm::AABB<L, T>> {
-  using Point = gLuaTrait<typename glm::AABB<L, T>::Point>;
+  using safe = gLuaAABB;  // @SafeBinding
+  using fast = gLuaAABB;  // @UnsafeBinding
+
+  /// <summary>
+  /// @PointBinding: Type trait equivalent to glm::Structure::Point
+  /// </summary>
+  using point_type = gLuaTrait<typename glm::AABB<L, T>::Point>;
 
   static GLM_CONSTEXPR const char *Label() { return "AABB"; }
   LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::AABB<L, T> zero() { return glm::AABB<L, T>(T(0)); }
   LUA_TRAIT_QUALIFIER bool Is(gLuaBase &LB, int idx) {
-    return Point::Is(LB, idx) && Point::Is(LB, idx + 1);
+    return point_type::Is(LB, idx) && point_type::Is(LB, idx + 1);
   }
 };
 
 template<glm::length_t L = 3, typename T = glm_Float>
 struct gLuaLine : gLuaSharedTrait<T, glm::Line<L, T>> {
-  using Point = gLuaTrait<typename glm::Line<L, T>::Point>;
-  using Near = gLuaRelative<true, false, T>;
-  using Far = gLuaRelative<false, false, T>;
+  using safe = gLuaLine;  // @SafeBinding
+  using fast = gLuaLine;  // @UnsafeBinding
+  using point_type = gLuaTrait<typename glm::Line<L, T>::Point>;  // @PointBinding
+
+  /// <summary>
+  /// @RelativeZero: Lua type trait representing the relative negative-inf/zero
+  /// coordinate of the object.
+  /// </summary>
+  using zero_type = gLuaRelativePosition<true, false, T>;
+
+  /// <summary>
+  /// @RelativeOne: Lua type trait representing the relative inf/one coordinate
+  /// of the object.
+  /// </summary>
+  using one_type = gLuaRelativePosition<false, false, T>;
 
   static GLM_CONSTEXPR const char *Label() { return "Line"; }
   LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::Line<L, T> zero() { return glm::Line<L, T>(T(0)); }
   LUA_TRAIT_QUALIFIER bool Is(gLuaBase &LB, int idx) {
-    return Point::Is(LB, idx) && Point::Is(LB, idx + 1);
+    return point_type::Is(LB, idx) && point_type::Is(LB, idx + 1);
   }
 };
 
 template<glm::length_t L = 3, typename T = glm_Float>
 struct gLuaSegment : gLuaSharedTrait<T, glm::LineSegment<L, T>> {
-  using Point = gLuaTrait<typename glm::LineSegment<L, T>::Point>;
-  using Near = gLuaRelative<true, true, T>;
-  using Far = gLuaRelative<false, true, T>;
+  using safe = gLuaSegment;  // @SafeBinding
+  using fast = gLuaSegment;  // @UnsafeBinding
+  using point_type = gLuaTrait<typename glm::LineSegment<L, T>::Point>;  // @PointBinding
+  using zero_type = gLuaRelativePosition<true, true, T>;  // @RelativeZero
+  using one_type = gLuaRelativePosition<false, true, T>;  // @RelativeOne
 
   static GLM_CONSTEXPR const char *Label() { return "Segment"; }
   LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::LineSegment<L, T> zero() { return glm::LineSegment<L, T>(T(0)); }
   LUA_TRAIT_QUALIFIER bool Is(gLuaBase &LB, int idx) {
-    return Point::Is(LB, idx) && Point::Is(LB, idx + 1);
+    return point_type::Is(LB, idx) && point_type::Is(LB, idx + 1);
   }
 };
 
 template<glm::length_t L = 3, typename T = glm_Float>
 struct gLuaRay : gLuaSharedTrait<T, glm::Ray<L, T>> {
-  using Point = gLuaTrait<typename glm::Ray<L, T>::Point>;
-  using Near = gLuaRelative<true, true, T>;
-  using Far = gLuaRelative<false, false, T>;
+  using safe = gLuaRay;  // @SafeBinding
+  using fast = gLuaRay;  // @UnsafeBinding
+  using point_type = gLuaTrait<typename glm::Ray<L, T>::Point>;  // @PointBinding
+  using zero_type = gLuaRelativePosition<true, true, T>;  // @RelativeZero
+  using one_type = gLuaRelativePosition<false, false, T>;  // @RelativeOne
 
   static GLM_CONSTEXPR const char *Label() { return "Ray"; }
   LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::Ray<L, T> zero() { return glm::Ray<L, T>(T(0)); }
   LUA_TRAIT_QUALIFIER bool Is(gLuaBase &LB, int idx) {
-    return Point::Is(LB, idx) && Point::Is(LB, idx + 1);
+    return point_type::Is(LB, idx) && point_type::Is(LB, idx + 1);
   }
 };
 
 template<glm::length_t L = 3, typename T = glm_Float>
 struct gLuaTriangle : gLuaSharedTrait<T, glm::Triangle<L, T>> {
-  using Point = gLuaTrait<typename glm::Triangle<L, T>::Point>;
+  using safe = gLuaTriangle;  // @SafeBinding
+  using fast = gLuaTriangle;  // @UnsafeBinding
+  using point_type = gLuaTrait<typename glm::Triangle<L, T>::Point>;  // @PointBinding
 
   static GLM_CONSTEXPR const char *Label() { return "Triangle"; }
   LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::Triangle<L, T> zero() { return glm::Triangle<L, T>(T(0)); }
   LUA_TRAIT_QUALIFIER bool Is(gLuaBase &LB, int idx) {
-    return Point::Is(LB, idx) && Point::Is(LB, idx + 1) && Point::Is(LB, idx + 2);
+    return point_type::Is(LB, idx) && point_type::Is(LB, idx + 1) && point_type::Is(LB, idx + 2);
   }
 };
 
 template<glm::length_t L = 3, typename T = glm_Float>
 struct gLuaSphere : gLuaSharedTrait<T, glm::Sphere<L, T>> {
-  using Point = gLuaTrait<typename glm::Sphere<L, T>::Point>;
+  using safe = gLuaSphere;  // @SafeBinding
+  using fast = gLuaSphere;  // @UnsafeBinding
+  using point_type = gLuaTrait<typename glm::Sphere<L, T>::Point>;  // @PointBinding
 
   static GLM_CONSTEXPR const char *Label() { return "Sphere"; }
   LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::Sphere<L, T> zero() { return glm::Sphere<L, T>(T(0)); }
   LUA_TRAIT_QUALIFIER bool Is(gLuaBase &LB, int idx) {
-    return Point::Is(LB, idx) && gLuaTrait<T>::Is(LB, idx + 1);
+    return point_type::Is(LB, idx) && gLuaTrait<T>::Is(LB, idx + 1);
   }
 };
 
 template<glm::length_t L = 3, typename T = glm_Float>
 struct gLuaPlane : gLuaSharedTrait<T, glm::Plane<L, T>> {
-  using Point = gLuaTrait<typename glm::Plane<L, T>::Point>;
+  using safe = gLuaPlane;  // @SafeBinding
+  using fast = gLuaPlane;  // @UnsafeBinding
+  using point_type = gLuaTrait<typename glm::Plane<L, T>::Point>;  // @PointBinding
 
   static GLM_CONSTEXPR const char *Label() { return "Plane"; }
   LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::Plane<L, T> zero() { return glm::Plane<L, T>(T(0)); }
   LUA_TRAIT_QUALIFIER bool Is(gLuaBase &LB, int idx) {
-    return Point::Is(LB, idx) && gLuaTrait<T>::Is(LB, idx + 1);
+    return point_type::Is(LB, idx) && gLuaTrait<T>::Is(LB, idx + 1);
   }
 };
 
@@ -217,7 +246,9 @@ struct gLuaPlane : gLuaSharedTrait<T, glm::Plane<L, T>> {
 /// </summary>
 template<typename T = glm_Float>
 struct gLuaPolygon : gLuaSharedTrait<T, glm::Polygon<3, T>> {
-  using Point = gLuaTrait<typename glm::Polygon<3, T>::Point>;
+  using safe = gLuaPolygon;  // @SafeBinding
+  using fast = gLuaPolygon;  // @UnsafeBinding
+  using point_type = gLuaTrait<typename glm::Polygon<3, T>::Point>;  // @PointBinding
 
   static GLM_CONSTEXPR const char *Label() { return "Polygon"; }
   LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::Polygon<3, T> zero() { return glm::Polygon<3, T>(GLM_NULLPTR); }
@@ -1032,7 +1063,7 @@ static const luaL_Reg luaglm_spherelib[] = {
   { "extendRadiusToContainSphere", glm_sphere_extendRadiusToContainSphere },
   { "maximalContainedAABB", glm_sphere_maximalContainedAABB },
   { "fitThroughPoints", glm_sphere_fitThroughPoints },
-  //{ "optimalEnclosingSphere", glm_sphere_optimalEnclosingSphere }, // @TODO(Bloat)
+  //{ "optimalEnclosingSphere", glm_sphere_optimalEnclosingSphere },  // @TODO(Bloat)
   { "projectToAxis", glm_sphere_projectToAxis },
   /* @DEPRECATED intersectsObject */
   { "intersectSphere", glm_sphere_intersectsSphere },
@@ -1227,7 +1258,7 @@ GLM_BINDING_QUALIFIER(plane_clipLine) {
 
 GLM_BINDING_QUALIFIER(plane_intersectsPlane) {
   GLM_BINDING_BEGIN
-  gLuaPlane<>::Point::type result;
+  gLuaPlane<>::point_type::type result;
   const gLuaPlane<>::type a = gLuaPlane<>::Next(LB);
   const gLuaPlane<>::type b = gLuaPlane<>::Next(LB);
   const gLuaPlane<>::type c = gLuaPlane<>::Next(LB);
@@ -1412,10 +1443,10 @@ GLM_BINDING_QUALIFIER(polygon_new) {
   // Setup metatable.
   if (luaL_getmetatable(LB.L, LUAGLM_POLYGON_META) == LUA_TTABLE) {  // [..., poly, meta]
     lua_setmetatable(LB.L, -2);  // [..., poly]
-    LuaCrtAllocator<gLuaPolygon<>::Point::type> allocator(LB.L);
+    LuaCrtAllocator<gLuaPolygon<>::point_type::type> allocator(LB.L);
 
     // Create a std::vector backed by the Lua allocator.
-    using PolyList = glm::List<gLuaPolygon<>::Point::type>;
+    using PolyList = glm::List<gLuaPolygon<>::point_type::type>;
     PolyList *list = static_cast<PolyList *>(allocator.realloc(GLM_NULLPTR, 0, sizeof(PolyList)));
     if (l_unlikely(list == GLM_NULLPTR)) {
       lua_pop(L, 1);
@@ -1470,7 +1501,7 @@ GLM_BINDING_QUALIFIER(polygon__gc) {
     LuaCrtAllocator<void> allocator(L);
     ud->p->Validate(L);
     ud->p->~LuaVector();  // Invoke destructor.
-    allocator.realloc(ud->p, sizeof(glm::List<gLuaPolygon<>::Point::type>), 0);  // Free allocation
+    allocator.realloc(ud->p, sizeof(glm::List<gLuaPolygon<>::point_type::type>), 0);  // Free allocation
     ud->p = GLM_NULLPTR;
   }
   return 0;
