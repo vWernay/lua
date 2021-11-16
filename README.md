@@ -763,6 +763,7 @@ Ordered by priority.
 
 1. The initial implementation of the binding library hooked 'assert' in GLM to throw an appropriate Lua error. This was removed and never compensated for in the binding implementation. Some functions, e.g., glm::ballRound, will loop near-infinitely when passed incorrect values. Fix.
 1. Finalize features to reduce size of binding library.
+1. Optimize runtime swizzling: `swizzle` and `glmVec_get`. It is likely possible to improve this operation by 15/20 percent.
 1. Cleanup testing scripts/environment and publish.
 1. Rewrite build scripts.
 1. Optimize vector/matrix tagmethod codegen: reduce branching or consider PGOing the object.
@@ -776,7 +777,6 @@ Ordered by priority.
 1. Replace `glm/gtc/random.{inl,hpp}` with a variant that takes advantage of CXX11s [Pseudo-random number generation](https://en.cppreference.com/w/cpp/numeric/random) facilities (and unify it with `math.random`).
 1. Add support for two-dimensional structures: Ray2D, Line2D, Plane2D.
 1. Optimize `glm_createMatrix`. Profiling case '4x4 matrix creation (lua\_Alloc)' is the one of the slowest operations in the added vector/matrix API. Worse when using the default Windows allocator.
-1. Optimize runtime swizzling: `swizzle` and `glmVec_get`. It is likely possible to improve this operation by 15/20 percent.
 1. `glmMat_set` support for tables, e.g., `mat[i] = { ... }`, by using `glmH_tovector`.
 1. Consider replacing the 'blob' variant with an [FFI](https://github.com/facebookarchive/luaffifb) library: advanced use is required.
 

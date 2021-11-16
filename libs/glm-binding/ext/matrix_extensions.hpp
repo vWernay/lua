@@ -625,6 +625,9 @@ namespace glm {
 
   /* Fixes */
 
+  /// <summary>
+  /// @GLMFix: glm::scaleBias that ensures the matrix is initialized.
+  /// </summary>
   template<typename T, qualifier Q>
   GLM_FUNC_QUALIFIER mat<4, 4, T, Q> __scaleBias(T scale, T bias) {
     mat<4, 4, T, Q> result(0);
@@ -640,6 +643,9 @@ namespace glm {
     return m * __scaleBias<T, Q>(scale, bias);
   }
 
+  /// <summary>
+  /// @GLMFix: corrected glm::isNull implementation
+  /// </summary>
   template<length_t C, length_t R, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER bool _isNull(mat<C, R, T, Q> const &m, T eps = epsilon<T>) {
     bool result = true;
@@ -648,6 +654,9 @@ namespace glm {
     return result;
   }
 
+  /// <summary>
+  /// @GLMFix: corrected glm::isNormalized implementation
+  /// </summary>
   template<length_t C, length_t R, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER bool _isNormalized(mat<C, R, T, Q> const &m, T eps = epsilon<T>) {
     bool result = true;
@@ -664,6 +673,9 @@ namespace glm {
     return result;
   }
 
+  /// <summary>
+  /// @GLMFix: Generalized implementation.
+  /// </summary>
   template<length_t C, length_t R, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER bool _isIdentity(mat<C, R, T, Q> const &m, T eps = epsilon<T>) {
     bool result = true;
@@ -716,7 +728,7 @@ namespace glm {
 
 #if GLM_CONFIG_ALIGNED_GENTYPES == GLM_ENABLE && defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
   /// <summary>
-  /// non-aligned implementation
+  /// @GLMFix: bypass aligned implementation
   /// </summary>
   template<length_t C, length_t R, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER mat<C, R, T, Q> __matrixCompMult(mat<C, R, T, Q> const &x, mat<C, R, T, Q> const &y) {
@@ -724,7 +736,7 @@ namespace glm {
   }
 
   /// <summary>
-  /// non-aligned implementation
+  /// @GLMFix: bypass aligned implementation
   /// </summary>
   template<length_t C, length_t R, typename T, typename U, qualifier Q>
   GLM_FUNC_QUALIFIER mat<C, R, T, Q> __mix(mat<C, R, T, Q> const &x, mat<C, R, T, Q> const &y, U a) {

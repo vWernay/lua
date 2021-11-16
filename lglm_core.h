@@ -96,7 +96,6 @@ static LUA_INLINE int vecgeti (const TValue *obj, lua_Integer n, StkId res) {
 
 /* Helper function for generalized vector string-access. */
 static LUA_INLINE int vecgets (const TValue *obj, const char *k, StkId res) {
-  const grit_length_t _d = glm_dimensions(ttypetag(obj));
   grit_length_t _n = 0;
   switch (*k) {
     case 'x': case 'r': case '1': _n = 1; break;
@@ -104,7 +103,7 @@ static LUA_INLINE int vecgets (const TValue *obj, const char *k, StkId res) {
     case 'z': case 'b': case '3': _n = 3; break;
     case 'w': case 'a': case '4': _n = 4; break;
     case 'n': {  /* Dimension fields takes priority over metamethods */
-      setivalue(s2v(res), cast(lua_Integer, _d));
+      setivalue(s2v(res), cast(lua_Integer, glm_dimensions(ttypetag(obj))));
       return LUA_TNUMBER;
     }
     default: {
@@ -112,7 +111,7 @@ static LUA_INLINE int vecgets (const TValue *obj, const char *k, StkId res) {
     }
   }
 
-  if (l_likely(_n >= 1 && _n <= _d)) {
+  if (l_likely(_n >= 1 && _n <= glm_dimensions(ttypetag(obj)))) {
     /* @TODO: Avoid taking the address of a 'TValue' field */
 #if LUAGLM_QUAT_WXYZ  /* quaternion has WXYZ layout */
     if (ttypetag(obj) == LUA_VQUAT) _n = (_n % 4) + 1;

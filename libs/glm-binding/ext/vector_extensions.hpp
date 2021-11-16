@@ -19,6 +19,7 @@
 #include <glm/gtc/packing.hpp>
 #include <glm/gtc/bitfield.hpp>
 #include <glm/gtc/color_space.hpp>
+#include <glm/gtc/random.hpp>
 #include <glm/gtx/orthonormalize.hpp>
 #include <glm/gtx/projection.hpp>
 #include <glm/gtx/spline.hpp>
@@ -489,7 +490,7 @@ namespace glm {
   }
 
   /// <summary>
-  /// Generalized slerp implementation
+  /// @GLMFix: Generalized slerp implementation
   /// </summary>
   template<length_t L, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER vec<L, T, Q> __slerp(vec<L, T, Q> const &x, vec<L, T, Q> const &y, T const &a) {
@@ -519,7 +520,7 @@ namespace glm {
   }
 
   /// <summary>
-  /// Generalized closestPointOnLine implementation
+  /// @GLMFix: Generalized closestPointOnLine implementation
   /// </summary>
   template<length_t L, typename T, qualifier Q>
   GLM_FUNC_QUALIFIER vec<L, T, Q> closestPointOnLine(vec<L, T, Q> const &point, vec<L, T, Q> const &a, vec<L, T, Q> const &b) {
@@ -1298,14 +1299,29 @@ namespace glm {
   }
 #endif
 
-  /*
-  ** Fix -Werror when using bitfieldFillOne and bitfieldFillZero:
-  ** libs/glm/glm/./gtc/bitfield.inl:229:29: warning: comparison of integer expressions of different signedness: ‘int’ and ‘long unsigned int’ [-Wsign-compare]
-  **   229 | return Bits >= sizeof(genIUType) * 8 ? ~static_cast<genIUType>(0) : (static_cast<genIUType>(1) << Bits) - static_cast<genIUType>(1);
-  */
+  /// <summary>
+  /// @GLMFix: -Werror when using bitfieldFillOne and bitfieldFillZero:
+  ///
+  /// libs/glm/glm/./gtc/bitfield.inl:229:29: warning: comparison of integer expressions of different signedness: ‘int’ and ‘long unsigned int’ [-Wsign-compare]
+  ///   229 | return Bits >= sizeof(genIUType) * 8 ? ~static_cast<genIUType>(0) : (static_cast<genIUType>(1) << Bits) - static_cast<genIUType>(1);
+  /// </summary>
   template<>
   GLM_FUNC_QUALIFIER int mask(int Bits) {
     return detail::mask(Bits);  // Use alternate/duplicate mask implementation
+  }
+
+  /// <summary>
+  /// @GLMFix: 'int' to 'unsigned char' [-Wimplicit-int-conversion]
+  /// </summary>
+  namespace detail {
+    template<>
+    struct compute_rand<1, uint8, glm::defaultp> {
+      GLM_FUNC_QUALIFIER static vec<1, uint8, glm::defaultp> call() {
+        return vec<1, uint8, glm::defaultp>(static_cast<uint8>(
+          std::rand() % static_cast<int>(std::numeric_limits<uint8>::max())
+        ));
+      }
+    };
   }
 
   /*

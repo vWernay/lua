@@ -538,23 +538,26 @@ static int glmMat_call_unpack(lua_State *L) { return glm_unpack_matrix(L, 1); }
 ** an error if there is no '__call' metafield.
 */
 StkId luaD_tryfuncTM (lua_State *L, StkId func) {
-  TValue unpack_fallback;
   const TValue *tm = luaT_gettmbyobj(L, s2v(func), TM_CALL);
   StkId p;
+  TValue vunpack;
   checkstackGCp(L, 1, func);  /* space for metamethod */
   if (l_unlikely(ttisnil(tm))) {
-    /* Default _call operators for vectors and matrices unpack its contents */
+    /*
+    ** The default TM_CALL operator for vectors and matrices is to unpack its
+    ** contents. This approach creates a temporary TValue that will be written
+    ** to 'func'.
+    */
     if (ttisvector(s2v(func))) {
-      setfvalue(&unpack_fallback, glmVec_call_unpack);
+      setfvalue(&vunpack, glmVec_call_unpack); tm = &vunpack;
     }
     else if (ttismatrix(s2v(func))) {
-      setfvalue(&unpack_fallback, glmMat_call_unpack);
+      setfvalue(&vunpack, glmMat_call_unpack); tm = &vunpack;
     }
     else {
-      setnilvalue(&unpack_fallback);
+      setnilvalue(&vunpack);
       luaG_callerror(L, s2v(func));  /* nothing to call */
     }
-    tm = &unpack_fallback;
   }
   for (p = L->top; p > func; p--)  /* open space for metamethod */
     setobjs2s(L, p, p-1);
