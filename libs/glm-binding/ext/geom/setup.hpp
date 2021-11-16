@@ -33,6 +33,11 @@
   #define GLM_CONFIG_DEFAULTED_DEFAULT_CTOR GLM_CONFIG_DEFAULTED_FUNCTIONS
 #endif
 
+/* @COMPAT GLM_COMPILER_HIP introduced in 0.9.9.9 */
+#if !defined(GLM_COMPILER_HIP)
+  #define GLM_COMPILER_HIP 0
+#endif
+
 /* Redefinition of GLM_FUNC_QUALIFIER for "geom/" */
 #define GLM_GEOM_QUALIFIER static GLM_FUNC_QUALIFIER
 
