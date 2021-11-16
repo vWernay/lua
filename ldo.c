@@ -538,10 +538,11 @@ static int glmMat_call_unpack(lua_State *L) { return glm_unpack_matrix(L, 1); }
 ** an error if there is no '__call' metafield.
 */
 StkId luaD_tryfuncTM (lua_State *L, StkId func) {
-  const TValue *tm = luaT_gettmbyobj(L, s2v(func), TM_CALL);
+  const TValue *tm;
   StkId p;
   TValue vunpack;
   checkstackGCp(L, 1, func);  /* space for metamethod */
+  tm = luaT_gettmbyobj(L, s2v(func), TM_CALL);  /* (after previous GC) */
   if (l_unlikely(ttisnil(tm))) {
     /*
     ** The default TM_CALL operator for vectors and matrices is to unpack its
