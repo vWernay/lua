@@ -21,6 +21,8 @@
 @@ LUAGLM_ALIASES Include aliases (e.g., length vs. magnitude) to functions.
 **
 ** Features:
+@@ LUAGLM_INSTALL_METATABLES Update the global metatables for vector and matrix,
+**  types, if ones are not already defined, with lglmlib on load.
 @@ LUAGLM_REPLACE_MATH Force replace _G.math with the binding library on open.
 @@ LUAGLM_RECYCLE Enable object recycling: trailing/unused parameters in a
 **  function call, e.g., matrix objects, are used as a result store.
@@ -1773,8 +1775,8 @@ TRAITS_LAYOUT_DEFN(nlz, glm::nlz, LAYOUT_UNARY, gLuaTrait<unsigned>)
   const Tr::safe::type v3 = Tr::safe::Next(LB);                 \
   const Tr::value_type v4 = Tr::value_trait::Next(LB);          \
   if (glm::intersectLineSphere(v1, v2, v3, v4, v5, v6, v7, v8)) \
-    TRAITS_PUSH(LB, v5, v6, v7, v8);                            \
-  return gLuaBase::Push(LB);                                    \
+    TRAITS_PUSH(LB, true, v5, v6, v7, v8);                      \
+  TRAITS_PUSH(LB, false);                                       \
   LUA_MLM_END
 
 #define LAYOUT_INTERSECT_RAY_PLANE(LB, F, Tr, ...) \
@@ -1785,8 +1787,8 @@ TRAITS_LAYOUT_DEFN(nlz, glm::nlz, LAYOUT_UNARY, gLuaTrait<unsigned>)
   const Tr::safe::type v3 = Tr::safe::Next(LB);    \
   const Tr::safe::type v4 = Tr::safe::Next(LB);    \
   if (glm::intersectRayPlane(v1, v2, v3, v4, v5))  \
-    return gLuaBase::Push(LB, v5);                 \
-  return gLuaBase::Push(LB);                       \
+    TRAITS_PUSH(LB, true, v5);                     \
+  TRAITS_PUSH(LB, false);                          \
   LUA_MLM_END
 
 #define LAYOUT_INTERSECT_RAY_SPHERE(LB, F, Tr, ...)       \
@@ -1797,8 +1799,8 @@ TRAITS_LAYOUT_DEFN(nlz, glm::nlz, LAYOUT_UNARY, gLuaTrait<unsigned>)
   const Tr::safe::type v3 = Tr::safe::Next(LB);           \
   const Tr::value_type v4 = Tr::value_trait::Next(LB);    \
   if (glm::intersectRaySphere(v1, v2, v3, v4, v5, v6))    \
-    TRAITS_PUSH(LB, v5, v6);                              \
-  return gLuaBase::Push(LB);                              \
+    TRAITS_PUSH(LB, true, v5, v6);                        \
+  TRAITS_PUSH(LB, false);                                 \
   LUA_MLM_END
 
 NUMBER_VECTOR_DEFN(intersectLineSphere, glm::intersectLineSphere, LAYOUT_INTERSECT_LINE_SPHERE)
@@ -1813,8 +1815,8 @@ GLM_BINDING_QUALIFIER(intersectLineTriangle) {
   const gLuaVec3<float>::type v4 = gLuaVec3<>::Next(LB);
   const gLuaVec3<float>::type v5 = gLuaVec3<>::Next(LB);
   if (glm::intersectLineTriangle(v1, v2, v3, v4, v5, v6))
-    return gLuaBase::Push(LB, v6);
-  return gLuaBase::Push(LB);
+    TRAITS_PUSH(LB, true, v6);
+  TRAITS_PUSH(LB, false);
   GLM_BINDING_END
 }
 
@@ -1828,8 +1830,8 @@ GLM_BINDING_QUALIFIER(intersectRayTriangle) {
   const gLuaVec3<>::type v1 = gLuaVec3<>::Next(LB);
   const gLuaVec3<>::type v2 = gLuaVec3<>::Next(LB);
   if (glm::intersectRayTriangle(orig, dir, v0, v1, v2, baryPosition, distance))
-    TRAITS_PUSH(LB, baryPosition, distance);
-  return gLuaBase::Push(LB);
+    TRAITS_PUSH(LB, true, baryPosition, distance);
+  TRAITS_PUSH(LB, false);
   GLM_BINDING_END
 }
 #endif

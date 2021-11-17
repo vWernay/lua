@@ -43,6 +43,11 @@
   #include "geom.hpp"
 #endif
 
+/* @TEMP: The GLM library will be force-installed by default */
+#if !defined(LUAGLM_INSTALL_METATABLES)
+  #define LUAGLM_INSTALL_METATABLES
+#endif
+
 /* Create a "{ function, glm_function }" registry instance */
 #define REG_STR(C) #C
 #define GLM_LUA_REG(NAME) \
@@ -230,12 +235,14 @@ extern "C" {
 #endif
 
     /* Setup default metatables */
+#if defined(LUAGLM_INSTALL_METATABLES)
     lua_lock(L);
     if (G(L)->mt[LUA_TVECTOR] == GLM_NULLPTR)
       G(L)->mt[LUA_TVECTOR] = hvalue(s2v(L->top - 1));
     if (G(L)->mt[LUA_TMATRIX] == GLM_NULLPTR)
       G(L)->mt[LUA_TMATRIX] = hvalue(s2v(L->top - 1));
     lua_unlock(L);
+#endif
 
     return 1;
   }

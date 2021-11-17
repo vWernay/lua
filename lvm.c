@@ -1296,15 +1296,13 @@ LUA_JUMPTABLE_ATTRIBUTE void luaV_execute (lua_State *L, CallInfo *ci) {
         TValue *rb = vRB(i);
         TValue *rc = vRC(i);
         if (ttisvector(rb)) {  /* fast track for integers / character indexing? */
-          if (ttisinteger(rc) && glmVec_fastgeti(rb, ivalue(rc), ra)) { /* nothing */ }
-          else if (ttisstring(rc) && glmVec_fastgets(rb, tsvalue(rc), ra)) { /* nothing */ }
-          else {
+          if (!(ttisinteger(rc) && glmVec_fastgeti(rb, ivalue(rc), ra))
+              && !(ttisstring(rc) && glmVec_fastgets(rb, tsvalue(rc), ra))) {
             Protect(glmVec_get(L, rb, rc, ra));
           }
         }
         else if (ttismatrix(rb)) {  /* fast track for integers? */
-          if (ttisinteger(rc) && glmMat_fastgeti(rb, ivalue(rc), ra)) { /* nothing */ }
-          else {
+          if (!(ttisinteger(rc) && glmMat_fastgeti(rb, ivalue(rc), ra))) {
             Protect(glmMat_get(L, rb, rc, ra));
           }
         }

@@ -1182,23 +1182,21 @@ LUA_API lua_Integer glm_tohash(lua_State *L, int idx, int ignore_case) {
 LUA_API int glmVec_dot(lua_State *L) {
   const TValue *x = glm_index2value(L, 1);
   const TValue *y = glm_index2value(L, 2);
-  if (ttisinteger(x) && ttisinteger(y))
-    lua_pushinteger(L, ivalue(x) * ivalue(y));
-  else if (ttisnumber(x) && ttisnumber(y))
-    lua_pushnumber(L, nvalue(x) * nvalue(y));
-  else if (ttisquat(x) && ttisquat(y))
-    lua_pushnumber(L, cast_num(glm::dot(glm_qvalue(x), glm_qvalue(y))));
-  else if (ttisvector(x) && ttypetag(x) == ttypetag(y)) {
+  if (ttypetag(x) == ttypetag(y)) {
     switch (ttypetag(x)) {
+      case LUA_VNUMINT: lua_pushinteger(L, ivalue(x) * ivalue(y)); break;
+      case LUA_VNUMFLT: lua_pushnumber(L, nvalue(x) * nvalue(y)); break;
       case LUA_VVECTOR2: lua_pushnumber(L, cast_num(glm::dot(glm_v2value(x), glm_v2value(y)))); break;
       case LUA_VVECTOR3: lua_pushnumber(L, cast_num(glm::dot(glm_v3value(x), glm_v3value(y)))); break;
       case LUA_VVECTOR4: lua_pushnumber(L, cast_num(glm::dot(glm_v4value(x), glm_v4value(y)))); break;
+      case LUA_VQUAT: lua_pushnumber(L, cast_num(glm::dot(glm_qvalue(x), glm_qvalue(y)))); break;
       default: {
-        lua_pushnumber(L, 0);
-        break;
+        return luaL_typeerror(L, 1, LABEL_NUMBER " or " LABEL_VECTOR " type");
       }
     }
   }
+  else if (ttisnumber(x) && ttisnumber(y))  // number-coercion
+    lua_pushnumber(L, nvalue(x) * nvalue(y));
   else {
     return luaL_typeerror(L, 1, LABEL_NUMBER " or " LABEL_VECTOR " type");
   }
@@ -1647,9 +1645,13 @@ static int glm_createVector(lua_State *L, glm::length_t desiredSize = 0) {
 
   // If the vector is of a fixed/desired size and only one non-table argument has been supplied
   const int top = _gettop(L);
-  const TValue *o_f = glm_index2value(L, 1);
-  if (desiredSize > 0 && top == 1 && glm_castvalue(o_f, v.x)) {
-    return glm_pushvec(L, glmVector(glm::vec<4, T>(v.x)), desiredSize);
+  if (desiredSize > 0) {
+    if (top == 0)
+      return glm_pushvec(L, glmVector(v), desiredSize);
+    if (top == 1 && glm_castvalue(glm_index2value(L, 1), v.x)) {
+      v.y = v.z = v.w = v.x;
+      return glm_pushvec(L, glmVector(v), desiredSize);
+    }
   }
 
   // Maximum number of stack values to parse, starting from "idx"
@@ -1664,7 +1666,7 @@ static int glm_createVector(lua_State *L, glm::length_t desiredSize = 0) {
   if (desiredSize == 0 && v_len == 0)
     return luaL_error(L, LABEL_VECTOR " requires 1 to 4 values");
   else if (desiredSize != 0 && v_len != desiredSize)
-    return luaL_error(L, LABEL_VECTOR "%d requires 1 or %d values", cast_int(desiredSize), cast_int(desiredSize));
+    return luaL_error(L, LABEL_VECTOR "%d requires 0, 1 or %d values", cast_int(desiredSize), cast_int(desiredSize));
   else if (v_len == 1) {
     GLM_IF_CONSTEXPR(std::is_same<T, bool>::value)
       lua_pushboolean(L, cast_int(v.x));
@@ -2143,6 +2145,10 @@ static int vec_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
     case TM_BXOR: INT_VECTOR_OPERATION(operator^, res, v, p2); break;
     case TM_SHL: INT_VECTOR_OPERATION(operator<<, res, v, p2); break;
     case TM_SHR: INT_VECTOR_OPERATION(operator>>, res, v, p2); break;
+    case TM_BNOT: {
+      glm_setvvalue2s(res, operator~(cast_vec4(v.v4, lua_Integer)), tt_p1);
+      return 1;
+    }
     default: {
       break;
     }

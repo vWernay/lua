@@ -496,7 +496,7 @@ OPTION(LUAGLM_APICHECK
   keys/key-types. Otherwise, follow tables and set the result to nil" OFF
 )
 
-OPTION(LUAGLM_COMPAT_IPAIRS "Reintroduce compatibility for the ``__ipairs`` metamethod that was deprecated in 5.3 and removed in 5.4" ON)
+OPTION(LUAGLM_COMPAT_IPAIRS "Reintroduce compatibility for the __ipairs metamethod that was deprecated in 5.3 and removed in 5.4" OFF)
 OPTION(LUAGLM_EXT_DEFER "Enable the defer statement" OFF)
 OPTION(LUAGLM_EXT_DEFER_OLD "Import func2close from ltests.h into the base library as `defer`" ON)
 OPTION(LUAGLM_EXT_JOAAT "Enable compile time Jenkins' one-at-a-time hashing" ON)

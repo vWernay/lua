@@ -80,6 +80,7 @@ const TValue *luaT_gettmbyobj (lua_State *L, const TValue *o, TMS event) {
       break;
     default:
       mt = G(L)->mt[ttype(o)];
+      break;
   }
   return (mt ? luaH_getshortstr(mt, G(L)->tmname[event]) : &G(L)->nilvalue);
 }
@@ -148,26 +149,36 @@ static int callbinTM (lua_State *L, const TValue *p1, const TValue *p2,
 
 void luaT_trybinTM (lua_State *L, const TValue *p1, const TValue *p2,
                     StkId res, TMS event) {
-  if (l_likely(callbinTM(L, p1, p2, res, event))) { /* FALLTHROUGH */ }
-  else if (tmbitop(event)) {
-    if (ttisnumber(p1) && ttisnumber(p2))
-      luaG_tointerror(L, p1, p2);
-    /*
-    ** @NOTE: bitwise operators apply to integer vectors (i.e., glm::ivec). As
-    ** this iteration of Lua does not explicitly support integer vectors, each
-    ** vector is int-casted beforehand.
-    */
-    else if (ttisvector(p1) && glm_trybinTM(L, p1, p2, res, event)) {
-      /* FALLTHROUGH; successful operation */
+  /*
+  ** For performance reasons, inlined unary/binary vector/quaternion/matrix
+  ** operators take precedence over metamethods. This approach leaves the base
+  ** Lua implementation in tact.
+  **
+  ** As bitwise operators only apply to integer vectors, i.e., glm::ivec. This
+  ** iteration of LuaGLM will int-cast each vector component beforehand. Native
+  ** integer-vector support is TODO.
+  **
+  ** @TODO: Document above.
+  */
+  if (ttisvector(p1) || ttismatrix(p1) || ttisvector(p2) || ttismatrix(p2)) {
+    if (l_likely(glm_trybinTM(L, p1, p2, res, event))) {
+      return;
     }
-    else
-      luaG_opinterror(L, p1, p2, "perform bitwise operation on");
   }
-  else if (!glm_trybinTM(L, p1, p2, res, event)) {
-    if (ttisvector(p1) || ttismatrix(p1))
-      luaG_opinterror(L, p1, p2, "perform unsupported operation on");
-    else
-      luaG_opinterror(L, p1, p2, "perform arithmetic on");
+
+  if (l_unlikely(!callbinTM(L, p1, p2, res, event))) {
+    switch (event) {
+      case TM_BAND: case TM_BOR: case TM_BXOR:
+      case TM_SHL: case TM_SHR: case TM_BNOT: {
+        if (ttisnumber(p1) && ttisnumber(p2))
+          luaG_tointerror(L, p1, p2);
+        else
+          luaG_opinterror(L, p1, p2, "perform bitwise operation on");
+      }
+      /* calls never return, but to avoid warnings: *//* FALLTHROUGH */
+      default:
+        luaG_opinterror(L, p1, p2, "perform arithmetic on");
+    }
   }
 }
 
