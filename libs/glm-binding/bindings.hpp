@@ -898,6 +898,8 @@ template<bool FastPath> struct gLuaTrait<double, FastPath> : gLuaPrimitive<doubl
 /// </summary>
 template<typename T, bool FastPath>
 struct gLuaTrait<glm::qua<T>, FastPath> : gLuaSharedTrait<T, glm::qua<T>> {
+  template<typename Type = T>
+  using as_type = gLuaTrait<glm::qua<T>>;  // @CastBinding
   using safe = gLuaTrait<glm::qua<T>, false>;  // @SafeBinding
   using fast = gLuaTrait<glm::qua<T>, true>;  // @UnsafeBinding
 
@@ -957,6 +959,8 @@ struct gLuaTrait<glm::vec<D, T>, FastPath> : gLuaSharedTrait<T, glm::vec<D, T>> 
 
 template<glm::length_t C, glm::length_t R, typename T, bool FastPath>
 struct gLuaTrait<glm::mat<C, R, T>, FastPath> : gLuaSharedTrait<T, glm::mat<C, R, T>> {
+  template<typename Type = T>
+  using as_type = gLuaTrait<glm::mat<C, R, Type>>;  // @CastBinding
   using safe = gLuaTrait<glm::mat<C, R, T>, false>;  // @SafeBinding
   using fast = gLuaTrait<glm::mat<C, R, T>, true>;  // @UnsafeBinding
 

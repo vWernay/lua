@@ -64,7 +64,7 @@ OPTION(GLM_NATIVE_ARCH "Enable compiler optimizations for the native processor a
 OPTION(GLM_FAST_MATH "Enable fast math optimizations" OFF)
 
 # Compilation flags specific to the luaglm object.
-SET(glm_nativeFlags "")
+SET(GLM_OPTIMIZATION_FLAGS "")
 
 # Windows systems
 IF( MSVC )
@@ -83,12 +83,12 @@ IF( MSVC )
     ADD_COMPILE_OPTIONS(/Oi /Ot /GF /GS- /EHsc /DNDEBUG)
   ENDIF()
 
-  STRING(APPEND glm_nativeFlags " ${MSVC_OPT_FLAG} /GF /GS-")
+  STRING(APPEND GLM_OPTIMIZATION_FLAGS " ${MSVC_OPT_FLAG} /GF /GS-")
 
   IF( LUA_FAST_MATH )
     ADD_COMPILE_OPTIONS(/fp:fast /fp:except-)
   ELSEIF( GLM_FAST_MATH )
-    STRING(APPEND glm_nativeFlags " /fp:fast /fp:except-")
+    STRING(APPEND GLM_OPTIMIZATION_FLAGS " /fp:fast /fp:except-")
   ENDIF()
 
   IF( LUA_NATIVE_ARCH OR GLM_NATIVE_ARCH )
@@ -96,7 +96,7 @@ IF( MSVC )
     IF( LUA_NATIVE_ARCH AND COMPILER_OPT_ARCH_AVX_SUPPORTED )
       ADD_COMPILE_OPTIONS(/arch:AVX)
     ELSEIF( GLM_NATIVE_ARCH AND COMPILER_OPT_ARCH_AVX_SUPPORTED )
-      STRING(APPEND glm_nativeFlags " /arch:AVX")
+      STRING(APPEND GLM_OPTIMIZATION_FLAGS " /arch:AVX")
     ENDIF()
   ENDIF()
 
@@ -199,7 +199,11 @@ ELSE()
   OPTION(LUA_USE_POSIX "Use POSIX functionality" ON)
   OPTION(LUA_USE_DLOPEN "Use dynamic linker to load modules" ON)
 
-  SET(glm_nativeFlags "-O3 -DNDEBUG")
+  # Replace -O3 w/ -O2
+  # STRING(REGEX REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
+  # STRING(REGEX REPLACE "-O3" "-O2" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+  SET(GLM_OPTIMIZATION_FLAGS "-O3")
+
   IF( LUA_BIT32 )
     # ADD_REQUIRED_C_COMPILER_FLAG(-m32)
     ADD_COMPILE_DEFINITIONS(LUA_32BITS=1)
@@ -213,7 +217,7 @@ ELSE()
   IF( LUA_FAST_MATH )
     ADD_COMPILE_OPTIONS(-ffast-math -fno-finite-math-only)
   ELSEIF( GLM_FAST_MATH )
-    STRING(APPEND glm_nativeFlags " -ffast-math -fno-finite-math-only")
+    STRING(APPEND GLM_OPTIMIZATION_FLAGS " -ffast-math -fno-finite-math-only")
   ENDIF()
 
   # Compile everything, lglm.cpp, or nothing with common performance tweaks
@@ -223,9 +227,9 @@ ELSE()
       ADD_COMPILE_OPTIONS(-fno-plt)
     ENDIF()
   ELSEIF( GLM_NATIVE_ARCH )
-    STRING(APPEND glm_nativeFlags " -fno-stack-protector")
+    STRING(APPEND GLM_OPTIMIZATION_FLAGS " -fno-stack-protector")
     IF (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-      STRING(APPEND glm_nativeFlags " -fno-plt")
+      STRING(APPEND GLM_OPTIMIZATION_FLAGS " -fno-plt")
     ENDIF()
   ENDIF()
 
@@ -235,13 +239,8 @@ ELSE()
     IF( LUA_NATIVE_ARCH AND COMPILER_OPT_ARCH_NATIVE_SUPPORTED )
       ADD_COMPILE_OPTIONS(-march=native)
     ELSEIF( GLM_NATIVE_ARCH AND COMPILER_OPT_ARCH_NATIVE_SUPPORTED )
-      STRING(APPEND glm_nativeFlags " -march=native")
+      STRING(APPEND GLM_OPTIMIZATION_FLAGS " -march=native")
     ENDIF()
-  ENDIF()
-
-  # Change default release build flags
-  IF(NOT (${CMAKE_BUILD_TYPE} MATCHES Debug))
-    ADD_COMPILE_OPTIONS(-DNDEBUG)
   ENDIF()
 
   # Temporary fix: CMake no longer defines WIN32 on MSYS.
@@ -297,7 +296,7 @@ ELSE()
     )
 
     # Remove symbols and relocation information from the binding library
-    # STRING(APPEND glm_nativeFlags " -s")
+    # STRING(APPEND GLM_OPTIMIZATION_FLAGS " -s")
   ENDIF()
 
   # On POSIX Lua links to standard math library "m"
@@ -626,8 +625,6 @@ OPTION(GLM_FORCE_SILENT_WARNINGS "Silent C++ warnings from language extensions" 
 OPTION(GLM_FORCE_QUAT_DATA_XYZW "Force GLM to store quat data as x,y,z,w instead of w,x,y,z" OFF)
 # GLM_FORCE_PRECISION_{ LOWP_FLOAT, MEDIUMP_FLOAT, HIGHP_FLOAT }
 
-ADD_COMPILE_DEFINITIONS(GLM_ENABLE_EXPERIMENTAL)
-
 # lua-glm Options
 OPTION(GLM_FORCE_Z_UP "Unit up vector is along the Z-axis (Y-axis otherwise)" ON)
 OPTION(LUAGLM_INCLUDE_ALL "Include all GLM modules, glm/gtc/gtx" ON)
@@ -794,9 +791,9 @@ ENDIF()
 # Setup ${SRC_LUAGLM}
 SET_SOURCE_FILES_PROPERTIES(${SRC_ONELUA} ${SRC_LUAGLM} PROPERTIES LANGUAGE CXX )
 IF( NOT CMAKE_BUILD_TYPE STREQUAL Debug )
-  SET_SOURCE_FILES_PROPERTIES(${SRC_ONELUA} PROPERTIES COMPILE_FLAGS ${glm_nativeFlags})
-  SET_SOURCE_FILES_PROPERTIES(${SRC_LUAGLM} PROPERTIES COMPILE_FLAGS ${glm_nativeFlags})
-  SET_SOURCE_FILES_PROPERTIES(${SRC_LIBGLM} PROPERTIES COMPILE_FLAGS ${glm_nativeFlags})
+  SET_SOURCE_FILES_PROPERTIES(${SRC_ONELUA} PROPERTIES COMPILE_FLAGS ${GLM_OPTIMIZATION_FLAGS})
+  SET_SOURCE_FILES_PROPERTIES(${SRC_LUAGLM} PROPERTIES COMPILE_FLAGS ${GLM_OPTIMIZATION_FLAGS})
+  SET_SOURCE_FILES_PROPERTIES(${SRC_LIBGLM} PROPERTIES COMPILE_FLAGS ${GLM_OPTIMIZATION_FLAGS})
 ENDIF()
 
 #######################################
