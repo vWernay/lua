@@ -9,7 +9,6 @@
 */
 #ifndef lglm_h
 #define lglm_h
-#define LUAGLM_API
 #if !defined(GLM_ENABLE_EXPERIMENTAL)
   #define GLM_ENABLE_EXPERIMENTAL
 #endif
@@ -121,27 +120,34 @@ typedef GLM_INT_TYPE glm_Integer;
 */
 
 /*
+@@ LUAGLM_API A mark for all core GLM API functions.
+*/
+#if !defined(LUAGLM_API)
+  #define LUAGLM_API LUA_API
+#endif
+
+/*
 ** Return true if the element at the given index is a vector, setting "size" to
 ** the dimensions of the vector.
 */
-LUA_API bool glm_isvector(lua_State *L, int idx, glm::length_t &size);
+LUAGLM_API bool glm_isvector(lua_State *L, int idx, glm::length_t &size);
 
 /* Return true if the element at the given index is a quaternion. */
-LUA_API bool glm_isquat(lua_State *L, int idx);
+LUAGLM_API bool glm_isquat(lua_State *L, int idx);
 
 /*
 ** Return true if the element at the given index is a matrix, setting "size" to
 ** the number of column vectors and "secondary" as the size of each column
 ** component.
 */
-LUA_API bool glm_ismatrix(lua_State *L, int idx, glm::length_t &dimensions);
+LUAGLM_API bool glm_ismatrix(lua_State *L, int idx, glm::length_t &dimensions);
 
 /* Push a vector/quaternion onto the Lua stack. */
-LUA_API int glm_pushvec1(lua_State *L, const glm::vec<1, glm_Float> &v);
-LUA_API int glm_pushvec2(lua_State *L, const glm::vec<2, glm_Float> &v);
-LUA_API int glm_pushvec3(lua_State *L, const glm::vec<3, glm_Float> &v);
-LUA_API int glm_pushvec4(lua_State *L, const glm::vec<4, glm_Float> &v);
-LUA_API int glm_pushquat(lua_State *L, const glm::qua<glm_Float> &q);
+LUAGLM_API int glm_pushvec1(lua_State *L, const glm::vec<1, glm_Float> &v);
+LUAGLM_API int glm_pushvec2(lua_State *L, const glm::vec<2, glm_Float> &v);
+LUAGLM_API int glm_pushvec3(lua_State *L, const glm::vec<3, glm_Float> &v);
+LUAGLM_API int glm_pushvec4(lua_State *L, const glm::vec<4, glm_Float> &v);
+LUAGLM_API int glm_pushquat(lua_State *L, const glm::qua<glm_Float> &q);
 
 /*
 ** Convert the element at the given index into a vector/quaternion if
@@ -149,22 +155,22 @@ LUA_API int glm_pushquat(lua_State *L, const glm::qua<glm_Float> &q);
 ** dimensions of the conversion.
 */
 
-LUA_API glm::vec<1, glm_Float> glm_tovec1(lua_State *L, int idx);
-LUA_API glm::vec<2, glm_Float> glm_tovec2(lua_State *L, int idx);
-LUA_API glm::vec<3, glm_Float> glm_tovec3(lua_State *L, int idx);
-LUA_API glm::vec<4, glm_Float> glm_tovec4(lua_State *L, int idx);
-LUA_API glm::qua<glm_Float> glm_toquat(lua_State *L, int idx);
+LUAGLM_API glm::vec<1, glm_Float> glm_tovec1(lua_State *L, int idx);
+LUAGLM_API glm::vec<2, glm_Float> glm_tovec2(lua_State *L, int idx);
+LUAGLM_API glm::vec<3, glm_Float> glm_tovec3(lua_State *L, int idx);
+LUAGLM_API glm::vec<4, glm_Float> glm_tovec4(lua_State *L, int idx);
+LUAGLM_API glm::qua<glm_Float> glm_toquat(lua_State *L, int idx);
 
 /* Push a matrix onto the Lua stack. */
-LUA_API int glm_pushmat2x2(lua_State *L, const glm::mat<2, 2, glm_Float> &m);
-LUA_API int glm_pushmat2x3(lua_State *L, const glm::mat<2, 3, glm_Float> &m);
-LUA_API int glm_pushmat2x4(lua_State *L, const glm::mat<2, 4, glm_Float> &m);
-LUA_API int glm_pushmat3x2(lua_State *L, const glm::mat<3, 2, glm_Float> &m);
-LUA_API int glm_pushmat3x3(lua_State *L, const glm::mat<3, 3, glm_Float> &m);
-LUA_API int glm_pushmat3x4(lua_State *L, const glm::mat<3, 4, glm_Float> &m);
-LUA_API int glm_pushmat4x2(lua_State *L, const glm::mat<4, 2, glm_Float> &m);
-LUA_API int glm_pushmat4x3(lua_State *L, const glm::mat<4, 3, glm_Float> &m);
-LUA_API int glm_pushmat4x4(lua_State *L, const glm::mat<4, 4, glm_Float> &m);
+LUAGLM_API int glm_pushmat2x2(lua_State *L, const glm::mat<2, 2, glm_Float> &m);
+LUAGLM_API int glm_pushmat2x3(lua_State *L, const glm::mat<2, 3, glm_Float> &m);
+LUAGLM_API int glm_pushmat2x4(lua_State *L, const glm::mat<2, 4, glm_Float> &m);
+LUAGLM_API int glm_pushmat3x2(lua_State *L, const glm::mat<3, 2, glm_Float> &m);
+LUAGLM_API int glm_pushmat3x3(lua_State *L, const glm::mat<3, 3, glm_Float> &m);
+LUAGLM_API int glm_pushmat3x4(lua_State *L, const glm::mat<3, 4, glm_Float> &m);
+LUAGLM_API int glm_pushmat4x2(lua_State *L, const glm::mat<4, 2, glm_Float> &m);
+LUAGLM_API int glm_pushmat4x3(lua_State *L, const glm::mat<4, 3, glm_Float> &m);
+LUAGLM_API int glm_pushmat4x4(lua_State *L, const glm::mat<4, 4, glm_Float> &m);
 
 /*
 ** Convert the element at the given index into a matrix if permissible, i.e.,
@@ -172,15 +178,15 @@ LUA_API int glm_pushmat4x4(lua_State *L, const glm::mat<4, 4, glm_Float> &m);
 ** dimensions of the conversion.
 */
 
-LUA_API glm::mat<2, 2, glm_Float> glm_tomat2x2(lua_State *L, int idx);
-LUA_API glm::mat<2, 3, glm_Float> glm_tomat2x3(lua_State *L, int idx);
-LUA_API glm::mat<2, 4, glm_Float> glm_tomat2x4(lua_State *L, int idx);
-LUA_API glm::mat<3, 2, glm_Float> glm_tomat3x2(lua_State *L, int idx);
-LUA_API glm::mat<3, 3, glm_Float> glm_tomat3x3(lua_State *L, int idx);
-LUA_API glm::mat<3, 4, glm_Float> glm_tomat3x4(lua_State *L, int idx);
-LUA_API glm::mat<4, 2, glm_Float> glm_tomat4x2(lua_State *L, int idx);
-LUA_API glm::mat<4, 3, glm_Float> glm_tomat4x3(lua_State *L, int idx);
-LUA_API glm::mat<4, 4, glm_Float> glm_tomat4x4(lua_State *L, int idx);
+LUAGLM_API glm::mat<2, 2, glm_Float> glm_tomat2x2(lua_State *L, int idx);
+LUAGLM_API glm::mat<2, 3, glm_Float> glm_tomat2x3(lua_State *L, int idx);
+LUAGLM_API glm::mat<2, 4, glm_Float> glm_tomat2x4(lua_State *L, int idx);
+LUAGLM_API glm::mat<3, 2, glm_Float> glm_tomat3x2(lua_State *L, int idx);
+LUAGLM_API glm::mat<3, 3, glm_Float> glm_tomat3x3(lua_State *L, int idx);
+LUAGLM_API glm::mat<3, 4, glm_Float> glm_tomat3x4(lua_State *L, int idx);
+LUAGLM_API glm::mat<4, 2, glm_Float> glm_tomat4x2(lua_State *L, int idx);
+LUAGLM_API glm::mat<4, 3, glm_Float> glm_tomat4x3(lua_State *L, int idx);
+LUAGLM_API glm::mat<4, 4, glm_Float> glm_tomat4x4(lua_State *L, int idx);
 
 /*
 ** Return the dimensions of the vector at the given index; zero on failure. This
@@ -337,7 +343,7 @@ LUAGLM_ALIGNED_TYPE(struct, glmMatrix) {
 ** @NOTE If Lua is compiled with LUA_USE_APICHECK, a runtime error will be
 **  thrown instead of returning zero.
 */
-LUA_API int glm_pushvec(lua_State *L, const glmVector &v, glm::length_t d);
+LUAGLM_API int glm_pushvec(lua_State *L, const glmVector &v, glm::length_t d);
 
 /*
 ** Pushes a quaternion represented by 'q' onto the stack. Returning one on
@@ -346,7 +352,7 @@ LUA_API int glm_pushvec(lua_State *L, const glmVector &v, glm::length_t d);
 ** @NOTE This function is identical to glm_pushquat, but without the (implicit)
 **  conversion.
 */
-LUA_API int glm_pushvec_quat(lua_State *L, const glmVector &q);
+LUAGLM_API int glm_pushvec_quat(lua_State *L, const glmVector &q);
 
 /*
 ** Creates a new Matrix object, represented by 'm', and places it onto the stack.
@@ -355,7 +361,7 @@ LUA_API int glm_pushvec_quat(lua_State *L, const glmVector &q);
 ** @NOTE If Lua is compiled with LUA_USE_APICHECK, a runtime error with be
 **  thrown instead of returning zero.
 */
-LUA_API int glm_pushmat(lua_State *L, const glmMatrix &m);
+LUAGLM_API int glm_pushmat(lua_State *L, const glmMatrix &m);
 
 /* }================================================================== */
 

@@ -59,6 +59,18 @@
 #define LUAI_DDEC(def)	/* empty */
 #define LUAI_DDEF	static
 
+/* setup export symbols */
+#if defined(__cplusplus) && defined(LUA_C_LINKAGE)
+#undef LUA_API
+#if defined(LUA_BUILD_AS_DLL)
+  #define LUA_API extern "C" __declspec(dllexport)
+  #define LUAGLM_API __declspec(dllexport)
+#else
+  #define LUA_API extern "C"
+  #define LUAGLM_API extern
+#endif
+#endif
+
 /* core -- used by all */
 #include "lzio.c"
 #include "lctype.c"

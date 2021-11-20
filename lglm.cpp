@@ -886,7 +886,7 @@ static glm::mat<C, R, T> glm_tomat(lua_State *L, int idx) {
   return result;
 }
 
-LUA_API int glm_pushvec(lua_State *L, const glmVector &v, glm::length_t dimensions) {
+LUAGLM_API int glm_pushvec(lua_State *L, const glmVector &v, glm::length_t dimensions) {
   if (l_likely(dimensions >= 2 && dimensions <= 4)) {
     lua_lock(L);
     glm_setvvalue2s(L->top, v, glm_variant(dimensions));
@@ -904,7 +904,7 @@ LUA_API int glm_pushvec(lua_State *L, const glmVector &v, glm::length_t dimensio
   return 1;
 }
 
-LUA_API int glm_pushvec_quat(lua_State *L, const glmVector &q) {
+LUAGLM_API int glm_pushvec_quat(lua_State *L, const glmVector &q) {
   lua_lock(L);
   glm_setvvalue2s(L->top, q, LUA_VQUAT);
   api_incr_top(L);
@@ -912,7 +912,7 @@ LUA_API int glm_pushvec_quat(lua_State *L, const glmVector &q) {
   return 1;
 }
 
-LUA_API int glm_pushmat(lua_State *L, const glmMatrix &m) {
+LUAGLM_API int glm_pushmat(lua_State *L, const glmMatrix &m) {
   GCMatrix *mat = GLM_NULLPTR;
 
 #if defined(LUA_USE_APICHECK)
@@ -934,7 +934,7 @@ LUA_API int glm_pushmat(lua_State *L, const glmMatrix &m) {
   return 1;
 };
 
-LUA_API bool glm_isvector(lua_State *L, int idx, glm::length_t &size) {
+LUAGLM_API bool glm_isvector(lua_State *L, int idx, glm::length_t &size) {
   bool result = true;
   const TValue *o = glm_index2value(L, idx);
   if (ttisvector(o) && !ttisquat(o))
@@ -947,12 +947,12 @@ LUA_API bool glm_isvector(lua_State *L, int idx, glm::length_t &size) {
   return result;
 }
 
-LUA_API bool glm_isquat(lua_State *L, int idx) {
+LUAGLM_API bool glm_isquat(lua_State *L, int idx) {
   const TValue *o = glm_index2value(L, idx);
   return ttisquat(o);
 }
 
-LUA_API bool glm_ismatrix(lua_State *L, int idx, glm::length_t &dimensions) {
+LUAGLM_API bool glm_ismatrix(lua_State *L, int idx, glm::length_t &dimensions) {
   const TValue *o = glm_index2value(L, idx);
   if (ttismatrix(o)) {
     dimensions = mvalue_dims(o);
@@ -961,40 +961,40 @@ LUA_API bool glm_ismatrix(lua_State *L, int idx, glm::length_t &dimensions) {
   return false;
 }
 
-LUA_API int glm_pushvec1(lua_State *L, const glm::vec<1, glm_Float> &v) { lua_pushnumber(L, cast_num(v.x)); return 1; }
-LUA_API int glm_pushvec2(lua_State *L, const glm::vec<2, glm_Float> &v) { return glm_pushvec(L, glmVector(v), 2); }
-LUA_API int glm_pushvec3(lua_State *L, const glm::vec<3, glm_Float> &v) { return glm_pushvec(L, glmVector(v), 3); }
-LUA_API int glm_pushvec4(lua_State *L, const glm::vec<4, glm_Float> &v) { return glm_pushvec(L, glmVector(v), 4); }
-LUA_API int glm_pushquat(lua_State *L, const glm::qua<glm_Float> &q) { return glm_pushvec_quat(L, glmVector(q)); }
+LUAGLM_API int glm_pushvec1(lua_State *L, const glm::vec<1, glm_Float> &v) { lua_pushnumber(L, cast_num(v.x)); return 1; }
+LUAGLM_API int glm_pushvec2(lua_State *L, const glm::vec<2, glm_Float> &v) { return glm_pushvec(L, glmVector(v), 2); }
+LUAGLM_API int glm_pushvec3(lua_State *L, const glm::vec<3, glm_Float> &v) { return glm_pushvec(L, glmVector(v), 3); }
+LUAGLM_API int glm_pushvec4(lua_State *L, const glm::vec<4, glm_Float> &v) { return glm_pushvec(L, glmVector(v), 4); }
+LUAGLM_API int glm_pushquat(lua_State *L, const glm::qua<glm_Float> &q) { return glm_pushvec_quat(L, glmVector(q)); }
 
-LUA_API glm::vec<1, glm_Float> glm_tovec1(lua_State *L, int idx) { return glm::vec<1, glm_Float>(glm_castfloat(lua_tonumber(L, idx))); }
-LUA_API glm::vec<2, glm_Float> glm_tovec2(lua_State *L, int idx) { return glm_tovec<2, glm_Float>(L, idx); }
-LUA_API glm::vec<3, glm_Float> glm_tovec3(lua_State *L, int idx) { return glm_tovec<3, glm_Float>(L, idx); }
-LUA_API glm::vec<4, glm_Float> glm_tovec4(lua_State *L, int idx) { return glm_tovec<4, glm_Float>(L, idx); }
-LUA_API glm::qua<glm_Float> glm_toquat(lua_State *L, int idx) {
+LUAGLM_API glm::vec<1, glm_Float> glm_tovec1(lua_State *L, int idx) { return glm::vec<1, glm_Float>(glm_castfloat(lua_tonumber(L, idx))); }
+LUAGLM_API glm::vec<2, glm_Float> glm_tovec2(lua_State *L, int idx) { return glm_tovec<2, glm_Float>(L, idx); }
+LUAGLM_API glm::vec<3, glm_Float> glm_tovec3(lua_State *L, int idx) { return glm_tovec<3, glm_Float>(L, idx); }
+LUAGLM_API glm::vec<4, glm_Float> glm_tovec4(lua_State *L, int idx) { return glm_tovec<4, glm_Float>(L, idx); }
+LUAGLM_API glm::qua<glm_Float> glm_toquat(lua_State *L, int idx) {
   const TValue *o = glm_index2value(L, idx);
   return ttisquat(o) ? glm_qvalue(o) : glm::quat_identity<glm_Float, glm::defaultp>();
 }
 
-LUA_API int glm_pushmat2x2(lua_State *L, const glm::mat<2, 2, glm_Float> &m) { return glm_pushmat(L, glmMatrix(m)); }
-LUA_API int glm_pushmat2x3(lua_State *L, const glm::mat<2, 3, glm_Float> &m) { return glm_pushmat(L, glmMatrix(m)); }
-LUA_API int glm_pushmat2x4(lua_State *L, const glm::mat<2, 4, glm_Float> &m) { return glm_pushmat(L, glmMatrix(m)); }
-LUA_API int glm_pushmat3x2(lua_State *L, const glm::mat<3, 2, glm_Float> &m) { return glm_pushmat(L, glmMatrix(m)); }
-LUA_API int glm_pushmat3x3(lua_State *L, const glm::mat<3, 3, glm_Float> &m) { return glm_pushmat(L, glmMatrix(m)); }
-LUA_API int glm_pushmat3x4(lua_State *L, const glm::mat<3, 4, glm_Float> &m) { return glm_pushmat(L, glmMatrix(m)); }
-LUA_API int glm_pushmat4x2(lua_State *L, const glm::mat<4, 2, glm_Float> &m) { return glm_pushmat(L, glmMatrix(m)); }
-LUA_API int glm_pushmat4x3(lua_State *L, const glm::mat<4, 3, glm_Float> &m) { return glm_pushmat(L, glmMatrix(m)); }
-LUA_API int glm_pushmat4x4(lua_State *L, const glm::mat<4, 4, glm_Float> &m) { return glm_pushmat(L, glmMatrix(m)); }
+LUAGLM_API int glm_pushmat2x2(lua_State *L, const glm::mat<2, 2, glm_Float> &m) { return glm_pushmat(L, glmMatrix(m)); }
+LUAGLM_API int glm_pushmat2x3(lua_State *L, const glm::mat<2, 3, glm_Float> &m) { return glm_pushmat(L, glmMatrix(m)); }
+LUAGLM_API int glm_pushmat2x4(lua_State *L, const glm::mat<2, 4, glm_Float> &m) { return glm_pushmat(L, glmMatrix(m)); }
+LUAGLM_API int glm_pushmat3x2(lua_State *L, const glm::mat<3, 2, glm_Float> &m) { return glm_pushmat(L, glmMatrix(m)); }
+LUAGLM_API int glm_pushmat3x3(lua_State *L, const glm::mat<3, 3, glm_Float> &m) { return glm_pushmat(L, glmMatrix(m)); }
+LUAGLM_API int glm_pushmat3x4(lua_State *L, const glm::mat<3, 4, glm_Float> &m) { return glm_pushmat(L, glmMatrix(m)); }
+LUAGLM_API int glm_pushmat4x2(lua_State *L, const glm::mat<4, 2, glm_Float> &m) { return glm_pushmat(L, glmMatrix(m)); }
+LUAGLM_API int glm_pushmat4x3(lua_State *L, const glm::mat<4, 3, glm_Float> &m) { return glm_pushmat(L, glmMatrix(m)); }
+LUAGLM_API int glm_pushmat4x4(lua_State *L, const glm::mat<4, 4, glm_Float> &m) { return glm_pushmat(L, glmMatrix(m)); }
 
-LUA_API glm::mat<2, 2, glm_Float> glm_tomat2x2(lua_State *L, int idx) { return glm_tomat<2, 2, glm_Float>(L, idx); }
-LUA_API glm::mat<2, 3, glm_Float> glm_tomat2x3(lua_State *L, int idx) { return glm_tomat<2, 3, glm_Float>(L, idx); }
-LUA_API glm::mat<2, 4, glm_Float> glm_tomat2x4(lua_State *L, int idx) { return glm_tomat<2, 4, glm_Float>(L, idx); }
-LUA_API glm::mat<3, 2, glm_Float> glm_tomat3x2(lua_State *L, int idx) { return glm_tomat<3, 2, glm_Float>(L, idx); }
-LUA_API glm::mat<3, 3, glm_Float> glm_tomat3x3(lua_State *L, int idx) { return glm_tomat<3, 3, glm_Float>(L, idx); }
-LUA_API glm::mat<3, 4, glm_Float> glm_tomat3x4(lua_State *L, int idx) { return glm_tomat<3, 4, glm_Float>(L, idx); }
-LUA_API glm::mat<4, 2, glm_Float> glm_tomat4x2(lua_State *L, int idx) { return glm_tomat<4, 2, glm_Float>(L, idx); }
-LUA_API glm::mat<4, 3, glm_Float> glm_tomat4x3(lua_State *L, int idx) { return glm_tomat<4, 3, glm_Float>(L, idx); }
-LUA_API glm::mat<4, 4, glm_Float> glm_tomat4x4(lua_State *L, int idx) { return glm_tomat<4, 4, glm_Float>(L, idx); }
+LUAGLM_API glm::mat<2, 2, glm_Float> glm_tomat2x2(lua_State *L, int idx) { return glm_tomat<2, 2, glm_Float>(L, idx); }
+LUAGLM_API glm::mat<2, 3, glm_Float> glm_tomat2x3(lua_State *L, int idx) { return glm_tomat<2, 3, glm_Float>(L, idx); }
+LUAGLM_API glm::mat<2, 4, glm_Float> glm_tomat2x4(lua_State *L, int idx) { return glm_tomat<2, 4, glm_Float>(L, idx); }
+LUAGLM_API glm::mat<3, 2, glm_Float> glm_tomat3x2(lua_State *L, int idx) { return glm_tomat<3, 2, glm_Float>(L, idx); }
+LUAGLM_API glm::mat<3, 3, glm_Float> glm_tomat3x3(lua_State *L, int idx) { return glm_tomat<3, 3, glm_Float>(L, idx); }
+LUAGLM_API glm::mat<3, 4, glm_Float> glm_tomat3x4(lua_State *L, int idx) { return glm_tomat<3, 4, glm_Float>(L, idx); }
+LUAGLM_API glm::mat<4, 2, glm_Float> glm_tomat4x2(lua_State *L, int idx) { return glm_tomat<4, 2, glm_Float>(L, idx); }
+LUAGLM_API glm::mat<4, 3, glm_Float> glm_tomat4x3(lua_State *L, int idx) { return glm_tomat<4, 3, glm_Float>(L, idx); }
+LUAGLM_API glm::mat<4, 4, glm_Float> glm_tomat4x4(lua_State *L, int idx) { return glm_tomat<4, 4, glm_Float>(L, idx); }
 
 /* }================================================================== */
 
