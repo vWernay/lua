@@ -373,34 +373,6 @@ LUA_API int glm_pushmat(lua_State *L, const glmMatrix &m);
 ** ===================================================================
 */
 #if defined(LUA_GRIT_API)
-#if GLM_HAS_STATIC_ASSERT
-
-  // Additional defensive checks around the aliasing and alignment of lua_Mat4
-  // and glmMatrix.
-
-  GLM_STATIC_ASSERT(true
-    && sizeof(lua_Float4) == sizeof(glmVector)
-    && offsetof(lua_Float4, x) == offsetof(glmVector, v4.x)
-    && offsetof(lua_Float4, y) == offsetof(glmVector, v4.y)
-    && offsetof(lua_Float4, z) == offsetof(glmVector, v4.z)
-    && offsetof(lua_Float4, w) == offsetof(glmVector, v4.w)
-    && offsetof(glmVector, v2.x) == offsetof(glmVector, v4.x)
-    && offsetof(glmVector, v3.x) == offsetof(glmVector, v4.x), "Inconsistent Structures: lua_Float4 / glm::vec<4, glm_Float>"
-  );
-
-  GLM_STATIC_ASSERT(true
-    && sizeof(grit_length_t) == sizeof(glm::length_t)
-    && sizeof(lua_Mat4) == sizeof(glmMatrix)
-    // @TODO: Name the anonymous union in glmMatrix similar to lua_Mat4.
-    && sizeof(lua_Mat4::Columns::m2) == sizeof(glmMatrix::m24)
-    && sizeof(lua_Mat4::Columns::m3) == sizeof(glmMatrix::m34)
-    && sizeof(lua_Mat4::Columns::m4) == sizeof(glmMatrix::m44)
-    && offsetof(lua_Mat4, dimensions) == offsetof(glmMatrix, dimensions)
-    && offsetof(lua_Mat4, m.m2) == offsetof(glmMatrix, m24)
-    && offsetof(lua_Mat4, m.m3) == offsetof(glmMatrix, m34)
-    && offsetof(lua_Mat4, m.m4) == offsetof(glmMatrix, m44), "Inconsistent Structures: lua_Mat4 / glmMatrix"
-  );
-#endif
 
 /// <summary>
 /// A union for aliasing the Lua vector definition (lua_Float4) with the GLM
@@ -439,6 +411,38 @@ union glmMatrixBoundary {
 #define lua_constvec_boundary(o) reinterpret_cast<const glmVectorBoundary *>(o)->lua
 #define lua_constmat_boundary(o) reinterpret_cast<const glmMatrixBoundary *>(o)->lua
 
+/* Additional defensive checks around the aliasing and alignment of lua_Mat4 and glmMatrix. */
+#if GLM_HAS_STATIC_ASSERT
+  GLM_STATIC_ASSERT(true
+    && sizeof(lua_Float4) == sizeof(glmVector)
+    && offsetof(lua_Float4, x) == offsetof(glmVector, v4.x)
+    && offsetof(lua_Float4, y) == offsetof(glmVector, v4.y)
+    && offsetof(lua_Float4, z) == offsetof(glmVector, v4.z)
+    && offsetof(lua_Float4, w) == offsetof(glmVector, v4.w)
+    && offsetof(glmVector, v2.x) == offsetof(glmVector, v4.x)
+    && offsetof(glmVector, v3.x) == offsetof(glmVector, v4.x), "Inconsistent Structures: lua_Float4 / glm::vec<4, glm_Float>"
+  );
+
+  GLM_STATIC_ASSERT(true
+    && sizeof(grit_length_t) == sizeof(glm::length_t)
+    && sizeof(lua_Mat4) == sizeof(glmMatrix)
+    // @TODO: Name the anonymous union in glmMatrix similar to lua_Mat4.
+    && sizeof(lua_Mat4::Columns::m2) == sizeof(glmMatrix::m24)
+    && sizeof(lua_Mat4::Columns::m3) == sizeof(glmMatrix::m34)
+    && sizeof(lua_Mat4::Columns::m4) == sizeof(glmMatrix::m44)
+    && offsetof(lua_Mat4, dimensions) == offsetof(glmMatrix, dimensions)
+    && offsetof(lua_Mat4, m.m2) == offsetof(glmMatrix, m24)
+    && offsetof(lua_Mat4, m.m3) == offsetof(glmMatrix, m34)
+    && offsetof(lua_Mat4, m.m4) == offsetof(glmMatrix, m44), "Inconsistent Structures: lua_Mat4 / glmMatrix"
+  );
+
+  GLM_STATIC_ASSERT(true
+    && sizeof(glmVectorBoundary) == sizeof(lua_Float4)
+    && sizeof(glmVectorBoundary) == sizeof(glmVector)
+    && sizeof(glmMatrixBoundary) == sizeof(lua_Mat4)
+    && sizeof(glmMatrixBoundary) == sizeof(glmMatrix), "Inconsistent Boundary Types!"
+  );
+#endif
 #endif
 /* }================================================================== */
 

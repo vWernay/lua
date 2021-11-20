@@ -25,18 +25,6 @@
   #define cast_vec(i) ((lua_VecF)(i))
 #endif
 
-#if !defined(LABEL_VECTOR3)
-  #define LABEL_INTEGER "integer"
-  #define LABEL_NUMBER "number"
-  #define LABEL_VECTOR "vector"
-  #define LABEL_VECTOR1 "vector1"
-  #define LABEL_VECTOR2 "vector2"
-  #define LABEL_VECTOR3 "vector3"
-  #define LABEL_VECTOR4 "vector4"
-  #define LABEL_QUATERN "quat"
-  #define LABEL_MATRIX "matrix"
-#endif
-
 /*
 ** {==================================================================
 ** LuaGLM C-API
@@ -111,78 +99,58 @@ LUA_API lua_Integer glm_tohash (lua_State *L, int idx, int ignore_case);
 
 /*
 ** {==================================================================
-** @DEPRECATED grit-lua base API
+** @DEPRECATED grit-lua API
 ** ===================================================================
 */
 
-#define V_NOTABLE    0x0  /* Only explicit vector types can be parsed */
-#define V_PARSETABLE 0x1  /* Attempt to parse table values as vectors. */
-#define V_NONUMBER   0x2  /* Ignore lua_Number being the implicit VECTOR1; i.e.
-                             the dimensions of the returned vector >= 2. */
+/* These functions are defined in lua.h of grit-lua */
 
-/* Number of dimensions associated with the vector object */
-LUA_API int luaVec_dimensions (int rtt);
+LUA_API int lua_isvector2 (lua_State *L, int idx);
+LUA_API int lua_isvector3 (lua_State *L, int idx);
+LUA_API int lua_isvector4 (lua_State *L, int idx);
+LUA_API int lua_isquat (lua_State *L, int idx);
 
-/* Returns the variant of the vector if it is indeed a vector, zero otherwise */
-LUA_API int lua_isvector (lua_State *L, int idx, int flags);
-LUA_API int lua_tovector (lua_State *L, int idx, int flags, lua_Float4 *vector);
+LUA_API void lua_checkvector2 (lua_State *L, int idx, lua_VecF *x, lua_VecF *y);
+LUA_API void lua_checkvector3 (lua_State *L, int idx, lua_VecF *x, lua_VecF *y, lua_VecF *z);
+LUA_API void lua_checkvector4 (lua_State *L, int idx, lua_VecF *x, lua_VecF *y, lua_VecF *z, lua_VecF *w);
+LUA_API void lua_checkquat (lua_State *L, int idx, lua_VecF *w, lua_VecF *x, lua_VecF *y, lua_VecF *z);
+
+LUA_API void lua_pushvector2 (lua_State *L, lua_VecF x, lua_VecF y);
+LUA_API void lua_pushvector3 (lua_State *L, lua_VecF x, lua_VecF y, lua_VecF z);
+LUA_API void lua_pushvector4 (lua_State *L, lua_VecF x, lua_VecF y, lua_VecF z, lua_VecF w);
+LUA_API void lua_pushquat (lua_State *L, lua_VecF w, lua_VecF x, lua_VecF y, lua_VecF z);
+
+/* }================================================================== */
+
+/*
+** {==================================================================
+** @DEPRECATED Extended grit-lua API
+** ===================================================================
+*/
+
+/*
+** vector variants exposed in the library to simplify the internal/external
+** translation between vector-types. (grit-lua compatibility)
+*/
+#if !defined(LUA_VVECTOR3)
+#define LUA_VVECTOR1 (LUA_TNUMBER | (1 << 4))
+#define LUA_VVECTOR2 (LUA_TVECTOR | (0 << 4))
+#define LUA_VVECTOR3 (LUA_TVECTOR | (1 << 4))
+#define LUA_VVECTOR4 (LUA_TVECTOR | (2 << 4))
+#define LUA_VQUAT (LUA_TVECTOR | (3 << 4))
+#endif
+
+/* Returns the length of the vector if it is indeed a vector, zero otherwise */
+LUA_API int lua_isvector (lua_State *L, int idx);
+LUA_API int lua_tovector (lua_State *L, int idx, lua_Float4 *vector);
 LUA_API void lua_pushvector (lua_State *L, lua_Float4 f4, int variant);
+LUA_API void lua_pushquatf4 (lua_State *L, lua_Float4 f4);
 
 /* Returns true if the object at the given index is a matrix, storing its
 ** dimensions in size & secondary. These are extensions to the grit-lua API */
 LUA_API int lua_ismatrix (lua_State *L, int idx, int *dimensions);
 LUA_API int lua_tomatrix (lua_State *L, int idx, lua_Mat4 *matrix);
-LUA_API int lua_pushmatrix (lua_State *L, const lua_Mat4 *matrix);
-
-/*
-** Jenkins-hash the object at the provided index. String values are hashed,
-** boolean and numeric values are casted to lua_Integer; otherwise, zero is
-** returned.
-*/
-LUA_API lua_Integer lua_ToHash (lua_State *L, int idx, int ignore_case);
-
-/*
-** Compatibility API: check if the object at the given index is a vector of a
-** specific variant.
-*/
-#define lua_isvector1(L, I, F) (lua_isvector((L), (I), (F)) == LUA_VVECTOR1)
-#define lua_isvector2(L, I, F) (lua_isvector((L), (I), (F)) == LUA_VVECTOR2)
-#define lua_isvector3(L, I, F) (lua_isvector((L), (I), (F)) == LUA_VVECTOR3)
-#define lua_isvector4(L, I, F) (lua_isvector((L), (I), (F)) == LUA_VVECTOR4)
-#define lua_isquat(L, I, F) (lua_isvector((L), (I), V_NOTABLE) == LUA_VQUAT \
-                             || (((F) & V_PARSETABLE) != 0 && lua_isvector((L), (I), (F)) == LUA_VVECTOR4))
-
-/*
-** Compatibility API: Populate a Float4 of an explicit type, throwing an error
-** otherwise.
-*/
-#define _lua_checkv(L, I, F, V, T, ERR)          \
-  do {                                           \
-    if (lua_tovector((L), (I), (F), (V)) != (T)) \
-      luaL_typeerror((L), (I), (ERR));           \
-  } while (0)
-
-#define lua_checkv1(L, I, F, V) _lua_checkv(L, I, F, V, LUA_VVECTOR1, LABEL_VECTOR1)
-#define lua_checkv2(L, I, F, V) _lua_checkv(L, I, F, V, LUA_VVECTOR2, LABEL_VECTOR2)
-#define lua_checkv3(L, I, F, V) _lua_checkv(L, I, F, V, LUA_VVECTOR3, LABEL_VECTOR3)
-#define lua_checkv4(L, I, F, V) _lua_checkv(L, I, F, V, LUA_VVECTOR4, LABEL_VECTOR4)
-#define lua_checkquat(L, I, F, V) _lua_checkv(L, I, F, V, LUA_VQUAT, LABEL_QUATERN)
-
-/*
-** Compatibility API, replaced by: a single lua_pushvector in lua.h. This macro
-** avoids the use of designated initializers for C++ (e.g., MSVC C7555)
-*/
-#define _lua_pushvector(L, T, X, Y, Z, W)              \
-  do {                                                 \
-    /* Avoid use of designated initializers for C++ */ \
-    lua_Float4 f4 = { (X), (Y), (Z), (W) };            \
-    lua_pushvector((L), f4, (T));                      \
-  } while (0)
-
-#define lua_pushvector2(L, X, Y) _lua_pushvector(L, LUA_VVECTOR2, (X), (Y), cast_vec(0.0), cast_vec(0.0))
-#define lua_pushvector3(L, X, Y, Z) _lua_pushvector(L, LUA_VVECTOR3, (X), (Y), (Z), cast_vec(0.0))
-#define lua_pushvector4(L, X, Y, Z, W) _lua_pushvector(L, LUA_VVECTOR4, (X), (Y), (Z), (W))
-#define lua_pushquat(L, W, X, Y, Z) _lua_pushvector(L, LUA_VQUAT, (X), (Y), (Z), (W))
+LUA_API void lua_pushmatrix (lua_State *L, const lua_Mat4 *matrix);
 
 /* }================================================================== */
 
@@ -191,6 +159,13 @@ LUA_API lua_Integer lua_ToHash (lua_State *L, int idx, int ignore_case);
 ** @DEPRECATED grit-lua base library compatibility
 ** ===================================================================
 */
+
+/*
+** Jenkins-hash the object at the provided index. String values are hashed,
+** boolean and numeric values are casted to lua_Integer; otherwise, zero is
+** returned.
+*/
+LUA_API lua_Integer lua_ToHash (lua_State *L, int idx, int ignore_case);
 
 /*
 ** Returns the dot product of x and y, i.e., result = x * y.

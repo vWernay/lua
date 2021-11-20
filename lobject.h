@@ -785,7 +785,11 @@ typedef struct Table {
 ** ===================================================================
 */
 
-/* Variant tags for vectors */
+/*
+** vector variants may be exposed by grit_lib to simplify the internal/external
+** translation between vector-types.
+*/
+#if defined(LUA_VVECTOR3)
 #if LUA_VVECTOR2 != makevariant(LUA_TVECTOR, 0)
   #error "Invalid vector2 variant"
 #elif LUA_VVECTOR3 != makevariant(LUA_TVECTOR, 1)
@@ -794,6 +798,13 @@ typedef struct Table {
   #error "Invalid vector4 variant"
 #elif LUA_VQUAT != makevariant(LUA_TVECTOR, 3)
   #error "Invalid quaternion variant"
+#endif
+#else
+#define LUA_VVECTOR1 LUA_VNUMFLT
+#define LUA_VVECTOR2 makevariant(LUA_TVECTOR, 0)
+#define LUA_VVECTOR3 makevariant(LUA_TVECTOR, 1)
+#define LUA_VVECTOR4 makevariant(LUA_TVECTOR, 2)
+#define LUA_VQUAT makevariant(LUA_TVECTOR, 3)
 #endif
 
 #define ttisvector(o) checktype((o), LUA_TVECTOR)

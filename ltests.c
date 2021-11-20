@@ -20,6 +20,7 @@
 
 #include "lapi.h"
 #include "lauxlib.h"
+#include "lgrit_lib.h"
 #include "lcode.h"
 #include "lctype.h"
 #include "ldebug.h"
@@ -1803,6 +1804,89 @@ static struct X { int x; } x;
     }
     else if EQ("closeslot") {
       lua_closeslot(L1, getnum);
+    }
+    /* grit-lua vector API */
+    else if EQ ("isvector2") {
+      lua_pushboolean(L, lua_isvector2(L, getindex));
+    }
+    else if EQ ("isvector3") {
+      lua_pushboolean(L, lua_isvector3(L, getindex));
+    }
+    else if EQ ("isvector4") {
+      lua_pushboolean(L, lua_isvector4(L, getindex));
+    }
+    else if EQ ("isquat") {
+      lua_pushboolean(L, lua_isquat(L, getindex));
+    }
+    else if EQ ("isvector") {
+      lua_pushinteger(L, lua_isvector(L, getindex)); /* Value */
+    }
+    else if EQ ("ismatrix") {
+      int dimensions = 0;
+      lua_pushboolean(L, lua_ismatrix(L, getindex, &dimensions));
+      lua_pushinteger(L, dimensions);
+    }
+    else if EQ ("pushvector2") {
+      lua_VecF x = cast_vec(getnum);
+      lua_VecF y = cast_vec(getnum);
+      lua_pushvector2(L1, x, y);
+    }
+    else if EQ ("pushvector3") {
+      lua_VecF x = cast_vec(getnum);
+      lua_VecF y = cast_vec(getnum);
+      lua_VecF z = cast_vec(getnum);
+      lua_pushvector3(L1, x, y, z);
+    }
+    else if EQ ("pushvector4") {
+      lua_VecF x = cast_vec(getnum);
+      lua_VecF y = cast_vec(getnum);
+      lua_VecF z = cast_vec(getnum);
+      lua_VecF w = cast_vec(getnum);
+      lua_pushvector4(L1, x, y, z, w);
+    }
+    else if EQ ("pushquat") {
+      lua_VecF w = cast_vec(getnum);
+      lua_VecF x = cast_vec(getnum);
+      lua_VecF y = cast_vec(getnum);
+      lua_VecF z = cast_vec(getnum);
+      lua_pushquat(L1, w, x, y, z);
+    }
+    else if EQ ("pushvector") {
+      lua_Float4 f4;
+      f4.x = cast_vec(getnum);
+      f4.y = cast_vec(getnum);
+      f4.z = cast_vec(getnum);
+      f4.w = cast_vec(getnum);
+      lua_pushvector(L, f4, getnum);
+    }
+    else if EQ ("checkvector2") {
+      lua_VecF x = 0, y = 0;
+      lua_checkvector2(L1, getindex, &x, &y);
+      lua_pushnumber(L1, x);
+      lua_pushnumber(L1, y);
+    }
+    else if EQ ("checkvector3") {
+      lua_VecF x = 0, y = 0, z = 0;
+      lua_checkvector3(L1, getindex, &x, &y, &z);
+      lua_pushnumber(L1, x);
+      lua_pushnumber(L1, y);
+      lua_pushnumber(L1, z);
+    }
+    else if EQ ("checkvector4") {
+      lua_VecF x = 0, y = 0, z = 0, w = 0;
+      lua_checkvector4(L1, getindex, &x, &y, &z, &w);
+      lua_pushnumber(L1, x);
+      lua_pushnumber(L1, y);
+      lua_pushnumber(L1, z);
+      lua_pushnumber(L1, w);
+    }
+    else if EQ ("checkquat") {
+      lua_VecF x = 0, y = 0, z = 0, w = 0;
+      lua_checkquat(L1, getindex, &w, &x, &y, &z);
+      lua_pushnumber(L1, w);
+      lua_pushnumber(L1, x);
+      lua_pushnumber(L1, y);
+      lua_pushnumber(L1, z);
     }
     else luaL_error(L, "unknown instruction %s", buff);
   }

@@ -13,7 +13,6 @@
 #include "ltm.h"
 
 /*
-@@ LUAGLM_QUAT_WXYZ Quaternion layout (i.e., wxyz vs xyzw).
 @@ LUAGLM_LIBVERSION Version number of the included GLM library. This value is
 **  manually redefined so it can be used by the strictly-C defined portions of
 **  this runtime.
@@ -29,6 +28,9 @@
   #undef GLM_FORCE_QUAT_DATA_XYZW
 #endif
 
+/*
+@@ LUAGLM_QUAT_WXYZ Quaternion layout (i.e., wxyz vs xyzw)
+*/
 #if LUAGLM_LIBVERSION < 999
   #if defined(GLM_FORCE_QUAT_DATA_WXYZ)
     #define LUAGLM_QUAT_WXYZ 1
@@ -49,10 +51,10 @@
 
 /*
 ** Return the vector variant (tag) associated with 'dimensions'. Note, this
-** function does not sanitize the input: assumes [1, 4].
+** function does not sanitize the input: assumes [2, 4].
 */
 static LUA_INLINE lu_byte glm_variant (grit_length_t dimensions) {
-  return l_unlikely(dimensions == 1) ? LUA_VVECTOR1 : cast_byte(LUA_TVECTOR | ((((dimensions - 2) & 0x3)) << 4));
+  return cast_byte(makevariant(LUA_TVECTOR, (dimensions - 2) /* & 0x3 */));
 }
 
 /*
@@ -88,7 +90,7 @@ static LUA_INLINE int vecgeti (const TValue *obj, lua_Integer n, StkId res) {
     ** @NOTE: This approach assumes a packed x,y,z,w struct. This was changed
     ** from a switch statement after profiling access times.
     */
-    setfltvalue(s2v(res), cast_num((&vvalue_(obj).x)[_n - 1]));
+    setfltvalue(s2v(res), cast_num((&(vvalue_(obj).x))[_n - 1]));
     return LUA_TNUMBER;
   }
   return LUA_TNONE;
@@ -116,7 +118,7 @@ static LUA_INLINE int vecgets (const TValue *obj, const char *k, StkId res) {
 #if LUAGLM_QUAT_WXYZ  /* quaternion has WXYZ layout */
     if (ttypetag(obj) == LUA_VQUAT) _n = (_n % 4) + 1;
 #endif
-    setfltvalue(s2v(res), cast_num((&(vvalue_ref(obj)->x))[_n - 1]));
+    setfltvalue(s2v(res), cast_num((&(vvalue_(obj).x))[_n - 1]));
     return LUA_TNUMBER;
   }
   return LUA_TNONE;

@@ -76,19 +76,6 @@ typedef struct lua_State lua_State;
 
 #define LUA_NUMTYPES		11
 
-/*
-** vector variants exposed in the library to simplify the internal/external
-** translation between vector-types. (grit-lua compatibility)
-**
-** @NOTE: LUA_VVECTOR1 is an implicit vector type. Internally this value must
-** map to LUA_VNUMFLT.
-*/
-#define LUA_VVECTOR1 (LUA_TNUMBER | (1 << 4))
-#define LUA_VVECTOR2 (LUA_TVECTOR | (0 << 4))
-#define LUA_VVECTOR3 (LUA_TVECTOR | (1 << 4))
-#define LUA_VVECTOR4 (LUA_TVECTOR | (2 << 4))
-#define LUA_VQUAT    (LUA_TVECTOR | (3 << 4))
-
 
 
 /* minimum Lua stack available to a C function */
