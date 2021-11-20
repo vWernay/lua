@@ -1155,7 +1155,7 @@ SYMMETRIC_MATRIX_DEFN(findEigenvaluesSymReal, glm::findEigenvaluesSymReal, LAYOU
 GLM_BINDING_QUALIFIER(computeCovarianceMatrix) {
   GLM_BINDING_BEGIN
   luaL_checktype(L, LB.idx, LUA_TTABLE);
-  lua_rawgeti(LB.L, LB.idx, 1);  // Determine array dimensionality
+  lua_rawgeti(LB.L, LB.idx, 1);  // Determine array dimensions
   const glm::length_t dimensions = glm_vector_length(LB.L, -1);
   lua_pop(L, 1);
 

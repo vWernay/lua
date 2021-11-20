@@ -841,7 +841,7 @@
 
 /*
 ** {==================================================================
-** @DEPRECATED gritLua vector API
+** @DEPRECATED grit-lua vector API
 **
 ** Libraries linked against this runtime that use any GLM/vector feature will
 ** require knowledge of changes to:
@@ -945,14 +945,14 @@ typedef struct lua_CFloat3 { lua_VecF x, y, z; } lua_CFloat3;
 typedef struct lua_CFloat2 { lua_VecF x, y; } lua_CFloat2;
 
 /*
-** gritLua vector and quat extension. This structure is intended to be a
+** grit-lua vector and quat extension. This structure is intended to be a
 ** byte-wise equivalent/alias to glmVector in lglm.hpp and operates within the C
 ** boundaries of the Lua runtime.
 */
 LUAGLM_ALIGNED_TYPEDEF(struct, lua_CFloat4) lua_Float4;
 
 /*
-** gritLua column-oriented matrix extension. This structure is intended to be a
+** grit-lua column-oriented matrix extension. This structure is intended to be a
 ** byte-wise equivalent to glmMatrix in lglm.hpp and operates within the C
 ** boundaries of the Lua runtime.
 **

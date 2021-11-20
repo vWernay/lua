@@ -256,7 +256,7 @@ struct gLuaPlane : gLuaSharedTrait<T, glm::Plane<L, T>> {
 /// An (explicitly three dimensional) polygon trait.
 ///
 /// @TODO More creative casting rules for generalized polygons, e.g., the
-///   userdata also storing the dimensionality to each point.
+///   userdata also storing the dimensions to each point.
 /// </summary>
 template<typename T = glm_Float>
 struct gLuaPolygon : gLuaSharedTrait<T, glm::Polygon<3, T>> {

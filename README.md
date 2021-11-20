@@ -771,7 +771,7 @@ Ordered by priority.
 1. Improve support for `glm::mat3x4` and `glm::mat4x3`.
 1. Utility API that resembles `glUniformMatrix*v`-style functions, i.e., extracting/parsing array of matrices/vectors.
 1. Modify implementation to follow updated "Avoid taking the address of a 'TValue' field" (or reference) convention.
-1. Experiment with spitting the vector definition between 'union Value' and 'struct TValue', ensuring Value remains eight bytes (Source: Luau).
+1. Experiment with splitting the vector definition between 'union Value' and 'struct TValue', ensuring Value remains eight bytes (Source: Luau).
 1. [ext](libs/glm-binding/ext): allow configurable epsilon values for the variety of intersection functions.
 1. [ext](libs/glm-binding/ext): Improve SIMD support.
 1. Replace `glm::angle` bindings with atan2 equivalent (stability).

@@ -696,7 +696,7 @@ static const luaL_Reg base_funcs[] = {
   {"mat4x3", glmMat_mat4x3},
   {"mat4x4", glmMat_mat4x4}, {"mat4", glmMat_mat4x4},
   {"qua", glmVec_qua}, {"quat", glmVec_qua},
-  /* gritLua compatibility functions */
+  /* grit-lua compatibility functions */
   {"dot", glmVec_dot},
   {"cross", glmVec_cross},
   {"inv", glmVec_inverse},

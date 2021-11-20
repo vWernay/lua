@@ -120,7 +120,7 @@ GLM_FLAGS = -DLUAGLM_LIBVERSION=999 \
 		-DLUAGLM_INCLUDE_GEOM \
 		-DLUAGLM_RECYCLE \
 		# -DGLM_FORCE_DEFAULT_ALIGNED_GENTYPES \
-		# -DGLM_FORCE_MESSAGES
+		# -DGLM_FORCE_MESSAGES \
 		# -DGLM_FORCE_XYZW_ONLY \
 		# -DGLM_FORCE_CTOR_INIT \
 		# -DGLM_FORCE_QUAT_DATA_XYZW \
@@ -170,7 +170,7 @@ $(LUAC_T): $(LUAC_O) $(LUA_A)
 	$(CC) -o $@ $(LDFLAGS) $(LUAC_O) $(LUA_A) $(LIBS)
 
 clean:
-	$(RM) $(ALL_T) $(ALL_O) $(GLM_A) minilua.hpp onelua.o
+	$(RM) $(ALL_T) $(ALL_O) $(GLM_A) minilua.hpp onelua.o lua54.dll glm.dll lua.exe luac.exe
 
 depend:
 	@$(CC) $(CFLAGS) -MM l*.c
@@ -233,7 +233,7 @@ macos-readline:
 mingw:
 	$(MAKE) "LUA_A=lua54.dll" "LUA_T=lua.exe" \
 	"AR=$(CC) -shared -o" "RANLIB=strip --strip-unneeded" \
-	"SYSCFLAGS=-Wno-attributes -DLUA_BUILD_AS_DLL" "SYSLIBS=" "SYSLDFLAGS=-s" lua.exe
+	"SYSCFLAGS=-Wno-attributes -DLUA_USE_POSIX -DLUA_BUILD_AS_DLL -D_WIN32" "SYSLIBS=" "SYSLDFLAGS=-s" lua.exe
 	$(MAKE) "LUAC_T=luac.exe" luac.exe
 
 posix:
@@ -253,7 +253,7 @@ lib-glm:
 	$(CPP) $(LUA_LINKAGE) $(LIBGLM_FLAGS) -o $(GLM_A) libs/glm-binding/lglmlib.cpp $(LIBS)
 
 lib-glm-mingw:
-	$(MAKE) lib-glm SYSCFLAGS="-L . -DLUA_BUILD_AS_DLL" GLM_A="glm.dll" SYSLIBS="-llua" SYSLDFLAGS="-s"
+	$(MAKE) lib-glm SYSCFLAGS="-L . -DLUA_BUILD_AS_DLL -D_WIN32" GLM_A="glm.dll" SYSLIBS="-llua" SYSLDFLAGS="-s"
 
 lib-glm-macos:
 	$(MAKE) lib-glm SYSCFLAGS="-L . -DLUA_USE_MACOSX" SYSLIBS="-llua"

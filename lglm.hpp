@@ -120,13 +120,6 @@ typedef GLM_INT_TYPE glm_Integer;
 #define cast_vec4(V, T) glm::vec<4, T>(static_cast<T>((V).x), static_cast<T>((V).y), static_cast<T>((V).z), static_cast<T>((V).w))
 #define cast_quat(Q, T) glm::qua<T>(static_cast<T>((Q).w), static_cast<T>((Q).x), static_cast<T>((Q).y), static_cast<T>((Q).z))
 
-/* @NOTE equal objects must have equal hashes; use with caution. */
-#if defined(LUAGLM_EPS_EQUAL)
-  #define _glmeq(a, b) (glm::all(glm::equal((a), (b), glm::epsilon<glm_Float>())))
-#else
-  #define _glmeq(a, b) ((a) == (b))
-#endif
-
 /* lib:LuaGLM requirements */
 #define LABEL_INTEGER "integer"
 #define LABEL_NUMBER "number"
@@ -147,7 +140,7 @@ typedef GLM_INT_TYPE glm_Integer;
 
 /*
 ** Return true if the element at the given index is a vector, setting "size" to
-** the dimensionality of the vector.
+** the dimensions of the vector.
 */
 LUA_API bool glm_isvector(lua_State *L, int idx, glm::length_t &size);
 
@@ -208,8 +201,8 @@ LUA_API glm::mat<4, 3, glm_Float> glm_tomat4x3(lua_State *L, int idx);
 LUA_API glm::mat<4, 4, glm_Float> glm_tomat4x4(lua_State *L, int idx);
 
 /*
-** Return the dimensionality of the vector at the given index; zero on failure.
-** This function is simply syntactic sugar for glm_isvector;
+** Return the dimensions of the vector at the given index; zero on failure. This
+** function is simply syntactic sugar for glm_isvector;
 */
 static LUA_INLINE glm::length_t glm_vector_length(lua_State *L, int idx) {
   glm::length_t size = 0;
@@ -346,7 +339,7 @@ LUAGLM_ALIGNED_TYPE(struct, glmMatrix) {
 };
 
 /*
-** Pushes a vector of dimensionality of 'd' represented by 'v' onto the stack.
+** Pushes a vector with dimensions 'd' represented by 'v' onto the stack.
 ** Returning one on success (i.e., valid dimension argument), zero otherwise.
 **
 ** @NOTE If Lua is compiled with LUA_USE_APICHECK, a runtime error will be
@@ -365,7 +358,7 @@ LUA_API int glm_pushvec_quat(lua_State *L, const glmVector &q);
 
 /*
 ** Creates a new Matrix object, represented by 'm', and places it onto the stack.
-** Returning one on success, zero otherwise (invalid glmMatrix dimensionality).
+** Returning one on success, zero otherwise (invalid glmMatrix dimensions).
 **
 ** @NOTE If Lua is compiled with LUA_USE_APICHECK, a runtime error with be
 **  thrown instead of returning zero.

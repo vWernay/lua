@@ -78,7 +78,7 @@ typedef struct lua_State lua_State;
 
 /*
 ** vector variants exposed in the library to simplify the internal/external
-** translation between vector-types. (gritLua compatibility)
+** translation between vector-types. (grit-lua compatibility)
 **
 ** @NOTE: LUA_VVECTOR1 is an implicit vector type. Internally this value must
 ** map to LUA_VNUMFLT.

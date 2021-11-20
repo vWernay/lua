@@ -491,7 +491,7 @@ function Octree:ShrinkAndShift()
     if rootChild then
         -- The root doesn't have any children, however, CompressNode tells us
         -- that its possible to shrink the dimensions of the root. Update its
-        -- dimensionality.
+        -- dimensions.
         if #self.children[root] == 0 then
             local center = self.center[rootChild]
             self:SetNodeLocation(root, center, 0.5 * center[4])

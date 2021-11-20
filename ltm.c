@@ -188,7 +188,7 @@ void luaT_tryconcatTM (lua_State *L) {
   const TValue *p1 = s2v(top - 2);
   const TValue *p2 = s2v(top - 1);
   if (l_unlikely(!callbinTM(L, p1, p2, top - 2, TM_CONCAT))) {
-    /* Append a value to the vector, increasing its dimensionality. */
+    /* Append a value to the vector, increasing its dimensions. */
     if (ttisvector(p1) && glmVec_concat(p1, p2, top - 2))
       return;
 

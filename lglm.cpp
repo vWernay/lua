@@ -206,9 +206,16 @@ static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
 ** ===================================================================
 */
 
+/* @NOTE equal objects must have equal hashes; use with caution. */
+#if defined(LUAGLM_EPS_EQUAL)
+  #define _glmeq(a, b) (glm::all(glm::equal((a), (b), glm::epsilon<glm_Float>())))
+#else
+  #define _glmeq(a, b) ((a) == (b))
+#endif
+
 /// <summary>
 /// The vector-type equivalent to luaV_finishget. The 'angle' and 'axis' fields
-/// are gritLua compatibility fields for quaternion types.
+/// are grit-lua compatibility fields for quaternion types.
 ///
 /// @NOTE If the quaternion type has a metatable then the 'angle' and 'axis'
 ///   fields are no longer parsed. Ideally all compatibility bloat will be
@@ -286,7 +293,7 @@ int glmVec_rawgeti(const TValue *obj, lua_Integer n, StkId res) {
   if (vecgeti(obj, n, res) == LUA_TNONE) {
     setnilvalue(s2v(res));
   }
-  return ttypetag(s2v(res));
+  return ttype(s2v(res));
 }
 
 int glmVec_rawgets(const TValue *obj, const char *k, StkId res) {
@@ -296,7 +303,7 @@ int glmVec_rawgets(const TValue *obj, const char *k, StkId res) {
   if (result == LUA_TNONE) {
     setnilvalue(s2v(res));
   }
-  return ttypetag(s2v(res));
+  return ttype(s2v(res));
 }
 
 int glmVec_rawget(const TValue *obj, TValue *key, StkId res) {
@@ -308,7 +315,7 @@ int glmVec_rawget(const TValue *obj, TValue *key, StkId res) {
     }
     case LUA_TSTRING: {
       // The 'dim', 'axis', and 'angle' fields viewed as metafields. To simplify
-      // logic the 'n' (shorthand dimensionality) field will be exposed by this
+      // logic the 'n' (shorthand dimensions) field will be exposed by this
       // function.
       if (vslen(key) == 1)
         result = vecgets(obj, svalue(key), res);
@@ -322,7 +329,7 @@ int glmVec_rawget(const TValue *obj, TValue *key, StkId res) {
   if (result == LUA_TNONE) {
     setnilvalue(s2v(res));
   }
-  return ttypetag(s2v(res));
+  return ttype(s2v(res));
 }
 
 void glmVec_geti(lua_State *L, const TValue *obj, lua_Integer c, StkId res) {
@@ -383,7 +390,7 @@ void glmVec_get(lua_State *L, const TValue *obj, TValue *key, StkId res) {
           return;
         }
         default: {
-          // gritLua compatibility: dimension field takes priority over tag methods
+          // grit-lua compatibility: dimension field takes priority over tag methods
           if (strcmp(str, "dim") == 0) {
             setivalue(s2v(res), i_luaint(glm_dimensions(ttypetag(obj))));
             return;
@@ -442,7 +449,7 @@ int glmVec_concat(const TValue *obj, const TValue *value, StkId res) {
   const glmVector &v = glm_vvalue(obj);
 
   glmVector result = v;  // Create a copy of the vector
-  glm::length_t dims = glm_dimensions(ttypetag(obj));  // Current dimensionality
+  glm::length_t dims = glm_dimensions(ttypetag(obj));  // Current dimensions
   if (ttisinteger(value) && dims < 4)
     result.v4[dims++] = cast_glmfloat(ivalue(value));
   else if (ttisfloat(value) && dims < 4)
@@ -451,7 +458,7 @@ int glmVec_concat(const TValue *obj, const TValue *value, StkId res) {
     result.v4[dims++] = cast_glmfloat(!l_isfalse(value));
   else if (ttisvector(value)) {
     const glm::length_t v_dims = glm_dimensions(ttypetag(value));
-    if ((dims + v_dims) > 4) {  // Outside valid dimensionality
+    if ((dims + v_dims) > 4) {  // Outside valid dimensions
       return 0;
     }
 
@@ -715,7 +722,7 @@ int glmMat_rawgeti(const TValue *obj, lua_Integer n, StkId res) {
   if (matgeti(obj, n, res) == LUA_TNONE) {
     setnilvalue(s2v(res));
   }
-  return ttypetag(s2v(res));
+  return ttype(s2v(res));
 }
 
 int glmMat_vmgeti (const TValue *obj, lua_Integer n, StkId res) {
@@ -1057,7 +1064,7 @@ LUA_API const char *glm_pushstring(lua_State *L, int idx) {
 
 /*
 ** {==================================================================
-** Deprecated gritLua API
+** Deprecated grit-lua API
 ** ===================================================================
 */
 
@@ -1136,7 +1143,7 @@ lua_Integer luaO_HashString(const char *string, size_t length, int ignore_case) 
 #endif
 }
 
-/* gritLua functions stored in lbaselib; considered deprecated */
+/* grit-lua functions stored in lbaselib; considered deprecated */
 
 /// <summary>
 /// Parse the provided table object as a vector type, i.e., check the table for
@@ -1537,9 +1544,9 @@ static glm::length_t PopulateVectorObject(lua_State *L, int idx, glm::vec<4, T> 
 ///   3. If the first object is a matrix: down/up-cast it.
 ///   4. Otherwise, expect a column vector for each dimension of the matrix.
 ///
-/// A "desired" or "expected" dimensionality may be specified within 'm'.
-/// Otherwise, this function will infer the dimensions of matrix according to
-/// supplied columns vectors and their dimensionality.
+/// A "desired" or "expected" dimension may be specified within 'm'. Otherwise,
+/// this function will infer the dimensions of matrix according to supplied
+/// columns vectors and their dimensions.
 /// </summary>
 static bool PopulateMatrix(lua_State *L, int idx, int top, bool fixed_size, glmMatrix &m) {
   // Maximum number of stack values to parse from the starting "idx"
@@ -1765,7 +1772,7 @@ LUA_API int glmVec_qua(lua_State *L) {
     return glm_pushquat(L, glm::identity<glm::qua<glm_Float>>());
   else if (ttisnumber(o1)) {
     const TValue *o2 = glm_index2value(L, 2);
-    if (ttisvector3(o2))  // <angle, axis>, degrees for gritLua compatibility
+    if (ttisvector3(o2))  // <angle, axis>, degrees for grit-lua compatibility
       return glm_pushquat(L, glm::angleAxis(cast_glmfloat(glm::radians(nvalue(o1))), glm_v3value(o2)));
     else if (ttisnumber(o2)) {  // <w, x, y, z>
       const glm_Float w = cast_glmfloat(nvalue(o1));
@@ -1820,9 +1827,9 @@ LUA_API int glmVec_qua(lua_State *L) {
 /*
 ** Create a new matrix collectible and set it to the stack.
 **
-** A dimensionality override is included to simplify the below logic for
-** operations that operate on a per-value basis. Allowing the use of more
-** generalized operations instead of logic for all nine matrix types.
+** A dimension override is included to simplify the below logic for operations
+** that operate on a per-value basis. Allowing the use of more generalized
+** operations instead of logic for all nine matrix types.
 */
 #define glm_newmvalue(L, obj, x, dims)  \
   LUA_MLM_BEGIN                         \

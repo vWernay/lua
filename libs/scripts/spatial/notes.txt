@@ -34,10 +34,10 @@ Rebuild(self)
 -- @RETURN self
 Immutable(self)
 
--- Add/Insert an object with a specified dimensionality into the index.
+-- Add/Insert an object with a specified dimensions into the index.
 --
 -- @PARAM object - an object, often a dataset UID, to be indexed.
--- @PARAM aabbMin,aabbMax -- AABB dimensionality of the object.
+-- @PARAM aabbMin,aabbMax -- AABB dimensions of the object.
 --
 -- @RETURN self
 Insert(self, object, aabbMin, aabbMax)

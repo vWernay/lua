@@ -156,7 +156,7 @@
 
   /* Ensure the performance counter frequency is initialized. */
   static LARGE_INTEGER info;
-  static LUA_INLINE void InitPerformanceCounter() {
+  static LUA_INLINE void InitPerformanceCounter(void) {
     static int init = 1;
     if (init) {
       init = 0; /* @TODO: Fix potential race condition */

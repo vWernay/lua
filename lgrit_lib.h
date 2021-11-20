@@ -1,6 +1,6 @@
 /*
 ** $Id: lgrit_lib.h $
-** API definitions for gritLua.
+** API definitions for grit-lua.
 **
 ** All functions defined in this header are expected to have default linkage and
 ** interface with other Lua libraries. For simplicity, this header also
@@ -111,7 +111,7 @@ LUA_API lua_Integer glm_tohash (lua_State *L, int idx, int ignore_case);
 
 /*
 ** {==================================================================
-** @DEPRECATED gritLua base API
+** @DEPRECATED grit-lua base API
 ** ===================================================================
 */
 
@@ -188,7 +188,7 @@ LUA_API lua_Integer lua_ToHash (lua_State *L, int idx, int ignore_case);
 
 /*
 ** {==================================================================
-** @DEPRECATED gritLua base library compatibility
+** @DEPRECATED grit-lua base library compatibility
 ** ===================================================================
 */
 
