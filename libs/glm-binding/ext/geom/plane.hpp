@@ -668,40 +668,40 @@ namespace glm {
   /// Per MathGeoLib: "try to improve stability with lines that are almost parallel with the plane."
   /// </summary>
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER bool intersectLinePlane(const vec<L, T, Q> &planeNormal, T planeD, const vec<L, T, Q> &linePos, const vec<L, T, Q> &lineDir, T &t) {
+  GLM_GEOM_QUALIFIER bool intersectLinePlane(const vec<L, T, Q> &planeNormal, T planeD, const vec<L, T, Q> &linePos, const vec<L, T, Q> &lineDir, T &d) {
     const T denom = dot(planeNormal, lineDir);
     if (abs(denom) > epsilon<T>()) {  // line starting point to point of intersection
-      t = (planeD - dot(planeNormal, linePos)) / denom;
+      d = (planeD - dot(planeNormal, linePos)) / denom;
       return true;
     }
 
     if (denom != T(0)) {  // @TODO: notEqual(denom, T(0), epsilon<T>())
-      t = (planeD - dot(planeNormal, linePos)) / denom;
-      if (abs(t) < epsilon<T>())
+      d = (planeD - dot(planeNormal, linePos)) / denom;
+      if (abs(d) < epsilon<T>())
         return true;
     }
 
-    t = T(0);
+    d = T(0);
     return epsilonEqual(dot(planeNormal, linePos), planeD, epsilon<T>());
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER bool intersects(const Plane<L, T, Q> &plane, const Ray<L, T, Q> &ray, T &t) {
-    if (intersectLinePlane(plane.normal, plane.d, ray.pos, ray.dir, t))
-      return t >= T(0);
+  GLM_GEOM_QUALIFIER bool intersects(const Plane<L, T, Q> &plane, const Ray<L, T, Q> &ray, T &d) {
+    if (intersectLinePlane(plane.normal, plane.d, ray.pos, ray.dir, d))
+      return d >= T(0);
     return false;
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER bool intersects(const Plane<L, T, Q> &plane, const Line<L, T, Q> &line, T &t) {
-    return intersectLinePlane(plane.normal, plane.d, line.pos, line.dir, t);
+  GLM_GEOM_QUALIFIER bool intersects(const Plane<L, T, Q> &plane, const Line<L, T, Q> &line, T &d) {
+    return intersectLinePlane(plane.normal, plane.d, line.pos, line.dir, d);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER bool intersects(const Plane<L, T, Q> &plane, const LineSegment<L, T, Q> &lineSegment, T &t) {
-    if (intersectLinePlane(plane.normal, plane.d, lineSegment.a, lineSegment.dir(), t)) {
-      t /= length(lineSegment);
-      return t >= T(0) && t <= T(1);
+  GLM_GEOM_QUALIFIER bool intersects(const Plane<L, T, Q> &plane, const LineSegment<L, T, Q> &lineSegment, T &d) {
+    if (intersectLinePlane(plane.normal, plane.d, lineSegment.a, lineSegment.dir(), d)) {
+      d /= length(lineSegment);
+      return d >= T(0) && d <= T(1);
     }
     return false;
   }
@@ -725,20 +725,20 @@ namespace glm {
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool intersects(const Plane<L, T, Q> &plane, const Ray<L, T, Q> &ray) {
-    T t(0);
-    return intersects(plane, ray, t);
+    T d(0);
+    return intersects(plane, ray, d);
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool intersects(const Plane<L, T, Q> &plane, const Line<L, T, Q> &line) {
-    T t(0);
-    return intersects(plane, line, t);
+    T d(0);
+    return intersects(plane, line, d);
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool intersects(const Plane<L, T, Q> &plane, const LineSegment<L, T, Q> &lineSegment) {
-    T t(0);
-    return intersects(plane, lineSegment, t);
+    T d(0);
+    return intersects(plane, lineSegment, d);
   }
 
   template<length_t L, typename T, qualifier Q>

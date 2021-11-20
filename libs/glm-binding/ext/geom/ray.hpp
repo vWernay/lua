@@ -315,20 +315,20 @@ namespace glm {
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER T distance(const Ray<L, T, Q> &ray, const Ray<L, T, Q> &other, T &d, T &d2) {
-    vec<L, T, Q> c = closestPoint(ray, other, d, d2);
-    return distance(c, getPoint(other, d2));
+    const vec<L, T, Q> point = closestPoint(ray, other, d, d2);
+    return distance(point, getPoint(other, d2));
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER T distance(const Ray<L, T, Q> &ray, const Line<L, T, Q> &line, T &d, T &d2) {
-    vec<L, T, Q> c = closestPoint(ray, line, d, d2);
-    return distance(c, getPoint(line, d2));
+    const vec<L, T, Q> point = closestPoint(ray, line, d, d2);
+    return distance(point, getPoint(line, d2));
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER T distance(const Ray<L, T, Q> &ray, const LineSegment<L, T, Q> &line, T &d, T &d2) {
-    vec<L, T, Q> c = closestPoint(ray, line, d, d2);
-    return distance(c, getPoint(line, d2));
+    const vec<L, T, Q> point = closestPoint(ray, line, d, d2);
+    return distance(point, getPoint(line, d2));
   }
 
   template<length_t L, typename T, qualifier Q>
@@ -344,20 +344,20 @@ namespace glm {
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER T distance(const Ray<L, T, Q> &ray, const Ray<L, T, Q> &other) {
-    T d(0);
-    return distance(ray, other, d);
+    T d(0), d2(0);
+    return distance(ray, other, d, d2);
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER T distance(const Ray<L, T, Q> &ray, const Line<L, T, Q> &line) {
-    T d(0);
-    return distance(ray, line, d);
+    T d(0), d2(0);
+    return distance(ray, line, d, d2);
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER T distance(const Ray<L, T, Q> &ray, const LineSegment<L, T, Q> &line) {
-    T d(0);
-    return distance(ray, line, d);
+    T d(0), d2(0);
+    return distance(ray, line, d, d2);
   }
 
   /// Tests whether the ray and the given object intersect.

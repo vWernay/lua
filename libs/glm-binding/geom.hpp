@@ -48,26 +48,26 @@
 ** parameter being tested against the structure passed as the second parameter.
 ** Returning the point of intersection and relative location along each object.
 */
-#define GEOM_INTERSECTS(LB, F, A, B)                     \
-  LUA_MLM_BEGIN                                          \
-  const A::type a = A::Next(LB);                         \
-  const B::type b = B::Next(LB);                         \
-  A::zero_trait::type n = A::safe::zero_trait::Next(LB); \
-  A::one_trait::type f = A::safe::one_trait::Next(LB);   \
-  TRAITS_PUSH(LB, F(a, b, n, f), n, f);                  \
+#define GEOM_INTERSECTS(LB, F, A, B)                   \
+  LUA_MLM_BEGIN                                        \
+  const A::type a = A::Next(LB);                       \
+  const B::type b = B::Next(LB);                       \
+  A::zero_trait::type n = A::safe::zero_trait::zero(); \
+  A::one_trait::type f = A::safe::one_trait::zero();   \
+  TRAITS_PUSH(LB, F(a, b, n, f), n, f);                \
   LUA_MLM_END
 
 /*
 ** The line/ray/segment is the second parameter being tested against the
 ** structure passed as the first parameter.
 */
-#define GEOM_INTERSECTS_RH(LB, F, A, B)                  \
-  LUA_MLM_BEGIN                                          \
-  const A::type a = A::Next(LB);                         \
-  const B::type b = B::Next(LB);                         \
-  B::zero_trait::type n = B::safe::zero_trait::Next(LB); \
-  B::one_trait::type f = B::safe::one_trait::Next(LB);   \
-  TRAITS_PUSH(LB, F(a, b, n, f), n, f);                  \
+#define GEOM_INTERSECTS_RH(LB, F, A, B)                \
+  LUA_MLM_BEGIN                                        \
+  const A::type a = A::Next(LB);                       \
+  const B::type b = B::Next(LB);                       \
+  B::zero_trait::type n = B::safe::zero_trait::zero(); \
+  B::one_trait::type f = B::safe::one_trait::zero();   \
+  TRAITS_PUSH(LB, F(a, b, n, f), n, f);                \
   LUA_MLM_END
 
 /*
@@ -114,13 +114,20 @@ template<bool isNear, bool isRelative, typename T = glm_Float>
 struct gLuaRelativePosition : gLuaTrait<T> {
   static GLM_CONSTEXPR const char *Label() { return "RelativePosition"; }
 
-  LUA_TRAIT_QUALIFIER bool Is(const gLuaBase &LB, int idx) { return lua_isnoneornil(LB.L, idx) || gLuaTrait<T>::Is(LB, idx); }
+  LUA_TRAIT_QUALIFIER bool Is(const gLuaBase &LB, int idx) {
+    return lua_isnoneornil(LB.L, idx) || gLuaTrait<T>::Is(LB, idx);
+  }
+
+  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR T zero() {
+    GLM_IF_CONSTEXPR(isNear)
+      return isRelative ? T(0) : -std::numeric_limits<T>::infinity();
+    return isRelative ? T(1) : std::numeric_limits<T>::infinity();
+  }
+
   LUA_TRAIT_QUALIFIER T Next(gLuaBase &LB) {
     if (lua_isnoneornil(LB.L, LB.idx)) {
       LB.idx++;  // Skip the argument
-      GLM_IF_CONSTEXPR(isNear)
-        return isRelative ? T(0) : -std::numeric_limits<T>::infinity();
-      return isRelative ? T(1) : std::numeric_limits<T>::infinity();
+      return zero();
     }
 
     return gLuaTrait<T>::Next(LB);

@@ -1764,7 +1764,7 @@ struct gLuaEps : gLuaTrait<T, FastPath> {
   if (!_isvalid((LB).L, _tv3)) /* <Tr, Tr> */                                                            \
     return gLuaBase::Push(LB, F(__a, __b));                                                              \
   else if (ttisfloat(_tv3)) /* <Tr, Tr, eps> */                                                          \
-    return gLuaBase::Push(LB, F(__a, __b, gLuaEps<Tr::value_type>::Next(LB)));                           \
+    return gLuaBase::Push(LB, F(__a, __b, gLuaEps<Tr::value_type>::fast::Next(LB)));                     \
   else if (Tr_Row::Is(LB, (LB).idx)) /* <Tr, Tr, vec> */                                                 \
     return gLuaBase::Push(LB, F(__a, __b, Tr_Row::Next(LB)));                                            \
   _TR_EQUAL_ULPS(LB, F, __a, __b, _tv3) /* <Tr, Tr, ULPs> */                                             \

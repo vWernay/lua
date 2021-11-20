@@ -354,10 +354,10 @@ namespace glm {
   /// </summary>
   /// <returns>The number of intersection points, 0, 1, or 2.</returns>
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER int intersectLine(const Line<L, T, Q> &line, const Sphere<L, T, Q> &sphere, T &t1, T &t2) {
-    t1 = std::numeric_limits<T>::infinity();
-    t2 = -std::numeric_limits<T>::infinity();
-    GLM_GEOM_ASSUME(isNormalized(lineDir, epsilon<T>()), 0);
+  GLM_GEOM_QUALIFIER int intersectLine(const Line<L, T, Q> &line, const Sphere<L, T, Q> &sphere, T &d1, T &d2) {
+    d1 = std::numeric_limits<T>::infinity();
+    d2 = -std::numeric_limits<T>::infinity();
+    GLM_GEOM_ASSUME(isNormalized(line.dir, epsilon<T>()), 0);
 
     const vec<L, T, Q> a = line.pos - sphere.pos;
     const T radSq = sphere.r * sphere.r;
@@ -368,13 +368,13 @@ namespace glm {
     if (D < T(0))  // No intersections.
       return 0;
     else if (D < epsilon<T>()) {  // tangent to sphere
-      t1 = t2 = -B * T(0.5);
+      d1 = d2 = -B * T(0.5);
       return 1;
     }
     else {
       D = sqrt(D);
-      t1 = (-B - D) * T(0.5);
-      t2 = (-B + D) * T(0.5);
+      d1 = (-B - D) * T(0.5);
+      d2 = (-B + D) * T(0.5);
       return 2;
     }
   }
@@ -385,31 +385,31 @@ namespace glm {
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER int intersects(const Sphere<L, T, Q> &sphere, const Line<L, T, Q> &line, T &t1, T &t2) {
-    return intersectLine(line, sphere, t1, t2);
+  GLM_GEOM_QUALIFIER int intersects(const Sphere<L, T, Q> &sphere, const Line<L, T, Q> &line, T &d1, T &d2) {
+    return intersectLine(line, sphere, d1, d2);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER int intersects(const Sphere<L, T, Q> &sphere, const LineSegment<L, T, Q> &line, T &t1, T &t2) {
-    const int numIntersections = intersectLine(toLine(line), sphere, t1, t2);
+  GLM_GEOM_QUALIFIER int intersects(const Sphere<L, T, Q> &sphere, const LineSegment<L, T, Q> &line, T &d1, T &d2) {
+    const int numIntersections = intersectLine(toLine(line), sphere, d1, d2);
     if (numIntersections == 0)
       return 0;
 
     const T lineLength = length(line);
-    if (t2 < T(0) || t1 > lineLength)
+    if (d2 < T(0) || d1 > lineLength)
       return 0;
 
-    t1 /= lineLength;
-    t2 /= lineLength;
+    d1 /= lineLength;
+    d2 /= lineLength;
     return numIntersections;
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER int intersects(const Sphere<L, T, Q> &sphere, const Ray<L, T, Q> &ray, T &t1, T &t2) {
-    int numIntersections = intersectLine(toLine(ray), sphere, t1, t2);
-    if (t1 < T(0) && numIntersections == 2)  // behind the ray.
-      t1 = t2;
-    return (t1 >= T(0)) ? numIntersections : 0;  // otherwise, negative direction of the ray.
+  GLM_GEOM_QUALIFIER int intersects(const Sphere<L, T, Q> &sphere, const Ray<L, T, Q> &ray, T &d1, T &d2) {
+    int numIntersections = intersectLine(toLine(ray), sphere, d1, d2);
+    if (d1 < T(0) && numIntersections == 2)  // behind the ray.
+      d1 = d2;
+    return (d1 >= T(0)) ? numIntersections : 0;  // otherwise, negative direction of the ray.
   }
 
   template<length_t L, typename T, qualifier Q>
@@ -426,6 +426,24 @@ namespace glm {
   GLM_GEOM_QUALIFIER bool intersects(const Sphere<L, T, Q> &sphere, const Triangle<L, T, Q> &triangle) {
     vec<L, T, Q> intersectionPt;
     return intersects(triangle, sphere, intersectionPt);
+  }
+
+  template<length_t L, typename T, qualifier Q>
+  GLM_GEOM_QUALIFIER int intersects(const Sphere<L, T, Q> &sphere, const Line<L, T, Q> &line) {
+    T d1(0), d2(0);
+    return intersectLine(line, sphere, d1, d2);
+  }
+
+  template<length_t L, typename T, qualifier Q>
+  GLM_GEOM_QUALIFIER int intersects(const Sphere<L, T, Q> &sphere, const Ray<L, T, Q> &ray) {
+    T d1(0), d2(0);
+    return intersects(sphere, ray, d1, d2);
+  }
+
+  template<length_t L, typename T, qualifier Q>
+  GLM_GEOM_QUALIFIER int intersects(const Sphere<L, T, Q> &sphere, const LineSegment<L, T, Q> &line) {
+    T d1(0), d2(0);
+    return intersects(sphere, line, d1, d2);
   }
 
   /// Expands this sphere to enclose both the sphere and the given object.
