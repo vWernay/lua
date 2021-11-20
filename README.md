@@ -762,15 +762,13 @@ these added features.
 Ordered by priority.
 
 1. The initial implementation of the binding library hooked 'assert' in GLM to throw an appropriate Lua error. This was removed and never compensated for in the binding implementation. Some functions, e.g., glm::ballRound, will loop near-infinitely when passed incorrect values. Fix.
-1. Optimize runtime swizzling: `swizzle` and `glmVec_get`. It is likely possible to improve this operation by 15/20 percent.
 1. Cleanup testing scripts/environment and publish.
 1. Rewrite build scripts.
-1. Optimize vector/matrix tagmethod codegen: reduce branching or consider PGOing the object.
-1. One downside to vectors/quaternions being an explicit `Value` is that they increase the minimum Value size to at least 16 bytes. Given that types in Lua are fairly transparent, it may be beneficial to introduce, or at least experiment with, a compile-time option to make vector/quaternion types collectible.
-1. Improve support for `glm::mat3x4` and `glm::mat4x3`.
+1. Optimize vector/matrix tagmethod codegen: reduce branching or consider PGOing the object (in build scripts).
 1. Utility API that resembles `glUniformMatrix*v`-style functions, i.e., extracting/parsing array of matrices/vectors.
+1. Optimize runtime swizzling: `swizzle` and `glmVec_get`. It is likely possible to improve this operation by 15/20 percent.
+1. One downside to vectors/quaternions being an explicit `Value` is that they increase the minimum Value size to at least 16 bytes. Given that types in Lua are fairly transparent, it may be beneficial to introduce, or at least experiment with, a compile-time option to make vector/quaternion types collectible.
 1. Modify implementation to follow updated "Avoid taking the address of a 'TValue' field" (or reference) convention.
-1. Experiment with splitting the vector definition between 'union Value' and 'struct TValue', ensuring Value remains eight bytes (Source: Luau).
 1. [ext](libs/glm-binding/ext): allow configurable epsilon values for the variety of intersection functions.
 1. [ext](libs/glm-binding/ext): Improve SIMD support.
 1. Replace `glm::angle` bindings with atan2 equivalent (stability).
@@ -778,6 +776,7 @@ Ordered by priority.
 1. Add support for two-dimensional structures: Ray2D, Line2D, Plane2D.
 1. Optimize `glm_createMatrix`. Profiling case '4x4 matrix creation (lua\_Alloc)' is the one of the slowest operations in the added vector/matrix API. Worse when using the default Windows allocator.
 1. `glmMat_set` support for tables, e.g., `mat[i] = { ... }`, by using `glmH_tovector`.
+1. Improve support for `glm::mat3x4` and `glm::mat4x3`.
 1. Consider replacing the 'blob' variant with an [FFI](https://github.com/facebookarchive/luaffifb) library: advanced use is required.
 
 ## Benchmarking
