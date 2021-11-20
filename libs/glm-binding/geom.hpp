@@ -1537,8 +1537,8 @@ GLM_BINDING_QUALIFIER(polygon__call) {
   lua_createtable(LB.L, static_cast<int>(poly.size()), 0);
   for (size_t i = 0; i < poly.size(); ++i) {
     if (l_unlikely(gLuaBase::Push(LB, poly[i]) != 1))
-      return luaL_error(LB.L, GLM_INVALID_VECTOR_STRUCTURE);
-    lua_rawseti(LB.L, -2, i_luaint(i) + 1);
+      return luaL_error(LB.L, "invalid " GLM_STRING_VECTOR " structure");
+    lua_rawseti(LB.L, -2, static_cast<lua_Integer>(i) + 1);
   }
   return 1;
   GLM_BINDING_END

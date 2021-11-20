@@ -8,6 +8,10 @@
 #include "line.hpp"
 #include "triangle.hpp"
 
+#if GLM_MESSAGES == GLM_ENABLE && !defined(GLM_EXT_INCLUDED)
+#	pragma message("GLM: GLM_EXT_GEOM_segment extension included")
+#endif
+
 namespace glm {
   /// <summary>
   /// A line segment in 3D space is a finite line with a start and end point.

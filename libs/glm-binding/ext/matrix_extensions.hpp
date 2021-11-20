@@ -18,6 +18,10 @@
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/ext/matrix_relational.hpp>
 
+#if GLM_MESSAGES == GLM_ENABLE && !defined(GLM_EXT_INCLUDED)
+#	pragma message("GLM: GLM_EXT_matrix_ext extension included")
+#endif
+
 namespace glm {
 
   /* glm::all(glm::equal(...)) shorthand */

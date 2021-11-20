@@ -12,6 +12,10 @@
 #include "ray.hpp"
 #include "triangle.hpp"
 
+#if GLM_MESSAGES == GLM_ENABLE && !defined(GLM_EXT_INCLUDED)
+#	pragma message("GLM: GLM_EXT_GEOM_sphere extension included")
+#endif
+
 namespace glm {
   /// <summary>
   /// A 3D Sphere.

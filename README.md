@@ -762,7 +762,6 @@ these added features.
 Ordered by priority.
 
 1. The initial implementation of the binding library hooked 'assert' in GLM to throw an appropriate Lua error. This was removed and never compensated for in the binding implementation. Some functions, e.g., glm::ballRound, will loop near-infinitely when passed incorrect values. Fix.
-1. Finalize features to reduce size of binding library.
 1. Optimize runtime swizzling: `swizzle` and `glmVec_get`. It is likely possible to improve this operation by 15/20 percent.
 1. Cleanup testing scripts/environment and publish.
 1. Rewrite build scripts.

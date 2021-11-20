@@ -37,6 +37,10 @@
 #include "vector_extensions.hpp"
 #include "matrix_extensions.hpp"
 
+#if GLM_MESSAGES == GLM_ENABLE && !defined(GLM_EXT_INCLUDED)
+#	pragma message("GLM: GLM_EXT_quat_ext extension included")
+#endif
+
 namespace glm {
 
   /* EulerAngles -> Quaternion; @TODO: Optimize to avoid intermediate matrix creation */

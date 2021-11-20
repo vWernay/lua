@@ -25,6 +25,10 @@
 #include <glm/gtx/spline.hpp>
 #include <glm/gtx/vector_angle.hpp>
 
+#if GLM_MESSAGES == GLM_ENABLE && !defined(GLM_EXT_INCLUDED)
+#	pragma message("GLM: GLM_EXT_vector_ext extension included")
+#endif
+
 namespace glm {
 
   /// <summary>

@@ -258,7 +258,7 @@ public:
       typename Tr::type value = Tr::zero();
 
       // Fetch the object within the array that *should* correspond to the trait.
-      lua_rawgeti(gLuaBase::L, gLuaBase::idx, i_luaint(arrayIdx));
+      lua_rawgeti(gLuaBase::L, gLuaBase::idx, static_cast<lua_Integer>(arrayIdx));
       const int top = lua_gettop(gLuaBase::L);  // gLuaBase uses absolute values.
 
       // Parse the trait given the relative stack (starting) index.

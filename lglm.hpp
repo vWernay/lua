@@ -102,35 +102,17 @@ typedef GLM_INT_TYPE glm_Integer;
   typedef lua_Number glm_Number;
 #endif
 
-/* Additional type cases (see: llimits.h) */
-#define cast_glmfloat(i) static_cast<glm_Float>((i))
-#define cast_glmint(i) static_cast<glm_Integer>((i))
-
-/* Index-type casting; */
-#define i_luaint(i) static_cast<lua_Integer>((i))
-#define i_glmlen(l) static_cast<glm::length_t>((l))
-
-/*
-** Utility macros for casting vectors as integer/boolean vectors are not
-** supported for this iteration of LuaGLM.
-*/
-#define cast_vec1(V, T) glm::vec<1, T>(static_cast<T>((V).x))
-#define cast_vec2(V, T) glm::vec<2, T>(static_cast<T>((V).x), static_cast<T>((V).y))
-#define cast_vec3(V, T) glm::vec<3, T>(static_cast<T>((V).x), static_cast<T>((V).y), static_cast<T>((V).z))
-#define cast_vec4(V, T) glm::vec<4, T>(static_cast<T>((V).x), static_cast<T>((V).y), static_cast<T>((V).z), static_cast<T>((V).w))
-#define cast_quat(Q, T) glm::qua<T>(static_cast<T>((Q).w), static_cast<T>((Q).x), static_cast<T>((Q).y), static_cast<T>((Q).z))
-
 /* lib:LuaGLM requirements */
-#define LABEL_INTEGER "integer"
-#define LABEL_NUMBER "number"
-#define LABEL_VECTOR "vector"
-#define LABEL_VECTOR1 "vector1"
-#define LABEL_VECTOR2 "vector2"
-#define LABEL_VECTOR3 "vector3"
-#define LABEL_VECTOR4 "vector4"
-#define LABEL_QUATERN "quat"
-#define LABEL_MATRIX "matrix"
-#define LABEL_SYMMETRIC_MATRIX "symmetric " LABEL_MATRIX
+#define GLM_STRING_INTEGER "integer"
+#define GLM_STRING_NUMBER "number"
+#define GLM_STRING_VECTOR "vector"
+#define GLM_STRING_VECTOR1 "vector1"
+#define GLM_STRING_VECTOR2 "vector2"
+#define GLM_STRING_VECTOR3 "vector3"
+#define GLM_STRING_VECTOR4 "vector4"
+#define GLM_STRING_QUATERN "quat"
+#define GLM_STRING_MATRIX "matrix"
+#define GLM_STRING_SYMMATRIX "symmetric " GLM_STRING_MATRIX
 
 /*
 ** {==================================================================
@@ -216,6 +198,16 @@ static LUA_INLINE glm::length_t glm_vector_length(lua_State *L, int idx) {
 **  GLM Object & Internal Definitions
 ** ===================================================================
 */
+
+/*
+** Utility macros for casting vectors as integer/boolean vectors are not
+** supported for this iteration of LuaGLM.
+*/
+#define cast_vec1(V, T) glm::vec<1, T>(static_cast<T>((V).x))
+#define cast_vec2(V, T) glm::vec<2, T>(static_cast<T>((V).x), static_cast<T>((V).y))
+#define cast_vec3(V, T) glm::vec<3, T>(static_cast<T>((V).x), static_cast<T>((V).y), static_cast<T>((V).z))
+#define cast_vec4(V, T) glm::vec<4, T>(static_cast<T>((V).x), static_cast<T>((V).y), static_cast<T>((V).z), static_cast<T>((V).w))
+#define cast_quat(Q, T) glm::qua<T>(static_cast<T>((Q).w), static_cast<T>((Q).x), static_cast<T>((Q).y), static_cast<T>((Q).z))
 
 /// <summary>
 /// Internal vector definition
