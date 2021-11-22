@@ -484,6 +484,23 @@ GLM_BINDING_QUALIFIER(mat_negate) {
 */
 
 #if defined(INTEGER_HPP)
+#define LAYOUT_ADD_CARRY(LB, F, Tr)       \
+  LUA_MLM_BEGIN                           \
+  const Tr::type a = Tr::Next(LB);        \
+  const Tr::type b = Tr::safe::Next(LB);  \
+  Tr::type carry(0);                      \
+  TRAITS_PUSH(LB, F(a, b, carry), carry); \
+  LUA_MLM_END
+
+#define LAYOUT_MUL_EXTENDED(LB, F, Tr)   \
+  LUA_MLM_BEGIN                          \
+  const Tr::type a = Tr::Next(LB);       \
+  const Tr::type b = Tr::safe::Next(LB); \
+  Tr::type lsb(0), msb(0);               \
+  F(a, b, lsb, msb);                     \
+  TRAITS_PUSH(LB, lsb, msb);             \
+  LUA_MLM_END
+
 #if LUA_INT_TYPE != LUA_INT_INT || !defined(LUAGLM_ALIGNED)
 INTEGER_VECTOR_DEFN(bitCount, glm::bitCount, LAYOUT_UNARY, lua_Unsigned)
 #endif
@@ -494,10 +511,10 @@ INTEGER_VECTOR_DEFN(bitfieldReverse, glm::bitfieldReverse, LAYOUT_UNARY, lua_Uns
 #endif
 INTEGER_VECTOR_DEFN(findLSB, glm::findLSB, LAYOUT_UNARY, lua_Unsigned)
 INTEGER_VECTOR_DEFN(findMSB, glm::findMSB, LAYOUT_UNARY, lua_Unsigned)
-// GLM_BINDING_DECL(imulExtended);
-// GLM_BINDING_DECL(uaddCarry);
-// GLM_BINDING_DECL(umulExtended);
-// GLM_BINDING_DECL(usubBorrow);
+INTEGER_VECTOR_DEFN(imulExtended, glm::imulExtended, LAYOUT_MUL_EXTENDED, int)
+INTEGER_VECTOR_DEFN(uaddCarry, glm::uaddCarry, LAYOUT_ADD_CARRY, glm::uint)
+INTEGER_VECTOR_DEFN(umulExtended, glm::umulExtended, LAYOUT_MUL_EXTENDED, glm::uint)
+INTEGER_VECTOR_DEFN(usubBorrow, glm::usubBorrow, LAYOUT_ADD_CARRY, glm::uint)
 #endif
 
 #if defined(EXT_SCALAR_INTEGER_HPP) || defined(EXT_VECTOR_INTEGER_HPP)
@@ -515,9 +532,9 @@ INTEGER_VECTOR_DEFN(bitfieldRotateRight, glm::bitfieldRotateRight, LAYOUT_UNARY,
 GLM_BINDING_QUALIFIER(bitfieldInterleave) {
   GLM_BINDING_BEGIN
   switch (LB.top()) {
-    case 2: TRAITS_FUNC(LB, glm::bitfieldInterleave, gLuaTrait<uint32_t>, gLuaTrait<uint32_t>); break;
-    case 3: TRAITS_FUNC(LB, glm::bitfieldInterleave, gLuaTrait<uint32_t>, gLuaTrait<uint32_t>, gLuaTrait<uint32_t>); break;
-    case 4: TRAITS_FUNC(LB, glm::bitfieldInterleave, gLuaTrait<uint16_t>, gLuaTrait<uint16_t>, gLuaTrait<uint16_t>, gLuaTrait<uint16_t>); break;
+    case 2: TRAITS_FUNC(LB, glm::bitfieldInterleave, gLuaTrait<glm::uint32_t>, gLuaTrait<glm::uint32_t>); break;
+    case 3: TRAITS_FUNC(LB, glm::bitfieldInterleave, gLuaTrait<glm::uint32_t>, gLuaTrait<glm::uint32_t>, gLuaTrait<glm::uint32_t>); break;
+    case 4: TRAITS_FUNC(LB, glm::bitfieldInterleave, gLuaTrait<glm::uint16_t>, gLuaTrait<glm::uint16_t>, gLuaTrait<glm::uint16_t>, gLuaTrait<glm::uint16_t>); break;
     default: {
       break;
     }
@@ -698,7 +715,7 @@ SYMMETRIC_MATRIX_DEFN(invertible, glm::invertible, LAYOUT_UNARY) /* LUA_MATRIX_E
 /* glm/ext/quaternion_trigonometric.hpp */
 #if defined(EXT_QUATERNION_TRIGONOMETRIC_HPP)
 QUAT_DEFN(axis, glm::axis, LAYOUT_UNARY)
-TRAITS_DEFN(angleAxis, glm::angleAxis, gLuaTrait<gLuaVec3<>::value_type>, gLuaDir3<>)
+TRAITS_DEFN(angleAxis, glm::angleAxis, gLuaVec3<>::value_trait, gLuaDir3<>)
 #endif
 
 /* glm/gtc/quaternion.hpp */
@@ -725,7 +742,7 @@ QUAT_DEFN(intermediate, glm::intermediate, LAYOUT_TERNARY)
 QUAT_DEFN(shortMix, glm::shortMix, LAYOUT_TERNARY_SCALAR)
 QUAT_DEFN(toMat3, glm::toMat3, LAYOUT_UNARY)
 QUAT_DEFN(toMat4, glm::toMat4, LAYOUT_UNARY)
-QUAT_DEFN(squad, glm::squad, LAYOUT_QUATERNARY, gLuaTrait<gLuaQuat<>::value_type>)
+QUAT_DEFN(squad, glm::squad, LAYOUT_QUATERNARY, gLuaQuat<>::value_trait)
 TRAITS_LAYOUT_DEFN(rotation, glm::rotation, LAYOUT_BINARY, gLuaVec3<>)
 ROTATION_MATRIX_DEFN(quat_cast, glm::quat_cast, LAYOUT_UNARY)
 TRAITS_DEFN(quat_identity, glm::identity<gLuaQuat<>::type>)
@@ -1977,9 +1994,9 @@ GLM_BINDING_QUALIFIER(rotate) {
     case LUA_VSHRSTR: case LUA_VLNGSTR: /* string coercion */
     case LUA_VNUMINT: /* integer to number */
     case LUA_VNUMFLT: TRAITS_FUNC(LB, glm::rotate, gLuaFloat, gLuaVec3<>); break; /* glm/gtx/transform.hpp */
-    case LUA_VVECTOR2: TRAITS_FUNC(LB, glm::rotate, gLuaVec2<>::fast, gLuaTrait<gLuaVec2<>::value_type>); break;
-    case LUA_VVECTOR3: TRAITS_FUNC(LB, glm::rotate, gLuaVec3<>::fast, gLuaTrait<gLuaVec3<>::value_type>, gLuaDir3<>); break;
-    case LUA_VVECTOR4: TRAITS_FUNC(LB, glm::rotate, gLuaVec4<>::fast, gLuaTrait<gLuaVec4<>::value_type>, gLuaDir3<>); break;
+    case LUA_VVECTOR2: TRAITS_FUNC(LB, glm::rotate, gLuaVec2<>::fast, gLuaVec2<>::value_trait); break;
+    case LUA_VVECTOR3: TRAITS_FUNC(LB, glm::rotate, gLuaVec3<>::fast, gLuaVec3<>::value_trait, gLuaDir3<>); break;
+    case LUA_VVECTOR4: TRAITS_FUNC(LB, glm::rotate, gLuaVec4<>::fast, gLuaVec4<>::value_trait, gLuaDir3<>); break;
     case LUA_VQUAT: { /* glm/ext/quaternion_transform.hpp */
       const TValue *_tv2 = glm_i2v(LB.L, LB.idx + 1);
       if (ttisnumber(_tv2))
@@ -1997,8 +2014,8 @@ GLM_BINDING_QUALIFIER(rotate) {
     }
     case LUA_VMATRIX: {
       switch (mvalue_dims(_tv)) {
-        case LUAGLM_MATRIX_3x3: TRAITS_FUNC(LB, glm::rotate, gLuaMat3x3<>::fast, gLuaTrait<gLuaMat3x3<>::value_type>); break;
-        case LUAGLM_MATRIX_4x4: TRAITS_FUNC(LB, glm::rotate, gLuaMat4x4<>::fast, gLuaTrait<gLuaMat4x4<>::value_type>, gLuaDir3<>); break;
+        case LUAGLM_MATRIX_3x3: TRAITS_FUNC(LB, glm::rotate, gLuaMat3x3<>::fast, gLuaMat3x3<>::value_trait); break;
+        case LUAGLM_MATRIX_4x4: TRAITS_FUNC(LB, glm::rotate, gLuaMat4x4<>::fast, gLuaMat4x4<>::value_trait, gLuaDir3<>); break;
         default: {
           break;
         }
@@ -2013,14 +2030,14 @@ GLM_BINDING_QUALIFIER(rotate) {
   GLM_BINDING_END
 }
 
-//TRAITS_DEFN(rotate_slow, glm::rotate_slow, gLuaMat4x4<>, gLuaTrait<gLuaMat4x4<>::value_type>, gLuaDir3<>)
+//TRAITS_DEFN(rotate_slow, glm::rotate_slow, gLuaMat4x4<>, gLuaMat4x4<>::value_trait, gLuaDir3<>)
 TRAITS_LAYOUT_DEFN(rotateFromTo, glm::rotateFromTo, LAYOUT_BINARY, gLuaVec3<>) /* LUA_QUATERNION_EXTENSIONS */
 ROTATION_MATRIX_DEFN(transformDir, glm::transformDir, LAYOUT_UNARY, gLuaVec3<>) /* LUA_MATRIX_EXTENSIONS */
 ROTATION_MATRIX_DEFN(transformPos, glm::transformPos, LAYOUT_UNARY, gLuaVec3<>)
 TRAITS_DEFN(transformPosPerspective, glm::transformPosPerspective, gLuaMat4x4<>, gLuaVec3<>)
 #if defined(LUAGLM_INLINED_TEMPLATES)
-TRAITS_DEFN(rotate_mat3, glm::rotate, gLuaMat3x3<>, gLuaTrait<gLuaMat3x3<>::value_type>)
-TRAITS_DEFN(rotate_mat4, glm::rotate, gLuaMat4x4<>, gLuaTrait<gLuaMat4x4<>::value_type>, gLuaDir3<>)
+TRAITS_DEFN(rotate_mat3, glm::rotate, gLuaMat3x3<>, gLuaMat3x3<>::value_trait)
+TRAITS_DEFN(rotate_mat4, glm::rotate, gLuaMat4x4<>, gLuaMat4x4<>::value_trait, gLuaDir3<>)
 #endif
 #endif
 

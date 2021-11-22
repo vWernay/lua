@@ -274,7 +274,8 @@ struct gLuaBase {
   /// </summary>
   template<typename T>
   LUA_TRAIT_QUALIFIER typename std::enable_if<std::is_same<T, bool>::value, bool>::type Is(const gLuaBase &LB, int idx_) {
-    return lua_isboolean(LB.L, idx_);
+    const TValue *o = glm_i2v(LB.L, idx_);
+    return ttisboolean(o);  // lua_isboolean(LB.L, idx_);
   }
 
   /// <summary>
@@ -284,7 +285,6 @@ struct gLuaBase {
   LUA_TRAIT_QUALIFIER typename std::enable_if<std::is_same<T, bool>::value, int>::type Pull(const gLuaBase &LB, int idx_, T &v) {
     if (FastPath) {
       const TValue *o = glm_i2v(LB.L, idx_);
-      api_check(LB.L, ttisboolean(o), "bool expected");
       v = static_cast<T>(!l_isfalse(o));
     }
     else {
@@ -327,7 +327,8 @@ struct gLuaBase {
   /// and is represented as an integer); false otherwise.
   /// </summary>
   LUA_TRAIT_INT(Is, bool)(const gLuaBase &LB, int idx_) {
-    return lua_isinteger(LB.L, idx_);
+    const TValue *o = glm_i2v(LB.L, idx_);
+    return ttisinteger(o);  // lua_isinteger(LB.L, idx_)
   }
 
   /// <summary>
@@ -338,7 +339,6 @@ struct gLuaBase {
   LUA_TRAIT_QUALIFIER typename std::enable_if<std::is_integral<T>::value && !std::is_same<T, bool>::value, int>::type Pull(const gLuaBase &LB, int idx_, T &v) {
     if (FastPath) {
       const TValue *o = glm_i2v(LB.L, idx_);
-      api_check(LB.L, ttisinteger(o), "integer expected");
       v = static_cast<T>(ivalue(o));
       return 1;
     }
@@ -394,7 +394,6 @@ struct gLuaBase {
   LUA_TRAIT_QUALIFIER typename std::enable_if<std::is_floating_point<T>::value, int>::type Pull(const gLuaBase &LB, int idx_, T &v) {
     if (FastPath) {
       const TValue *o = glm_i2v(LB.L, idx_);
-      api_check(LB.L, ttisfloat(o), "number expected");
       v = static_cast<T>(fltvalue(o));
       return 1;
     }
@@ -453,7 +452,6 @@ struct gLuaBase {
   LUA_TRAIT_QUALIFIER typename std::enable_if<std::is_same<T, const char *>::value, int>::type Pull(const gLuaBase &LB, int idx_, T &v, size_t *len = GLM_NULLPTR) {
     if (FastPath) {
       const TValue *o = glm_i2v(LB.L, idx_);
-      api_check(LB.L, ttisstring(o), "string expected");
       v = svalue(o);
       if (len != GLM_NULLPTR) {
         *len = vslen(o);

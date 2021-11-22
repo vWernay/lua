@@ -1261,7 +1261,7 @@ LUA_API lua_Integer lua_ToHash(lua_State *L, int idx, int ignore_case) {
 /// Unpack a tagged value into a vector "v" starting at offset "v_idx"
 /// </summary>
 template<typename T>
-static glm::length_t PopulateVectorObject(lua_State *L, int idx, glm::vec<4, T> &vec, glm::length_t v_idx, glm::length_t v_desired, const TValue *value) {
+static glm::length_t PopulateVector(lua_State *L, int idx, glm::vec<4, T> &vec, glm::length_t v_idx, glm::length_t v_desired, const TValue *value) {
   if (glm_castvalue(value, vec[v_idx]))  // Primitive type: cast & store it.
     return 1;
   else if (ttisvector(value)) {  // Vector: concatenate components values.
@@ -1370,11 +1370,11 @@ static bool PopulateMatrix(lua_State *L, int idx, int top, bool fixed_size, glmM
       glm::length_t v_size = 0;
       if (as_table) {  // An array contains all of the elements of a matrix.
         const TValue *value = luaH_getint(hvalue(o), static_cast<lua_Integer>(size) + 1);
-        v_size = ttisnil(value) ? 0 : PopulateVectorObject(L, idx, m.m44[size], 0, m_secondary, value);
+        v_size = ttisnil(value) ? 0 : PopulateVector(L, idx, m.m44[size], 0, m_secondary, value);
       }
       else {
         const TValue *value = glm_index2value(L, idx);
-        v_size = PopulateVectorObject(L, idx++, m.m44[size], 0, m_secondary, value);
+        v_size = PopulateVector(L, idx++, m.m44[size], 0, m_secondary, value);
       }
 
       if (v_size > 1) {  // Parse the column/row vector.
@@ -1439,7 +1439,7 @@ static int glm_createVector(lua_State *L, glm::length_t desiredSize = 0) {
     if (v_len >= v_max) {  // Ensure at least one element can be packed into the vector;
       return luaL_argerror(L, i, "invalid " GLM_STRING_VECTOR " dimensions");
     }
-    v_len += PopulateVectorObject(L, i, v, v_len, v_max, glm_index2value(L, i));
+    v_len += PopulateVector(L, i, v, v_len, v_max, glm_index2value(L, i));
   }
 
   if (desiredSize == 0 && v_len == 0)

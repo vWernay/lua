@@ -279,14 +279,12 @@ See **EXTENDED.md** for the full list of functions.
 
 #### Missing Functions
 
-Modules/functions not bound to LuaGLM due to compatibility issues, usefulness,
-or complexity:
+Modules/functions not bound to LuaGLM due to usefulness or complexity:
 
-* glm/gtx/associated\_min\_max.hpp: all;
-* glm/integer.hpp: `imulExtended`, `uaddCarry`, `umulExtended`, `usubBorrow`;
-* glm/gtx/bit.hpp: `powerOfTwoAbove`, `powerOfTwoBelow`, `powerOfTwoNearest`;
-* glm/gtx/range.hpp: `begin`, `end`;
-* glm/ext/vector\_relational.hpp:  `equal(..., vec<L, int, Q> const& ULPs)`, as the current Lua binding cannot differentiate between it and `(..., vec<L, T, Q> const& epsilon)`.
+* glm/gtx/associated\_min\_max.hpp: all.
+* glm/gtx/range.hpp: `begin`, `end`: useless in Lua context.
+* glm/gtx/bit.hpp: `powerOfTwoAbove`, `powerOfTwoBelow`, `powerOfTwoNearest`: deprecated, use GTC_ROUND_HPP instead.
+* glm/ext/vector\_relational.hpp: `equal(..., vec<L, int, Q> const& ULPs)`, as the current Lua binding cannot differentiate between it and `(..., vec<L, T, Q> const& epsilon)`.
 * glm/gtx/pca.hpp: `sortEigenvalues`: Function incorrectly declared and manipulates the parameters in place.
 
 ## Power Patches
@@ -761,6 +759,7 @@ these added features.
 
 Ordered by priority.
 
+1. (C API) Fix vector lua_geti/lua_getfield regression: piggybacking/using luaV_finishget may lead to typeerrors instead of nil being returned.
 1. The initial implementation of the binding library hooked 'assert' in GLM to throw an appropriate Lua error. This was removed and never compensated for in the binding implementation. Some functions, e.g., glm::ballRound, will loop near-infinitely when passed incorrect values. Fix.
 1. Cleanup testing scripts/environment and publish.
 1. Rewrite build scripts.
