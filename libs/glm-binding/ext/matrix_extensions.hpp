@@ -692,6 +692,28 @@ namespace glm {
   }
 
   /// <summary>
+  /// Fail-safe glm::row
+  /// </summary>
+  template<typename genType>
+  GLM_FUNC_QUALIFIER typename genType::row_type __row(genType const &m, length_t index) {
+    typename genType::row_type Result(0);
+    if (index >= 0 && index < m[0].length()) {
+      for (length_t i = 0; i < m.length(); ++i) {
+        Result[i] = m[i][index];
+      }
+    }
+    return Result;
+  }
+
+  /// <summary>
+  /// Fail-safe glm::column
+  /// </summary>
+  template<typename genType>
+  GLM_FUNC_QUALIFIER typename genType::col_type __column(genType const &m, length_t index) {
+    return (index >= 0 && index < m.length()) ? m[index] : typename genType::col_type(0);
+  }
+
+  /// <summary>
   /// @TODO
   /// </summary>
   template<typename T, qualifier Q>

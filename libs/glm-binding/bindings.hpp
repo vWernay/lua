@@ -185,7 +185,7 @@ struct gLuaBase {
   /// method has been invoked at least once.
   /// </summary>
   GLM_INLINE int top() const {
-    return ltop; // return (ltop == 0) ? _gettop(L) : ltop;
+    return ltop;  // return (ltop == 0) ? _gettop(L) : ltop;
   }
 
   /// <summary>
@@ -586,7 +586,7 @@ struct gLuaBase {
         LB.idx++;
 
         glm_mat_boundary(mvalue_ref(o)) = m;
-        setobj2s(L_, L_->top, o); // lua_pushvalue
+        setobj2s(L_, L_->top, o);  // lua_pushvalue
         api_incr_top(L_);
         lua_unlock(L_);
         return 1;
@@ -1100,6 +1100,54 @@ struct gLuaEps : gLuaTrait<T, FastPath> {
       return glm::epsilon<T>();
     }
     return gLuaTrait<T, FastPath>::Next(LB);
+  }
+};
+
+/// <summary>
+/// @GLMAssert: Specialization for traits bounded at zero. Usage of this trait
+/// often reflects an assert clause within the GLM implementation.
+///
+/// @NOTE: All of the assert statements within GLM relate to conditions around
+/// zero or floats between [0, 1]. These trait implementations abuse that
+/// shortcut.
+/// </summary>
+template<class Tr, bool Inclusive = true, bool IncludeEps = false>
+struct gLuaBoundedBelow : gLuaTrait<typename Tr::type, false> {
+  using safe = gLuaBoundedBelow<typename Tr::safe, Inclusive, IncludeEps>;  // @SafeBinding
+  using fast = gLuaBoundedBelow<typename Tr::fast, Inclusive, IncludeEps>;  // @UnsafeBinding
+
+  static GLM_CONSTEXPR const char *Label() { return Tr::Label(); }
+
+  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR typename Tr::type zero() { return Tr::zero(); }
+  LUA_TRAIT_QUALIFIER bool Is(const gLuaBase &LB, int idx) { return Tr::Is(LB, idx); }
+  LUA_TRAIT_QUALIFIER typename Tr::type Next(gLuaBase &LB) {
+    using T = typename Tr::type;
+    const T min = T(0) + (IncludeEps ? std::numeric_limits<typename Tr::value_type>::epsilon() : 0);
+
+    const T value = Tr::Next(LB);
+    if ((Inclusive && !glm::all(glm::lessThanEqual(min, value))) || (!Inclusive && !glm::all(glm::lessThan(min, value))))
+      luaL_argerror(LB.L, LB.idx - 1, "argument not in range");
+    return value;
+  }
+};
+
+/// <summary>
+/// @GLMAssert: Specialization for arguments between zero and one.
+/// </summary>
+template<class Tr>
+struct gLuaBoundedBetween : gLuaTrait<typename Tr::type, false> {
+  using safe = gLuaBoundedBetween<typename Tr::safe>;  // @SafeBinding
+  using fast = gLuaBoundedBetween<typename Tr::fast>;  // @UnsafeBinding
+
+  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR typename Tr::type zero() { return Tr::zero(); }
+  LUA_TRAIT_QUALIFIER bool Is(const gLuaBase &LB, int idx) { return Tr::Is(LB, idx); }
+  LUA_TRAIT_QUALIFIER typename Tr::type Next(gLuaBase &LB) {
+    using T = typename Tr::type;
+
+    const T value = Tr::Next(LB);
+    if (!glm::all(glm::lessThanEqual(T(0), value)) || !glm::all(glm::greaterThanEqual(T(1), value)))
+      luaL_argerror(LB.L, LB.idx - 1, "argument not in range");
+    return value;
   }
 };
 

@@ -648,14 +648,15 @@ NUMBER_VECTOR_DEFN(float_distance, glm::float_distance, LAYOUT_BINARY)
 #endif
 
 #if defined(GTC_ULP_HPP) || defined(EXT_SCALAR_ULP_HPP) || defined(EXT_VECTOR_ULP_HPP)
-#define LAYOUT_NEXT_FLOAT(LB, F, Tr, ...)           \
-  LUA_MLM_BEGIN                                     \
-  if (lua_isnoneornil((LB).L, (LB).idx + 1))        \
-    TRAITS_FUNC(LB, F, Tr);                         \
-  else if (gLuaTrait<int>::Is(LB, (LB).idx + 1))    \
-    TRAITS_FUNC(LB, F, Tr, gLuaTrait<int>);         \
-  else                                              \
-    TRAITS_FUNC(LB, F, Tr, Tr::safe::as_type<int>); \
+/* @GLMAssert: assert(ULPs >= 0); */
+#define LAYOUT_NEXT_FLOAT(LB, F, Tr, ...)                             \
+  LUA_MLM_BEGIN                                                       \
+  if (lua_isnoneornil((LB).L, (LB).idx + 1))                          \
+    TRAITS_FUNC(LB, F, Tr);                                           \
+  else if (gLuaTrait<int>::Is(LB, (LB).idx + 1))                      \
+    TRAITS_FUNC(LB, F, Tr, gLuaBoundedBelow<gLuaTrait<int>>);         \
+  else                                                                \
+    TRAITS_FUNC(LB, F, Tr, gLuaBoundedBelow<Tr::safe::as_type<int>>); \
   LUA_MLM_END
 
 #if GLM_VERSION >= 993  // @COMPAT vector support added in 0.9.9.3
@@ -817,6 +818,11 @@ GLM_BINDING_QUALIFIER(outerProduct) {
 #endif
 
 #if defined(EXT_MATRIX_CLIP_SPACE_HPP)
+using gAspect = gLuaBoundedBelow<gLuaFloatOnly, false, true>;  // @GLMAssert: assert(abs(aspect - std::numeric_limits<T>::epsilon()) > static_cast<T>(0));
+using gFov = gLuaBoundedBelow<gLuaFloatOnly, false, false>;  // @GLMAssert: assert(fov > static_cast<T>(0));
+using gHeight = gFov;  // @GLMAssert: assert(height > static_cast<T>(0));
+using gWidth = gFov;  // @GLMAssert: assert(width > static_cast<T>(0));
+
 TRAITS_LAYOUT_DEFN(frustum, glm::frustum, LAYOUT_SENARY, gLuaFloatOnly)
 TRAITS_LAYOUT_DEFN(frustumLH, glm::frustumLH, LAYOUT_SENARY, gLuaFloatOnly)
 TRAITS_LAYOUT_DEFN(frustumLH_NO, glm::frustumLH_NO, LAYOUT_SENARY, gLuaFloatOnly)
@@ -844,24 +850,24 @@ TRAITS_LAYOUT_DEFN(orthoRH, glm::orthoRH, LAYOUT_SENARY, gLuaFloatOnly)
 TRAITS_LAYOUT_DEFN(orthoRH_NO, glm::orthoRH_NO, LAYOUT_SENARY, gLuaFloatOnly)
 TRAITS_LAYOUT_DEFN(orthoRH_ZO, glm::orthoRH_ZO, LAYOUT_SENARY, gLuaFloatOnly)
 TRAITS_LAYOUT_DEFN(orthoZO, glm::orthoZO, LAYOUT_SENARY, gLuaFloatOnly)
-TRAITS_LAYOUT_DEFN(perspective, glm::perspective, LAYOUT_QUATERNARY, gLuaFloatOnly)
-TRAITS_LAYOUT_DEFN(perspectiveFov, glm::perspectiveFov, LAYOUT_QUINARY, gLuaFloatOnly)
-TRAITS_LAYOUT_DEFN(perspectiveFovLH, glm::perspectiveFovLH, LAYOUT_QUINARY, gLuaFloatOnly)
-TRAITS_LAYOUT_DEFN(perspectiveFovLH_NO, glm::perspectiveFovLH_NO, LAYOUT_QUINARY, gLuaFloatOnly)
-TRAITS_LAYOUT_DEFN(perspectiveFovLH_ZO, glm::perspectiveFovLH_ZO, LAYOUT_QUINARY, gLuaFloatOnly)
-TRAITS_LAYOUT_DEFN(perspectiveFovNO, glm::perspectiveFovNO, LAYOUT_QUINARY, gLuaFloatOnly)
-TRAITS_LAYOUT_DEFN(perspectiveFovRH, glm::perspectiveFovRH, LAYOUT_QUINARY, gLuaFloatOnly)
-TRAITS_LAYOUT_DEFN(perspectiveFovRH_NO, glm::perspectiveFovRH_NO, LAYOUT_QUINARY, gLuaFloatOnly)
-TRAITS_LAYOUT_DEFN(perspectiveFovRH_ZO, glm::perspectiveFovRH_ZO, LAYOUT_QUINARY, gLuaFloatOnly)
-TRAITS_LAYOUT_DEFN(perspectiveFovZO, glm::perspectiveFovZO, LAYOUT_QUINARY, gLuaFloatOnly)
-TRAITS_LAYOUT_DEFN(perspectiveLH, glm::perspectiveLH, LAYOUT_QUATERNARY, gLuaFloatOnly)
-TRAITS_LAYOUT_DEFN(perspectiveLH_NO, glm::perspectiveLH_NO, LAYOUT_QUATERNARY, gLuaFloatOnly)
-TRAITS_LAYOUT_DEFN(perspectiveLH_ZO, glm::perspectiveLH_ZO, LAYOUT_QUATERNARY, gLuaFloatOnly)
-TRAITS_LAYOUT_DEFN(perspectiveNO, glm::perspectiveNO, LAYOUT_QUATERNARY, gLuaFloatOnly)
-TRAITS_LAYOUT_DEFN(perspectiveRH, glm::perspectiveRH, LAYOUT_QUATERNARY, gLuaFloatOnly)
-TRAITS_LAYOUT_DEFN(perspectiveRH_NO, glm::perspectiveRH_NO, LAYOUT_QUATERNARY, gLuaFloatOnly)
-TRAITS_LAYOUT_DEFN(perspectiveRH_ZO, glm::perspectiveRH_ZO, LAYOUT_QUATERNARY, gLuaFloatOnly)
-TRAITS_LAYOUT_DEFN(perspectiveZO, glm::perspectiveZO, LAYOUT_QUATERNARY, gLuaFloatOnly)
+TRAITS_DEFN(perspective, glm::perspective, gLuaFloatOnly, gAspect, gLuaFloatOnly, gLuaFloatOnly)
+TRAITS_DEFN(perspectiveLH, glm::perspectiveLH, gLuaFloatOnly, gAspect, gLuaFloatOnly, gLuaFloatOnly)
+TRAITS_DEFN(perspectiveLH_NO, glm::perspectiveLH_NO, gLuaFloatOnly, gAspect, gLuaFloatOnly, gLuaFloatOnly)
+TRAITS_DEFN(perspectiveLH_ZO, glm::perspectiveLH_ZO, gLuaFloatOnly, gAspect, gLuaFloatOnly, gLuaFloatOnly)
+TRAITS_DEFN(perspectiveNO, glm::perspectiveNO, gLuaFloatOnly, gAspect, gLuaFloatOnly, gLuaFloatOnly)
+TRAITS_DEFN(perspectiveRH, glm::perspectiveRH, gLuaFloatOnly, gAspect, gLuaFloatOnly, gLuaFloatOnly)
+TRAITS_DEFN(perspectiveRH_NO, glm::perspectiveRH_NO, gLuaFloatOnly, gAspect, gLuaFloatOnly, gLuaFloatOnly)
+TRAITS_DEFN(perspectiveRH_ZO, glm::perspectiveRH_ZO, gLuaFloatOnly, gAspect, gLuaFloatOnly, gLuaFloatOnly)
+TRAITS_DEFN(perspectiveZO, glm::perspectiveZO, gLuaFloatOnly, gAspect, gLuaFloatOnly, gLuaFloatOnly)
+TRAITS_DEFN(perspectiveFov, glm::perspectiveFov, gFov, gWidth, gHeight, gLuaFloatOnly, gLuaFloatOnly)
+TRAITS_DEFN(perspectiveFovLH, glm::perspectiveFovLH, gFov, gWidth, gHeight, gLuaFloatOnly, gLuaFloatOnly)
+TRAITS_DEFN(perspectiveFovLH_NO, glm::perspectiveFovLH_NO, gFov, gWidth, gHeight, gLuaFloatOnly, gLuaFloatOnly)
+TRAITS_DEFN(perspectiveFovLH_ZO, glm::perspectiveFovLH_ZO, gFov, gWidth, gHeight, gLuaFloatOnly, gLuaFloatOnly)
+TRAITS_DEFN(perspectiveFovNO, glm::perspectiveFovNO, gFov, gWidth, gHeight, gLuaFloatOnly, gLuaFloatOnly)
+TRAITS_DEFN(perspectiveFovRH, glm::perspectiveFovRH, gFov, gWidth, gHeight, gLuaFloatOnly, gLuaFloatOnly)
+TRAITS_DEFN(perspectiveFovRH_NO, glm::perspectiveFovRH_NO, gFov, gWidth, gHeight, gLuaFloatOnly, gLuaFloatOnly)
+TRAITS_DEFN(perspectiveFovRH_ZO, glm::perspectiveFovRH_ZO, gFov, gWidth, gHeight, gLuaFloatOnly, gLuaFloatOnly)
+TRAITS_DEFN(perspectiveFovZO, glm::perspectiveFovZO, gFov, gWidth, gHeight, gLuaFloatOnly, gLuaFloatOnly)
 GLM_BINDING_QUALIFIER(tweakedInfinitePerspective) {
   GLM_BINDING_BEGIN
   if (gLuaFloatOnly::Is(LB, LB.idx + 4))
@@ -906,7 +912,10 @@ TRAITS_DEFN(billboardLH, glm::billboardLH, gLuaVec3<>, gLuaVec3<>, gLuaDir3<>, g
 #endif
 
 #if defined(EXT_MATRIX_PROJECTION_HPP)
-TRAITS_DEFN(pickMatrix, glm::pickMatrix, gLuaVec2<>, gLuaVec2<>, gLuaVec4<>)
+// @GLMAssert: assert(delta.x > static_cast<T>(0) && delta.y > static_cast<T>(0));
+// glm::pickMatrix also sanitizes the parameters without asserts; a bit redundant.
+using gPickDeltaValue = gLuaBoundedBelow<gLuaVec2<>, false>;
+TRAITS_DEFN(pickMatrix, glm::pickMatrix, gLuaVec2<>, gPickDeltaValue, gLuaVec4<>)
 TRAITS_DEFN(project, glm::project, gLuaVec3<>, gLuaMat4x4<>, gLuaMat4x4<>, gLuaVec4<>)
 TRAITS_DEFN(projectNO, glm::projectNO, gLuaVec3<>, gLuaMat4x4<>, gLuaMat4x4<>, gLuaVec4<>)
 TRAITS_DEFN(projectZO, glm::projectZO, gLuaVec3<>, gLuaMat4x4<>, gLuaMat4x4<>, gLuaVec4<>)
@@ -918,8 +927,8 @@ TRAITS_LAYOUT_DEFN(containsProjection, glm::containsProjection, LAYOUT_BINARY_EP
 #endif
 
 #if defined(GTC_MATRIX_ACCESS_HPP) /* Zero Based */
-MATRIX_DEFN(column, glm::column, LAYOUT_UNARY, gLuaTrait<glm::length_t>)
-MATRIX_DEFN(row, glm::row, LAYOUT_UNARY, gLuaTrait<glm::length_t>)
+MATRIX_DEFN(column, glm::__column, LAYOUT_UNARY, gLuaTrait<glm::length_t>)
+MATRIX_DEFN(row, glm::__row, LAYOUT_UNARY, gLuaTrait<glm::length_t>)
 #endif
 
 #if defined(GTC_MATRIX_INVERSE_HPP)
@@ -1558,17 +1567,22 @@ NUMBER_VECTOR_DEFN(epsilonNotEqual, glm::epsilonNotEqual, LAYOUT_TERNARY_EPS)
 #endif
 
 #if defined(GTC_INTEGER_HPP)
-NUMBER_VECTOR_DEFN(iround, glm::iround, LAYOUT_UNARY)
-NUMBER_VECTOR_DEFN(uround, glm::uround, LAYOUT_UNARY)
+// @GLMAssert: assert(static_cast<genType>(0.0) <= x);
+// @GLMAssert: assert(all(lessThanEqual(vec<L, T, Q>(0), x)));
+#define LAYOUT_ROUND_BOUNDED(LB, F, Tr, ...) \
+  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, gLuaBoundedBelow<Tr>, ##__VA_ARGS__)
+NUMBER_VECTOR_DEFN(iround, glm::iround, LAYOUT_ROUND_BOUNDED)
+NUMBER_VECTOR_DEFN(uround, glm::uround, LAYOUT_ROUND_BOUNDED)
 #endif
 
 #if defined(GTC_RANDOM_HPP)
+using gRandValue = gLuaBoundedBelow<gLuaNumber, false>;  // @GLMAssert: assert(Radius > static_cast<T>(0));
 NUMBER_VECTOR_DEFN(linearRand, glm::linearRand, LAYOUT_BINARY)
-TRAITS_LAYOUT_DEFN(ballRand, glm::ballRand, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(circularRand, glm::circularRand, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(diskRand, glm::diskRand, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(gaussRand, glm::gaussRand, LAYOUT_BINARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(sphericalRand, glm::sphericalRand, LAYOUT_UNARY, gLuaNumber)
+TRAITS_LAYOUT_DEFN(ballRand, glm::ballRand, LAYOUT_UNARY, gRandValue)
+TRAITS_LAYOUT_DEFN(circularRand, glm::circularRand, LAYOUT_UNARY, gRandValue)
+TRAITS_LAYOUT_DEFN(diskRand, glm::diskRand, LAYOUT_UNARY, gRandValue)
+TRAITS_LAYOUT_DEFN(gaussRand, glm::gaussRand, LAYOUT_BINARY, gRandValue)
+TRAITS_LAYOUT_DEFN(sphericalRand, glm::sphericalRand, LAYOUT_UNARY, gRandValue)
 #if defined(_DEBUG)  /* Temporary; see gLuaBase documentation */
 GLM_BINDING_QUALIFIER(srand) {
   std::srand(static_cast<unsigned>(lua_tointeger(L, 1)));
@@ -1659,7 +1673,11 @@ NUMBER_VECTOR_DEFN(saturate, glm::saturate, LAYOUT_UNARY)
 #endif
 
 #if defined(GTX_COMPATIBILITY_HPP) || defined(EXT_QUATERNION_COMMON_HPP)
-NUMBER_VECTOR_QUAT_DEFNS(lerp, glm::lerp, LAYOUT_TERNARY_OPTIONAL, LAYOUT_TERNARY_OPTIONAL, LAYOUT_TERNARY_SCALAR)
+// @GLMAssert: assert(a >= static_cast<T>(0));
+// @GLMAssert: assert(a <= static_cast<T>(1));
+#define LAYOUT_QUAT_LERP(LB, F, Tr, ...) \
+  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, gLuaBoundedBetween<Tr::value_trait>, ##__VA_ARGS__)
+NUMBER_VECTOR_QUAT_DEFNS(lerp, glm::lerp, LAYOUT_TERNARY_OPTIONAL, LAYOUT_TERNARY_OPTIONAL, LAYOUT_QUAT_LERP)
 #endif
 
 #if defined(GTX_COMPONENT_WISE_HPP)
@@ -1672,37 +1690,40 @@ INTEGER_VECTOR_DEFN(compScale, glm::compScale<glm_Integer>, LAYOUT_UNARY, glm_Fl
 #endif
 
 #if defined(GTX_EASING_HPP)
-TRAITS_LAYOUT_DEFN(backEaseIn, glm::backEaseIn, LAYOUT_UNARY_OR_BINARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(backEaseInOut, glm::backEaseInOut, LAYOUT_UNARY_OR_BINARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(backEaseOut, glm::backEaseOut, LAYOUT_UNARY_OR_BINARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(bounceEaseIn, glm::bounceEaseIn, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(bounceEaseInOut, glm::bounceEaseInOut, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(bounceEaseOut, glm::bounceEaseOut, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(circularEaseIn, glm::circularEaseIn, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(circularEaseInOut, glm::circularEaseInOut, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(circularEaseOut, glm::circularEaseOut, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(cubicEaseIn, glm::cubicEaseIn, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(cubicEaseInOut, glm::cubicEaseInOut, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(cubicEaseOut, glm::cubicEaseOut, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(elasticEaseIn, glm::elasticEaseIn, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(elasticEaseInOut, glm::elasticEaseInOut, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(elasticEaseOut, glm::elasticEaseOut, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(exponentialEaseIn, glm::exponentialEaseIn, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(exponentialEaseInOut, glm::exponentialEaseInOut, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(exponentialEaseOut, glm::exponentialEaseOut, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(linearInterpolation, glm::linearInterpolation, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(quadraticEaseIn, glm::quadraticEaseIn, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(quadraticEaseInOut, glm::quadraticEaseInOut, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(quadraticEaseOut, glm::quadraticEaseOut, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(quarticEaseIn, glm::quarticEaseIn, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(quarticEaseInOut, glm::quarticEaseInOut, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(quarticEaseOut, glm::quarticEaseOut, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(quinticEaseIn, glm::quinticEaseIn, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(quinticEaseInOut, glm::quinticEaseInOut, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(quinticEaseOut, glm::quinticEaseOut, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(sineEaseIn, glm::sineEaseIn, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(sineEaseInOut, glm::sineEaseInOut, LAYOUT_UNARY, gLuaNumber)
-TRAITS_LAYOUT_DEFN(sineEaseOut, glm::sineEaseOut, LAYOUT_UNARY, gLuaNumber)
+// @GLMAssert: assert(a >= zero<genType>());
+// @GLMAssert: assert(a <= one<genType>());
+using gEasingValue = gLuaBoundedBetween<gLuaNumber>;
+TRAITS_LAYOUT_DEFN(backEaseIn, glm::backEaseIn, LAYOUT_UNARY_OR_BINARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(backEaseInOut, glm::backEaseInOut, LAYOUT_UNARY_OR_BINARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(backEaseOut, glm::backEaseOut, LAYOUT_UNARY_OR_BINARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(bounceEaseIn, glm::bounceEaseIn, LAYOUT_UNARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(bounceEaseInOut, glm::bounceEaseInOut, LAYOUT_UNARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(bounceEaseOut, glm::bounceEaseOut, LAYOUT_UNARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(circularEaseIn, glm::circularEaseIn, LAYOUT_UNARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(circularEaseInOut, glm::circularEaseInOut, LAYOUT_UNARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(circularEaseOut, glm::circularEaseOut, LAYOUT_UNARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(cubicEaseIn, glm::cubicEaseIn, LAYOUT_UNARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(cubicEaseInOut, glm::cubicEaseInOut, LAYOUT_UNARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(cubicEaseOut, glm::cubicEaseOut, LAYOUT_UNARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(elasticEaseIn, glm::elasticEaseIn, LAYOUT_UNARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(elasticEaseInOut, glm::elasticEaseInOut, LAYOUT_UNARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(elasticEaseOut, glm::elasticEaseOut, LAYOUT_UNARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(exponentialEaseIn, glm::exponentialEaseIn, LAYOUT_UNARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(exponentialEaseInOut, glm::exponentialEaseInOut, LAYOUT_UNARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(exponentialEaseOut, glm::exponentialEaseOut, LAYOUT_UNARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(linearInterpolation, glm::linearInterpolation, LAYOUT_UNARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(quadraticEaseIn, glm::quadraticEaseIn, LAYOUT_UNARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(quadraticEaseInOut, glm::quadraticEaseInOut, LAYOUT_UNARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(quadraticEaseOut, glm::quadraticEaseOut, LAYOUT_UNARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(quarticEaseIn, glm::quarticEaseIn, LAYOUT_UNARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(quarticEaseInOut, glm::quarticEaseInOut, LAYOUT_UNARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(quarticEaseOut, glm::quarticEaseOut, LAYOUT_UNARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(quinticEaseIn, glm::quinticEaseIn, LAYOUT_UNARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(quinticEaseInOut, glm::quinticEaseInOut, LAYOUT_UNARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(quinticEaseOut, glm::quinticEaseOut, LAYOUT_UNARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(sineEaseIn, glm::sineEaseIn, LAYOUT_UNARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(sineEaseInOut, glm::sineEaseInOut, LAYOUT_UNARY, gEasingValue)
+TRAITS_LAYOUT_DEFN(sineEaseOut, glm::sineEaseOut, LAYOUT_UNARY, gEasingValue)
 #endif
 
 #if defined(GTX_EXTEND_HPP)

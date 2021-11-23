@@ -760,7 +760,6 @@ these added features.
 Ordered by priority.
 
 1. (C API) Fix vector lua_geti/lua_getfield regression: piggybacking/using luaV_finishget may lead to typeerrors instead of nil being returned.
-1. The initial implementation of the binding library hooked 'assert' in GLM to throw an appropriate Lua error. This was removed and never compensated for in the binding implementation. Some functions, e.g., glm::ballRound, will loop near-infinitely when passed incorrect values. Fix.
 1. Cleanup testing scripts/environment and publish.
 1. Rewrite build scripts.
 1. Optimize vector/matrix tagmethod codegen: reduce branching or consider PGOing the object (in build scripts).
