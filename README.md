@@ -285,6 +285,7 @@ Modules/functions not bound to LuaGLM due to usefulness or complexity:
 * glm/gtx/range.hpp: `begin`, `end`: useless in Lua context.
 * glm/gtx/bit.hpp: `powerOfTwoAbove`, `powerOfTwoBelow`, `powerOfTwoNearest`: deprecated, use GTC\_ROUND\_HPP instead.
 * glm/ext/vector\_relational.hpp: `equal(..., vec<L, int, Q> const& ULPs)`, as the current Lua binding cannot differentiate between it and `(..., vec<L, T, Q> const& epsilon)`.
+* glm/gtx/epsilon.hpp: `epsilon*Equal(qua<T, Q> const& x, qua<T, Q> const& y, T const& epsilon)`: not properly declared in header.
 * glm/gtx/pca.hpp: `sortEigenvalues`: Function incorrectly declared and manipulates the parameters in place.
 
 ## Power Patches

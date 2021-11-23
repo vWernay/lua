@@ -1495,9 +1495,9 @@ NUMBER_VECTOR_DEFN(refract, glm::refract, LAYOUT_TERNARY_SCALAR)
 #endif
 
 #if defined(GEOMETRIC_HPP) || defined(EXT_QUATERNION_GEOMETRIC_HPP)
-NUMBER_VECTOR_DEFN(dot, glm::dot, LAYOUT_BINARY)
-NUMBER_VECTOR_DEFN(length, glm::length, LAYOUT_UNARY)
-NUMBER_VECTOR_DEFN(normalize, glm::normalize, LAYOUT_UNARY)
+NUMBER_VECTOR_QUAT_DEFN(dot, glm::dot, LAYOUT_BINARY)
+NUMBER_VECTOR_QUAT_DEFN(length, glm::length, LAYOUT_UNARY)
+NUMBER_VECTOR_QUAT_DEFN(normalize, glm::normalize, LAYOUT_UNARY)
 NUMBER_VECTOR_DEFN(clampLength, glm::clampLength, LAYOUT_BINARY_SCALAR) /* LUA_VECTOR_EXTENSIONS */
 NUMBER_VECTOR_DEFN(scaleLength, glm::scaleLength, LAYOUT_BINARY_SCALAR)
 NUMBER_VECTOR_DEFN(direction, glm::direction, LAYOUT_BINARY)
@@ -1562,8 +1562,15 @@ INTEGER_VECTOR_DEFN(prevPowerOfTwo, glm::prevPowerOfTwo, LAYOUT_UNARY, lua_Unsig
 #endif
 
 #if defined(GTC_EPSILON_HPP)
-NUMBER_VECTOR_DEFN(epsilonEqual, glm::epsilonEqual, LAYOUT_TERNARY_EPS)
-NUMBER_VECTOR_DEFN(epsilonNotEqual, glm::epsilonNotEqual, LAYOUT_TERNARY_EPS)
+#define LAYOUT_EPSILON_EQUAL(LB, F, Tr, ...) /* trait + trait + {trait || epsilon} op */            \
+  LUA_MLM_BEGIN                                                                                     \
+  if (Tr::Is((LB), (LB).idx + 2))                                                                   \
+    VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::safe, ##__VA_ARGS__);              \
+  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, gLuaEps<Tr::value_type>, ##__VA_ARGS__); \
+  LUA_MLM_END
+
+NUMBER_VECTOR_DEFN(epsilonEqual, glm::epsilonEqual, LAYOUT_EPSILON_EQUAL)
+NUMBER_VECTOR_DEFN(epsilonNotEqual, glm::epsilonNotEqual, LAYOUT_EPSILON_EQUAL)
 #endif
 
 #if defined(GTC_INTEGER_HPP)
