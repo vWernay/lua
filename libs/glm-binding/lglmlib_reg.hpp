@@ -787,15 +787,18 @@ GLM_LUA_REG(packUint2x32),
 GLM_LUA_REG(unpackUint2x32),
 #endif
 
-#if defined(GTC_ULP_HPP)
+#if defined(GTC_ULP_HPP) || defined(EXT_SCALAR_ULP_HPP)
 #if GLM_VERSION >= 993  // @COMPAT float_distance incorrectly declared until 0.9.9.3
 GLM_LUA_REG(float_distance),
+{ "floatDistance", glm_float_distance },  /* scalar_ulp.hpp */
 #endif
 #endif
 
 #if defined(GTC_ULP_HPP) || defined(EXT_SCALAR_ULP_HPP) || defined(EXT_VECTOR_ULP_HPP)
 GLM_LUA_REG(next_float),
 GLM_LUA_REG(prev_float),
+{ "nextFloat", glm_next_float },  /* scalar_ulp.hpp */
+{ "prevFloat", glm_prev_float },  /* scalar_ulp.hpp */
 #endif
 
 /* Additional Quaternion */

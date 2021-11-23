@@ -484,7 +484,7 @@ GLM_BINDING_QUALIFIER(mat_negate) {
 */
 
 #if defined(INTEGER_HPP)
-#define LAYOUT_ADD_CARRY(LB, F, Tr)       \
+#define LAYOUT_ADD_CARRY(LB, F, Tr, ...)  \
   LUA_MLM_BEGIN                           \
   const Tr::type a = Tr::Next(LB);        \
   const Tr::type b = Tr::safe::Next(LB);  \
@@ -492,13 +492,13 @@ GLM_BINDING_QUALIFIER(mat_negate) {
   TRAITS_PUSH(LB, F(a, b, carry), carry); \
   LUA_MLM_END
 
-#define LAYOUT_MUL_EXTENDED(LB, F, Tr)   \
-  LUA_MLM_BEGIN                          \
-  const Tr::type a = Tr::Next(LB);       \
-  const Tr::type b = Tr::safe::Next(LB); \
-  Tr::type lsb(0), msb(0);               \
-  F(a, b, lsb, msb);                     \
-  TRAITS_PUSH(LB, lsb, msb);             \
+#define LAYOUT_MUL_EXTENDED(LB, F, Tr, ...) \
+  LUA_MLM_BEGIN                             \
+  const Tr::type a = Tr::Next(LB);          \
+  const Tr::type b = Tr::safe::Next(LB);    \
+  Tr::type lsb(0), msb(0);                  \
+  F(a, b, lsb, msb);                        \
+  TRAITS_PUSH(LB, lsb, msb);                \
   LUA_MLM_END
 
 #if LUA_INT_TYPE != LUA_INT_INT || !defined(LUAGLM_ALIGNED)
@@ -641,7 +641,7 @@ TRAITS_DEFN(packUint2x32, glm::packUint2x32, gLuaVec2<glm::u32>)
 TRAITS_DEFN(unpackUint2x32, glm::unpackUint2x32, gLuaTrait<glm::uint64>)
 #endif
 
-#if defined(GTC_ULP_HPP)
+#if defined(GTC_ULP_HPP) || defined(EXT_SCALAR_ULP_HPP)
 #if GLM_VERSION >= 993  // @COMPAT float_distance incorrectly declared until 0.9.9.3
 NUMBER_VECTOR_DEFN(float_distance, glm::float_distance, LAYOUT_BINARY)
 #endif
