@@ -2009,7 +2009,14 @@ TRAITS_BINARY_LAYOUT_DEFN(rotateZ, glm::rotateZ, LAYOUT_BINARY_SCALAR, gLuaVec3<
 #endif
 
 #if defined(GTX_ROTATE_VECTOR_HPP) || defined(EXT_QUATERNION_COMMON_HPP)
-NUMBER_VECTOR_QUAT_DEFN(slerp, glm::__slerp, LAYOUT_TERNARY_SCALAR)
+#define LAYOUT_QUAT_SLERP(LB, F, Tr, ...)                                                                     \
+  LUA_MLM_BEGIN                                                                                               \
+  if (gLuaTrait<int>::Is((LB), (LB).idx + 3))                                                                 \
+    VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::value_trait, gLuaTrait<int>, ##__VA_ARGS__); \
+  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::value_trait, ##__VA_ARGS__);                   \
+  LUA_MLM_END
+
+NUMBER_VECTOR_QUAT_DEFNS(slerp, glm::__slerp, LAYOUT_TERNARY_SCALAR, LAYOUT_TERNARY_SCALAR, LAYOUT_QUAT_SLERP)
 NUMBER_VECTOR_QUAT_DEFN(barycentric, glm::barycentric, LAYOUT_BARYCENTRIC) /* LUA_VECTOR_EXTENSIONS */
 #endif
 

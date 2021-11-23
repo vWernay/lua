@@ -518,6 +518,11 @@ namespace glm {
     return slerp(x, y, a);
   }
 
+  template<typename T, typename S, qualifier Q>
+  GLM_FUNC_QUALIFIER qua<T, Q> __slerp(qua<T, Q> const &x, qua<T, Q> const &y, T a, S k) {
+    return slerp(x, y, a, k);
+  }
+
   template<typename genType>
   GLM_FUNC_QUALIFIER genType __slerp(genType x, genType y, genType a) {
     return __slerp(vec<1, genType>(x), vec<1, genType>(y), a).x;

@@ -1388,11 +1388,11 @@ struct gLuaBoundedBetween : gLuaTrait<typename Tr::type, false> {
   VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::safe, Tr::value_trait, Tr::value_trait, ##__VA_ARGS__)
 
 /* unary or binary operator depending on the state of the Lua stack */
-#define LAYOUT_UNARY_OR_BINARY(LB, F, Tr, ...)                             \
-  LUA_MLM_BEGIN                                                            \
-  if (lua_isnoneornil((LB).L, (LB).idx + 1))                               \
-    VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, ##__VA_ARGS__);         \
-  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, ##__VA_ARGS__); \
+#define LAYOUT_UNARY_OR_BINARY(LB, F, Tr, ...)                               \
+  LUA_MLM_BEGIN                                                              \
+  if (Tr::Is((LB).L, (LB).idx + 1))                                          \
+    VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, ##__VA_ARGS__); \
+  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, ##__VA_ARGS__);             \
   LUA_MLM_END
 
 /* trait + {nil || trait::primitive} op */
