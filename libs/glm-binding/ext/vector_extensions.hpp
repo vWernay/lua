@@ -839,6 +839,31 @@ namespace glm {
     return result;
   }
 
+  template<typename genType>
+  GLM_FUNC_QUALIFIER genType fclamp(genType x) {
+    return fclamp(x, genType(0), genType(1));
+  }
+
+  template<length_t L, typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER vec<L, T, Q> fclamp(vec<L, T, Q> const &x) {
+    return fclamp(x, T(0), T(1));
+  }
+
+  template<length_t L, typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER vec<L, T, Q> ceilMultiple(vec<L, T, Q> const &Source, T const &Multiple) {
+    return ceilMultiple(Source, vec<L, T, Q>(Multiple));
+  }
+
+  template<length_t L, typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER vec<L, T, Q> floorMultiple(vec<L, T, Q> const &Source, T const &Multiple) {
+    return floorMultiple(Source, vec<L, T, Q>(Multiple));
+  }
+
+  template<length_t L, typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER vec<L, T, Q> roundMultiple(vec<L, T, Q> const &Source, T const &Multiple) {
+    return roundMultiple(Source, vec<L, T, Q>(Multiple));
+  }
+
   /* Missing implicit genType support. */
 
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool any(bool b) {

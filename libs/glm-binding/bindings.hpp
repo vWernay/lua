@@ -1151,6 +1151,26 @@ struct gLuaBoundedBetween : gLuaTrait<typename Tr::type, false> {
   }
 };
 
+/// <summary>
+/// @GLMAssert: Specialization that ensures values cannot be zero (fmod)
+/// </summary>
+template<class Tr>
+struct gLuaNotZero : gLuaTrait<typename Tr::type, false> {
+  using safe = gLuaNotZero<typename Tr::safe>;  // @SafeBinding
+  using fast = gLuaNotZero<typename Tr::fast>;  // @UnsafeBinding
+
+  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR typename Tr::type zero() { return Tr::zero(); }
+  LUA_TRAIT_QUALIFIER bool Is(const gLuaBase &LB, int idx) { return Tr::Is(LB, idx); }
+  LUA_TRAIT_QUALIFIER typename Tr::type Next(gLuaBase &LB) {
+    using T = typename Tr::type;
+
+    const T value = Tr::Next(LB);
+    if (std::is_integral<T>::value && glm::any(glm::equal(T(0), value)))
+      luaL_argerror(LB.L, LB.idx - 1, "zero");
+    return value;
+  }
+};
+
 /* }================================================================== */
 
 /*
@@ -1428,21 +1448,12 @@ struct gLuaBoundedBetween : gLuaTrait<typename Tr::type, false> {
   LUA_MLM_END
 
 /* A binary integer layout that sanitizes the second argument (division/modulo zero) */
-#define LAYOUT_BINARY_INTEGER(LB, F, Tr, ...)                           \
-  LUA_MLM_BEGIN                                                         \
-  if (Tr::safe::Is(LB, (LB).idx + 1)) {                                 \
-    const Tr::type __a = Tr::safe::Next(LB);                            \
-    const Tr::type __b = Tr::safe::Next(LB);                            \
-    if ((lua_Unsigned)__b + 1u <= 1u) { /* special cases: -1 or 0 */    \
-      luaL_argcheck((LB).L, __b != 0, (LB).idx - 1, "zero");            \
-      return gLuaBase::Push(LB, 0); /* overflow with 0x80000... / -1 */ \
-    }                                                                   \
-    return gLuaBase::Push(LB, F(__a, __b));                             \
-  }                                                                     \
-  /* Second argument is a number, fall-back to <number, number> */      \
-  else if (gLuaNumber::Is((LB), (LB).idx + 1))                          \
-    LAYOUT_BINARY(LB, F, gLuaNumber, ##__VA_ARGS__);                    \
-  return luaL_typeerror((LB).L, (LB).idx, Tr::Label());                 \
+#define LAYOUT_MODULO(LB, F, Tr, ...)                                                            \
+  LUA_MLM_BEGIN                                                                                  \
+  if (Tr::value_trait::Is((LB), (LB).idx + 1))                                                   \
+    VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, gLuaNotZero<Tr::value_trait>, ##__VA_ARGS__); \
+  else                                                                                           \
+    VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, gLuaNotZero<Tr::safe>, ##__VA_ARGS__);        \
   LUA_MLM_END
 
 /* }================================================================== */

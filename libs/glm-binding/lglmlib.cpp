@@ -112,6 +112,42 @@ static const luaL_Reg luaglm_lib[] = {
   { "FP_ZERO", GLM_NULLPTR },
   { "FP_SUBNORMAL", GLM_NULLPTR },
   { "FP_NORMAL", GLM_NULLPTR },
+  /* Constants */
+#if defined(CONSTANTS_HPP) || defined(EXT_SCALAR_CONSTANTS_HPP)
+  #if GLM_VERSION >= 997  // @COMPAT Added in 0.9.9.7
+  { "cos_one_over_two", GLM_NULLPTR },
+  #endif
+  { "e", GLM_NULLPTR },
+  { "epsilon", GLM_NULLPTR },
+  { "euler", GLM_NULLPTR },
+  { "four_over_pi", GLM_NULLPTR },
+  { "golden_ratio", GLM_NULLPTR },
+  { "half_pi", GLM_NULLPTR },
+  { "ln_ln_two", GLM_NULLPTR },
+  { "ln_ten", GLM_NULLPTR },
+  { "ln_two", GLM_NULLPTR },
+  { "one", GLM_NULLPTR },
+  { "one_over_pi", GLM_NULLPTR },
+  { "one_over_root_two", GLM_NULLPTR },
+  { "one_over_two_pi", GLM_NULLPTR },
+  //{ "pi", GLM_NULLPTR },
+  { "quarter_pi", GLM_NULLPTR },
+  { "root_five", GLM_NULLPTR },
+  { "root_half_pi", GLM_NULLPTR },
+  { "root_ln_four", GLM_NULLPTR },
+  { "root_pi", GLM_NULLPTR },
+  { "root_three", GLM_NULLPTR },
+  { "root_two", GLM_NULLPTR },
+  { "root_two_pi", GLM_NULLPTR },
+  { "third", GLM_NULLPTR },
+  { "three_over_two_pi", GLM_NULLPTR },
+  { "two_over_pi", GLM_NULLPTR },
+  { "two_over_root_pi", GLM_NULLPTR },
+  { "two_pi", GLM_NULLPTR },
+  { "two_thirds", GLM_NULLPTR },
+  { "zero", GLM_NULLPTR },
+  { "epsilon", GLM_NULLPTR },
+#endif
   /* Metamethods */
   { "__index", GLM_NULLPTR },
   /* Geometry API */

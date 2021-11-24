@@ -605,10 +605,10 @@ TRAITS_DEFN(packRGBM, glm::packRGBM, gLuaVec3<>)
 TRAITS_DEFN(unpackRGBM, glm::unpackRGBM, gLuaVec4<>)
 INTEGER_VECTOR_DEFN(packHalf, glm::packHalf, LAYOUT_UNARY, float)
 INTEGER_VECTOR_DEFN(unpackHalf, glm::unpackHalf, LAYOUT_UNARY, glm::uint16)
-INTEGER_VECTOR_DEFN(packUnorm, glm::packUnorm<lua_Unsigned>, LAYOUT_UNARY, float)
-INTEGER_VECTOR_DEFN(unpackUnorm, glm::unpackUnorm<float>, LAYOUT_UNARY, lua_Unsigned)
-INTEGER_VECTOR_DEFN(packSnorm, glm::packSnorm<lua_Integer>, LAYOUT_UNARY, glm_Number)
-INTEGER_VECTOR_DEFN(unpackSnorm, glm::unpackSnorm<glm_Number>, LAYOUT_UNARY, lua_Integer)
+INTEGER_VECTOR_DEFN(packUnorm, glm::packUnorm<glm::uint16>, LAYOUT_UNARY, float)
+INTEGER_VECTOR_DEFN(unpackUnorm, glm::unpackUnorm<float>, LAYOUT_UNARY, glm::uint16)
+INTEGER_VECTOR_DEFN(packSnorm, glm::packSnorm<glm::int16>, LAYOUT_UNARY, float)
+INTEGER_VECTOR_DEFN(unpackSnorm, glm::unpackSnorm<float>, LAYOUT_UNARY, glm::int16)
 TRAITS_DEFN(packUnorm2x4, glm::packUnorm2x4, gLuaVec2<float>)
 TRAITS_DEFN(unpackUnorm2x4, glm::unpackUnorm2x4, gLuaTrait<glm::uint8>)
 TRAITS_DEFN(packUnorm4x4, glm::packUnorm4x4, gLuaVec4<float>)
@@ -1248,7 +1248,7 @@ NUMBER_VECTOR_DEFN(frexp, glm::frexp, LAYOUT_FREXP, int)
 NUMBER_VECTOR_DEFN(reverse, glm::reverse, LAYOUT_UNARY) /* LUA_VECTOR_EXTENSIONS */
 
 /* lmathlib compatibility */
-INTEGER_NUMBER_VECTOR_DEFNS(mod, glm::imod, LAYOUT_BINARY_INTEGER, LAYOUT_BINARY, LAYOUT_BINARY)
+INTEGER_NUMBER_VECTOR_DEFN(mod, glm::imod, LAYOUT_MODULO)
 GLM_BINDING_QUALIFIER(modf) {
   GLM_BINDING_BEGIN
   if (lua_isinteger(LB.L, LB.idx)) {
@@ -1318,18 +1318,19 @@ NUMBER_VECTOR_DEFN(scalbn, glm::scalbn, LAYOUT_VECTOR_INT)
   LUA_MLM_END
 
 /* glm::clamp */
-#define LAYOUT_CLAMP(LB, F, Tr, ...)                                                                    \
-  LUA_MLM_BEGIN                                                                                         \
-  if (lua_isnoneornil((LB).L, (LB).idx + 1) && lua_isnoneornil((LB).L, (LB).idx + 2)) /* <vec, 0, 1> */ \
-    TRAITS_FUNC(LB, F, Tr);                                                                             \
-  else if (Tr::value_trait::Is(LB, (LB).idx + 1) && Tr::value_trait::Is(LB, (LB).idx + 2))              \
-    TRAITS_FUNC(LB, F, Tr, Tr::value_trait, Tr::value_trait); /* <vec, minVal, maxVal> */               \
-  else                                                                                                  \
-    LAYOUT_TERNARY(LB, F, Tr); /* <vector, minVector, maxVector> */                                     \
+#define LAYOUT_CLAMP(LB, F, Tr, ...)                                                       \
+  LUA_MLM_BEGIN /* <Tr, 0, 1> */                                                           \
+  if (lua_isnoneornil((LB).L, (LB).idx + 1) && lua_isnoneornil((LB).L, (LB).idx + 2))      \
+    TRAITS_FUNC(LB, F, Tr);                                                                \
+  else if (Tr::value_trait::Is(LB, (LB).idx + 1) && Tr::value_trait::Is(LB, (LB).idx + 2)) \
+    TRAITS_FUNC(LB, F, Tr, Tr::value_trait, Tr::value_trait); /* <Tr, minVal, maxVal> */   \
+  else                                                                                     \
+    LAYOUT_TERNARY(LB, F, Tr); /* <Tr, TrMin, TrMax> */                                    \
   LUA_MLM_END
 
 NUMBER_VECTOR_DEFN(fmin, glm::fmin, LAYOUT_MINMAX)
 NUMBER_VECTOR_DEFN(fmax, glm::fmax, LAYOUT_MINMAX)
+NUMBER_VECTOR_DEFN(fclamp, glm::fclamp, LAYOUT_CLAMP)
 GLM_BINDING_QUALIFIER(clamp) {
   GLM_BINDING_BEGIN
   if (gLuaInteger::Is(LB, LB.idx)) { /* support int-only values */
@@ -1614,9 +1615,9 @@ NUMBER_VECTOR_DEFN(sech, glm::sech, LAYOUT_UNARY)
 #endif
 
 #if defined(GTC_ROUND_HPP)
-INTEGER_NUMBER_VECTOR_DEFNS(ceilMultiple, glm::ceilMultiple, LAYOUT_BINARY_INTEGER, LAYOUT_BINARY, LAYOUT_BINARY)
-INTEGER_NUMBER_VECTOR_DEFNS(floorMultiple, glm::floorMultiple, LAYOUT_BINARY_INTEGER, LAYOUT_BINARY, LAYOUT_BINARY)
-INTEGER_NUMBER_VECTOR_DEFNS(roundMultiple, glm::roundMultiple, LAYOUT_BINARY_INTEGER, LAYOUT_BINARY, LAYOUT_BINARY)
+INTEGER_NUMBER_VECTOR_DEFN(ceilMultiple, glm::ceilMultiple, LAYOUT_MODULO)
+INTEGER_NUMBER_VECTOR_DEFN(floorMultiple, glm::floorMultiple, LAYOUT_MODULO)
+INTEGER_NUMBER_VECTOR_DEFN(roundMultiple, glm::roundMultiple, LAYOUT_MODULO)
 INTEGER_VECTOR_DEFN(ceilPowerOfTwo, glm::ceilPowerOfTwo, LAYOUT_UNARY, lua_Unsigned)
 INTEGER_VECTOR_DEFN(floorPowerOfTwo, glm::floorPowerOfTwo, LAYOUT_UNARY, lua_Unsigned)
 INTEGER_VECTOR_DEFN(roundPowerOfTwo, glm::roundPowerOfTwo, LAYOUT_UNARY, lua_Unsigned)
@@ -1670,7 +1671,7 @@ TRAITS_LAYOUT_DEFN(YCoCgR2rgb, glm::YCoCgR2rgb, LAYOUT_UNARY, gLuaVec3<>)
 NUMBER_VECTOR_DEFN(closeBounded, glm::closeBounded, LAYOUT_TERNARY)
 NUMBER_VECTOR_DEFN(isdenormal, glm::isdenormal, LAYOUT_UNARY)
 NUMBER_VECTOR_DEFN(openBounded, glm::openBounded, LAYOUT_TERNARY)
-INTEGER_NUMBER_VECTOR_DEFNS(fmod, glm::fmod, LAYOUT_BINARY_INTEGER, LAYOUT_BINARY, LAYOUT_BINARY)
+INTEGER_NUMBER_VECTOR_DEFN(fmod, glm::fmod, LAYOUT_MODULO)
 #endif
 
 #if defined(GTX_COMPATIBILITY_HPP)
