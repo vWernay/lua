@@ -858,6 +858,8 @@ template<typename T, bool FastPath = false>
 struct gLuaPrimitive : gLuaSharedTrait<T, T> {
   using safe = gLuaPrimitive<T, false>;  // @SafeBinding
   using fast = gLuaPrimitive<T, true>;  // @UnsafeBinding
+
+  static GLM_CONSTEXPR glm::length_t length() { return 1; }
   LUA_TRAIT_QUALIFIER T Next(gLuaBase &LB) {
     T v(0);
     gLuaBase::Pull<T, FastPath>(LB, LB.idx++, v);
@@ -892,6 +894,7 @@ struct gLuaTrait<glm::qua<T>, FastPath> : gLuaSharedTrait<T, glm::qua<T>> {
   using safe = gLuaTrait<glm::qua<T>, false>;  // @SafeBinding
   using fast = gLuaTrait<glm::qua<T>, true>;  // @UnsafeBinding
 
+  static GLM_CONSTEXPR glm::length_t length() { return 4; }  // glm::qua<T>::length()
   static GLM_CONSTEXPR const char *Label() { return GLM_STRING_QUATERN; }
 
   LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::qua<T> zero() {
@@ -932,6 +935,13 @@ struct gLuaTrait<glm::vec<D, T>, FastPath> : gLuaSharedTrait<T, glm::vec<D, T>> 
   /// Alternative name: lhs_mat_type
   /// </summary>
   using row_type = gLuaTrait<glm::vec<D, T>>;
+
+  /// <summary>
+  /// Trait definition of glm::vec<D,T>::length()
+  /// </summary>
+  static GLM_CONSTEXPR glm::length_t length() {
+    return D;
+  }
 
   static GLM_CONSTEXPR const char *Label() {
     switch (D) {
@@ -991,6 +1001,13 @@ struct gLuaTrait<glm::mat<C, R, T>, FastPath> : gLuaSharedTrait<T, glm::mat<C, R
   /// </summary>
   template<glm::length_t RNext>
   using rhs_mat_type = gLuaTrait<glm::mat<RNext, C, T>>;
+
+  /// <summary>
+  /// Trait definition of glm::mat<C, R, T>::length()
+  /// </summary>
+  static GLM_CONSTEXPR glm::length_t length() {
+    return C;
+  }
 
   static GLM_CONSTEXPR const char *Label() {
     switch (LUAGLM_MATRIX_TYPE(C, R)) {

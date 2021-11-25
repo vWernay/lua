@@ -926,9 +926,23 @@ TRAITS_DEFN(rayPicking, glm::rayPicking, gLuaVec3<>, gLuaVec3<>, gLuaFloat, gLua
 TRAITS_LAYOUT_DEFN(containsProjection, glm::containsProjection, LAYOUT_BINARY_EPS, gLuaMat4x4<>) /* LUA_MATRIX_EXTENSIONS */
 #endif
 
-#if defined(GTC_MATRIX_ACCESS_HPP) /* Zero Based */
-MATRIX_DEFN(column, glm::__column, LAYOUT_UNARY, gLuaTrait<glm::length_t>)
-MATRIX_DEFN(row, glm::__row, LAYOUT_UNARY, gLuaTrait<glm::length_t>)
+#if defined(GTC_MATRIX_ACCESS_HPP) /* @NOTE: Zero Based */
+#define LAYOUT_MATRIX_ACCESS_COLUMN(LB, F, Tr, ...) \
+  LAYOUT_MATRIX_ACCESS(LB, F, Tr, Tr::col_type, Tr::row_type, gLuaTrait<glm::length_t>)
+#define LAYOUT_MATRIX_ACCESS_ROW(LB, F, Tr, ...) \
+  LAYOUT_MATRIX_ACCESS(LB, F, Tr, Tr::row_type, Tr::col_type, gLuaTrait<glm::length_t>)
+#define LAYOUT_MATRIX_ACCESS(LB, F, Tr, TrComp, TrDims, TrIdx)                        \
+  LUA_MLM_BEGIN                                                                       \
+  glm::length_t __idx = cast(glm::length_t, luaL_checkinteger((LB).L, (LB).idx + 1)); \
+  if (__idx < 0 || __idx >= TrDims::length())                                         \
+    return luaL_argerror((LB).L, (LB).idx + 1, "matrix index");                       \
+  else if (TrComp::Is(LB, (LB).idx + 2)) /* Set */                                    \
+    TRAITS_FUNC(LB, F, Tr, TrIdx, TrComp);                                            \
+  TRAITS_FUNC(LB, F, Tr, TrIdx); /* Get */                                            \
+  LUA_MLM_END
+
+MATRIX_DEFN(column, glm::column, LAYOUT_MATRIX_ACCESS_COLUMN)
+MATRIX_DEFN(row, glm::row, LAYOUT_MATRIX_ACCESS_ROW)
 #endif
 
 #if defined(GTC_MATRIX_INVERSE_HPP)
@@ -1448,7 +1462,7 @@ GLM_BINDING_QUALIFIER(pow) {
   GLM_BINDING_BEGIN
   if (gLuaInteger::Is(LB, LB.idx) && gLuaTrait<unsigned>::Is(LB, LB.idx + 1))
     TRAITS_FUNC(LB, glm::pow, gLuaInteger, gLuaTrait<unsigned>);
-  PARSE_NUMBER_VECTOR_QUAT(LB, glm::pow, LAYOUT_BINARY_SCALAR, LAYOUT_BINARY_SCALAR, LAYOUT_BINARY_SCALAR);
+  PARSE_NUMBER_VECTOR_QUAT(LB, glm::pow, LAYOUT_BINARY_SCALAR, LAYOUT_BINARY_OPTIONAL, LAYOUT_BINARY_SCALAR);
   GLM_BINDING_END
 }
 
@@ -2010,12 +2024,16 @@ TRAITS_BINARY_LAYOUT_DEFN(rotateZ, glm::rotateZ, LAYOUT_BINARY_SCALAR, gLuaVec3<
 #endif
 
 #if defined(GTX_ROTATE_VECTOR_HPP) || defined(EXT_QUATERNION_COMMON_HPP)
+#if GLM_VERSION >= 998  /* @COMPAT slerp + 'additional spin count' introduced in 0.9.9.8 */
 #define LAYOUT_QUAT_SLERP(LB, F, Tr, ...)                                                                     \
   LUA_MLM_BEGIN                                                                                               \
   if (gLuaTrait<int>::Is((LB), (LB).idx + 3))                                                                 \
     VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::value_trait, gLuaTrait<int>, ##__VA_ARGS__); \
   VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::value_trait, ##__VA_ARGS__);                   \
   LUA_MLM_END
+#else
+  #define LAYOUT_QUAT_SLERP(LB, F, Tr, ...) LAYOUT_TERNARY_SCALAR(LB, F, Tr, ##__VA_ARGS__)
+#endif
 
 NUMBER_VECTOR_QUAT_DEFNS(slerp, glm::__slerp, LAYOUT_TERNARY_SCALAR, LAYOUT_TERNARY_SCALAR, LAYOUT_QUAT_SLERP)
 NUMBER_VECTOR_QUAT_DEFN(barycentric, glm::barycentric, LAYOUT_BARYCENTRIC) /* LUA_VECTOR_EXTENSIONS */

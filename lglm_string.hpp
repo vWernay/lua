@@ -351,66 +351,89 @@ namespace detail {
 
 namespace glm {
 namespace hash {
-#include <cmath>
 
-#if !defined(l_hashfloat)
   /// <summary>
-  /// ltable.c: l_hashfloat
+  /// Temporary solution as the previous implementation was slow. A collection
+  /// of 'spatial hashing' algorithms exist for vector-type structures that
+  /// should be considered.
+  ///
+  /// @TODO: Better
   /// </summary>
-  static GLM_FUNC_QUALIFIER int l_hashfloat(lua_Number n) {
-    int i;
-    lua_Integer ni = 0;
-    n = std::frexp(n, &i) * -cast_num(INT_MIN);
-    if (!lua_numbertointeger(n, &ni)) { /* is 'n' inf/-inf/NaN? */
-      lua_assert(luai_numisnan(n) || l_mathop(fabs)(n) == cast_num(HUGE_VAL));
-      return 0;
-    }
-    else { /* normal case */
-      unsigned int u = cast_uint(i) + cast_uint(ni);
-      return cast_int(u <= cast_uint(INT_MAX) ? u : ~u);
-    }
-  }
-#endif
+  template<typename T>
+  struct lglm_hash {
+    GLM_FUNC_DECL size_t operator()(const T& n) const;
+  };
 
-  static GLM_INLINE void hash_combine(size_t &seed, size_t hash) {
+  template<>
+  struct lglm_hash<double> {
+    GLM_FUNC_QUALIFIER size_t operator()(const double& n) const {
+      union { double __t; size_t __a; } __scalar_hash;
+      __scalar_hash.__a = 0;
+      __scalar_hash.__t = n;
+      return (n == 0.0) ? 0 : __scalar_hash.__a;  // -/+ 0.0 should return same hash.
+    }
+  };
+
+  template<>
+  struct lglm_hash<float> {
+    GLM_FUNC_QUALIFIER size_t operator()(const float& n) const {
+      union { float __t; size_t __a; } __scalar_hash;
+      __scalar_hash.__a = 0;
+      __scalar_hash.__t = n;
+      return (n == 0.f) ? 0 : __scalar_hash.__a;  // -/+ 0.0 should return same hash.
+    }
+  };
+
+  /// <summary>
+  /// glm::detail::hash_combine
+  /// </summary>
+  static GLM_INLINE void lglm_hashcombine(size_t &seed, size_t hash) {
     hash += 0x9e3779b9 + (seed << 6) + (seed >> 2);
     seed ^= hash;
   }
 
   template<typename T, glm::qualifier Q>
   GLM_FUNC_QUALIFIER typename std::enable_if<std::is_floating_point<T>::value, size_t>::type hash(glm::vec<2, T, Q> const &v) {
+    const lglm_hash<T> hasher;
+
     size_t seed = 0;
-    hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.x)));
-    hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.y)));
+    lglm_hashcombine(seed, hasher(v.x));
+    lglm_hashcombine(seed, hasher(v.y));
     return seed;
   }
 
   template<typename T, glm::qualifier Q>
   GLM_FUNC_QUALIFIER typename std::enable_if<std::is_floating_point<T>::value, size_t>::type hash(glm::vec<3, T, Q> const &v) {
+    const lglm_hash<T> hasher;
+
     size_t seed = 0;
-    hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.x)));
-    hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.y)));
-    hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.z)));
+    lglm_hashcombine(seed, hasher(v.x));
+    lglm_hashcombine(seed, hasher(v.y));
+    lglm_hashcombine(seed, hasher(v.z));
     return seed;
   }
 
   template<typename T, glm::qualifier Q>
   GLM_FUNC_QUALIFIER typename std::enable_if<std::is_floating_point<T>::value, size_t>::type hash(glm::vec<4, T, Q> const &v) {
+    const lglm_hash<T> hasher;
+
     size_t seed = 0;
-    hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.x)));
-    hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.y)));
-    hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.z)));
-    hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.w)));
+    lglm_hashcombine(seed, hasher(v.x));
+    lglm_hashcombine(seed, hasher(v.y));
+    lglm_hashcombine(seed, hasher(v.z));
+    lglm_hashcombine(seed, hasher(v.w));
     return seed;
   }
 
   template<typename T, glm::qualifier Q>
   GLM_FUNC_QUALIFIER typename std::enable_if<std::is_floating_point<T>::value, size_t>::type hash(glm::qua<T, Q> const &v) {
+    const lglm_hash<T> hasher;
+
     size_t seed = 0;
-    hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.x)));
-    hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.y)));
-    hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.z)));
-    hash_combine(seed, l_hashfloat(static_cast<lua_Number>(v.w)));
+    lglm_hashcombine(seed, hasher(v.x));
+    lglm_hashcombine(seed, hasher(v.y));
+    lglm_hashcombine(seed, hasher(v.z));
+    lglm_hashcombine(seed, hasher(v.w));
     return seed;
   }
 }

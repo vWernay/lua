@@ -1402,6 +1402,20 @@ static bool PopulateMatrix(lua_State *L, int idx, int top, bool fixed_size, glmM
 }
 
 /// <summary>
+/// glm::vec<1, ...> is represented by a Lua value.
+/// </summary>
+template<typename T>
+static LUA_INLINE int glm_pushvalue(lua_State *L, const T &v) {
+  GLM_IF_CONSTEXPR(std::is_same<T, bool>::value)
+    lua_pushboolean(L, static_cast<int>(v));
+  else GLM_IF_CONSTEXPR(std::is_integral<T>::value)
+    lua_pushinteger(L, static_cast<lua_Integer>(v));
+  else
+    lua_pushnumber(L, static_cast<lua_Number>(v));
+  return 1;
+}
+
+/// <summary>
 /// Generic vector population/construction function.
 ///
 /// This function will iterate over the current Lua stack and unpack its values;
@@ -1428,6 +1442,10 @@ static int glm_createVector(lua_State *L, glm::length_t desiredSize = 0) {
     if (top == 0)
       return glm_pushvec(L, glmVector(v), desiredSize);
     if (top == 1 && glm_castvalue(glm_index2value(L, 1), v.x)) {
+      if (desiredSize == 1) {
+        return glm_pushvalue<T>(L, v.x);
+      }
+
       v.y = v.z = v.w = v.x;
       return glm_pushvec(L, glmVector(v), desiredSize);
     }
@@ -1447,13 +1465,7 @@ static int glm_createVector(lua_State *L, glm::length_t desiredSize = 0) {
   else if (desiredSize != 0 && v_len != desiredSize)
     return luaL_error(L, GLM_STRING_VECTOR "%d requires 0, 1 or %d values", cast_int(desiredSize), cast_int(desiredSize));
   else if (v_len == 1) {
-    GLM_IF_CONSTEXPR(std::is_same<T, bool>::value)
-      lua_pushboolean(L, static_cast<int>(v.x));
-    else GLM_IF_CONSTEXPR(std::is_integral<T>::value)
-      lua_pushinteger(L, static_cast<lua_Integer>(v.x));
-    else
-      lua_pushnumber(L, static_cast<lua_Number>(v.x));
-    return 1;
+    return glm_pushvalue<T>(L, v.x);
   }
   return glm_pushvec(L, glmVector(v), v_len);
 }

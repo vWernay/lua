@@ -24,6 +24,11 @@
 #include <glm/gtx/projection.hpp>
 #include <glm/gtx/spline.hpp>
 #include <glm/gtx/vector_angle.hpp>
+#if GLM_VERSION < 998  /* @COMPAT ext/scalar_common.hpp introduced in 0.9.9.8 */
+#include <glm/gtx/extended_min_max.hpp>
+#elif GLM_VERSION == 998
+#include <glm/ext/scalar_common.hpp>
+#endif
 
 #if GLM_MESSAGES == GLM_ENABLE && !defined(GLM_EXT_INCLUDED)
 #	pragma message("GLM: GLM_EXT_vector_ext extension included")

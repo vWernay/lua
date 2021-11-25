@@ -277,16 +277,23 @@ userdata
 
 See **EXTENDED.md** for the full list of functions.
 
-#### Missing Functions
+#### Implementation Details
 
 Modules/functions not bound to LuaGLM due to usefulness or complexity:
 
+* glm/detail/func\_common.hpp: `step(T edge, vec<L, T, Q> const& x)` TODO.
 * glm/gtx/associated\_min\_max.hpp: all.
 * glm/gtx/range.hpp: `begin`, `end`: useless in Lua context.
 * glm/gtx/bit.hpp: `powerOfTwoAbove`, `powerOfTwoBelow`, `powerOfTwoNearest`: deprecated, use GTC\_ROUND\_HPP instead.
 * glm/ext/vector\_relational.hpp: `equal(..., vec<L, int, Q> const& ULPs)`, as the current Lua binding cannot differentiate between it and `(..., vec<L, T, Q> const& epsilon)`.
 * glm/gtx/epsilon.hpp: `epsilon*Equal(qua<T, Q> const& x, qua<T, Q> const& y, T const& epsilon)`: not properly declared in header.
 * glm/gtx/pca.hpp: `sortEigenvalues`: Function incorrectly declared and manipulates the parameters in place.
+
+The general rule is that the result of a non-void function is placed first onto
+the Lua stack prior to any non-const passed-by-reference parameters. However,
+to be compatible with
+[Lua](https://www.lua.org/manual/5.4/manual.html#pdf-math.modf), `glm::modf(x)`
+returns the integral part of x and then the fractional part of x.
 
 ## Power Patches
 
@@ -776,7 +783,6 @@ Ordered by priority.
 1. Optimize `glm_createMatrix`. Profiling case '4x4 matrix creation (lua\_Alloc)' is the one of the slowest operations in the added vector/matrix API. Worse when using the default Windows allocator.
 1. `glmMat_set` support for tables, e.g., `mat[i] = { ... }`, by using `glmH_tovector`.
 1. Improve support for `glm::mat3x4` and `glm::mat4x3`.
-1. Consider replacing the 'blob' variant with an [FFI](https://github.com/facebookarchive/luaffifb) library: advanced use is required.
 
 ## Benchmarking
 

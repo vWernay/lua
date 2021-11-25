@@ -39,19 +39,19 @@ static const char* output=Output;	/* actual output file name */
 static const char* progname=PROGNAME;	/* actual program name */
 static TString **tmname;
 
-static void fatal(const char* message)
+static l_noret fatal(const char* message)
 {
  fprintf(stderr,"%s: %s\n",progname,message);
  exit(EXIT_FAILURE);
 }
 
-static void cannot(const char* what)
+static l_noret cannot(const char* what)
 {
  fprintf(stderr,"%s: cannot %s %s: %s\n",progname,what,output,strerror(errno));
  exit(EXIT_FAILURE);
 }
 
-static void usage(const char* message)
+static l_noret usage(const char* message)
 {
  if (*message=='-')
   fprintf(stderr,"%s: unrecognized option '%s'\n",progname,message);
