@@ -163,8 +163,7 @@ static Node *mainpositionTV (const Table *t, const TValue *key) {
     case LUA_VVECTOR3:
     case LUA_VVECTOR4:
     case LUA_VQUAT: {
-      /* @TODO: Avoid taking the address of a 'TValue' field */
-      return hashmod(t, glmVec_hash(&kvl, ktt));
+      return hashmod(t, glmVec_hash(key));
     }
     case LUA_VSHRSTR: {
       TString *ts = tsvalue(key);

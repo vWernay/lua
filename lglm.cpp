@@ -527,13 +527,13 @@ int glmVec_equalKey(const TValue *k1, const Node *n2, int rtt) {
   }
 }
 
-size_t glmVec_hash(const Value *kvl, int ktt) {
+size_t glmVec_hash(const TValue *obj) {
   // Uses a custom glm::hash implementation without the dependency on std::hash
-  switch (withvariant(ktt)) {
-    case LUA_VVECTOR2: return glm::hash::hash(glm_v2value_raw(*kvl));
-    case LUA_VVECTOR3: return glm::hash::hash(glm_v3value_raw(*kvl));
-    case LUA_VVECTOR4: return glm::hash::hash(glm_v4value_raw(*kvl));
-    case LUA_VQUAT: return glm::hash::hash(glm_qvalue_raw(*kvl));
+  switch (ttypetag(obj)) {
+    case LUA_VVECTOR2: return glm::hash::hash(glm_v2value(obj));
+    case LUA_VVECTOR3: return glm::hash::hash(glm_v3value(obj));
+    case LUA_VVECTOR4: return glm::hash::hash(glm_v4value(obj));
+    case LUA_VQUAT: return glm::hash::hash(glm_qvalue(obj));
     default: {
       return 0xDEAD;  // C0D3
     }
