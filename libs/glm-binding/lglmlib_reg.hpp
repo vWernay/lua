@@ -589,6 +589,8 @@ GLM_LUA_REG(scale_mat4),
 #if defined(GTX_VECTOR_ANGLE_HPP)
 GLM_LUA_REG(angle),
 GLM_LUA_REG(orientedAngle),
+GLM_LUA_REG(angle_atan), /* LUA_VECTOR_EXTENSIONS */
+GLM_LUA_REG(orientedAngle_atan),
 #if defined(LUAGLM_ALIASES)
 { "angle_to", GLM_NAME(angle) },
 { "signedAngle", GLM_NAME(orientedAngle) },

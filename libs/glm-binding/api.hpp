@@ -2165,21 +2165,25 @@ TRAITS_DEFN(scale_mat4, glm::scale, gLuaMat4x4<>, gLuaVec3<>)
 #endif
 
 #if defined(GTX_VECTOR_ANGLE_HPP)
-NUMBER_VECTOR_QUAT_DEFNS(angle, glm::angle, LAYOUT_BINARY, LAYOUT_BINARY, LAYOUT_UNARY_OR_BINARY)
-GLM_BINDING_QUALIFIER(orientedAngle) {
-  GLM_BINDING_BEGIN
-  const TValue *_tv = glm_i2v(LB.L, LB.idx);
-  switch (ttypetag(_tv)) {
-    case LUA_VVECTOR2: TRAITS_FUNC(LB, glm::orientedAngle, gLuaDir2<>::fast, gLuaDir2<>); break;
-    case LUA_VVECTOR3: TRAITS_FUNC(LB, glm::orientedAngle, gLuaDir3<>::fast, gLuaDir3<>, gLuaDir3<>); break;
-    case LUA_VQUAT: TRAITS_FUNC(LB, glm::orientedAngle, gLuaQuat<>::fast, gLuaQuat<>, gLuaDir3<>); break;
-    default: {
-      break;
-    }
+#define ORIENTED_ANGLE_DEFN(Name, F, ...)                                                     \
+  GLM_BINDING_QUALIFIER(Name) {                                                               \
+    GLM_BINDING_BEGIN                                                                         \
+    const TValue *_tv = glm_i2v((LB).L, (LB).idx);                                            \
+    switch (ttypetag(_tv)) {                                                                  \
+      case LUA_VVECTOR2: TRAITS_FUNC(LB, F, gLuaDir2<>::fast, gLuaDir2<>); break;             \
+      case LUA_VVECTOR3: TRAITS_FUNC(LB, F, gLuaDir3<>::fast, gLuaDir3<>, gLuaDir3<>); break; \
+      case LUA_VQUAT: TRAITS_FUNC(LB, F, gLuaQuat<>::fast, gLuaQuat<>, gLuaDir3<>); break;    \
+      default:                                                                                \
+        break;                                                                                \
+    }                                                                                         \
+    return luaL_typeerror((LB).L, (LB).idx, GLM_STRING_VECTOR);                               \
+    GLM_BINDING_END                                                                           \
   }
-  return luaL_typeerror(LB.L, LB.idx, GLM_STRING_VECTOR " or " GLM_STRING_QUATERN);
-  GLM_BINDING_END
-}
+
+NUMBER_VECTOR_QUAT_DEFNS(angle, glm::angle, LAYOUT_BINARY, LAYOUT_BINARY, LAYOUT_UNARY_OR_BINARY)
+ORIENTED_ANGLE_DEFN(orientedAngle, glm::orientedAngle)
+NUMBER_VECTOR_QUAT_DEFNS(angle_atan, glm::__angle, LAYOUT_BINARY, LAYOUT_BINARY, LAYOUT_UNARY_OR_BINARY) /* LUA_VECTOR_EXTENSIONS */
+ORIENTED_ANGLE_DEFN(orientedAngle_atan, glm::__orientedAngle)
 #endif
 
 #if defined(GTX_VECTOR_QUERY_HPP)

@@ -777,7 +777,6 @@ Ordered by priority.
 1. Modify implementation to follow updated "Avoid taking the address of a 'TValue' field" (or reference) convention.
 1. [ext](libs/glm-binding/ext): allow configurable epsilon values for the variety of intersection functions.
 1. [ext](libs/glm-binding/ext): Improve SIMD support.
-1. Replace `glm::angle` bindings with atan2 equivalent (stability).
 1. Replace `glm/gtc/random.{inl,hpp}` with a variant that takes advantage of CXX11s [Pseudo-random number generation](https://en.cppreference.com/w/cpp/numeric/random) facilities (and unify it with `math.random`).
 1. Add support for two-dimensional structures: Ray2D, Line2D, Plane2D.
 1. Optimize `glm_createMatrix`. Profiling case '4x4 matrix creation (lua\_Alloc)' is the one of the slowest operations in the added vector/matrix API. Worse when using the default Windows allocator.

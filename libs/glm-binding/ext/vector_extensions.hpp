@@ -483,7 +483,7 @@ namespace glm {
   /// A implementation of glm::angle that's numerically stable at all angles.
   /// </summary>
   template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER T angle_atan(const vec<L, T, Q> &x, const vec<L, T, Q> &y) {
+  GLM_FUNC_QUALIFIER T __angle(const vec<L, T, Q> &x, const vec<L, T, Q> &y) {
     GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'angle' only accept floating-point inputs");
     const vec<L, T, Q> xyl = x * length(y);
     const vec<L, T, Q> yxl = y * length(x);
@@ -494,8 +494,23 @@ namespace glm {
   }
 
   template<typename genType>
-  GLM_FUNC_QUALIFIER genType angle_atan(const genType &x, const genType &y) {
+  GLM_FUNC_QUALIFIER genType __angle(const genType &x, const genType &y) {
     return angle<genType>(x, y);
+  }
+
+  template<typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER T __orientedAngle(vec<2, T, Q> const &x, vec<2, T, Q> const &y) {
+    GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'orientedAngle' only accept floating-point inputs");
+    const T Angle = __angle(x, y);
+    const T partialCross = x.x * y.y - y.x * x.y;
+    return (partialCross > T(0)) ? Angle : -Angle;
+  }
+
+  template<typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER T __orientedAngle(vec<3, T, Q> const &x, vec<3, T, Q> const &y, vec<3, T, Q> const &ref) {
+    GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'orientedAngle' only accept floating-point inputs");
+    const T Angle = __angle(x, y);
+    return mix(Angle, -Angle, dot(ref, cross(x, y)) < T(0));
   }
 
   /// <summary>

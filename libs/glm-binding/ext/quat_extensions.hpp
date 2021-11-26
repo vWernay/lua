@@ -291,7 +291,7 @@ namespace glm {
   /// </summary>
   template<typename T, qualifier Q>
   GLM_FUNC_QUALIFIER T angle(const qua<T, Q> &x, const qua<T, Q> &y) {
-    return angle(y * conjugate(x));
+    return deltaAngle(T(0), angle(y * conjugate(x)));
   }
 
   /// <summary>
@@ -300,14 +300,14 @@ namespace glm {
   template<typename T, qualifier Q>
   GLM_FUNC_QUALIFIER T orientedAngle(const qua<T, Q> &x, const qua<T, Q> &y, const vec<3, T, Q> &ref) {
     const qua<T, Q> rot = y * conjugate(x);
-    return angle(rot) * sign(dot(ref, axis(rot)));
+    return deltaAngle(T(0), angle(rot)) * sign(dot(ref, axis(rot)));
   }
 
   /// <summary>
   /// API completeness for vector_extensions.
   /// </summary>
   template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER T angle_atan(qua<T, Q> const &q) {
+  GLM_FUNC_QUALIFIER T __angle(qua<T, Q> const &q) {
     const T n = length(vec<3, T, Q>(q.x, q.y, q.z));
     if (epsilonNotEqual(n, T(0), epsilon<T>()))
       return T(2) * atan2(n, abs(q.w));
@@ -315,8 +315,17 @@ namespace glm {
   }
 
   template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER T angle_atan(const qua<T, Q> &x, const qua<T, Q> &y) {
-    return angle_atan(y * conjugate(x));
+  GLM_FUNC_QUALIFIER T __angle(const qua<T, Q> &x, const qua<T, Q> &y) {
+    return __angle(y * conjugate(x));
+  }
+
+  /// <summary>
+  /// Return the oriented angle between two quaternions based on a reference axis.
+  /// </summary>
+  template<typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER T __orientedAngle(const qua<T, Q> &x, const qua<T, Q> &y, const vec<3, T, Q> &ref) {
+    const qua<T, Q> rot = y * conjugate(x);
+    return __angle(rot) * sign(dot(ref, axis(rot)));
   }
 
   /// <summary>
