@@ -63,8 +63,8 @@ static LUA_INLINE lu_byte glm_variant (grit_length_t dimensions) {
 * makevariant(LUA_TVECTOR, X) for some 'X'
 */
 static LUA_INLINE grit_length_t glm_dimensions (lu_byte rtt) {
-  const grit_length_t dims = cast(grit_length_t, (rtt & 0x30) >> 4); /* variant bits 4-5 */
-  return (rtt == LUA_VQUAT) ? 4 : (2 + dims); /* quat uses 3rd bit. */
+  const lu_byte D = (rtt == LUA_VQUAT) ? 4 : (2 + ((rtt & 0x30) >> 4));
+  return cast(grit_length_t, D);
 }
 
 /*
@@ -80,17 +80,14 @@ static LUA_INLINE grit_length_t glm_dimensions (lu_byte rtt) {
 
 /* Helper function for generalized vector int-access. */
 static LUA_INLINE int vecgeti (const TValue *obj, lua_Integer n, StkId res) {
-  grit_length_t _n = cast(grit_length_t, n);
-  if (l_likely(_n >= 1 && _n <= glm_dimensions(ttypetag(obj)))) {  /* Accessing vectors is 0-based */
+  const lua_Integer D = cast(lua_Integer, glm_dimensions(ttypetag(obj)));
+  if (l_likely(n >= 1 && n <= D)) {  /* Accessing vectors is 0-based */
 #if LUAGLM_QUAT_WXYZ  /* quaternion has WXYZ layout */
-    if (ttypetag(obj) == LUA_VQUAT) _n = (_n % 4) + 1;
+    if (ttypetag(obj) == LUA_VQUAT) n = ((n % 4) + 1);
 #endif
 
-    /*
-    ** @NOTE: This approach assumes a packed x,y,z,w struct. This was changed
-    ** from a switch statement after profiling access times.
-    */
-    setfltvalue(s2v(res), cast_num((&(vvalue_(obj).x))[_n - 1]));
+    /* Assumes a packed x,y,z,w struct */
+    setfltvalue(s2v(res), cast_num((&(vvalue_(obj).x))[n - 1]));
     return LUA_TNUMBER;
   }
   return LUA_TNONE;
@@ -98,27 +95,27 @@ static LUA_INLINE int vecgeti (const TValue *obj, lua_Integer n, StkId res) {
 
 /* Helper function for generalized vector string-access. */
 static LUA_INLINE int vecgets (const TValue *obj, const char *k, StkId res) {
-  grit_length_t _n = 0;
+  grit_length_t _n = 0xF;
   switch (*k) {
-    case 'x': case 'r': case '1': _n = 1; break;
-    case 'y': case 'g': case '2': _n = 2; break;
-    case 'z': case 'b': case '3': _n = 3; break;
-    case 'w': case 'a': case '4': _n = 4; break;
+    case 'x': case 'r': case '1': _n = 0; break;
+    case 'y': case 'g': case '2': _n = 1; break;
+    case 'z': case 'b': case '3': _n = 2; break;
+    case 'w': case 'a': case '4': _n = 3; break;
     case 'n': {  /* Dimension fields takes priority over metamethods */
       setivalue(s2v(res), cast(lua_Integer, glm_dimensions(ttypetag(obj))));
       return LUA_TNUMBER;
     }
     default: {
-      break;
+      return LUA_TNONE;
     }
   }
 
-  if (l_likely(_n >= 1 && _n <= glm_dimensions(ttypetag(obj)))) {
-    /* @TODO: Avoid taking the address of a 'TValue' field */
+  /* @TODO: Avoid taking the address of a 'TValue' field */
+  if (l_likely(_n < glm_dimensions(ttypetag(obj)))) {
 #if LUAGLM_QUAT_WXYZ  /* quaternion has WXYZ layout */
-    if (ttypetag(obj) == LUA_VQUAT) _n = (_n % 4) + 1;
+    if (ttypetag(obj) == LUA_VQUAT) _n = ((_n + 1) % 4);
 #endif
-    setfltvalue(s2v(res), cast_num((&(vvalue_(obj).x))[_n - 1]));
+    setfltvalue(s2v(res), cast_num((&(vvalue_(obj).x))[_n]));
     return LUA_TNUMBER;
   }
   return LUA_TNONE;

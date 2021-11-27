@@ -1862,31 +1862,31 @@ static struct X { int x; } x;
     else if EQ ("checkvector2") {
       lua_VecF x = 0, y = 0;
       lua_checkvector2(L1, getindex, &x, &y);
-      lua_pushnumber(L1, x);
-      lua_pushnumber(L1, y);
+      lua_pushnumber(L1, cast_num(x));
+      lua_pushnumber(L1, cast_num(y));
     }
     else if EQ ("checkvector3") {
       lua_VecF x = 0, y = 0, z = 0;
       lua_checkvector3(L1, getindex, &x, &y, &z);
-      lua_pushnumber(L1, x);
-      lua_pushnumber(L1, y);
-      lua_pushnumber(L1, z);
+      lua_pushnumber(L1, cast_num(x));
+      lua_pushnumber(L1, cast_num(y));
+      lua_pushnumber(L1, cast_num(z));
     }
     else if EQ ("checkvector4") {
       lua_VecF x = 0, y = 0, z = 0, w = 0;
       lua_checkvector4(L1, getindex, &x, &y, &z, &w);
-      lua_pushnumber(L1, x);
-      lua_pushnumber(L1, y);
-      lua_pushnumber(L1, z);
-      lua_pushnumber(L1, w);
+      lua_pushnumber(L1, cast_num(x));
+      lua_pushnumber(L1, cast_num(y));
+      lua_pushnumber(L1, cast_num(z));
+      lua_pushnumber(L1, cast_num(w));
     }
     else if EQ ("checkquat") {
       lua_VecF x = 0, y = 0, z = 0, w = 0;
       lua_checkquat(L1, getindex, &w, &x, &y, &z);
-      lua_pushnumber(L1, w);
-      lua_pushnumber(L1, x);
-      lua_pushnumber(L1, y);
-      lua_pushnumber(L1, z);
+      lua_pushnumber(L1, cast_num(w));
+      lua_pushnumber(L1, cast_num(x));
+      lua_pushnumber(L1, cast_num(y));
+      lua_pushnumber(L1, cast_num(z));
     }
     else luaL_error(L, "unknown instruction %s", buff);
   }

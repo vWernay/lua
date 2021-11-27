@@ -574,8 +574,8 @@ int glmVec_next(const TValue *obj, StkId key) {
     lua_Integer l_nextIdx = glm_tointeger(key_obj);
     l_nextIdx = luaL_intop(+, l_nextIdx, 1);  /* first empty element */
 
-    const glm::length_t nextIdx = static_cast<glm::length_t>(l_nextIdx);
-    if (nextIdx >= 1 && nextIdx <= glm_dimensions(ttypetag(obj))) {
+    const lua_Integer D = cast(lua_Integer, glm_dimensions(ttypetag(obj)));
+    if (l_nextIdx >= 1 && l_nextIdx <= D) {
       setivalue(key_obj, l_nextIdx);  // Iterator values are 1-based
       if (vecgeti(obj, l_nextIdx, key + 1) == LUA_TNONE) {
         setnilvalue(s2v(key + 1));
@@ -799,8 +799,8 @@ int glmMat_next(const TValue *obj, StkId key) {
     lua_Integer l_nextIdx = glm_tointeger(key_value);
     l_nextIdx = luaL_intop(+, l_nextIdx, 1);  /* first empty element */
 
-    const glm::length_t nextIdx = static_cast<glm::length_t>(l_nextIdx);
-    if (nextIdx >= 1 && nextIdx <= LUAGLM_MATRIX_COLS(mvalue_dims(obj))) {
+    const lua_Integer D = cast(lua_Integer, LUAGLM_MATRIX_COLS(mvalue_dims(obj)));
+    if (l_nextIdx >= 1 && l_nextIdx <= D) {
       setivalue(key_value, l_nextIdx);  // Iterator values are 1-based
       glmMat_rawgeti(obj, l_nextIdx, key + 1);
       return 1;
@@ -1038,22 +1038,6 @@ namespace glm {
       const T t2 = sin(a * Alpha) / SinAlpha;
       return x * t1 + y * t2;
     }
-  }
-
-  /// <summary>
-  /// Gernalized divide+floor wrapper.
-  /// </summary>
-  template<typename T, typename T2 = T>
-  GLM_FUNC_QUALIFIER T __objFloorDivide(const T &x, const T2 &y) {
-    return floor(x / y);
-  }
-
-  /// <summary>
-  /// glm::pow implementation that accepts (vec, genType) parameters.
-  /// </summary>
-  template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER vec<L, T, Q> __objPow(const vec<L, T, Q> &v, const T exp) {
-    return pow(v, vec<L, T, Q>(exp));
   }
 }
 
@@ -1964,6 +1948,10 @@ LUA_API void lua_pushmatrix(lua_State *L, const lua_Mat4 *matrix) {
 ** Tag Method implementations. Ugly.
 **
 ** @TODO: Profile/tune statements below.
+**
+** @GLMIndependent: Operation done only on vec4/mat4x4. Used as an optimization
+** as the function is independently applied to each component of the structure.
+** Also, if enabled, allow SSE operations on all matrix and vector structures.
 ** ===================================================================
 */
 
@@ -1988,68 +1976,39 @@ LUA_API void lua_pushmatrix(lua_State *L, const lua_Mat4 *matrix) {
 **
 ** @TODO: Once int-vectors become natively supported, this will require a rewrite
 */
-#define INT_VECTOR_OPERATION(F, res, v, p2)                                                      \
-  LUA_MLM_BEGIN                                                                                  \
-  if (tt_p1 == tt_p2) {                                                                          \
-    const glmVector &v2 = glm_vvalue(p2);                                                        \
-    glm_setvvalue2s(res, F(cast_vec4(v.v4, lua_Integer), cast_vec4(v2.v4, lua_Integer)), tt_p1); \
-    return 1;                                                                                    \
-  }                                                                                              \
-  else if (tt_p2 == LUA_VNUMINT) {                                                               \
-    glm_setvvalue2s(res, F(cast_vec4(v.v4, lua_Integer), ivalue(p2)), tt_p1);                    \
-    return 1;                                                                                    \
-  }                                                                                              \
+#define INT_VECTOR_OPERATION(F, res, v, p2, t1, t2)                                                 \
+  LUA_MLM_BEGIN                                                                                     \
+  if ((t1) == (t2)) { /* @GLMIndependent */                                                         \
+    const glmVector &v2 = glm_vvalue(p2);                                                           \
+    glm_setvvalue2s(res, F(cast_vec4((v).v4, lua_Integer), cast_vec4((v2).v4, lua_Integer)), (t1)); \
+    return 1;                                                                                       \
+  }                                                                                                 \
+  else if ((t2) == LUA_VNUMINT) {                                                                   \
+    glm_setvvalue2s(res, F(cast_vec4((v).v4, lua_Integer), ivalue(p2)), (t1));                      \
+    return 1;                                                                                       \
+  }                                                                                                 \
   LUA_MLM_END
 
-/* F(matNxM, matNxM): e.g., matNxM + matNxM. */
-#define INDEP_MATRIX_OPERATION(L, F, res, m, p2)                             \
-  LUA_MLM_BEGIN                                                              \
-  const glmMatrix &m2 = glm_mvalue((p2));                                    \
-  switch (LUAGLM_MATRIX_COLS(m.dimensions)) {                                \
-    case 2: glm_newmvalue(L, res, F(m.m24, m2.m24), m.dimensions); return 1; \
-    case 3: glm_newmvalue(L, res, F(m.m34, m2.m34), m.dimensions); return 1; \
-    case 4: glm_newmvalue(L, res, F(m.m44, m2.m44), m.dimensions); return 1; \
-    default:                                                                 \
-      break;                                                                 \
-  }                                                                          \
-  LUA_MLM_END
+/*
+@@ LUAGLM_MUL_DIRECTION: Define how the runtime handles: `TM_MUL(mat4x4, vec3)`,
+** i.e., transform the vec3 as a 'direction' or a 'position'.
+*/
+#if defined(LUAGLM_MUL_DIRECTION)
+  #define MAT_VEC3_W 0 /* Transforms the given vector by: M * (x, y, z, 0) */
+#else
+  #define MAT_VEC3_W 1 /* Transforms the given vector by: M * (x, y, z, 1) */
+#endif
 
-/* F(value, matNxM): e.g., 3 * matNxM */
-#define INDEP_SCALAR_MATRIX_OPERATION(L, F, res, s, p2)                   \
-  LUA_MLM_BEGIN                                                           \
-  const glmMatrix &m2 = glm_mvalue(p2);                                   \
-  switch (LUAGLM_MATRIX_COLS(m2.dimensions)) {                            \
-    case 2: glm_newmvalue(L, res, F(s, m2.m24), m2.dimensions); return 1; \
-    case 3: glm_newmvalue(L, res, F(s, m2.m34), m2.dimensions); return 1; \
-    case 4: glm_newmvalue(L, res, F(s, m2.m44), m2.dimensions); return 1; \
-    default:                                                              \
-      break;                                                              \
-  }                                                                       \
-  LUA_MLM_END
-
-/* F(matNxM, value): e.g., matNxM * 3 */
-#define MATRIX_SCALAR_OPERATION(L, F, res, m, p2)                       \
-  LUA_MLM_BEGIN                                                         \
-  const glm_Float s = glm_toflt(p2);                                    \
-  switch (LUAGLM_MATRIX_COLS(m.dimensions)) {                           \
-    case 2: glm_newmvalue(L, res, F(m.m24, s), m.dimensions); return 1; \
-    case 3: glm_newmvalue(L, res, F(m.m34, s), m.dimensions); return 1; \
-    case 4: glm_newmvalue(L, res, F(m.m44, s), m.dimensions); return 1; \
-    default:                                                            \
-      break;                                                            \
-  }                                                                     \
-  LUA_MLM_END
-
-#define MATRIX_DIMS(A, B) m##A##B
-#define MATRIX_MULTIPLICATION_OPERATION(L, res, m1, m2, C, R)                                                         \
-  LUA_MLM_BEGIN                                                                                                       \
-  switch (LUAGLM_MATRIX_COLS(m2.dimensions)) {                                                                        \
-    case 2: glm_newmvalue(L, res, (m1.MATRIX_DIMS(C, R) * m2.MATRIX_DIMS(2, C)), LUAGLM_MATRIX_TYPE(2, R)); return 1; \
-    case 3: glm_newmvalue(L, res, (m1.MATRIX_DIMS(C, R) * m2.MATRIX_DIMS(3, C)), LUAGLM_MATRIX_TYPE(3, R)); return 1; \
-    case 4: glm_newmvalue(L, res, (m1.MATRIX_DIMS(C, R) * m2.MATRIX_DIMS(4, C)), LUAGLM_MATRIX_TYPE(4, R)); return 1; \
-    default:                                                                                                          \
-      break;                                                                                                          \
-  }                                                                                                                   \
+#define MDIMS(A, B) m##A##B
+#define MATRIX_MULTIPLICATION_OPERATION(L, res, m1, m2, C, R)                                                       \
+  LUA_MLM_BEGIN                                                                                                     \
+  switch (LUAGLM_MATRIX_COLS(m2.dimensions)) {                                                                      \
+    case 2: glm_newmvalue(L, res, (operator*(m1.MDIMS(C, R), m2.MDIMS(2, C))), LUAGLM_MATRIX_TYPE(2, R)); return 1; \
+    case 3: glm_newmvalue(L, res, (operator*(m1.MDIMS(C, R), m2.MDIMS(3, C))), LUAGLM_MATRIX_TYPE(3, R)); return 1; \
+    case 4: glm_newmvalue(L, res, (operator*(m1.MDIMS(C, R), m2.MDIMS(4, C))), LUAGLM_MATRIX_TYPE(4, R)); return 1; \
+    default:                                                                                                        \
+      break;                                                                                                        \
+  }                                                                                                                 \
   LUA_MLM_END
 
 static int num_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId res, TMS event) {
@@ -2057,18 +2016,15 @@ static int num_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
   switch (event) {
     case TM_ADD: {
       switch (ttype(p2)) {
-        case LUA_TVECTOR: glm_setvvalue2s(res, s + glm_v4value(p2), ttypetag(p2)); return 1;
+        case LUA_TVECTOR:
+          glm_setvvalue2s(res, operator+(s, glm_v4value(p2)), ttypetag(p2));
+          return 1;
         case LUA_TMATRIX: {
+          // GLM only supports operator+(T, mat...) on symmetric matrices. This
+          // expands that functionality.
           const glmMatrix &m2 = glm_mvalue(p2);
-          switch (m2.dimensions) {
-            case LUAGLM_MATRIX_2x2: glm_newmvalue(L, res, s + m2.m22, LUAGLM_MATRIX_2x2); return 1;
-            case LUAGLM_MATRIX_3x3: glm_newmvalue(L, res, s + m2.m33, LUAGLM_MATRIX_3x3); return 1;
-            case LUAGLM_MATRIX_4x4: glm_newmvalue(L, res, s + m2.m44, LUAGLM_MATRIX_4x4); return 1;
-            default: {
-              break;
-            }
-          }
-          break;
+          glm_newmvalue(L, res, operator+(s, m2.m44), m2.dimensions);
+          return 1;
         }
         default: {
           break;
@@ -2076,20 +2032,15 @@ static int num_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
       }
       break;
     }
-    case TM_SUB: {
+    case TM_SUB: {  // @GLMIndependent
       switch (ttype(p2)) {
-        case LUA_TVECTOR: glm_setvvalue2s(res, s - glm_v4value(p2), ttypetag(p2)); return 1;
+        case LUA_TVECTOR:
+          glm_setvvalue2s(res, operator-(s, glm_v4value(p2)), ttypetag(p2));
+          return 1;
         case LUA_TMATRIX: {
           const glmMatrix &m2 = glm_mvalue(p2);
-          switch (m2.dimensions) {
-            case LUAGLM_MATRIX_2x2: glm_newmvalue(L, res, s - m2.m22, LUAGLM_MATRIX_2x2); return 1;
-            case LUAGLM_MATRIX_3x3: glm_newmvalue(L, res, s - m2.m33, LUAGLM_MATRIX_3x3); return 1;
-            case LUAGLM_MATRIX_4x4: glm_newmvalue(L, res, s - m2.m44, LUAGLM_MATRIX_4x4); return 1;
-            default: {
-              break;
-            }
-          }
-          break;
+          glm_newmvalue(L, res, operator-(s, m2.m44), m2.dimensions);
+          return 1;
         }
         default: {
           break;
@@ -2097,26 +2048,40 @@ static int num_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
       }
       break;
     }
-    case TM_MUL: {
+    case TM_MUL: {  // @GLMIndependent
       switch (ttypetag(p2)) {
         case LUA_VVECTOR2:
         case LUA_VVECTOR3:
-        case LUA_VVECTOR4: glm_setvvalue2s(res, s * glm_v4value(p2), ttypetag(p2)); return 1;
-        case LUA_VQUAT: glm_setvvalue2s(res, s * glm_qvalue(p2), LUA_VQUAT); return 1;
-        case LUA_VMATRIX: INDEP_SCALAR_MATRIX_OPERATION(L, operator*, res, s, p2); break;
+        case LUA_VVECTOR4:
+          glm_setvvalue2s(res, operator*(s, glm_v4value(p2)), ttypetag(p2));
+          return 1;
+        case LUA_VQUAT:
+          glm_setvvalue2s(res, operator*(s, glm_qvalue(p2)), LUA_VQUAT);
+          return 1;
+        case LUA_VMATRIX: {
+          const glmMatrix &m2 = glm_mvalue(p2);
+          glm_newmvalue(L, res, operator*(s, m2.m44), m2.dimensions);
+          return 1;
+        }
         default: {
           break;
         }
       }
       break;
     }
-    case TM_DIV: {
+    case TM_DIV: {  // @GLMIndependent
       switch (ttypetag(p2)) {
         case LUA_VVECTOR2:
         case LUA_VVECTOR3:
-        case LUA_VVECTOR4: glm_setvvalue2s(res, s / glm_v4value(p2), ttypetag(p2)); return 1;
-        case LUA_VQUAT: glm_setvvalue2s(res, s * glm::inverse(glm_qvalue(p2)), LUA_VQUAT); return 1;
-        case LUA_VMATRIX: INDEP_SCALAR_MATRIX_OPERATION(L, operator/, res, s, p2); break;
+        case LUA_VVECTOR4:
+        case LUA_VQUAT:
+          glm_setvvalue2s(res, operator/(s, glm_v4value(p2)), ttypetag(p2));
+          return 1;
+        case LUA_VMATRIX: {
+          const glmMatrix &m2 = glm_mvalue(p2);
+          glm_newmvalue(L, res, operator/(s, m2.m44), m2.dimensions);
+          return 1;
+        }
         default: {
           break;
         }
@@ -2134,36 +2099,36 @@ static int vec_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
   UNUSED(L);
   const glmVector &v = glm_vvalue(p1);
   const lu_byte tt_p1 = ttypetag(p1);
-  const lu_byte tt_p2 = ttypetag(p2);
   switch (event) {
-    case TM_ADD: {
-      if (tt_p1 == tt_p2) {
+    case TM_ADD: {  // @GLMIndependent
+      if (tt_p1 == ttypetag(p2)) {
         glm_setvvalue2s(res, operator+(v.v4, glm_v4value(p2)), tt_p1);
         return 1;
       }
-      else if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT) {
+      else if (ttype(p2) == LUA_TNUMBER) {
         glm_setvvalue2s(res, operator+(v.v4, glm_toflt(p2)), tt_p1);
         return 1;
       }
       break;
     }
-    case TM_SUB: {
-      if (tt_p1 == tt_p2) {
+    case TM_SUB: {  // @GLMIndependent
+      if (tt_p1 == ttypetag(p2)) {
         glm_setvvalue2s(res, operator-(v.v4, glm_v4value(p2)), tt_p1);
         return 1;
       }
-      else if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT) {
+      else if (ttype(p2) == LUA_TNUMBER) {
         glm_setvvalue2s(res, operator-(v.v4, glm_toflt(p2)), tt_p1);
         return 1;
       }
       break;
     }
-    case TM_MUL: {
+    case TM_MUL: {  // @GLMIndependent
+      const lu_byte tt_p2 = ttypetag(p2);
       if (tt_p1 == tt_p2) {
         glm_setvvalue2s(res, operator*(v.v4, glm_v4value(p2)), tt_p1);
         return 1;
       }
-      else if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT) {
+      else if (ttype(p2) == LUA_TNUMBER) {
         glm_setvvalue2s(res, operator*(v.v4, glm_toflt(p2)), tt_p1);
         return 1;
       }
@@ -2178,7 +2143,10 @@ static int vec_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
             return 1;
           }
 #else
-          case LUA_VVECTOR3: glm_setvvalue2s(res, v.v3 * glm_qvalue(p2), LUA_VVECTOR3); return 1;
+          case LUA_VVECTOR3: {
+            glm_setvvalue2s(res, v.v3 * glm_qvalue(p2), LUA_VVECTOR3);
+            return 1;
+          }
 #endif
 #if defined(LUAGLM_ALIGNED)  // @QuatHack
           case LUA_VVECTOR4: {
@@ -2189,7 +2157,10 @@ static int vec_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
             return 1;
           }
 #else
-          case LUA_VVECTOR4: glm_setvvalue2s(res, v.v4 * glm_qvalue(p2), LUA_VVECTOR4); return 1;
+          case LUA_VVECTOR4: {
+            glm_setvvalue2s(res, operator*(v.v4, glm_qvalue(p2)), LUA_VVECTOR4);
+            return 1;
+          }
 #endif
           default: {
             break;
@@ -2200,15 +2171,15 @@ static int vec_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
         const glmMatrix &m2 = glm_mvalue(p2);
         if (LUAGLM_MATRIX_ROWS(m2.dimensions) == glm_dimensions(tt_p1)) {
           switch (m2.dimensions) {
-            case LUAGLM_MATRIX_2x2: glm_setvvalue2s(res, v.v2 * m2.m22, LUA_VVECTOR2); return 1;
-            case LUAGLM_MATRIX_2x3: glm_setvvalue2s(res, v.v3 * m2.m23, LUA_VVECTOR2); return 1;
-            case LUAGLM_MATRIX_2x4: glm_setvvalue2s(res, v.v4 * m2.m24, LUA_VVECTOR2); return 1;
-            case LUAGLM_MATRIX_3x2: glm_setvvalue2s(res, v.v2 * m2.m32, LUA_VVECTOR3); return 1;
-            case LUAGLM_MATRIX_3x3: glm_setvvalue2s(res, v.v3 * m2.m33, LUA_VVECTOR3); return 1;
-            case LUAGLM_MATRIX_3x4: glm_setvvalue2s(res, v.v4 * m2.m34, LUA_VVECTOR3); return 1;
-            case LUAGLM_MATRIX_4x2: glm_setvvalue2s(res, v.v2 * m2.m42, LUA_VVECTOR4); return 1;
-            case LUAGLM_MATRIX_4x3: glm_setvvalue2s(res, v.v3 * m2.m43, LUA_VVECTOR4); return 1;
-            case LUAGLM_MATRIX_4x4: glm_setvvalue2s(res, v.v4 * m2.m44, LUA_VVECTOR4); return 1;
+            case LUAGLM_MATRIX_2x2: glm_setvvalue2s(res, operator*(v.v2, m2.m22), LUA_VVECTOR2); return 1;
+            case LUAGLM_MATRIX_2x3: glm_setvvalue2s(res, operator*(v.v3, m2.m23), LUA_VVECTOR2); return 1;
+            case LUAGLM_MATRIX_2x4: glm_setvvalue2s(res, operator*(v.v4, m2.m24), LUA_VVECTOR2); return 1;
+            case LUAGLM_MATRIX_3x2: glm_setvvalue2s(res, operator*(v.v2, m2.m32), LUA_VVECTOR3); return 1;
+            case LUAGLM_MATRIX_3x3: glm_setvvalue2s(res, operator*(v.v3, m2.m33), LUA_VVECTOR3); return 1;
+            case LUAGLM_MATRIX_3x4: glm_setvvalue2s(res, operator*(v.v4, m2.m34), LUA_VVECTOR3); return 1;
+            case LUAGLM_MATRIX_4x2: glm_setvvalue2s(res, operator*(v.v2, m2.m42), LUA_VVECTOR4); return 1;
+            case LUAGLM_MATRIX_4x3: glm_setvvalue2s(res, operator*(v.v3, m2.m43), LUA_VVECTOR4); return 1;
+            case LUAGLM_MATRIX_4x4: glm_setvvalue2s(res, operator*(v.v4, m2.m44), LUA_VVECTOR4); return 1;
             default: {
               break;
             }
@@ -2217,12 +2188,35 @@ static int vec_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
       }
       break;
     }
-    case TM_DIV: {
+    case TM_MOD: {  // @GLMIndependent; Using fmod for the same reasons described in llimits.h
+      if (tt_p1 == ttypetag(p2)) {
+        glm_setvvalue2s(res, glm::fmod(v.v4, glm_v4value(p2)), tt_p1);
+        return 1;
+      }
+      else if (ttype(p2) == LUA_TNUMBER) {
+        glm_setvvalue2s(res, glm::fmod(v.v4, glm_toflt(p2)), tt_p1);
+        return 1;
+      }
+      break;
+    }
+    case TM_POW: {  // @GLMIndependent
+      if (tt_p1 == ttypetag(p2)) {
+        glm_setvvalue2s(res, glm::pow(v.v4, glm_v4value(p2)), tt_p1);
+        return 1;
+      }
+      else if (ttype(p2) == LUA_TNUMBER) {
+        glm_setvvalue2s(res, glm::pow(v.v4, decltype(v.v4)(glm_toflt(p2))), tt_p1);
+        return 1;
+      }
+      break;
+    }
+    case TM_DIV: {  // @GLMIndependent
+      const lu_byte tt_p2 = ttypetag(p2);
       if (tt_p1 == tt_p2) {
         glm_setvvalue2s(res, operator/(v.v4, glm_v4value(p2)), tt_p1);
         return 1;
       }
-      else if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT) {
+      else if (ttype(p2) == LUA_TNUMBER) {
         glm_setvvalue2s(res, operator/(v.v4, glm_toflt(p2)), tt_p1);
         return 1;
       }
@@ -2231,9 +2225,9 @@ static int vec_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
         const grit_length_t cols = LUAGLM_MATRIX_COLS(m2.dimensions);
         if (cols == LUAGLM_MATRIX_ROWS(m2.dimensions) && tt_p2 == glm_variant(cols)) {
           switch (tt_p1) {
-            case LUA_VVECTOR2: glm_setvvalue2s(res, v.v2 / m2.m22, LUA_VVECTOR2); return 1;
-            case LUA_VVECTOR3: glm_setvvalue2s(res, v.v3 / m2.m33, LUA_VVECTOR3); return 1;
-            case LUA_VVECTOR4: glm_setvvalue2s(res, v.v4 / m2.m44, LUA_VVECTOR4); return 1;
+            case LUA_VVECTOR2: glm_setvvalue2s(res, operator/(v.v2, m2.m22), LUA_VVECTOR2); return 1;
+            case LUA_VVECTOR3: glm_setvvalue2s(res, operator/(v.v3, m2.m33), LUA_VVECTOR3); return 1;
+            case LUA_VVECTOR4: glm_setvvalue2s(res, operator/(v.v4, m2.m44), LUA_VVECTOR4); return 1;
             default: {
               break;
             }
@@ -2243,62 +2237,38 @@ static int vec_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
       }
       break;
     }
-    case TM_IDIV: {
-      if (tt_p1 == tt_p2) {
-        glm_setvvalue2s(res, glm::__objFloorDivide(v.v4, glm_v4value(p2)), tt_p1);
+    case TM_IDIV: {  // @GLMIndependent
+      if (tt_p1 == ttypetag(p2)) {
+        glm_setvvalue2s(res, glm::floor(v.v4 / glm_v4value(p2)), tt_p1);
         return 1;
       }
-      else if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT) {
-        const glm_Float s = glm_toflt(p2);
-        switch (tt_p1) {
-          case LUA_VVECTOR2: glm_setvvalue2s(res, glm::__objFloorDivide(v.v2, s), LUA_VVECTOR2); return 1;
-          case LUA_VVECTOR3: glm_setvvalue2s(res, glm::__objFloorDivide(v.v3, s), LUA_VVECTOR3); return 1;
-          case LUA_VVECTOR4: glm_setvvalue2s(res, glm::__objFloorDivide(v.v4, s), LUA_VVECTOR4); return 1;
-          default: {
-            break;
-          }
-        }
-      }
-      break;
-    }
-    case TM_MOD: {  // Using fmod for the same reasons described in llimits.h
-      if (tt_p1 == tt_p2) {
-        glm_setvvalue2s(res, glm::fmod(v.v4, glm_v4value(p2)), tt_p1);
-        return 1;
-      }
-      else if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT) {
-        glm_setvvalue2s(res, glm::fmod(v.v4, glm_toflt(p2)), tt_p1);
+      else if (ttype(p2) == LUA_TNUMBER) {
+        glm_setvvalue2s(res, glm::floor(v.v4 / glm_toflt(p2)), tt_p1);
         return 1;
       }
       break;
     }
-    case TM_POW: {
-      if (tt_p1 == tt_p2) {
-        glm_setvvalue2s(res, glm::pow(v.v4, glm_v4value(p2)), tt_p1);
-        return 1;
-      }
-      else if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT) {
-        glm_setvvalue2s(res, glm::__objPow(v.v4, glm_toflt(p2)), tt_p1);
-        return 1;
-      }
+    case TM_BAND:  // @GLMIndependent
+      INT_VECTOR_OPERATION(operator&, res, v, p2, tt_p1, ttypetag(p2));
       break;
-    }
-    case TM_UNM: {
-      if (tt_p1 == LUA_VVECTOR2 || tt_p1 == LUA_VVECTOR3 || tt_p1 == LUA_VVECTOR4) {
-        glm_setvvalue2s(res, -v.v4, tt_p1);
-        return 1;
-      }
+    case TM_BOR:  // @GLMIndependent
+      INT_VECTOR_OPERATION(operator|, res, v, p2, tt_p1, ttypetag(p2));
       break;
-    }
-    case TM_BAND: INT_VECTOR_OPERATION(operator&, res, v, p2); break;
-    case TM_BOR: INT_VECTOR_OPERATION(operator|, res, v, p2); break;
-    case TM_BXOR: INT_VECTOR_OPERATION(operator^, res, v, p2); break;
-    case TM_SHL: INT_VECTOR_OPERATION(operator<<, res, v, p2); break;
-    case TM_SHR: INT_VECTOR_OPERATION(operator>>, res, v, p2); break;
-    case TM_BNOT: {
+    case TM_BXOR:  // @GLMIndependent
+      INT_VECTOR_OPERATION(operator^, res, v, p2, tt_p1, ttypetag(p2));
+      break;
+    case TM_SHL:  // @GLMIndependent
+      INT_VECTOR_OPERATION(operator<<, res, v, p2, tt_p1, ttypetag(p2));
+      break;
+    case TM_SHR:  // @GLMIndependent
+      INT_VECTOR_OPERATION(operator>>, res, v, p2, tt_p1, ttypetag(p2));
+      break;
+    case TM_UNM:  // @GLMIndependent
+      glm_setvvalue2s(res, operator-(v.v4), tt_p1);
+      return 1;
+    case TM_BNOT:  // @GLMIndependent
       glm_setvvalue2s(res, operator~(cast_vec4(v.v4, lua_Integer)), tt_p1);
       return 1;
-    }
     default: {
       break;
     }
@@ -2309,41 +2279,46 @@ static int vec_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
 static int quat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId res, TMS event) {
   UNUSED(L);
   const glmVector &v = glm_vvalue(p1);
-  const lu_byte tt_p2 = ttypetag(p2);
   switch (event) {
-    case TM_UNM: glm_setvvalue2s(res, -v.q, LUA_VQUAT); return 1;
     case TM_ADD: {
-      if (tt_p2 == LUA_VQUAT) {
-        glm_setvvalue2s(res, glm_qvalue(p1) + glm_qvalue(p2), LUA_VQUAT);
+      if (ttypetag(p2) == LUA_VQUAT) {
+        glm_setvvalue2s(res, operator+(glm_qvalue(p1), glm_qvalue(p2)), LUA_VQUAT);
+        return 1;
+      }
+      else if (ttype(p2) == LUA_TNUMBER) {
+        // @GLMIndependent; Not supported by GLM but allow vector semantics.
+        glm_setvvalue2s(res, operator+(v.v4, glm_toflt(p2)), LUA_VQUAT);
         return 1;
       }
       break;
     }
     case TM_SUB: {
-      if (tt_p2 == LUA_VQUAT) {
+      if (ttypetag(p2) == LUA_VQUAT) {
 #if defined(LUAGLM_ALIGNED)  // @QuatHack
         const glm::qua<glm_Float, glm::qualifier::highp> qx(glm_qvalue(p1));
         const glm::qua<glm_Float, glm::qualifier::highp> qy(glm_qvalue(p2));
         glm_setvvalue2s(res, glm::qua<glm_Float>(qx - qy), LUA_VQUAT);
         return 1;
 #else
-        glm_setvvalue2s(res, glm_qvalue(p1) - glm_qvalue(p2), LUA_VQUAT);
+        glm_setvvalue2s(res, operator-(glm_qvalue(p1), glm_qvalue(p2)), LUA_VQUAT);
         return 1;
 #endif
       }
-      break;
-    }
-    case TM_POW: {
-      if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT) {
-        glm_setvvalue2s(res, glm::pow(v.q, glm_toflt(p2)), LUA_VQUAT);
+      else if (ttype(p2) == LUA_TNUMBER) {
+        // @GLMIndependent; Not supported by GLM but allow vector semantics.
+        glm_setvvalue2s(res, operator-(v.v4, glm_toflt(p2)), LUA_VQUAT);
         return 1;
       }
       break;
     }
     case TM_MUL: {
-      switch (tt_p2) {
-        case LUA_VNUMINT: glm_setvvalue2s(res, v.q * glm_castfloat(ivalue(p2)), LUA_VQUAT); return 1;
-        case LUA_VNUMFLT: glm_setvvalue2s(res, v.q * glm_castfloat(fltvalue(p2)), LUA_VQUAT); return 1;
+      switch (ttypetag(p2)) {
+        case LUA_VNUMINT:
+          glm_setvvalue2s(res, operator*(v.q, glm_castfloat(ivalue(p2))), LUA_VQUAT);
+          return 1;
+        case LUA_VNUMFLT:
+          glm_setvvalue2s(res, operator*(v.q, glm_castfloat(fltvalue(p2))), LUA_VQUAT);
+          return 1;
 #if defined(LUAGLM_FORCE_HIGHP)  // @GCCHack
         case LUA_VVECTOR3: {
           const glm::qua<glm_Float, glm::qualifier::highp> qx(glm_qvalue(p1));
@@ -2353,7 +2328,9 @@ static int quat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId
           return 1;
         }
 #else
-        case LUA_VVECTOR3: glm_setvvalue2s(res, v.q * glm_v3value(p2), LUA_VVECTOR3); return 1;
+        case LUA_VVECTOR3:
+          glm_setvvalue2s(res, operator*(v.q, glm_v3value(p2)), LUA_VVECTOR3);
+          return 1;
 #endif
 #if defined(LUAGLM_ALIGNED)  // @QuatHack
         case LUA_VVECTOR4: {
@@ -2364,17 +2341,28 @@ static int quat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId
           return 1;
         }
 #else
-        case LUA_VVECTOR4: glm_setvvalue2s(res, v.q * glm_v4value(p2), LUA_VVECTOR4); return 1;
+        case LUA_VVECTOR4:
+          glm_setvvalue2s(res, operator*(v.q, glm_v4value(p2)), LUA_VVECTOR4);
+          return 1;
 #endif
-        case LUA_VQUAT: glm_setvvalue2s(res, v.q * glm_qvalue(p2), LUA_VQUAT); return 1;
+        case LUA_VQUAT:
+          glm_setvvalue2s(res, operator*(v.q, glm_qvalue(p2)), LUA_VQUAT);
+          return 1;
         default: {
           break;
         }
       }
       break;
     }
+    case TM_POW: {
+      if (ttype(p2) == LUA_TNUMBER) {
+        glm_setvvalue2s(res, glm::pow(v.q, glm_toflt(p2)), LUA_VQUAT);
+        return 1;
+      }
+      break;
+    }
     case TM_DIV: {
-      if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT) {
+      if (ttype(p2) == LUA_TNUMBER) {
         const glm_Float s = glm_toflt(p2);
         glm::qua<glm_Float> result = glm::identity<glm::qua<glm_Float>>();
         if (glm::notEqual(s, glm_Float(0), glm::epsilon<glm_Float>())) {
@@ -2386,6 +2374,9 @@ static int quat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId
       }
       break;
     }
+    case TM_UNM:
+      glm_setvvalue2s(res, operator-(v.q), LUA_VQUAT);
+      return 1;
     default: {
       break;
     }
@@ -2393,37 +2384,36 @@ static int quat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId
   return 0;
 }
 
-/*
-@@ LUAGLM_MUL_DIRECTION: Define how the runtime handles: `TM_MUL(mat4x4, vec3)`,
-** i.e., transform the vec3 as a 'direction' or a 'position'.
-*/
-#if defined(LUAGLM_MUL_DIRECTION)
-  #define MAT_VEC3_W 0 /* Transforms the given vector by: M * (x, y, z, 0) */
-#else
-  #define MAT_VEC3_W 1 /* Transforms the given vector by: M * (x, y, z, 1) */
-#endif
-
 static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId res, TMS event) {
   const glmMatrix &m = glm_mvalue(p1);
   const grit_length_t cols = LUAGLM_MATRIX_COLS(m.dimensions);
-
-  const lu_byte tt_p2 = ttypetag(p2);
   switch (event) {
-    case TM_ADD: {
-      if (tt_p2 == LUA_VMATRIX && m.dimensions == mvalue_dims(p2))
-        INDEP_MATRIX_OPERATION(L, operator+, res, m, p2);
-      else if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT)
-        MATRIX_SCALAR_OPERATION(L, operator+, res, m, p2);
+    case TM_ADD: {  // @GLMIndependent
+      if (ttypetag(p2) == LUA_VMATRIX && m.dimensions == mvalue_dims(p2)) {
+        const glmMatrix &m2 = glm_mvalue(p2);
+        glm_newmvalue(L, res, operator+(m.m44, m2.m44), m.dimensions);
+        return 1;
+      }
+      else if (ttype(p2) == LUA_TNUMBER) {
+        glm_newmvalue(L, res, operator+(m.m44, glm_toflt(p2)), m.dimensions);
+        return 1;
+      }
       break;
     }
-    case TM_SUB: {
-      if (tt_p2 == LUA_VMATRIX && m.dimensions == mvalue_dims(p2))
-        INDEP_MATRIX_OPERATION(L, operator-, res, m, p2);
-      else if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT)
-        MATRIX_SCALAR_OPERATION(L, operator-, res, m, p2);
+    case TM_SUB: {  // @GLMIndependent
+      if (ttypetag(p2) == LUA_VMATRIX && m.dimensions == mvalue_dims(p2)) {
+        const glmMatrix &m2 = glm_mvalue((p2));
+        glm_newmvalue(L, res, operator-(m.m44, m2.m44), m.dimensions);
+        return 1;
+      }
+      else if (ttype(p2) == LUA_TNUMBER) {
+        glm_newmvalue(L, res, operator-(m.m44, glm_toflt(p2)), m.dimensions);
+        return 1;
+      }
       break;
     }
     case TM_MUL: {
+      const lu_byte tt_p2 = ttypetag(p2);
       if (tt_p2 == LUA_VMATRIX) {
         const glmMatrix &m2 = glm_mvalue(p2);
         if (cols == LUAGLM_MATRIX_ROWS(m2.dimensions)) {
@@ -2446,15 +2436,15 @@ static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
       else if (tt_p2 == glm_variant(cols)) {
         const glmVector &v2 = glm_vvalue(p2);
         switch (m.dimensions) {
-          case LUAGLM_MATRIX_2x2: glm_setvvalue2s(res, m.m22 * v2.v2, LUA_VVECTOR2); return 1;
-          case LUAGLM_MATRIX_2x3: glm_setvvalue2s(res, m.m23 * v2.v2, LUA_VVECTOR3); return 1;
-          case LUAGLM_MATRIX_2x4: glm_setvvalue2s(res, m.m24 * v2.v2, LUA_VVECTOR4); return 1;
-          case LUAGLM_MATRIX_3x2: glm_setvvalue2s(res, m.m32 * v2.v3, LUA_VVECTOR2); return 1;
-          case LUAGLM_MATRIX_3x3: glm_setvvalue2s(res, m.m33 * v2.v3, LUA_VVECTOR3); return 1;
-          case LUAGLM_MATRIX_3x4: glm_setvvalue2s(res, m.m34 * v2.v3, LUA_VVECTOR4); return 1;
-          case LUAGLM_MATRIX_4x2: glm_setvvalue2s(res, m.m42 * v2.v4, LUA_VVECTOR2); return 1;
-          case LUAGLM_MATRIX_4x3: glm_setvvalue2s(res, m.m43 * v2.v4, LUA_VVECTOR3); return 1;
-          case LUAGLM_MATRIX_4x4: glm_setvvalue2s(res, m.m44 * v2.v4, LUA_VVECTOR4); return 1;
+          case LUAGLM_MATRIX_2x2: glm_setvvalue2s(res, operator*(m.m22, v2.v2), LUA_VVECTOR2); return 1;
+          case LUAGLM_MATRIX_2x3: glm_setvvalue2s(res, operator*(m.m23, v2.v2), LUA_VVECTOR3); return 1;
+          case LUAGLM_MATRIX_2x4: glm_setvvalue2s(res, operator*(m.m24, v2.v2), LUA_VVECTOR4); return 1;
+          case LUAGLM_MATRIX_3x2: glm_setvvalue2s(res, operator*(m.m32, v2.v3), LUA_VVECTOR2); return 1;
+          case LUAGLM_MATRIX_3x3: glm_setvvalue2s(res, operator*(m.m33, v2.v3), LUA_VVECTOR3); return 1;
+          case LUAGLM_MATRIX_3x4: glm_setvvalue2s(res, operator*(m.m34, v2.v3), LUA_VVECTOR4); return 1;
+          case LUAGLM_MATRIX_4x2: glm_setvvalue2s(res, operator*(m.m42, v2.v4), LUA_VVECTOR2); return 1;
+          case LUAGLM_MATRIX_4x3: glm_setvvalue2s(res, operator*(m.m43, v2.v4), LUA_VVECTOR3); return 1;
+          case LUAGLM_MATRIX_4x4: glm_setvvalue2s(res, operator*(m.m44, v2.v4), LUA_VVECTOR4); return 1;
           default: {
             break;
           }
@@ -2464,26 +2454,28 @@ static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
       else if (tt_p2 == LUA_VVECTOR3) {
         const glm::mat<4, 4, glm_Float>::col_type p(glm_v3value(p2), MAT_VEC3_W);
         switch (m.dimensions) {
-          case LUAGLM_MATRIX_4x3: glm_setvvalue2s(res, m.m43 * p, LUA_VVECTOR3); return 1;
-          case LUAGLM_MATRIX_4x4: glm_setvvalue2s(res, m.m44 * p, LUA_VVECTOR3); return 1;
+          case LUAGLM_MATRIX_4x3: glm_setvvalue2s(res, operator*(m.m43, p), LUA_VVECTOR3); return 1;
+          case LUAGLM_MATRIX_4x4: glm_setvvalue2s(res, operator*(m.m44, p), LUA_VVECTOR3); return 1;
           default:
             break;
         }
         break;
       }
-      else if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT) {
-        MATRIX_SCALAR_OPERATION(L, operator*, res, m, p2);
+      else if (ttype(p2) == LUA_TNUMBER) {  // @GLMIndependent
+        glm_newmvalue(L, res, operator*(m.m44, glm_toflt(p2)), m.dimensions);
+        return 1;
       }
       break;
     }
     case TM_DIV: {
+      const lu_byte tt_p2 = ttypetag(p2);
       if (tt_p2 == LUA_VMATRIX) {  // operator/(matNxN, matNxN)
         const glmMatrix &m2 = glm_mvalue(p2);
         if (m.dimensions == m2.dimensions && cols == LUAGLM_MATRIX_ROWS(m.dimensions)) {
           switch (m.dimensions) {
-            case LUAGLM_MATRIX_2x2: glm_newmvalue(L, res, m.m22 / m2.m22, LUAGLM_MATRIX_2x2); return 1;
-            case LUAGLM_MATRIX_3x3: glm_newmvalue(L, res, m.m33 / m2.m33, LUAGLM_MATRIX_3x3); return 1;
-            case LUAGLM_MATRIX_4x4: glm_newmvalue(L, res, m.m44 / m2.m44, LUAGLM_MATRIX_4x4); return 1;
+            case LUAGLM_MATRIX_2x2: glm_newmvalue(L, res, operator/(m.m22, m2.m22), LUAGLM_MATRIX_2x2); return 1;
+            case LUAGLM_MATRIX_3x3: glm_newmvalue(L, res, operator/(m.m33, m2.m33), LUAGLM_MATRIX_3x3); return 1;
+            case LUAGLM_MATRIX_4x4: glm_newmvalue(L, res, operator/(m.m44, m2.m44), LUAGLM_MATRIX_4x4); return 1;
             default: {
               break;
             }
@@ -2493,30 +2485,23 @@ static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
       else if (tt_p2 == glm_variant(cols)) {  // operator/(matrix, vector)
         const glmVector &v2 = glm_vvalue(p2);
         switch (cols) {
-          case 2: glm_setvvalue2s(res, m.m22 / v2.v2, LUA_VVECTOR2); return 1;
-          case 3: glm_setvvalue2s(res, m.m33 / v2.v3, LUA_VVECTOR3); return 1;
-          case 4: glm_setvvalue2s(res, m.m44 / v2.v4, LUA_VVECTOR4); return 1;
+          case 2: glm_setvvalue2s(res, operator/(m.m22, v2.v2), LUA_VVECTOR2); return 1;
+          case 3: glm_setvvalue2s(res, operator/(m.m33, v2.v3), LUA_VVECTOR3); return 1;
+          case 4: glm_setvvalue2s(res, operator/(m.m44, v2.v4), LUA_VVECTOR4); return 1;
           default: {
             break;
           }
         }
       }
-      else if (tt_p2 == LUA_VNUMINT || tt_p2 == LUA_VNUMFLT) {
-        MATRIX_SCALAR_OPERATION(L, operator/, res, m, p2);
+      else if (ttype(p2) == LUA_TNUMBER) {  // @GLMIndependent
+        glm_newmvalue(L, res, operator/(m.m44, glm_toflt(p2)), m.dimensions);
+        return 1;
       }
       break;
     }
-    case TM_UNM: {
-      switch (cols) {
-        case 2: glm_newmvalue(L, res, -m.m24, m.dimensions); return 1;
-        case 3: glm_newmvalue(L, res, -m.m34, m.dimensions); return 1;
-        case 4: glm_newmvalue(L, res, -m.m44, m.dimensions); return 1;
-        default: {
-          break;
-        }
-      }
-      break;
-    }
+    case TM_UNM:  // @GLMIndependent
+      glm_newmvalue(L, res, operator-(m.m44), m.dimensions);
+      return 1;
     default: {
       break;
     }
