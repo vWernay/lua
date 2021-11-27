@@ -315,8 +315,12 @@ struct gLuaBase {
       case LUA_VNUMINT: v = static_cast<T>(ivalue(o)); break;
       case LUA_VNUMFLT: v = static_cast<T>(fltvalue(o)); break;
       default: {
+#if defined(LUAGLM_TYPE_COERCION)
         v = static_cast<T>(luaL_checkinteger(L_, idx_));
         break;
+#else
+        return luaL_typeerror(L_, idx_, GLM_STRING_INTEGER);
+#endif
       }
     }
     return 1;
@@ -328,7 +332,7 @@ struct gLuaBase {
   /// </summary>
   LUA_TRAIT_INT(Is, bool)(const gLuaBase &LB, int idx_) {
     const TValue *o = glm_i2v(LB.L, idx_);
-    return ttisinteger(o);  // lua_isinteger(LB.L, idx_)
+    return ttisinteger(o) || ttisboolean(o);  // lua_isinteger(LB.L, idx_)
   }
 
   /// <summary>
@@ -371,8 +375,12 @@ struct gLuaBase {
       case LUA_VNUMINT: v = static_cast<T>(ivalue(o)); break;
       case LUA_VNUMFLT: v = static_cast<T>(fltvalue(o)); break;
       default: {
+#if defined(LUAGLM_TYPE_COERCION)
         v = static_cast<T>(luaL_checknumber(L_, idx_));
         break;
+#else
+        return luaL_typeerror(L_, idx_, GLM_STRING_NUMBER);
+#endif
       }
     }
     return 1;
@@ -383,7 +391,7 @@ struct gLuaBase {
   /// convertible to a number; false otherwise.
   /// </summary>
   LUA_TRAIT_FLOAT(Is, bool)(const gLuaBase &LB, int idx_) {
-    return lua_isnumber(LB.L, idx_);
+    return lua_isnumber(LB.L, idx_);  // @TODO: isboolean
   }
 
   /// <summary>
@@ -1493,9 +1501,9 @@ struct gLuaNotZero : gLuaTrait<typename Tr::type, false> {
   LUA_MLM_BEGIN                                                                        \
   const TValue *_tv = glm_i2v((LB).L, (LB).idx);                                       \
   switch (ttypetag(_tv)) {                                                             \
-    case LUA_VFALSE: case LUA_VTRUE:                                                   \
-    case LUA_VSHRSTR: case LUA_VLNGSTR: /* string coercion */                          \
-    case LUA_VNUMINT: /* integer to number */                                          \
+    case LUA_VFALSE: case LUA_VTRUE: /* @BoolCoercion */                               \
+    case LUA_VSHRSTR: case LUA_VLNGSTR: /* @StringCoercion */                          \
+    case LUA_VNUMINT: /* @IntCoercion */                                               \
     case LUA_VNUMFLT: ArgLayout(LB, F, gLuaNumber, ##__VA_ARGS__); break;              \
     case LUA_VVECTOR2: ArgLayout(LB, F, gLuaVec2<>::fast, ##__VA_ARGS__); break;       \
     case LUA_VVECTOR3: ArgLayout(LB, F, gLuaVec3<>::fast, ##__VA_ARGS__); break;       \
@@ -1511,9 +1519,9 @@ struct gLuaNotZero : gLuaTrait<typename Tr::type, false> {
   LUA_MLM_BEGIN                                                                        \
   const TValue *_tv = glm_i2v((LB).L, (LB).idx);                                       \
   switch (ttypetag(_tv)) {                                                             \
-    case LUA_VFALSE: case LUA_VTRUE:                                                   \
+    case LUA_VFALSE: case LUA_VTRUE: /* @BoolCoercion */                               \
     case LUA_VNUMINT: ILayout(LB, F, gLuaInteger, ##__VA_ARGS__); break;               \
-    case LUA_VSHRSTR: case LUA_VLNGSTR: /* string coercion */                          \
+    case LUA_VSHRSTR: case LUA_VLNGSTR: /* @StringCoercion */                          \
     case LUA_VNUMFLT: FLayout(LB, F, gLuaNumber, ##__VA_ARGS__); break;                \
     case LUA_VVECTOR2: VLayout(LB, F, gLuaVec2<>::fast, ##__VA_ARGS__); break;         \
     case LUA_VVECTOR3: VLayout(LB, F, gLuaVec3<>::fast, ##__VA_ARGS__); break;         \
@@ -1529,9 +1537,9 @@ struct gLuaNotZero : gLuaTrait<typename Tr::type, false> {
   LUA_MLM_BEGIN                                                                         \
   const TValue *_tv = glm_i2v((LB).L, (LB).idx);                                        \
   switch (ttypetag(_tv)) {                                                              \
-    case LUA_VFALSE: case LUA_VTRUE:                                                    \
-    case LUA_VSHRSTR: case LUA_VLNGSTR: /* string coercion */                           \
-    case LUA_VNUMINT: /* integer to number */                                           \
+    case LUA_VFALSE: case LUA_VTRUE: /* @BoolCoercion */                                \
+    case LUA_VSHRSTR: case LUA_VLNGSTR: /* @StringCoercion */                           \
+    case LUA_VNUMINT:  /* @IntCoercion */                                               \
     case LUA_VNUMFLT: FLayout(LB, F, gLuaNumber, ##__VA_ARGS__); break;                 \
     case LUA_VVECTOR2: VLayout(LB, F, gLuaVec2<>::fast, ##__VA_ARGS__); break;          \
     case LUA_VVECTOR3: VLayout(LB, F, gLuaVec3<>::fast, ##__VA_ARGS__); break;          \
@@ -1623,9 +1631,9 @@ struct gLuaNotZero : gLuaTrait<typename Tr::type, false> {
   LUA_MLM_BEGIN                                                                        \
   const TValue *_tv = glm_i2v((LB).L, (LB).idx);                                       \
   switch (ttypetag(_tv)) {                                                             \
-    case LUA_VFALSE: case LUA_VTRUE:                                                   \
-    case LUA_VSHRSTR: case LUA_VLNGSTR: /* string coercion */                          \
-    case LUA_VNUMINT: /* integer to number */                                          \
+    case LUA_VFALSE: case LUA_VTRUE: /* @BoolCoercion */                               \
+    case LUA_VSHRSTR: case LUA_VLNGSTR: /* @StringCoercion */                          \
+    case LUA_VNUMINT: /* @IntCoercion */                                               \
     case LUA_VNUMFLT: ArgLayout(LB, F, gLuaTrait<IType>, ##__VA_ARGS__); break;        \
     case LUA_VVECTOR2: ArgLayout(LB, F, gLuaVec2<IType>::fast, ##__VA_ARGS__); break;  \
     case LUA_VVECTOR3: ArgLayout(LB, F, gLuaVec3<IType>::fast, ##__VA_ARGS__); break;  \

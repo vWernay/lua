@@ -708,6 +708,7 @@ For all GLM preprocessor, see the [GLM manual](https://github.com/g-truc/glm/blo
 * **LUAGLM_INCLUDE_GEOM**: Include support for geometric structures (`ext/geom/`).
 * **LUAGLM_ALIASES**: Create aliases for common (alternate) names when registering the library.
 * **LUAGLM_SAFELIB**: Enable a general try/catch wrapper for all binding functions.
+* **LUAGLM_TYPE_COERCION**: Enable string-to-number type coercion when parsing arguments from the Lua stack.
 * **LUAGLM_REPLACE_MATH**: Replace the global math table with the glm binding library on loading.
 * **LUAGLM_RECYCLE**: Treat all trailing and unused values on the Lua stack (but passed as parameters to the `CClosure`) as a 'cache' of recyclable structures.
 * **LUAGLM_FORCED_RECYCLE**: Disable this library from allocating memory, i.e., force usage of LUAGLM\_RECYCLE.
@@ -748,20 +749,6 @@ these added features.
 1. Include broad phase collision scripting examples, e.g., dynamic AABB tree and/or multibox sweep-and-prune.
 1. Initial support for frustums (both orthographic and perspective) and OBBs, or, at minimum, the more computationally complex parts of these structures.
 1. A significantly less efficient shared-library implementation, using tables and/or userdata instead of first-class types, for Lua5.1, Lua5.2, Lua5.3, Lua5.4, and [LuaJIT](https://github.com/LuaJIT/LuaJIT).
-1. Allow some binding functions to be independently applied to each value or structure on the call stack. If disabled, only operate on the minimum number of required objects (following lmathlib). For example:
-  ```lua
-  -- lmathlib
-  > math.rad(35, 35)
-  0.61086523819802
-
-  -- LUAGLM_EXT_UNARY=OFF
-  > glm.rad(35, 35)
-  0.61086523819802
-
-  -- LUAGLM_EXT_UNARY=ON
-  > glm.rad(35, 35)
-  0.61086523819802 0.61086523819802
-  ```
 
 ### Tweaks/TODO
 

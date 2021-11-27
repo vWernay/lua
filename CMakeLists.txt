@@ -632,6 +632,7 @@ OPTION(LUAGLM_INCLUDE_EXT "Include ext headers: Stable extensions not specified 
 OPTION(LUAGLM_INCLUDE_GTC "Include gtc headers: Recommended extensions not specified by GLSL specification" OFF)
 OPTION(LUAGLM_INCLUDE_GTX "Include gtx headers: Experimental extensions not specified by GLSL specification" OFF)
 OPTION(LUAGLM_ALIASES "Include all function aliases" ON)
+OPTION(LUAGLM_TYPE_COERCION "Enable string-to-number type coercion when parsing arguments from the Lua stack" ON)
 OPTION(LUAGLM_REPLACE_MATH "Replace the global math library on library initialization" OFF)
 OPTION(LUAGLM_INCLUDE_GEOM "Extend geometry API" ON)
 OPTION(LUAGLM_RECYCLE "Recycle trailing (unused) function parameters" ON)
@@ -722,6 +723,10 @@ ENDIF()
 
 IF( LUAGLM_ALIASES )
   ADD_COMPILE_DEFINITIONS(LUAGLM_ALIASES)
+ENDIF()
+
+IF( LUAGLM_TYPE_COERCION )
+  ADD_COMPILE_DEFINITIONS(LUAGLM_TYPE_COERCION)
 ENDIF()
 
 IF( LUAGLM_REPLACE_MATH )
