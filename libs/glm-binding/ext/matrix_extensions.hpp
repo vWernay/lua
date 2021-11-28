@@ -730,7 +730,6 @@ namespace glm {
     return Result;
   }
 
-#if GLM_CONFIG_ALIGNED_GENTYPES == GLM_ENABLE && defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
   /// <summary>
   /// @GLMFix: bypass aligned implementation
   /// </summary>
@@ -751,7 +750,6 @@ namespace glm {
   GLM_FUNC_QUALIFIER mat<C, R, T, Q> __mix(mat<C, R, T, Q> const &x, mat<C, R, T, Q> const &y, mat<C, R, U, Q> const &a) {
     return __matrixCompMult(mat<C, R, U, Q>(x), static_cast<U>(1) - a) + __matrixCompMult(mat<C, R, U, Q>(y), a);
   }
-#endif
 }
 
 #endif

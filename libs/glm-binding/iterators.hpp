@@ -262,12 +262,11 @@ public:
       const int top = lua_gettop(gLuaBase::L);  // gLuaBase uses absolute values.
 
       // Parse the trait given the relative stack (starting) index.
-      gLuaBase LB(gLuaBase::L, gLuaBase::idx);
-      if (!Tr::Is(LB, top) || !gLuaBase::Pull(LB, top, value)) { /* noret */
+      if (!gLuaBase::Pull(gLuaBase::L, top, value)) { /* noret */
         lua_pop(gLuaBase::L, 1);
         luaL_error(gLuaBase::L, "Invalid table index: %d for %s", static_cast<int>(arrayIdx), Tr::Label());
 
-        return typename Tr::type(0);  // quash compiler warnings, luaL_error is noret.
+        return value;  // quash compiler warnings, luaL_error is noret.
       }
 
       lua_pop(gLuaBase::L, 1);

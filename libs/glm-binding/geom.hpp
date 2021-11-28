@@ -114,14 +114,14 @@ template<bool isNear, bool isRelative, typename T = glm_Float>
 struct gLuaRelativePosition : gLuaTrait<T> {
   static GLM_CONSTEXPR const char *Label() { return "RelativePosition"; }
 
-  LUA_TRAIT_QUALIFIER bool Is(const gLuaBase &LB, int idx) {
-    return lua_isnoneornil(LB.L, idx) || gLuaTrait<T>::Is(LB, idx);
-  }
-
   LUA_TRAIT_QUALIFIER GLM_CONSTEXPR T zero() {
     GLM_IF_CONSTEXPR(isNear)
       return isRelative ? T(0) : -std::numeric_limits<T>::infinity();
     return isRelative ? T(1) : std::numeric_limits<T>::infinity();
+  }
+
+  LUA_TRAIT_QUALIFIER bool Is(lua_State *L_, int idx) {
+    return lua_isnoneornil(L_, idx) || gLuaTrait<T>::Is(L_, idx);
   }
 
   LUA_TRAIT_QUALIFIER T Next(gLuaBase &LB) {
@@ -135,7 +135,7 @@ struct gLuaRelativePosition : gLuaTrait<T> {
 };
 
 template<glm::length_t L = 3, typename T = glm_Float>
-struct gLuaAABB : gLuaSharedTrait<glm::AABB<L, T>> {
+struct gLuaAABB : gLuaAbstractTrait<glm::AABB<L, T>> {
   template<typename Type = T>
   using as_type = gLuaAABB<L, Type>;  // @CastBinding
   using safe = gLuaAABB;  // @SafeBinding
@@ -147,14 +147,25 @@ struct gLuaAABB : gLuaSharedTrait<glm::AABB<L, T>> {
   using point_trait = gLuaTrait<typename glm::AABB<L, T>::point_type>;
 
   static GLM_CONSTEXPR const char *Label() { return "AABB"; }
-  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::AABB<L, T> zero() { return glm::AABB<L, T>{}; }
-  LUA_TRAIT_QUALIFIER bool Is(gLuaBase &LB, int idx) {
-    return point_trait::Is(LB, idx) && point_trait::Is(LB, idx + 1);
+
+  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::AABB<L, T> zero() {
+    return glm::AABB<L, T>();
+  }
+
+  LUA_TRAIT_QUALIFIER bool Is(lua_State *L_, int idx) {
+    return point_trait::Is(L_, idx) && point_trait::Is(L_, idx + 1);
+  }
+
+  LUA_TRAIT_QUALIFIER glm::AABB<L, T> Next(gLuaBase &LB) {
+    glm::AABB<L, T> result;
+    result.minPoint = point_trait::Next(LB);
+    result.maxPoint = point_trait::Next(LB);
+    return result;
   }
 };
 
 template<glm::length_t L = 3, typename T = glm_Float>
-struct gLuaLine : gLuaSharedTrait<glm::Line<L, T>> {
+struct gLuaLine : gLuaAbstractTrait<glm::Line<L, T>> {
   template<typename Type = T>
   using as_type = gLuaLine<L, Type>;  // @CastBinding
   using safe = gLuaLine;  // @SafeBinding
@@ -174,14 +185,25 @@ struct gLuaLine : gLuaSharedTrait<glm::Line<L, T>> {
   using one_trait = gLuaRelativePosition<false, false, T>;
 
   static GLM_CONSTEXPR const char *Label() { return "Line"; }
-  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::Line<L, T> zero() { return glm::Line<L, T>{}; }
-  LUA_TRAIT_QUALIFIER bool Is(gLuaBase &LB, int idx) {
-    return point_trait::Is(LB, idx) && point_trait::Is(LB, idx + 1);
+
+  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::Line<L, T> zero() {
+    return glm::Line<L, T>();
+  }
+
+  LUA_TRAIT_QUALIFIER bool Is(lua_State *L_, int idx) {
+    return point_trait::Is(L_, idx) && point_trait::Is(L_, idx + 1);
+  }
+
+  LUA_TRAIT_QUALIFIER glm::Line<L, T> Next(gLuaBase &LB) {
+    glm::Line<L, T> result;
+    result.pos = point_trait::Next(LB);
+    result.dir = glm_drift_compensate(point_trait::Next(LB));
+    return result;
   }
 };
 
 template<glm::length_t L = 3, typename T = glm_Float>
-struct gLuaSegment : gLuaSharedTrait<glm::LineSegment<L, T>> {
+struct gLuaSegment : gLuaAbstractTrait<glm::LineSegment<L, T>> {
   template<typename Type = T>
   using as_type = gLuaSegment<L, Type>;  // @CastBinding
   using safe = gLuaSegment;  // @SafeBinding
@@ -191,14 +213,25 @@ struct gLuaSegment : gLuaSharedTrait<glm::LineSegment<L, T>> {
   using one_trait = gLuaRelativePosition<false, true, T>;  // @RelativeOne
 
   static GLM_CONSTEXPR const char *Label() { return "Segment"; }
-  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::LineSegment<L, T> zero() { return glm::LineSegment<L, T>{}; }
-  LUA_TRAIT_QUALIFIER bool Is(gLuaBase &LB, int idx) {
-    return point_trait::Is(LB, idx) && point_trait::Is(LB, idx + 1);
+
+  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::LineSegment<L, T> zero() {
+    return glm::LineSegment<L, T>();
+  }
+
+  LUA_TRAIT_QUALIFIER bool Is(lua_State *L_, int idx) {
+    return point_trait::Is(L_, idx) && point_trait::Is(L_, idx + 1);
+  }
+
+  LUA_TRAIT_QUALIFIER glm::LineSegment<L, T> Next(gLuaBase &LB) {
+    glm::LineSegment<L, T> result;
+    result.a = point_trait::Next(LB);
+    result.b = point_trait::Next(LB);
+    return result;
   }
 };
 
 template<glm::length_t L = 3, typename T = glm_Float>
-struct gLuaRay : gLuaSharedTrait<glm::Ray<L, T>> {
+struct gLuaRay : gLuaAbstractTrait<glm::Ray<L, T>> {
   template<typename Type = T>
   using as_type = gLuaRay<L, Type>;  // @CastBinding
   using safe = gLuaRay;  // @SafeBinding
@@ -208,14 +241,25 @@ struct gLuaRay : gLuaSharedTrait<glm::Ray<L, T>> {
   using one_trait = gLuaRelativePosition<false, false, T>;  // @RelativeOne
 
   static GLM_CONSTEXPR const char *Label() { return "Ray"; }
-  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::Ray<L, T> zero() { return glm::Ray<L, T>{}; }
-  LUA_TRAIT_QUALIFIER bool Is(gLuaBase &LB, int idx) {
-    return point_trait::Is(LB, idx) && point_trait::Is(LB, idx + 1);
+
+  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::Ray<L, T> zero() {
+    return glm::Ray<L, T>();
+  }
+
+  LUA_TRAIT_QUALIFIER bool Is(lua_State *L_, int idx) {
+    return point_trait::Is(L_, idx) && point_trait::Is(L_, idx + 1);
+  }
+
+  LUA_TRAIT_QUALIFIER glm::Ray<L, T> Next(gLuaBase &LB) {
+    glm::Ray<L, T> result;
+    result.pos = point_trait::Next(LB);
+    result.dir = glm_drift_compensate(point_trait::Next(LB));
+    return result;
   }
 };
 
 template<glm::length_t L = 3, typename T = glm_Float>
-struct gLuaTriangle : gLuaSharedTrait<glm::Triangle<L, T>> {
+struct gLuaTriangle : gLuaAbstractTrait<glm::Triangle<L, T>> {
   template<typename Type = T>
   using as_type = gLuaTriangle<L, Type>;  // @CastBinding
   using safe = gLuaTriangle;  // @SafeBinding
@@ -223,14 +267,26 @@ struct gLuaTriangle : gLuaSharedTrait<glm::Triangle<L, T>> {
   using point_trait = gLuaTrait<typename glm::Triangle<L, T>::point_type>;  // @PointBinding
 
   static GLM_CONSTEXPR const char *Label() { return "Triangle"; }
-  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::Triangle<L, T> zero() { return glm::Triangle<L, T>{}; }
-  LUA_TRAIT_QUALIFIER bool Is(gLuaBase &LB, int idx) {
-    return point_trait::Is(LB, idx) && point_trait::Is(LB, idx + 1) && point_trait::Is(LB, idx + 2);
+
+  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::Triangle<L, T> zero() {
+    return glm::Triangle<L, T>();
+  }
+
+  LUA_TRAIT_QUALIFIER bool Is(lua_State *L_, int idx) {
+    return point_trait::Is(L_, idx) && point_trait::Is(L_, idx + 1) && point_trait::Is(L_, idx + 2);
+  }
+
+  LUA_TRAIT_QUALIFIER glm::Triangle<L, T> Next(gLuaBase &LB) {
+    glm::Triangle<L, T> result;
+    result.a = point_trait::Next(LB);
+    result.b = point_trait::Next(LB);
+    result.c = point_trait::Next(LB);
+    return result;
   }
 };
 
 template<glm::length_t L = 3, typename T = glm_Float>
-struct gLuaSphere : gLuaSharedTrait<glm::Sphere<L, T>> {
+struct gLuaSphere : gLuaAbstractTrait<glm::Sphere<L, T>> {
   template<typename Type = T>
   using as_type = gLuaSphere<L, Type>;  // @CastBinding
   using safe = gLuaSphere;  // @SafeBinding
@@ -238,14 +294,25 @@ struct gLuaSphere : gLuaSharedTrait<glm::Sphere<L, T>> {
   using point_trait = gLuaTrait<typename glm::Sphere<L, T>::point_type>;  // @PointBinding
 
   static GLM_CONSTEXPR const char *Label() { return "Sphere"; }
-  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::Sphere<L, T> zero() { return glm::Sphere<L, T>{}; }
-  LUA_TRAIT_QUALIFIER bool Is(gLuaBase &LB, int idx) {
-    return point_trait::Is(LB, idx) && gLuaTrait<T>::Is(LB, idx + 1);
+
+  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::Plane<L, T> zero() {
+    return glm::Plane<L, T>();
+  }
+
+  LUA_TRAIT_QUALIFIER bool Is(lua_State *L_, int idx) {
+    return point_trait::Is(L_, idx) && gLuaTrait<T>::Is(L_, idx + 1);
+  }
+
+  LUA_TRAIT_QUALIFIER glm::Sphere<L, T> Next(gLuaBase &LB) {
+    glm::Sphere<L, T> result;
+    result.pos = point_trait::Next(LB);
+    result.r = gLuaSphere::value_trait::Next(LB);
+    return result;
   }
 };
 
 template<glm::length_t L = 3, typename T = glm_Float>
-struct gLuaPlane : gLuaSharedTrait<glm::Plane<L, T>> {
+struct gLuaPlane : gLuaAbstractTrait<glm::Plane<L, T>> {
   template<typename Type = T>
   using as_type = gLuaPlane<L, Type>;  // @CastBinding
   using safe = gLuaPlane;  // @SafeBinding
@@ -253,9 +320,20 @@ struct gLuaPlane : gLuaSharedTrait<glm::Plane<L, T>> {
   using point_trait = gLuaTrait<typename glm::Plane<L, T>::point_type>;  // @PointBinding
 
   static GLM_CONSTEXPR const char *Label() { return "Plane"; }
-  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::Plane<L, T> zero() { return glm::Plane<L, T>{}; }
-  LUA_TRAIT_QUALIFIER bool Is(gLuaBase &LB, int idx) {
-    return point_trait::Is(LB, idx) && gLuaTrait<T>::Is(LB, idx + 1);
+
+  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::Plane<L, T> zero() {
+    return glm::Plane<L, T>();
+  }
+
+  LUA_TRAIT_QUALIFIER bool Is(lua_State *L_, int idx) {
+    return point_trait::Is(L_, idx) && gLuaTrait<T>::Is(L_, idx + 1);
+  }
+
+  LUA_TRAIT_QUALIFIER glm::Plane<L, T> Next(gLuaBase &LB) {
+    glm::Plane<L, T> result;
+    result.normal = point_trait::Next(LB);
+    result.d = gLuaPlane::value_trait::Next(LB);
+    return result;
   }
 };
 
@@ -266,7 +344,7 @@ struct gLuaPlane : gLuaSharedTrait<glm::Plane<L, T>> {
 ///   userdata also storing the dimensions to each point.
 /// </summary>
 template<typename T = glm_Float>
-struct gLuaPolygon : gLuaSharedTrait<glm::Polygon<3, T>> {
+struct gLuaPolygon : gLuaAbstractTrait<glm::Polygon<3, T>> {
   template<typename Type = T>
   using as_type = gLuaPolygon<Type>;  // @CastBinding
   using safe = gLuaPolygon;  // @SafeBinding
@@ -274,9 +352,27 @@ struct gLuaPolygon : gLuaSharedTrait<glm::Polygon<3, T>> {
   using point_trait = gLuaTrait<typename glm::Polygon<3, T>::point_type>;  // @PointBinding
 
   static GLM_CONSTEXPR const char *Label() { return "Polygon"; }
-  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::Polygon<3, T> zero() { return glm::Polygon<3, T>(GLM_NULLPTR); }
-  LUA_TRAIT_QUALIFIER bool Is(gLuaBase &LB, int idx) {
-    return luaL_testudata(LB.L, idx, LUAGLM_POLYGON_META) != GLM_NULLPTR;
+
+  LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::Polygon<3, T> zero() {
+    return glm::Polygon<3, T>(GLM_NULLPTR);
+  }
+
+  LUA_TRAIT_QUALIFIER bool Is(lua_State *L, int idx) {
+    return luaL_testudata(L, idx, LUAGLM_POLYGON_META) != GLM_NULLPTR;
+  }
+
+  LUA_TRAIT_QUALIFIER glm::Polygon<3, T> Next(gLuaBase &LB) {
+    void *ptr = GLM_NULLPTR;
+    if ((ptr = luaL_checkudata(LB.L, LB.idx++, LUAGLM_POLYGON_META)) != GLM_NULLPTR) {
+      glm::Polygon<3, T> result = *(static_cast<glm::Polygon<3, T> *>(ptr));
+      result.stack_idx = LB.idx - 1;
+      result.p->Validate(LB.L);
+      return result;
+    }
+    else {
+      luaL_error(LB.L, "Invalid polygon userdata");
+    }
+    return glm::Polygon<3, T>();
   }
 };
 
@@ -1429,7 +1525,7 @@ TRAITS_LAYOUT_DEFN(polygon_projectToAxis, glm::projectToAxis, GEOM_PROJECTION, g
 
 GLM_BINDING_QUALIFIER(polygon_mapTo2D) {
   GLM_BINDING_BEGIN
-  if (gLuaTrait<size_t>::Is(LB, LB.idx + 1))
+  if (gLuaTrait<size_t>::Is(LB.L, LB.idx + 1))
     TRAITS_FUNC(LB, glm::mapTo2D, gLuaPolygon<>, gLuaTrait<size_t>);
   TRAITS_FUNC(LB, glm::mapTo2D, gLuaPolygon<>, gLuaPolygon<>::point_trait);
   GLM_BINDING_END
@@ -1554,7 +1650,7 @@ GLM_BINDING_QUALIFIER(polygon__call) {
 GLM_BINDING_QUALIFIER(polygon__index) {
   GLM_BINDING_BEGIN
   const gLuaPolygon<>::type poly = gLuaPolygon<>::Next(LB);
-  if (gLuaTrait<size_t>::Is(LB, LB.idx)) {
+  if (gLuaTrait<size_t>::Is(LB.L, LB.idx)) {
     const gLuaTrait<size_t>::type index = gLuaTrait<size_t>::Next(LB);
     if (1 <= index && index <= poly.size())
       return gLuaBase::Push(LB, poly[index - 1]);
@@ -1598,12 +1694,12 @@ extern "C" {
   /// </summary>
   static int polygon__iterator(lua_State *L) {
     GLM_BINDING_BEGIN
-    if (!gLuaPolygon<>::Is(LB, LB.idx))
+    if (!gLuaPolygon<>::Is(LB.L, LB.idx))
       return luaL_argerror(LB.L, LB.idx, gLuaPolygon<>::Label());
 
     lua_settop(LB.L, LB.idx + 1);  // create a 2nd argument if there isn't one
     const gLuaPolygon<>::type poly = gLuaPolygon<>::Next(LB);  // Polygon
-    if (gLuaTrait<size_t>::Is(LB, LB.idx)) {  // Index
+    if (gLuaTrait<size_t>::Is(LB.L, LB.idx)) {  // Index
       const gLuaTrait<size_t>::type key = gLuaTrait<size_t>::Next(LB);
       if (key >= 1 && key < poly.size())
         TRAITS_PUSH(LB, key + 1, poly[key]);
