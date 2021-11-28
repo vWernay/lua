@@ -238,6 +238,22 @@ struct gLuaBase {
   }
 
   /// <summary>
+  /// @HACK: luaL_typeerror that conveys noreturn information to the compiler.
+  /// </summary>
+  static l_noret typeerror(lua_State *L, int arg, const char *tname) {
+    luaL_typeerror(L, arg, tname);
+
+    // This code should never be reached given that a lngjmp or try/catch is
+    // hidden underneath luaL_typeerror. This stub ensures the function is
+    // correctly marked as noreturn.
+    assert(false);
+#if (defined(__GNUC__) || __has_attribute(__noreturn__)) \
+    || (defined(_MSC_VER) && _MSC_VER >= 1200)
+    std::terminate();
+#endif
+  }
+
+  /// <summary>
   /// lua_tointeger with additional rules for casting booleans.
   /// </summary>
   template<typename T>
@@ -252,7 +268,7 @@ struct gLuaBase {
 #if defined(LUAGLM_TYPE_COERCION)
         return static_cast<T>(luaL_checkinteger(L_, idx_));
 #else
-        luaL_typeerror(L_, idx_, GLM_STRING_INTEGER);
+        gLuaBase::typeerror(L_, idx_, GLM_STRING_INTEGER);
         return T(0);
 #endif
       }
@@ -278,7 +294,7 @@ struct gLuaBase {
 #if defined(LUAGLM_TYPE_COERCION)
         return static_cast<T>(luaL_checknumber(L_, idx_));
 #else
-        luaL_typeerror(L_, idx_, GLM_STRING_NUMBER);
+        gLuaBase::typeerror(L_, idx_, GLM_STRING_NUMBER);
         return T(0);
 #endif
       }
@@ -747,7 +763,7 @@ struct gLuaTrait<glm::qua<T>, FastPath> : gLuaAbstractTrait<glm::qua<T>> {
         return cast_quat(tq, T);
       }
     }
-    luaL_typeerror(LB.L, LB.idx - 1, GLM_STRING_QUATERN);
+    gLuaBase::typeerror(LB.L, LB.idx - 1, GLM_STRING_QUATERN);
     return zero();
   }
 };
@@ -796,7 +812,7 @@ struct gLuaTrait<glm::vec<2, T>, FastPath> : gLuaAbstractVector<2, T, FastPath> 
       return _v;
     }
 
-    luaL_typeerror(LB.L, LB.idx - 1, Label());
+    gLuaBase::typeerror(LB.L, LB.idx - 1, Label());
     return zero();
   }
 };
@@ -826,7 +842,7 @@ struct gLuaTrait<glm::vec<3, T>, FastPath> : gLuaAbstractVector<3, T, FastPath> 
       return _v;
     }
 
-    luaL_typeerror(LB.L, LB.idx - 1, Label());
+    gLuaBase::typeerror(LB.L, LB.idx - 1, Label());
     return zero();
   }
 };
@@ -856,7 +872,7 @@ struct gLuaTrait<glm::vec<4, T>, FastPath> : gLuaAbstractVector<4, T, FastPath> 
       return _v;
     }
 
-    luaL_typeerror(LB.L, LB.idx - 1, Label());
+    gLuaBase::typeerror(LB.L, LB.idx - 1, Label());
     return zero();
   }
 };
@@ -937,7 +953,7 @@ struct gLuaTrait<glm::mat<C, R, T>, FastPath> : gLuaAbstractTrait<glm::mat<C, R,
       }
     }
 
-    luaL_typeerror(LB.L, LB.idx - 1, Label());
+    gLuaBase::typeerror(LB.L, LB.idx - 1, Label());
     return zero();
   }
 };
