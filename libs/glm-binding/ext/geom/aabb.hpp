@@ -25,10 +25,17 @@ namespace glm {
   /// </summary>
   template<length_t L, typename T, qualifier Q>
   struct AABB {
-    using Point = vec<L, T, Q>;
 
-    Point minPoint;  // minimum extent of this AABB in the world space
-    Point maxPoint;  // maximum extent of this AABB in the world space
+	// -- Implementation detail --
+
+    typedef T value_type;
+    typedef AABB<L, T, Q> type;
+    typedef vec<L, T, Q> point_type;
+
+    // -- Data --
+
+    point_type minPoint;  // minimum extent of this AABB in the world space
+    point_type maxPoint;  // maximum extent of this AABB in the world space
 
 #if GLM_CONFIG_DEFAULTED_DEFAULT_CTOR == GLM_ENABLE
     AABB() GLM_DEFAULT_CTOR;

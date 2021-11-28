@@ -20,9 +20,16 @@ namespace glm {
   /// </summary>
   template<length_t L, typename T, qualifier Q>
   struct Plane {
-    using Point = vec<L, T, Q>;
 
-    Point normal;  // The direction this plane is facing at.
+	// -- Implementation detail --
+
+    typedef T value_type;
+    typedef Plane<L, T, Q> type;
+    typedef vec<L, T, Q> point_type;
+
+    // -- Data --
+
+    point_type normal;  // The direction this plane is facing at.
     T d;  // The offset of this plane from the origin.
 
 #if GLM_CONFIG_DEFAULTED_DEFAULT_CTOR == GLM_ENABLE
@@ -40,11 +47,11 @@ namespace glm {
       : normal(scalar), d(scalar) {
     }
 
-    Plane(const Point &direction, T offset)
+    Plane(const point_type &direction, T offset)
       : normal(direction), d(offset) {
     }
 
-    Plane(const Point &point, const Point &normal_) {
+    Plane(const point_type &point, const point_type &normal_) {
       normal = normal_;
       d = dot(point, normal);
     }

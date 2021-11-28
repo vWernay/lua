@@ -40,22 +40,29 @@ namespace glm {
   /// <summary>
   /// A two-dimensional closed surface in three-dimensional space.
   ///
-  /// @TODO size_t -> List<Point>::size_type
+  /// @TODO size_t -> List<point_type>::size_type
   /// @NOTE This polygon implementation is tailored specifically to the Lua
   ///   binding. The "glm::List" pointer is owned by the userdata bound to the
   ///   garbage collector.
   /// </summary>
   template<length_t L, typename T, qualifier Q>
   struct Polygon {
-    using Point = vec<L, T, Q>;
 
-    List<Point> *p;  // Stores the vertices of this polygon.
+	// -- Implementation detail --
+
+    typedef T value_type;
+    typedef Polygon<L, T, Q> type;
+    typedef vec<L, T, Q> point_type;
+
+    // -- Data --
+
+    List<point_type> *p;  // Stores the vertices of this polygon.
 
     // @LuaGLM Reference to the stack index the Polygon userdata belongs to;
     // note this is a Lua-specific hack.
     int stack_idx;
 
-    Polygon(List<Point> *points = GLM_NULLPTR)
+    Polygon(List<point_type> *points = GLM_NULLPTR)
       : p(points), stack_idx(-1) {
     }
 
@@ -91,37 +98,37 @@ namespace glm {
       return (p == GLM_NULLPTR) ? 0 : p->size();
     }
 
-    GLM_FUNC_QUALIFIER const Point &back() const {
+    GLM_FUNC_QUALIFIER const point_type &back() const {
       lua_assert(p != GLM_NULLPTR);
       return p->back();
     }
 
-    GLM_FUNC_QUALIFIER Point &operator[](size_t i) {
+    GLM_FUNC_QUALIFIER point_type &operator[](size_t i) {
       lua_assert(p != GLM_NULLPTR);
       return p->operator[](i);
     }
 
-    GLM_FUNC_QUALIFIER const Point &operator[](size_t i) const {
+    GLM_FUNC_QUALIFIER const point_type &operator[](size_t i) const {
       lua_assert(p != GLM_NULLPTR);
       return p->operator[](i);
     }
 
-    GLM_FUNC_QUALIFIER typename List<Point>::const_iterator begin() const {
+    GLM_FUNC_QUALIFIER typename List<point_type>::const_iterator begin() const {
       lua_assert(p != GLM_NULLPTR);
       return p->begin();
     }
 
-    GLM_FUNC_QUALIFIER typename List<Point>::const_iterator cbegin() const {
+    GLM_FUNC_QUALIFIER typename List<point_type>::const_iterator cbegin() const {
       lua_assert(p != GLM_NULLPTR);
       return p->cbegin();
     }
 
-    GLM_FUNC_QUALIFIER typename List<Point>::const_iterator end() const {
+    GLM_FUNC_QUALIFIER typename List<point_type>::const_iterator end() const {
       lua_assert(p != GLM_NULLPTR);
       return p->end();
     }
 
-    GLM_FUNC_QUALIFIER typename List<Point>::const_iterator cend() const {
+    GLM_FUNC_QUALIFIER typename List<point_type>::const_iterator cend() const {
       lua_assert(p != GLM_NULLPTR);
       return p->cend();
     }
@@ -428,7 +435,7 @@ namespace glm {
       return vec<L, T, Q>(T(0));
 
     vec<L, T, Q> centroid(T(0));
-    for (const typename Polygon<L, T, Q>::Point &p : polygon)
+    for (const typename Polygon<L, T, Q>::point_type &p : polygon)
       centroid += p;
     return centroid / static_cast<T>(polygon.size());
   }
@@ -493,7 +500,7 @@ namespace glm {
     if (polygon.size() == 0)
       return true;
 
-    for (const typename Polygon<L, T, Q>::Point &p : polygon) {
+    for (const typename Polygon<L, T, Q>::point_type &p : polygon) {
       if (!all(isfinite(p)))
         return false;
     }
@@ -652,7 +659,7 @@ namespace glm {
 
     AABB<L, T, Q> aabb;
     aabb.setNegativeInfinity();
-    for (const typename Polygon<L, T, Q>::Point &p : polygon)
+    for (const typename Polygon<L, T, Q>::point_type &p : polygon)
       aabb.enclose(p);
     return aabb;
   }
@@ -748,7 +755,7 @@ namespace glm {
 
     LineSegment<3, T, Q> edge;
     edge.a = vec<3, T, Q>(dot(polygon.back(), bu), dot(polygon.back(), bv), T(0));
-    for (const typename Polygon<3, T, Q>::Point &p : polygon) {
+    for (const typename Polygon<3, T, Q>::point_type &p : polygon) {
       edge.b = vec<3, T, Q>(dot(p, bu), dot(p, bv), T(0));
       if (intersects(edge, localLineSegment))
         return false;
@@ -764,7 +771,7 @@ namespace glm {
     if (polygon.size() == 0)
       return false;
 
-    for (const typename Polygon<L, T, Q>::Point &p : worldSpacePolygon) {
+    for (const typename Polygon<L, T, Q>::point_type &p : worldSpacePolygon) {
       if (!contains(polygon, p, polygonThickness))
         return false;
     }
@@ -863,7 +870,7 @@ namespace glm {
     // points on both sides of the plane, then the polygon intersects the plane.
     T minD = std::numeric_limits<T>::infinity();
     T maxD = -std::numeric_limits<T>::infinity();
-    for (const typename Polygon<L, T, Q>::Point &p : polygon) {
+    for (const typename Polygon<L, T, Q>::point_type &p : polygon) {
       const T d = signedDistance(plane, p);
       minD = min(minD, d);
       maxD = max(maxD, d);

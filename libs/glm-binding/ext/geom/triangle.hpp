@@ -21,11 +21,18 @@ namespace glm {
   /// </summary>
   template<length_t L, typename T, qualifier Q>
   struct Triangle {
-    using Point = vec<L, T, Q>;
 
-    Point a;
-    Point b;
-    Point c;
+	// -- Implementation detail --
+
+    typedef T value_type;
+    typedef Triangle<L, T, Q> type;
+    typedef vec<L, T, Q> point_type;
+
+    // -- Data --
+
+    point_type a;
+    point_type b;
+    point_type c;
 
 #if GLM_CONFIG_DEFAULTED_DEFAULT_CTOR == GLM_ENABLE
     Triangle() GLM_DEFAULT_CTOR;

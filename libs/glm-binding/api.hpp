@@ -495,7 +495,7 @@ GLM_BINDING_QUALIFIER(mat_negate) {
   LUA_MLM_BEGIN                           \
   const Tr::type a = Tr::Next(LB);        \
   const Tr::type b = Tr::safe::Next(LB);  \
-  Tr::type carry(0);                      \
+  Tr::type carry = Tr::zero();            \
   TRAITS_PUSH(LB, F(a, b, carry), carry); \
   LUA_MLM_END
 
@@ -503,7 +503,8 @@ GLM_BINDING_QUALIFIER(mat_negate) {
   LUA_MLM_BEGIN                             \
   const Tr::type a = Tr::Next(LB);          \
   const Tr::type b = Tr::safe::Next(LB);    \
-  Tr::type lsb(0), msb(0);                  \
+  Tr::type lsb = Tr::zero();                \
+  Tr::type msb = Tr::zero();                \
   F(a, b, lsb, msb);                        \
   TRAITS_PUSH(LB, lsb, msb);                \
   LUA_MLM_END
@@ -1175,8 +1176,8 @@ TRAITS_LAYOUT_DEFN(shearY, glm::shearY, LAYOUT_BINARY_SCALAR, gLuaMat3x3<>)
 #include <glm/gtx/pca.hpp>
 #define LAYOUT_FIND_EIGEN(LB, F, Tr, ...)                                      \
   LUA_MLM_BEGIN                                                                \
-  Tr::type outVectors(0);                                                      \
-  Tr::type::col_type outValues(0);                                             \
+  Tr::type outVectors = Tr::zero();                                            \
+  Tr::col_type::type outValues = Tr::col_type::zero();                         \
   glm::length_t count = glm::length_t(F(Tr::Next(LB), outValues, outVectors)); \
   if (outValues.length() == count)                                             \
     glm::sortEigenvalues(outValues, outVectors);                               \

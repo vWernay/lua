@@ -22,10 +22,16 @@ namespace glm {
   /// </summary>
   template<length_t L, typename T, qualifier Q>
   struct Sphere {
-    using value_type = T;
-    using Point = vec<L, T, Q>;
 
-    Point pos;  // The center point of this sphere.
+	// -- Implementation detail --
+
+    typedef T value_type;
+    typedef Sphere<L, T, Q> type;
+    typedef vec<L, T, Q> point_type;
+
+    // -- Data --
+
+    point_type pos;  // The center point of this sphere.
     value_type r;  // The radius of this sphere.
 
 #if GLM_CONFIG_DEFAULTED_DEFAULT_CTOR == GLM_ENABLE
@@ -58,12 +64,12 @@ namespace glm {
     }
 
     void setDegenerate() {
-      pos = Point(std::numeric_limits<T>::quiet_NaN());
+      pos = point_type(std::numeric_limits<T>::quiet_NaN());
       r = std::numeric_limits<T>::quiet_NaN();
     }
 
-    void enclose(const Point &point, T eps = T(0)) {
-      const Point d = point - pos;
+    void enclose(const point_type &point, T eps = T(0)) {
+      const point_type d = point - pos;
       const T dist2 = length2(d);
       if (dist2 + eps > r * r) {
         const T dist = sqrt(dist2);

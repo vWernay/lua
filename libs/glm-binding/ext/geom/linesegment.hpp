@@ -18,10 +18,17 @@ namespace glm {
   /// </summary>
   template<length_t L, typename T, qualifier Q>
   struct LineSegment {
-    using Point = vec<L, T, Q>;
 
-    Point a;  // The starting point of this line segment.
-    Point b;  // The end point of this line segment.
+	// -- Implementation detail --
+
+    typedef T value_type;
+    typedef LineSegment<L, T, Q> type;
+    typedef vec<L, T, Q> point_type;
+
+    // -- Data --
+
+    point_type a;  // The starting point of this line segment.
+    point_type b;  // The end point of this line segment.
 
 #if GLM_CONFIG_DEFAULTED_DEFAULT_CTOR == GLM_ENABLE
     LineSegment() GLM_DEFAULT_CTOR;
@@ -38,7 +45,7 @@ namespace glm {
       : a(scalar), b(scalar) {
     }
 
-    LineSegment(const Point &begin, const Point &end)
+    LineSegment(const point_type &begin, const point_type &end)
       : a(begin), b(end) {
     }
 
@@ -52,11 +59,11 @@ namespace glm {
       return *this;
     }
 
-    GLM_FUNC_QUALIFIER Point dir() const {
+    GLM_FUNC_QUALIFIER point_type dir() const {
       return normalize(b - a);
     }
 
-    GLM_FUNC_QUALIFIER Point dir2() const {
+    GLM_FUNC_QUALIFIER point_type dir2() const {
       return b - a;
     }
   };

@@ -448,7 +448,8 @@ struct gLuaBase {
   /// </summary>
   template<typename T>
   LUA_TRAIT_QUALIFIER typename std::enable_if<std::is_same<T, const char *>::value, bool>::type Is(const gLuaBase &LB, int idx_) {
-    return lua_type(LB.L, idx_) == LUA_TSTRING;
+    const TValue *o = glm_i2v(LB.L, idx_);
+    return ttisstring(o);
   }
 
   /// <summary>
@@ -774,19 +775,19 @@ struct gLuaTrait;
 /// <summary>
 /// Shared functions for parsing types from the Lua stack.
 /// </summary>
-template<typename BasePrimitive, typename T = BasePrimitive>
+template<typename T, typename ValueType = typename T::value_type>
 struct gLuaSharedTrait : glm::type<T> {
+
+  /// <summary>
+  /// Base type.
+  /// </summary>
+  using type = T;
 
   /// <summary>
   /// Base primitive type: equivalent to ::value_type in glm::vec and glm::mat
   /// structures.
   /// </summary>
-  using value_type = BasePrimitive;
-
-  /// <summary>
-  /// Base structure type.
-  /// </summary>
-  using type = T;
+  using value_type = ValueType;
 
   /// <summary>
   /// Trait of the primitive type.
@@ -896,7 +897,7 @@ template<bool FastPath> struct gLuaTrait<double, FastPath> : gLuaPrimitive<doubl
 /// Trait for quaternion types.
 /// </summary>
 template<typename T, bool FastPath>
-struct gLuaTrait<glm::qua<T>, FastPath> : gLuaSharedTrait<T, glm::qua<T>> {
+struct gLuaTrait<glm::qua<T>, FastPath> : gLuaSharedTrait<glm::qua<T>> {
   template<typename Type = T>
   using as_type = gLuaTrait<glm::qua<T>>;  // @CastBinding
   using safe = gLuaTrait<glm::qua<T>, false>;  // @SafeBinding
@@ -925,7 +926,7 @@ struct gLuaTrait<glm::qua<T>, FastPath> : gLuaSharedTrait<T, glm::qua<T>> {
 /// Trait for vector types.
 /// </summary>
 template<glm::length_t D, typename T, bool FastPath>
-struct gLuaTrait<glm::vec<D, T>, FastPath> : gLuaSharedTrait<T, glm::vec<D, T>> {
+struct gLuaTrait<glm::vec<D, T>, FastPath> : gLuaSharedTrait<glm::vec<D, T>> {
   template<typename Type = T>
   using as_type = gLuaTrait<glm::vec<D, Type>>;  // @CastBinding
   using safe = gLuaTrait<glm::vec<D, T>, false>;  // @SafeBinding
@@ -988,7 +989,7 @@ struct gLuaTrait<glm::vec<D, T>, FastPath> : gLuaSharedTrait<T, glm::vec<D, T>> 
 };
 
 template<glm::length_t C, glm::length_t R, typename T, bool FastPath>
-struct gLuaTrait<glm::mat<C, R, T>, FastPath> : gLuaSharedTrait<T, glm::mat<C, R, T>> {
+struct gLuaTrait<glm::mat<C, R, T>, FastPath> : gLuaSharedTrait<glm::mat<C, R, T>> {
   template<typename Type = T>
   using as_type = gLuaTrait<glm::mat<C, R, Type>>;  // @CastBinding
   using safe = gLuaTrait<glm::mat<C, R, T>, false>;  // @SafeBinding

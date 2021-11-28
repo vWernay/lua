@@ -18,9 +18,17 @@ namespace glm {
   /// </summary>
   template<length_t L, typename T, qualifier Q>
   struct Line {
-    using Point = vec<L, T, Q>;
-    Point pos;  // Specifies the origin of this line.
-    Point dir;  // The normalized direction vector of this ray.
+
+	// -- Implementation detail --
+
+    typedef T value_type;
+    typedef Line<L, T, Q> type;
+    typedef vec<L, T, Q> point_type;
+
+    // -- Data --
+
+    point_type pos;  // Specifies the origin of this line.
+    point_type dir;  // The normalized direction vector of this ray.
 
 #if GLM_CONFIG_DEFAULTED_DEFAULT_CTOR == GLM_ENABLE
     Line() GLM_DEFAULT_CTOR;
