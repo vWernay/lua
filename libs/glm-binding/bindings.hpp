@@ -100,6 +100,19 @@ extern LUA_API_LINKAGE {
 #endif
 
 /*
+@@ LUAGLM_UNREACHABLE: Unreachable code path reached.
+*/
+#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5))
+  #define LUAGLM_UNREACHABLE() __builtin_unreachable()
+#elif defined(__clang__) || defined(__INTEL_COMPILER)
+  #define LUAGLM_UNREACHABLE() __builtin_unreachable()
+#elif defined(_MSC_VER)
+  #define LUAGLM_UNREACHABLE() __assume(false)
+#else
+  #define LUAGLM_UNREACHABLE() lua_assert(false)
+#endif
+
+/*
 ** index2value ported from lapi.c. Simplified to only operate on positive stack
 ** indices; see related function index2stack.
 */
@@ -244,13 +257,8 @@ struct gLuaBase {
     luaL_typeerror(L, arg, tname);
 
     // This code should never be reached given that a lngjmp or try/catch is
-    // hidden underneath luaL_typeerror. This stub ensures the function is
-    // correctly marked as noreturn.
-    assert(false);
-#if (defined(__GNUC__) || __has_attribute(__noreturn__)) \
-    || (defined(_MSC_VER) && _MSC_VER >= 1200)
-    std::terminate();
-#endif
+    // hidden underneath luaL_typeerror.
+    LUAGLM_UNREACHABLE();
   }
 
   /// <summary>
@@ -539,6 +547,12 @@ struct gLuaBase {
 */
 
 /// <summary>
+/// Forward declaration of the epsion_value_trait
+/// </summary>
+template<typename T, bool FastPath = false>
+struct gLuaEpsilonTrait;
+
+/// <summary>
 /// Shared functions for parsing types from the Lua stack.
 /// </summary>
 template<typename T, typename ValueType = typename T::value_type>
@@ -559,6 +573,11 @@ struct gLuaAbstractTrait : glm::type<T> {
   /// Trait of the primitive type.
   /// </summary>
   using value_trait = gLuaTrait<value_type>;
+
+  /// <summary>
+  /// Epsilon of value_type.
+  /// </summary>
+  using eps_trait = gLuaEpsilonTrait<value_type>;
 
   /// <summary>
   /// @CastBinding: Cast this trait to a new primitive.
@@ -633,7 +652,7 @@ struct gLuaPrimitive : gLuaAbstractTrait<T, T> {
     GLM_IF_CONSTEXPR(std::is_same<T, bool>::value) return ttisboolean(o);  // lua_isboolean(LB.L, idx);
     GLM_IF_CONSTEXPR(std::is_integral<T>::value) return ttisinteger(o) || ttisboolean(o);  // lua_isinteger(LB.L, idx)
     GLM_IF_CONSTEXPR(std::is_floating_point<T>::value) return lua_isnumber(L, idx);  // @TODO: isboolean
-    assert(false);
+    lua_assert(false);
     return false;
   }
 
@@ -649,7 +668,7 @@ struct gLuaPrimitive : gLuaAbstractTrait<T, T> {
       GLM_IF_CONSTEXPR(std::is_integral<T>::value) return gLuaBase::tointegerx<T>(LB.L, LB.idx++);
       GLM_IF_CONSTEXPR(std::is_floating_point<T>::value) return gLuaBase::tonumberx<T>(LB.L, LB.idx++);
     }
-    assert(false);
+    lua_assert(false);
     return zero();
   }
 };
@@ -798,6 +817,7 @@ struct gLuaTrait<glm::vec<2, T>, FastPath> : gLuaAbstractVector<2, T, FastPath> 
   LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::vec<2, T> zero() {
     return glm::vec<2, T>();
   }
+
   LUA_TRAIT_QUALIFIER bool Is(lua_State *L, int idx) {
     const TValue *o = glm_i2v(L, idx);
     return ttisvector2(o);
@@ -1013,10 +1033,10 @@ template<typename T = glm_Float> using gLuaDir3 = gLuaTrait<glm::vec<3, T>>;
 /// <summary>
 /// Specialization for floating point epsilon arguments (and/or default arguments).
 /// </summary>
-template<typename T = glm_Float, bool FastPath = false>
-struct gLuaEps : gLuaTrait<T, FastPath> {
-  using safe = gLuaEps<T, false>;  // @SafeBinding
-  using fast = gLuaEps<T, true>;  // @UnsafeBinding
+template<typename T, bool FastPath>
+struct gLuaEpsilonTrait : gLuaTrait<T, FastPath> {
+  using safe = gLuaEpsilonTrait<T, false>;  // @SafeBinding
+  using fast = gLuaEpsilonTrait<T, true>;  // @UnsafeBinding
 
   static GLM_CONSTEXPR const char *Label() { return "epsilon"; }
 
@@ -1313,7 +1333,7 @@ struct gLuaNotZero : gLuaTrait<typename Tr::type, false> {
 
 /* trait + eps op */
 #define LAYOUT_BINARY_EPS(LB, F, Tr, ...) \
-  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, gLuaEps<Tr::value_type>, ##__VA_ARGS__)
+  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::eps_trait, ##__VA_ARGS__)
 
 /* trait + trait::primitive op */
 #define LAYOUT_BINARY_SCALAR(LB, F, Tr, ...) \
@@ -1321,7 +1341,7 @@ struct gLuaNotZero : gLuaTrait<typename Tr::type, false> {
 
 /* trait + trait + eps op */
 #define LAYOUT_TERNARY_EPS(LB, F, Tr, ...) \
-  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, gLuaEps<Tr::value_type>, ##__VA_ARGS__)
+  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::eps_trait, ##__VA_ARGS__)
 
 /* trait + trait + trait::primitive op */
 #define LAYOUT_TERNARY_SCALAR(LB, F, Tr, ...) \
@@ -1714,7 +1734,7 @@ struct gLuaNotZero : gLuaTrait<typename Tr::type, false> {
   if (!_isvalid((LB).L, _tv3)) /* <Tr, Tr> */                                                            \
     return gLuaBase::Push(LB, F(__a, __b));                                                              \
   else if (ttisfloat(_tv3)) /* <Tr, Tr, eps> */                                                          \
-    return gLuaBase::Push(LB, F(__a, __b, gLuaEps<Tr::value_type>::fast::Next(LB)));                     \
+    return gLuaBase::Push(LB, F(__a, __b, Tr::eps_trait::fast::Next(LB)));                               \
   else if (Tr_Row::Is((LB).L, (LB).idx)) /* <Tr, Tr, vec> */                                             \
     return gLuaBase::Push(LB, F(__a, __b, Tr_Row::Next(LB)));                                            \
   _TR_EQUAL_ULPS(LB, F, __a, __b, _tv3) /* <Tr, Tr, ULPs> */                                             \

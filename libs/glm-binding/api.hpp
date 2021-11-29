@@ -213,7 +213,7 @@
 
 /* Template for matrix equals/not-equals */
 #define LAYOUT_MATRIX_EQUAL(LB, F, Tr, ...) \
-  LAYOUT_GENERIC_EQUAL(LB, F, Tr, gLuaTrait<typename Tr::type::row_type>)
+  LAYOUT_GENERIC_EQUAL(LB, F, Tr, Tr::row_type)
 
 /*
 ** Template for generalized equals/not-equals function.
@@ -329,25 +329,25 @@ GLM_BINDING_QUALIFIER(unpack) {
   LUA_MLM_END
 
 /* Layout for generic matrix multiplication. */
-#define LAYOUT_MULTIPLICATION_OP(LB, F, Tr, type)                         \
-  LUA_MLM_BEGIN                                                           \
-  switch (type) {                                                         \
-    case LUA_TNUMBER: TRAITS_FUNC(LB, F, Tr, Tr::value_trait); break;     \
-    case LUA_TVECTOR: TRAITS_FUNC(LB, F, Tr, Tr::safe::row_type); break;  \
-    case LUA_TMATRIX: {                                                   \
-      switch (LUAGLM_MATRIX_ROWS(mvalue_dims(_tv))) {                     \
-        case 2: TRAITS_FUNC(LB, F, Tr, Tr::safe::rhs_mat_type<2>); break; \
-        case 3: TRAITS_FUNC(LB, F, Tr, Tr::safe::rhs_mat_type<3>); break; \
-        case 4: TRAITS_FUNC(LB, F, Tr, Tr::safe::rhs_mat_type<4>); break; \
-        default:                                                          \
-          break;                                                          \
-      }                                                                   \
-      break;                                                              \
-    }                                                                     \
-    default:                                                              \
-      break;                                                              \
-  }                                                                       \
-  break;                                                                  \
+#define LAYOUT_MULTIPLICATION_OP(LB, F, Tr, type)                     \
+  LUA_MLM_BEGIN                                                       \
+  switch (type) {                                                     \
+    case LUA_TNUMBER: TRAITS_FUNC(LB, F, Tr, Tr::value_trait); break; \
+    case LUA_TVECTOR: TRAITS_FUNC(LB, F, Tr, Tr::row_type); break;    \
+    case LUA_TMATRIX: {                                               \
+      switch (LUAGLM_MATRIX_ROWS(mvalue_dims(_tv))) {                 \
+        case 2: TRAITS_FUNC(LB, F, Tr, Tr::rhs_mat_type<2>); break;   \
+        case 3: TRAITS_FUNC(LB, F, Tr, Tr::rhs_mat_type<3>); break;   \
+        case 4: TRAITS_FUNC(LB, F, Tr, Tr::rhs_mat_type<4>); break;   \
+        default:                                                      \
+          break;                                                      \
+      }                                                               \
+      break;                                                          \
+    }                                                                 \
+    default:                                                          \
+      break;                                                          \
+  }                                                                   \
+  break;                                                              \
   LUA_MLM_END
 
 /// <summary>
@@ -663,14 +663,14 @@ NUMBER_VECTOR_DEFN(float_distance, glm::float_distance, LAYOUT_BINARY)
 
 #if defined(GTC_ULP_HPP) || defined(EXT_SCALAR_ULP_HPP) || defined(EXT_VECTOR_ULP_HPP)
 /* @GLMAssert: assert(ULPs >= 0); */
-#define LAYOUT_NEXT_FLOAT(LB, F, Tr, ...)                             \
-  LUA_MLM_BEGIN                                                       \
-  if (lua_isnoneornil((LB).L, (LB).idx + 1))                          \
-    TRAITS_FUNC(LB, F, Tr);                                           \
-  else if (gLuaTrait<int>::Is((LB).L, (LB).idx + 1))                  \
-    TRAITS_FUNC(LB, F, Tr, gLuaBoundedBelow<gLuaTrait<int>>);         \
-  else                                                                \
-    TRAITS_FUNC(LB, F, Tr, gLuaBoundedBelow<Tr::safe::as_type<int>>); \
+#define LAYOUT_NEXT_FLOAT(LB, F, Tr, ...)                       \
+  LUA_MLM_BEGIN                                                 \
+  if (lua_isnoneornil((LB).L, (LB).idx + 1))                    \
+    TRAITS_FUNC(LB, F, Tr);                                     \
+  else if (gLuaTrait<int>::Is((LB).L, (LB).idx + 1))            \
+    TRAITS_FUNC(LB, F, Tr, gLuaBoundedBelow<gLuaTrait<int>>);   \
+  else                                                          \
+    TRAITS_FUNC(LB, F, Tr, gLuaBoundedBelow<Tr::as_type<int>>); \
   LUA_MLM_END
 
 #if GLM_VERSION >= 993  // @COMPAT vector support added in 0.9.9.3
@@ -1065,13 +1065,13 @@ GLM_BINDING_QUALIFIER(axisAngle) {
 
 /* glm/gtx/matrix_major_storage.hpp */
 #if defined(GTX_MATRIX_MAJOR_STORAGE_HPP)
-#define MATRIX_MAJOR_DEFN(Name, F, ArgLayout, Tr)                 \
-  GLM_BINDING_QUALIFIER(Name) {                                   \
-    GLM_BINDING_BEGIN                                             \
-    if (gLuaTrait<typename Tr::type::col_type>::Is((LB.L), (LB).idx)) \
-      ArgLayout(LB, F, gLuaTrait<typename Tr::type::col_type>);   \
-    return gLuaBase::Push(LB, F(Tr::Next(LB)));                   \
-    GLM_BINDING_END                                               \
+#define MATRIX_MAJOR_DEFN(Name, F, ArgLayout, Tr) \
+  GLM_BINDING_QUALIFIER(Name) {                   \
+    GLM_BINDING_BEGIN                             \
+    if (Tr::col_type::Is((LB.L), (LB).idx))       \
+      ArgLayout(LB, F, Tr::col_type);             \
+    return gLuaBase::Push(LB, F(Tr::Next(LB)));   \
+    GLM_BINDING_END                               \
   }
 
 #define MAJOR(A, B) A##B
@@ -1171,7 +1171,7 @@ TRAITS_LAYOUT_DEFN(shearY, glm::shearY, LAYOUT_BINARY_SCALAR, gLuaMat3x3<>)
 
 #define LAYOUT_COMPUTE_COVARIANCE(LB, F, Mat, Cols, ...)               \
   LUA_MLM_BEGIN                                                        \
-  using Vec = gLuaTrait<typename Mat::type::col_type>;                 \
+  using Vec = Mat::col_type;                                           \
   glmLuaArray<Vec> lArray((LB).L, (LB).idx++);                         \
   if (Vec::fast::Is((LB).L, (LB).idx)) {                               \
     return gLuaBase::Push(LB, F<Cols, Mat::value_type, glm::defaultp>( \
@@ -1546,11 +1546,11 @@ INTEGER_VECTOR_DEFN(prevPowerOfTwo, glm::prevPowerOfTwo, LAYOUT_UNARY, lua_Unsig
 #endif
 
 #if defined(GTC_EPSILON_HPP)
-#define LAYOUT_EPSILON_EQUAL(LB, F, Tr, ...) /* trait + trait + {trait || epsilon} op */            \
-  LUA_MLM_BEGIN                                                                                     \
-  if (Tr::Is((LB).L, (LB).idx + 2))                                                                 \
-    VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::safe, ##__VA_ARGS__);              \
-  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, gLuaEps<Tr::value_type>, ##__VA_ARGS__); \
+#define LAYOUT_EPSILON_EQUAL(LB, F, Tr, ...) /* trait + trait + {trait || epsilon} op */  \
+  LUA_MLM_BEGIN                                                                           \
+  if (Tr::Is((LB).L, (LB).idx + 2))                                                       \
+    VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::safe, ##__VA_ARGS__);    \
+  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::eps_trait, ##__VA_ARGS__); \
   LUA_MLM_END
 
 NUMBER_VECTOR_DEFN(epsilonEqual, glm::epsilonEqual, LAYOUT_EPSILON_EQUAL)
