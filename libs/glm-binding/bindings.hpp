@@ -253,8 +253,8 @@ struct gLuaBase {
   /// <summary>
   /// @HACK: luaL_typeerror that conveys noreturn information to the compiler.
   /// </summary>
-  static l_noret typeerror(lua_State *L, int arg, const char *tname) {
-    luaL_typeerror(L, arg, tname);
+  static l_noret typeerror(lua_State *L_, int arg, const char *tname) {
+    luaL_typeerror(L_, arg, tname);
 
     // This code should never be reached given that a lngjmp or try/catch is
     // hidden underneath luaL_typeerror.
@@ -313,9 +313,9 @@ struct gLuaBase {
   /// Pull(gLuaBase) wrapper
   /// </summary>
   template<typename T>
-  LUA_TRAIT_QUALIFIER int Pull(lua_State *L, int idx_, T &v) {
-    if (gLuaTrait<T>::Is(L, idx_)) {
-      gLuaBase LB_(L, idx_);
+  LUA_TRAIT_QUALIFIER int Pull(lua_State *L_, int idx_, T &v) {
+    if (gLuaTrait<T>::Is(L_, idx_)) {
+      gLuaBase LB_(L_, idx_);
       v = gLuaTrait<T>::Next(LB_);
       return 1;
     }
