@@ -578,7 +578,7 @@ TRAITS_DEFN(packSnorm4x8, glm::packSnorm4x8, gLuaVec4<float>)
 TRAITS_DEFN(unpackSnorm4x8, glm::unpackSnorm4x8, gLuaTrait<glm::uint>)
 TRAITS_DEFN(packDouble2x32, glm::packDouble2x32, gLuaVec2<glm::uint>)
 TRAITS_DEFN(unpackDouble2x32, glm::unpackDouble2x32, gLuaTrait<double>)
-TRAITS_DEFN(packHalf2x16, glm::packHalf2x16, gLuaVec2<glm::uint>)
+TRAITS_DEFN(packHalf2x16, glm::packHalf2x16, gLuaVec2<float>)
 TRAITS_DEFN(unpackHalf2x16, glm::unpackHalf2x16, gLuaTrait<glm::uint>)
 #endif
 
@@ -1037,15 +1037,16 @@ GLM_BINDING_QUALIFIER(decompose) {
 #if defined(GTX_MATRIX_FACTORISATION_HPP)
 #define LAYOUT_QRDECOMPOSE(LB, F, Tr, ...) \
   LUA_MLM_BEGIN                            \
-  Tr::type q, r;                           \
+  Tr::q_type::type q = Tr::q_type::zero(); \
+  Tr::r_type::type r = Tr::r_type::zero(); \
   F(Tr::Next(LB), q, r);                   \
   TRAITS_PUSH(LB, q, r);                   \
   LUA_MLM_END
 
 MATRIX_DEFN(fliplr, glm::fliplr, LAYOUT_UNARY)
 MATRIX_DEFN(flipud, glm::flipud, LAYOUT_UNARY)
-SYMMETRIC_MATRIX_DEFN(qr_decompose, glm::qr_decompose, LAYOUT_QRDECOMPOSE)
-SYMMETRIC_MATRIX_DEFN(rq_decompose, glm::rq_decompose, LAYOUT_QRDECOMPOSE)
+MATRIX_DEFN(qr_decompose, glm::qr_decompose, LAYOUT_QRDECOMPOSE)
+MATRIX_DEFN(rq_decompose, glm::rq_decompose, LAYOUT_QRDECOMPOSE)
 #endif
 
 /* glm/gtx/matrix_interpolation.hpp */
@@ -1676,6 +1677,7 @@ INTEGER_NUMBER_VECTOR_DEFN(compAdd, glm::compAdd, LAYOUT_UNARY)
 INTEGER_NUMBER_VECTOR_DEFN(compMax, glm::compMax, LAYOUT_UNARY)
 INTEGER_NUMBER_VECTOR_DEFN(compMin, glm::compMin, LAYOUT_UNARY)
 INTEGER_NUMBER_VECTOR_DEFN(compMul, glm::compMul, LAYOUT_UNARY)
+/* @TODO: Allow Normalize/Scale for different types, e.g., u8, i8, u16, i16 */
 INTEGER_VECTOR_DEFN(compNormalize, glm::compNormalize<glm_Float>, LAYOUT_UNARY, glm_Integer)
 INTEGER_VECTOR_DEFN(compScale, glm::compScale<glm_Integer>, LAYOUT_UNARY, glm_Float)
 #endif

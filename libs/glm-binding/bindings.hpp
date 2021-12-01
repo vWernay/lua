@@ -922,6 +922,12 @@ struct gLuaTrait<glm::mat<C, R, T>, FastPath> : gLuaAbstractTrait<glm::mat<C, R,
   using rhs_mat_type = gLuaTrait<glm::mat<RNext, C, T>>;
 
   /// <summary>
+  /// Helpers for QR decomposition
+  /// </summary>
+  using q_type = gLuaTrait<glm::mat<(C < R ? C : R), R, T>>;
+  using r_type = gLuaTrait<glm::mat<C, (C < R ? C : R), T>>;
+
+  /// <summary>
   /// Trait definition of glm::mat<C, R, T>::length()
   /// </summary>
   static GLM_CONSTEXPR glm::length_t length() {

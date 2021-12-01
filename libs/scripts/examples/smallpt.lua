@@ -297,7 +297,7 @@ SHADERS['REFR'] = function(scene, rayOrig, rayDir, hitPoint, hitNormal, hitColor
     local newRadiance = 0
     if #refrDir < feps then -- Total internal reflection
         newRadiance = Radiance(scene, hitPoint, relfDir, depth, maxDepth)
-    else -- Russian Roulette
+    else
         local a = NT - NC
         local b = NT + NC
         local r0 = (a * a) / (b * b)
@@ -308,11 +308,16 @@ SHADERS['REFR'] = function(scene, rayOrig, rayDir, hitPoint, hitNormal, hitColor
         local rp = re / p
         local tp = tr / (1 - p)
 
-        newRadiance = depth > 2 and rand() < p
-            and (Radiance(scene, hitPoint, relfDir, depth, maxDepth) * rp)
-            or (Radiance(scene, hitPoint, refrDir, depth, maxDepth) * tp)
-            or (Radiance(scene, hitPoint, relfDir, depth, maxDepth) * re
-                + Radiance(scene, hitPoint, refrDir, depth, maxDepth) * tr)
+        if depth > 2 then
+            if rand() < p then --  Russian roulette
+                newRadiance = Radiance(scene, hitPoint, relfDir, depth, maxDepth) * rp
+            else
+                newRadiance = Radiance(scene, hitPoint, refrDir, depth, maxDepth) * tp
+            end
+        else
+            newRadiance = (Radiance(scene, hitPoint, relfDir, depth, maxDepth) * re)
+                + (Radiance(scene, hitPoint, refrDir, depth, maxDepth) * tr)
+        end
     end
     return emColor + (hitColor * newRadiance)
 end
@@ -348,9 +353,9 @@ end
 -- PrettyProgressPrint
 local last_str = ''
 local function PrintProgress(str)
-   io.stderr:write(('\b \b'):rep(#last_str))
-   io.stderr:write(str)
-   io.stderr:flush()
+   io.stdout:write(('\b \b'):rep(#last_str))
+   io.stdout:write(str)
+   io.stdout:flush()
    last_str = str
 end
 
