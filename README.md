@@ -282,6 +282,7 @@ See **EXTENDED.md** for the full list of functions.
 Modules/functions not bound to LuaGLM due to usefulness or complexity:
 
 * glm/detail/func\_common.hpp: `step(T edge, vec<L, T, Q> const& x)` TODO.
+* glm/detail/\_swizzle\_func.hpp: Unnecessary bloat.
 * glm/gtx/associated\_min\_max.hpp: all.
 * glm/gtx/range.hpp: `begin`, `end`: useless in Lua context.
 * glm/gtx/bit.hpp: `powerOfTwoAbove`, `powerOfTwoBelow`, `powerOfTwoNearest`: deprecated, use GTC\_ROUND\_HPP instead.
