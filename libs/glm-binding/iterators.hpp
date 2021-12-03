@@ -259,10 +259,10 @@ public:
 
       // Fetch the object within the array that *should* correspond to the trait.
       lua_rawgeti(gLuaBase::L, gLuaBase::idx, static_cast<lua_Integer>(arrayIdx));
-      const int top = lua_gettop(gLuaBase::L);  // gLuaBase uses absolute values.
+      const int top_ = lua_gettop(gLuaBase::L);  // gLuaBase uses absolute values.
 
       // Parse the trait given the relative stack (starting) index.
-      if (!gLuaBase::Pull(gLuaBase::L, top, value)) { /* noret */
+      if (!gLuaBase::Pull(gLuaBase::L, top_, value)) { /* noret */
         lua_pop(gLuaBase::L, 1);
         luaL_error(gLuaBase::L, "Invalid table index: %d for %s", static_cast<int>(arrayIdx), Tr::Label());
 

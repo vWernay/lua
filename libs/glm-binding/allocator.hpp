@@ -191,8 +191,8 @@ private:
   /// <summary>
   /// lua_Alloc 'malloc' helper.
   /// </summary>
-  inline void *malloc_(size_t size) {
-    void *p = m_alloc.realloc(LUA_ALLOC_NULLPTR, 0, size);
+  inline void *malloc_(size_t size_) {
+    void *p = m_alloc.realloc(LUA_ALLOC_NULLPTR, 0, size_);
     if (p == GLM_NULLPTR)
       luaL_error(m_state, "LuaVector allocation failure");
     return p;
@@ -207,25 +207,25 @@ private:
 
   /* Type Utilities */
 
-  inline void constructInPlace(iterator begin, iterator end) {
-    while (begin != end) {
-      new (begin) T;
-      begin++;
+  inline void constructInPlace(iterator begin_, iterator end_) {
+    while (begin_ != end_) {
+      new (begin_) T;
+      begin_++;
     }
   }
 
-  inline void destroyInPlace(iterator begin, iterator end) {
-    while (begin != end) {
-      begin->~T();
-      begin++;
+  inline void destroyInPlace(iterator begin_, iterator end_) {
+    while (begin_ != end_) {
+      begin_->~T();
+      begin_++;
     }
   }
 
-  inline void copyInPlace(iterator begin, iterator end, iterator dest) {
-    while (begin != end) {
-      new (dest) T(*begin);
-      begin++;
-      dest++;
+  inline void copyInPlace(iterator begin_, iterator end_, iterator dest_) {
+    while (begin_ != end_) {
+      new (dest_) T(*begin_);
+      begin_++;
+      dest_++;
     }
   }
 
@@ -344,8 +344,8 @@ public:
       return;
 
     LUA_ALLOC_IF_CONSTEXPR(LUA_ALLOC_IS_TRIVIAL(T)) {
-      void *data = realloc_(static_cast<void *>(m_data), internal_capacity(), new_cap * sizeof(T));
-      m_data = static_cast<T *>(data);
+      void *data_ = realloc_(static_cast<void *>(m_data), internal_capacity(), new_cap * sizeof(T));
+      m_data = static_cast<T *>(data_);
       assert(m_data != LUA_ALLOC_NULLPTR && "Reallocation failed");
     }
     else {

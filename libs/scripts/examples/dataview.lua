@@ -19,7 +19,7 @@ API:
     --  DataView.GetLuaInt -- Extension: A lua_Integer
     --  DataView.GetUluaInt -- Extension: A lua_Unsigned
     --  DataView.GetLuaNum -- Extension: lua_Number
-    --  DataView.GetAddress -- Extension: %p (@Unsafe)
+    --  DataView.GetAddress -- Extension: %p (@Unsafe; Requires d37b6655f)
     DataView.Get<Type>(self, offset [, bigEndian])
 
     -- Serialize in binary form (string.pack) a 'value' according to <Type>
@@ -34,7 +34,7 @@ API:
     --  DataView.SetLuaInt -- Extension: A lua_Integer
     --  DataView.SetUluaInt -- Extension: A lua_Unsigned
     --  DataView.SetLuaNum -- Extension: lua_Number
-    --  DataView.SetAddress -- Extension: %p (@Unsafe)
+    --  DataView.SetAddress -- Extension: %p (@Unsafe; Requires d37b6655f)
     DataView.Set<Type>(self, offset, value [, bigEndian])
 
     -- Return a value according to <Type> and a dynamic type-length.

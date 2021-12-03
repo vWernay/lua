@@ -1683,9 +1683,16 @@ LUA_API lua_Integer glm_tohash(lua_State *L, int idx, int ignore_case) {
 #define VECTOR_PARSE_NUMBER 0x2 /* Ignore lua_Number being the implicit VECTOR1 */
 #define VECTOR_DEFAULT VECTOR_PARSE_NUMBER
 
+/* Workaround for GCC 4.8.X warning; GLM supports GCC 4.6 and higher */
+#if defined(__GNUC__) && __GNUC__ < 5
+  #define FLOAT4_INIT() {0, 0, 0, 0}
+#else
+  #define FLOAT4_INIT() {}
+#endif
+
 /* Helper for grit-lua: lua_checkvectorX */
 #define checkvector(L, I, T, ERR)                     \
-  lua_Float4 f4 = {};                                 \
+  lua_Float4 f4 = FLOAT4_INIT();                      \
   do {                                                \
     if (l_unlikely(tovector((L), (I), &f4) != (T))) { \
       luaL_typeerror((L), (I), (ERR));                \
@@ -1708,14 +1715,18 @@ static int glmH_tovector(lua_State *L, const TValue *o, glmVector *v) {
   static const char *const dims[] = { "x", "y", "z", "w" };
 
   int count = 0;
+  Table* t = hvalue(o);
   for (int i = 0; i < 4; ++i) {
     TString *key = luaS_newlstr(L, dims[i], 1);  // luaS_newliteral
-    const TValue *slot = luaH_getstr(hvalue(o), key);
+    const TValue *slot = luaH_getstr(t, key);  // @TODO: Eventually allow TM_INDEX
     if (ttisnumber(slot)) {
       if (v != GLM_NULLPTR)
         v->v4[i] = glm_castfloat(nvalue(slot));
 
       count++;
+    }
+    else {
+      break;
     }
   }
   return count;
@@ -1723,32 +1734,31 @@ static int glmH_tovector(lua_State *L, const TValue *o, glmVector *v) {
 
 template<int Flags = VECTOR_DEFAULT>
 static lu_byte isvector(lua_State *L, int idx) {
-  const TValue *o = glm_index2value(L, idx);
-
+  lua_lock(L);
   lu_byte variant = 0;
+  const TValue *o = glm_index2value(L, idx);
   if (l_likely(ttisvector(o)))
     variant = ttypetag(o);
   else if ((Flags & VECTOR_PARSE_NUMBER) != 0 && ttisnumber(o))
     variant = LUA_VVECTOR1;
   else if ((Flags & VECTOR_PARSE_TABLE) != 0 && ttistable(o)) {
-    lua_lock(L);
     const int length = glmH_tovector(L, o, GLM_NULLPTR);
-    lua_unlock(L);
-
     if (length == 1)
       variant = LUA_VVECTOR1;
-    if (length >= 2 && length <= 4)
+    else if (length >= 2 && length <= 4)
       variant = glm_variant(length);
   }
+  lua_unlock(L);
   return variant;
 }
 
 template<int Flags = VECTOR_DEFAULT>
 static int tovector(lua_State *L, int idx, lua_Float4 *f4) {
-  const TValue *o = glm_index2value(L, idx);
-
   lu_byte variant = LUA_TNIL;
   glmVector v(glm::vec<4, glm_Float>(0));
+
+  lua_lock(L);
+  const TValue *o = glm_index2value(L, idx);
   if (l_likely(ttisvector(o))) {
     v = glm_vvalue(o);
     variant = ttypetag(o);
@@ -1756,15 +1766,13 @@ static int tovector(lua_State *L, int idx, lua_Float4 *f4) {
   else if ((Flags & VECTOR_PARSE_NUMBER) != 0 && ttisnumber(o))
     variant = glm_castvalue(o, v.v4.x) ? LUA_VVECTOR1 : LUA_TNIL;
   else if ((Flags & VECTOR_PARSE_TABLE) != 0 && ttistable(o)) {
-    lua_lock(L);
     const int length = glmH_tovector(L, o, &v);
-    lua_unlock(L);
-
     if (length == 1)
       variant = LUA_VVECTOR1;
-    if (length >= 2 && length <= 4)
+    else if (length >= 2 && length <= 4)
       variant = glm_variant(length);
   }
+  lua_unlock(L);
 
   if (f4 != GLM_NULLPTR) {
     if (novariant(variant) == LUA_TVECTOR) {
