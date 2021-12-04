@@ -19,7 +19,7 @@ namespace glm {
   template<length_t L, typename T, qualifier Q>
   struct Line {
 
-	// -- Implementation detail --
+    // -- Implementation detail --
 
     typedef T value_type;
     typedef Line<L, T, Q> type;
@@ -439,19 +439,6 @@ namespace glm {
   }
 
   namespace detail {
-    // @LuaGLM
-    template<glm::length_t L, typename T, qualifier Q>
-    struct lglm_compute_to_string<Line<L, T, Q>> {
-      static GLM_FUNC_QUALIFIER int call(char *buff, size_t buff_len, const Line<L, T, Q> &line) {
-        char pos[GLM_STRING_BUFFER];
-        char dir[GLM_STRING_BUFFER];
-
-        lglm_compute_to_string<vec<L, T, Q>>::call(pos, GLM_STRING_BUFFER, line.pos);
-        lglm_compute_to_string<vec<L, T, Q>>::call(dir, GLM_STRING_BUFFER, line.dir);
-        return _vsnprintf(buff, buff_len, "line(%s, %s)", pos, dir);
-      }
-    };
-
 #if GLM_GEOM_TOSTRING
     template<glm::length_t L, typename T, qualifier Q>
     struct compute_to_string<Line<L, T, Q>> {

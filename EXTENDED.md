@@ -212,9 +212,7 @@ integer = hash(m --[[ matNxM ]])
 
 ```lua
 -- glm::to_string wrapper
-string = to_string(v --[[ vecN ]])
-string = to_string(q --[[ quat ]])
-string = to_string(m --[[ matNxM ]])
+string,...,string = to_string(...)
 ```
 
 ### allEqual
@@ -1270,14 +1268,6 @@ bool = aabb2d.notEqual(..., otherMin --[[ vec2 ]], otherMax --[[ vec2 ]], eps --
 bool = aabb2d.notEqual(..., otherMin --[[ vec2 ]], otherMax --[[ vec2 ]], ULPs --[[ integer ]])
 ```
 
-### aabb.to\_string
-
-```lua
--- @TODO: Not implemented
-string = aabb.to_string(...)
-string = aabb2d.to_string(...)
-```
-
 ### aabb.isinf
 
 ```lua
@@ -1609,13 +1599,6 @@ bool = line.notEqual(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]], eps --[[
 bool = line.notEqual(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]], ULPs --[[ integer ]])
 ```
 
-### line.to\_string
-
-```lua
--- @TODO: Not implemented
-line.to_string(...)
-```
-
 ### line.to\_segment
 
 ```lua
@@ -1773,13 +1756,6 @@ bool = ray.notEqual(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]])
 bool = ray.notEqual(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]], eps --[[ number ]])
 bool = ray.notEqual(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]], eps --[[ vec3 ]])
 bool = ray.notEqual(..., otherPos --[[ vec3 ]], otherDir --[[ vec3 ]], ULPs --[[ integer ]])
-```
-
-### ray.to\_string
-
-```lua
--- @TODO: Not implemented
-string = ray.to_string(...)
 ```
 
 ### ray.isinf
@@ -1945,14 +1921,6 @@ bool = segment2d.notEqual(..., otherStart --[[ vec2 ]], otherEnd --[[ vec2 ]])
 bool = segment2d.notEqual(..., otherStart --[[ vec2 ]], otherEnd --[[ vec2 ]], eps --[[ number ]])
 bool = segment2d.notEqual(..., otherStart --[[ vec2 ]], otherEnd --[[ vec2 ]], eps --[[ vec2 ]])
 bool = segment2d.notEqual(..., otherStart --[[ vec2 ]], otherEnd --[[ vec2 ]], ULPs --[[ integer ]])
-```
-
-### segment.to\_string
-
-```lua
--- @TODO: Not implemented
-string = segment.to_string(...)
-string = segment2d.to_string(...)
 ```
 
 ### segment.length
@@ -2170,14 +2138,6 @@ bool = circle.notEqual(..., otherPos --[[ vec2 ]], otherRad --[[ number ]])
 bool = circle.notEqual(..., otherPos --[[ vec2 ]], otherRad --[[ number ]], eps --[[ number ]])
 bool = circle.notEqual(..., otherPos --[[ vec2 ]], otherRad --[[ number ]], eps --[[ vec2 ]])
 bool = circle.notEqual(..., otherPos --[[ vec2 ]], otherRad --[[ number ]], ULPs --[[ integer ]])
-```
-
-### sphere.to\_string
-
-```lua
--- @TODO: Not implemented
-string = sphere.to_string(...)
-string = circle.to_string(...)
 ```
 
 ### sphere.isinf
@@ -2438,13 +2398,6 @@ bool = plane.notEqual(..., otherNormal --[[ vec3 ]], otherOffset --[[ number ]])
 bool = plane.notEqual(..., otherNormal --[[ vec3 ]], otherOffset --[[ number ]], eps --[[ number ]])
 bool = plane.notEqual(..., otherNormal --[[ vec3 ]], otherOffset --[[ number ]], eps --[[ vec3 ]])
 bool = plane.notEqual(..., otherNormal --[[ vec3 ]], otherOffset --[[ number ]], ULPs --[[ integer ]])
-```
-
-### plane.to\_string
-
-```lua
--- @TODO: Not implemented
-string = plane.to_string(...)
 ```
 
 ### plane.from
@@ -2770,12 +2723,6 @@ polygon.__newindex(..., index --[[ integer ]], point --[[ vec3 ]])
 ```lua
 -- __pairs metamethod
 iterator --[[ function ]], polygon --[[ userdata ]], initialValue --[[ integer ]] = polygon.__pairs(...)
-```
-
-### polygon.to\_string
-
-```lua
-string = polygon.__tostring(...)
 ```
 
 ### polygon.operator\_negate

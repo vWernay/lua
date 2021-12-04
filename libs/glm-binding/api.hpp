@@ -228,7 +228,7 @@
     case LUA_VNUMINT: {                                                                        \
       if (gLuaInteger::Is((LB).L, (LB).idx + 1))                                               \
         TRAITS_FUNC(LB, F, gLuaInteger::fast, gLuaInteger);                                    \
-    }  /* FALLTHROUGH */                                                                       \
+    }  LUAGLM_FALLTHROUGH;                                                                     \
     case LUA_VFALSE: case LUA_VTRUE: /* @BoolCoercion */                                       \
     case LUA_VSHRSTR: case LUA_VLNGSTR: /* @StringCoercion */                                  \
     case LUA_VNUMFLT: LAYOUT_GENERIC_EQUAL(LB, F, gLuaNumber, gLuaNumber); break;              \

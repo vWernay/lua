@@ -26,7 +26,7 @@ namespace glm {
   template<length_t L, typename T, qualifier Q>
   struct AABB {
 
-	// -- Implementation detail --
+    // -- Implementation detail --
 
     typedef T value_type;
     typedef AABB<L, T, Q> type;
@@ -982,19 +982,6 @@ namespace glm {
   }
 
   namespace detail {
-    // @LuaGLM
-    template<glm::length_t L, typename T, qualifier Q>
-    struct lglm_compute_to_string<AABB<L, T, Q>> {
-      static GLM_FUNC_QUALIFIER int call(char *buff, size_t buff_len, const AABB<L, T, Q> &aabb) {
-        char minPoint[GLM_STRING_BUFFER];
-        char maxPoint[GLM_STRING_BUFFER];
-
-        lglm_compute_to_string<vec<L, T, Q>>::call(minPoint, GLM_STRING_BUFFER, aabb.minPoint);
-        lglm_compute_to_string<vec<L, T, Q>>::call(maxPoint, GLM_STRING_BUFFER, aabb.maxPoint);
-        return _vsnprintf(buff, buff_len, "aabb(%s, %s)", minPoint, maxPoint);
-      }
-    };
-
 #if GLM_GEOM_TOSTRING
     template<glm::length_t L, typename T, qualifier Q>
     struct compute_to_string<AABB<L, T, Q>> {

@@ -90,13 +90,23 @@ extern LUA_API_LINKAGE {
 #endif
 
 /*
-** 'LUAGLM_ALIGNED' is used to compensate for some SIMD library functions being
-** broken in GLM.
+@@ LUAGLM_ALIGNED compensate for some SIMD library functions being broken in GLM.
 */
 #if !defined(LUAGLM_ALIGNED)
 #if GLM_CONFIG_ALIGNED_GENTYPES == GLM_ENABLE && defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
   #define LUAGLM_ALIGNED
 #endif
+#endif
+
+/*
+@@ LUAGLM_FALLTHROUGH Macro for informing the compiler a fallthrough is intentional
+*/
+#if defined __has_cpp_attribute && __has_cpp_attribute(fallthrough)
+  #define LUAGLM_FALLTHROUGH [[fallthrough]]
+#elif __has_attribute(__fallthrough__)
+  #define LUAGLM_FALLTHROUGH __attribute__((__fallthrough__))
+#else
+  #define LUAGLM_FALLTHROUGH do {} while (0)  /* FALLTHROUGH */
 #endif
 
 /*
@@ -369,7 +379,7 @@ struct gLuaBase {
   /// Attempt to push the number as an integer; falling back to number otherwise
   /// </summary>
   LUA_TRAIT_QUALIFIER int PushNumInt(const gLuaBase &LB, lua_Number d) {
-    lua_Integer n;
+    lua_Integer n = 0;
     if (lua_numbertointeger(d, &n)) /* does 'd' fit in an integer? */
       lua_pushinteger(LB.L, n); /* result is integer */
     else

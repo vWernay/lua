@@ -31,7 +31,7 @@ namespace glm {
   /// Describes the thickness of the polygon (i.e., how the third dimension
   /// relates to the plane) for 'contains' operations.
   /// </summary>
-  enum PolyContains {
+  enum class PolyContains : uint8_t {
     Positive,  // Boundary extends in the positive direction: [0, +dist]
     Negative,  // Boundary extends in the negative direction: [-dist, 0]
     Unidirectional,  // Boundary extends in both directions: [-0.5*dist, 0.5*dist]
@@ -48,7 +48,7 @@ namespace glm {
   template<length_t L, typename T, qualifier Q>
   struct Polygon {
 
-	// -- Implementation detail --
+    // -- Implementation detail --
 
     typedef T value_type;
     typedef Polygon<L, T, Q> type;
@@ -679,13 +679,13 @@ namespace glm {
     const T pdelt = dot(cross(bu, bv), polygon[0] - worldSpacePoint);
     bool contains = true;
     switch (type) {  // Check if the point is within the plane of the polygon
-      case Positive:
+      case PolyContains::Positive:
         contains = pdelt >= 0 && (pdelt * pdelt) <= (thickness * thickness);
         break;
-      case Negative:
+      case PolyContains::Negative:
         contains = pdelt <= 0 && (pdelt * pdelt) <= (thickness * thickness);
         break;
-      case Unidirectional:
+      case PolyContains::Unidirectional:
       default: {
         contains = (T(0.25) * (pdelt * pdelt)) <= (thickness * thickness);
         break;

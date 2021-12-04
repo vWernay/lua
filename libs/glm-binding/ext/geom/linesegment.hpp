@@ -19,7 +19,7 @@ namespace glm {
   template<length_t L, typename T, qualifier Q>
   struct LineSegment {
 
-	// -- Implementation detail --
+    // -- Implementation detail --
 
     typedef T value_type;
     typedef LineSegment<L, T, Q> type;
@@ -493,19 +493,6 @@ namespace glm {
   }
 
   namespace detail {
-    // @LuaGLM
-    template<glm::length_t L, typename T, qualifier Q>
-    struct lglm_compute_to_string<LineSegment<L, T, Q>> {
-      static GLM_FUNC_QUALIFIER int call(char *buff, size_t buff_len, const LineSegment<L, T, Q> &line) {
-        char a[GLM_STRING_BUFFER];
-        char b[GLM_STRING_BUFFER];
-
-        lglm_compute_to_string<vec<L, T, Q>>::call(a, GLM_STRING_BUFFER, line.a);
-        lglm_compute_to_string<vec<L, T, Q>>::call(b, GLM_STRING_BUFFER, line.b);
-        return _vsnprintf(buff, buff_len, "segment(%s, %s)", a, b);
-      }
-    };
-
 #if GLM_GEOM_TOSTRING
     template<glm::length_t L, typename T, qualifier Q>
     struct compute_to_string<LineSegment<L, T, Q>> {

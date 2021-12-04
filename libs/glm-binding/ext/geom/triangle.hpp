@@ -22,7 +22,7 @@ namespace glm {
   template<length_t L, typename T, qualifier Q>
   struct Triangle {
 
-	// -- Implementation detail --
+    // -- Implementation detail --
 
     typedef T value_type;
     typedef Triangle<L, T, Q> type;
@@ -513,6 +513,7 @@ namespace glm {
 
     const T det = dot(e1, vp);
     if (abs(det) <= eps) {  // Determinant zero: line lies on triangles plane
+      u = v = std::numeric_limits<T>::infinity();
       return std::numeric_limits<T>::infinity();
     }
 
@@ -796,21 +797,6 @@ namespace glm {
   }
 
   namespace detail {
-    // @LuaGLM
-    template<glm::length_t L, typename T, qualifier Q>
-    struct lglm_compute_to_string<Triangle<L, T, Q>> {
-      static GLM_FUNC_QUALIFIER int call(char *buff, size_t buff_len, const Triangle<L, T, Q> &t) {
-        char a[GLM_STRING_BUFFER];
-        char b[GLM_STRING_BUFFER];
-        char c[GLM_STRING_BUFFER];
-
-        lglm_compute_to_string<vec<L, T, Q>>::call(a, GLM_STRING_BUFFER, t.a);
-        lglm_compute_to_string<vec<L, T, Q>>::call(b, GLM_STRING_BUFFER, t.b);
-        lglm_compute_to_string<vec<L, T, Q>>::call(c, GLM_STRING_BUFFER, t.c);
-        return _vsnprintf(buff, buff_len, "tri(%s, %s, %s)", a, b, c);
-      }
-    };
-
 #if GLM_GEOM_TOSTRING
     template<glm::length_t L, typename T, qualifier Q>
     struct compute_to_string<Triangle<L, T, Q>> {

@@ -23,7 +23,7 @@ namespace glm {
   template<length_t L, typename T, qualifier Q>
   struct Sphere {
 
-	// -- Implementation detail --
+    // -- Implementation detail --
 
     typedef T value_type;
     typedef Sphere<L, T, Q> type;
@@ -841,21 +841,6 @@ namespace glm {
   }
 
   namespace detail {
-    // @LuaGLM
-    template<glm::length_t L, typename T, qualifier Q>
-    struct lglm_compute_to_string<Sphere<L, T, Q>> {
-      static GLM_FUNC_QUALIFIER int call(char *buff, size_t buff_len, const Sphere<L, T, Q> &sphere) {
-        char pos[GLM_STRING_BUFFER];
-
-        char format_text[GLM_FORMAT_BUFFER];
-        char const *dirLiteral = lglmliteral<T, std::numeric_limits<T>::is_iec559>::value();
-        lglm_compute_to_string<vec<L, T, Q>>::call(pos, GLM_STRING_BUFFER, sphere.pos);
-        _vsnprintf(format_text, GLM_FORMAT_BUFFER, "sphere(%%s, %s)", dirLiteral);
-
-        return _vsnprintf(buff, buff_len, format_text, pos, GLM_STRING_CAST(sphere.r));
-      }
-    };
-
 #if GLM_GEOM_TOSTRING
     template<glm::length_t L, typename T, qualifier Q>
     struct compute_to_string<Sphere<L, T, Q>> {

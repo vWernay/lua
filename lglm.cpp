@@ -272,7 +272,7 @@ static void vec_finishget(lua_State *L, const TValue *obj, TValue *key, StkId re
     }
   }
   else {  // Finish the vector access and try the metamethod
-    luaV_finishget(L, obj, key, res, NULL);
+    luaV_finishget(L, obj, key, res, GLM_NULLPTR);
   }
 }
 
@@ -357,7 +357,7 @@ void glmVec_geti(lua_State *L, const TValue *obj, lua_Integer c, StkId res) {
   if (vecgeti(obj, c, res) == LUA_TNONE) {  // Attempt metatable access
     TValue key;
     setivalue(&key, c);
-    luaV_finishget(L, obj, &key, res, NULL);
+    luaV_finishget(L, obj, &key, res, GLM_NULLPTR);
   }
 }
 
@@ -719,7 +719,7 @@ void glmMat_rawset(lua_State *L, const TValue *obj, TValue *key, TValue *val) {
 
 void glmMat_get(lua_State *L, const TValue *obj, TValue *key, StkId res) {
   if (!ttisnumber(key) || matgeti(obj, glm_tointeger(key), res) == LUA_TNONE) {
-    luaV_finishget(L, obj, key, res, NULL);
+    luaV_finishget(L, obj, key, res, GLM_NULLPTR);
   }
 }
 
@@ -727,7 +727,7 @@ void glmMat_geti(lua_State *L, const TValue *obj, lua_Integer c, StkId res) {
   if (matgeti(obj, c, res) == LUA_TNONE) {
     TValue key;
     setivalue(&key, c);
-    luaV_finishget(L, obj, &key, res, NULL);
+    luaV_finishget(L, obj, &key, res, GLM_NULLPTR);
   }
 }
 
