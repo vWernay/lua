@@ -27,6 +27,9 @@
 #include "lstate.h"
 #include "lstring.h"
 #include "lvm.h"
+#if defined(LUA_GRIT_COMPAT)
+#include "lglm_core.h"
+#endif
 
 
 /*
@@ -372,8 +375,13 @@ static int tostringbuff (TValue *obj, char *buff) {
 ** Convert a number object to a Lua string, replacing the value at 'obj'
 */
 void luaO_tostring (lua_State *L, TValue *obj) {
+#if defined(LUA_GRIT_COMPAT)
+  char buff[GLM_STRING_BUFFER];
+  int len = ttisvector(obj) ? glmVec_tostr(obj, buff, GLM_STRING_BUFFER) : tostringbuff(obj, buff);
+#else
   char buff[MAXNUMBER2STR];
   int len = tostringbuff(obj, buff);
+#endif
   setsvalue(L, obj, luaS_newlstr(L, buff, len));
 }
 

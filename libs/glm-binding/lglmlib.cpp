@@ -102,6 +102,7 @@ static const luaL_Reg luaglm_lib[] = {
   { "random", GLM_NULLPTR },
   { "randomseed", GLM_NULLPTR },
   { "pi", GLM_NULLPTR },
+  { "tau", GLM_NULLPTR },
   { "eps", GLM_NULLPTR },
   { "feps", GLM_NULLPTR },
   { "maxinteger", GLM_NULLPTR },
@@ -231,6 +232,7 @@ extern "C" {
     GLM_CONSTANT(L, epsilon);
 #endif
     GLM_CONSTANT(L, pi); /* lmathlib */
+    lua_pushnumber(L, glm::two_pi<glm_Number>()); lua_setfield(L, -2, "tau");
     lua_pushnumber(L, glm::epsilon<glm_Number>()); lua_setfield(L, -2, "eps");
     lua_pushnumber(L, static_cast<glm_Number>(glm::epsilon<glm_Float>())); lua_setfield(L, -2, "feps");
     lua_pushnumber(L, std::numeric_limits<glm_Number>::infinity()); lua_setfield(L, -2, "huge");

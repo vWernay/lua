@@ -372,13 +372,8 @@ For runtime hashing, the `joaat` function is included in the base library:
 1395890823
 ```
 
-Note: for compatibility reasons, all hashes returned are sign-extended:
-
 ```lua
 > joaat("CPed")
--1803413927
-
-> joaat("CPed") & 0xFFFFFFFF
 2491553369
 ```
 

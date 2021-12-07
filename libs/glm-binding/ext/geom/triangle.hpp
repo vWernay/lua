@@ -278,13 +278,12 @@ namespace glm {
   /// </summary>
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER void projectToAxis(const Triangle<L, T, Q> &t, const vec<L, T, Q> &axis, T &dMin, T &dMax) {
-    dMin = dMax = dot(axis, t.a);
-
     const T db = dot(axis, t.b);
+    const T dc = dot(axis, t.c);
+
+    dMin = dMax = dot(axis, t.a);
     dMin = min(dMin, db);
     dMax = max(dMax, db);
-
-    const T dc = dot(axis, t.c);
     dMin = min(dMin, dc);
     dMax = max(dMax, dc);
   }

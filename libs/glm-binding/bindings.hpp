@@ -1718,15 +1718,6 @@ struct gLuaNotZero : gLuaTrait<typename Tr::type, false> {
 ** ===================================================================
 */
 
-/* Generic to_string wrapper. */
-#define LAYOUT_TOSTRING(LB, F, Tr, ...)                     \
-  LUA_MLM_BEGIN                                             \
-  char buff[2 * GLM_STRING_BUFFER] = { 0 };                 \
-  const int len = F(buff, GLM_STRING_BUFFER, Tr::Next(LB)); \
-  lua_pushlstring(L, buff, cast_sizet(len < 0 ? 0 : len));  \
-  return 1;                                                 \
-  LUA_MLM_END
-
 /* @COMPAT max ULPs parameters for scalar numbers introduced in 0.9.9.3 */
 #if GLM_VERSION >= 993
   #define _TR_EQUAL_ULPS(LB, F, A, B, Val)                                        \

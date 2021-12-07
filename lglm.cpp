@@ -1036,13 +1036,11 @@ lua_Integer luaO_HashString(const char *string, size_t length, int ignore_case) 
   hash ^= (hash >> 11);
   hash += (hash << 15);
 
-  /*
-  @@ LUAGLM_EXT_UHASH Hidden flag that ensures hashes are not sign extended.
-  */
-#if defined(LUAGLM_EXT_UHASH)
-  return l_castU2S(hash);
-#else
+  /* Initial implementation sign-extended hashes */
+#if defined(LUA_GRIT_COMPAT)
   return (lua_Integer)(int)hash;
+#else
+  return l_castU2S(hash);
 #endif
 }
 
@@ -1431,7 +1429,7 @@ static int glm_createVector(lua_State *L, glm::length_t desiredSize = 0) {
   if (desiredSize == 0 && v_len == 0)
     return luaL_error(L, GLM_STRING_VECTOR " requires 1 to 4 values");
   else if (desiredSize != 0 && v_len != desiredSize)
-    return luaL_error(L, GLM_STRING_VECTOR "%d requires 0, 1 or %d values", cast_int(desiredSize), cast_int(desiredSize));
+    return luaL_error(L, GLM_STRING_VECTOR "%d requires 0, 1, or %d values", cast_int(desiredSize), cast_int(desiredSize));
   else if (v_len == 1) {
     return glm_pushvalue<T>(L, v.x);
   }

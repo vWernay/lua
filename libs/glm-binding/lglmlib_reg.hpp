@@ -236,6 +236,7 @@ GLM_LUA_REG(epsilonNotEqual),
 #if defined(LUAGLM_ALIASES)
 { "approx", GLM_NAME(epsilonEqual) },
 { "approximately", GLM_NAME(epsilonEqual) },
+{ "isclose", GLM_NAME(epsilonEqual) },  // cpython
 #endif
 #endif
 

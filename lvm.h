@@ -14,7 +14,11 @@
 
 
 #if !defined(LUA_NOCVTN2S)
+#if defined(LUA_GRIT_COMPAT)
+#define cvt2str(o)	(ttisnumber(o) || ttisvector(o))
+#else
 #define cvt2str(o)	ttisnumber(o)
+#endif
 #else
 #define cvt2str(o)	0	/* no conversion from numbers to strings */
 #endif

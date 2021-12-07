@@ -248,49 +248,49 @@ namespace glm {
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER vec<L, T, Q> closestPoint(const LineSegment<L, T, Q> &line, const Ray<L, T, Q> &ray, T &d, T &d2) {
-    closestPoint(ray, line, d2, d);
-    return getPoint(line, d);
+  GLM_GEOM_QUALIFIER vec<L, T, Q> closestPoint(const LineSegment<L, T, Q> &line, const Ray<L, T, Q> &ray, T &d1, T &d2) {
+    closestPoint(ray, line, d2, d1);
+    return getPoint(line, d1);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER vec<L, T, Q> closestPoint(const LineSegment<L, T, Q> &line, const Line<L, T, Q> &other, T &d, T &d2) {
-    closestPointLineLine(other.pos, other.dir, line.a, line.dir2(), d2, d);
-    if (d < T(0)) {
-      d = T(0);
+  GLM_GEOM_QUALIFIER vec<L, T, Q> closestPoint(const LineSegment<L, T, Q> &line, const Line<L, T, Q> &other, T &d1, T &d2) {
+    closestPointLineLine(other.pos, other.dir, line.a, line.dir2(), d2, d1);
+    if (d1 < T(0)) {
+      d1 = T(0);
       closestPoint(other, line.a, d2);
       return line.a;
     }
-    else if (d > T(1)) {
-      d = T(1);
+    else if (d1 > T(1)) {
+      d1 = T(1);
       closestPoint(other, line.b, d2);
       return line.b;
     }
-    return getPoint(line, d);
+    return getPoint(line, d1);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER_NOINLINE vec<L, T, Q> closestPoint(const LineSegment<L, T, Q> &line, const LineSegment<L, T, Q> &other, T &d, T &d2) {
-    closestPointLineLine(line.a, line.dir2(), other.a, other.b - other.a, d, d2);
+  GLM_GEOM_QUALIFIER_NOINLINE vec<L, T, Q> closestPoint(const LineSegment<L, T, Q> &line, const LineSegment<L, T, Q> &other, T &d1, T &d2) {
+    closestPointLineLine(line.a, line.dir2(), other.a, other.b - other.a, d1, d2);
 
-    if (d >= T(0) && d <= T(1) && d2 >= T(0) && d2 <= T(1))
-      return line.a + d * line.dir2();
-    else if (d >= T(0) && d <= T(1)) {
+    if (d1 >= T(0) && d1 <= T(1) && d2 >= T(0) && d2 <= T(1))
+      return line.a + d1 * line.dir2();
+    else if (d1 >= T(0) && d1 <= T(1)) {
       const vec<L, T, Q> p = (d2 < T(0)) ? other.a : other.b;
       d2 = (d2 < T(0)) ? T(0) : T(1);
-      return closestPoint(line, p, d);
+      return closestPoint(line, p, d1);
     }
     else {
-      const vec<L, T, Q> p = (d < T(0)) ? line.a : line.b;
+      const vec<L, T, Q> p = (d1 < T(0)) ? line.a : line.b;
       const vec<L, T, Q> p2 = (d2 < T(0)) ? other.a : other.b;
-      d = (d < T(0)) ? T(0) : T(1);
+      d1 = (d1 < T(0)) ? T(0) : T(1);
       d2 = (d2 < T(0)) ? T(0) : T(1);
 
       T dt(0), dt2(0);
       const vec<L, T, Q> pt = closestPoint(line, p2, dt);
       const vec<L, T, Q> pt2 = closestPoint(other, p, dt2);
       if (distance2(pt, p2) <= distance2(pt2, p)) {
-        d = dt;
+        d1 = dt;
         return pt;
       }
       else {
@@ -314,20 +314,20 @@ namespace glm {
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER vec<L, T, Q> closestPoint(const LineSegment<L, T, Q> &line, const Ray<L, T, Q> &ray) {
-    T d(0), d2(0);
-    return closestPoint(line, ray, d, d2);
+    T d1(0), d2(0);
+    return closestPoint(line, ray, d1, d2);
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER vec<L, T, Q> closestPoint(const LineSegment<L, T, Q> &line, const Line<L, T, Q> &other) {
-    T d(0), d2(0);
-    return closestPoint(line, other, d, d2);
+    T d1(0), d2(0);
+    return closestPoint(line, other, d1, d2);
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER vec<L, T, Q> closestPoint(const LineSegment<L, T, Q> &line, const LineSegment<L, T, Q> &other) {
-    T d(0), d2(0);
-    return closestPoint(line, other, d, d2);
+    T d1(0), d2(0);
+    return closestPoint(line, other, d1, d2);
   }
 
   template<length_t L, typename T, qualifier Q>
@@ -357,20 +357,20 @@ namespace glm {
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER T distance(const LineSegment<L, T, Q> &line, const Ray<L, T, Q> &other, T &d, T &d2) {
-    const vec<L, T, Q> point = closestPoint(line, other, d, d2);
+  GLM_GEOM_QUALIFIER T distance(const LineSegment<L, T, Q> &line, const Ray<L, T, Q> &other, T &d1, T &d2) {
+    const vec<L, T, Q> point = closestPoint(line, other, d1, d2);
     return distance(point, getPoint(other, d2));
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER T distance(const LineSegment<L, T, Q> &line, const Line<L, T, Q> &other, T &d, T &d2) {
-    const vec<L, T, Q> point = closestPoint(line, other, d, d2);
+  GLM_GEOM_QUALIFIER T distance(const LineSegment<L, T, Q> &line, const Line<L, T, Q> &other, T &d1, T &d2) {
+    const vec<L, T, Q> point = closestPoint(line, other, d1, d2);
     return distance(point, getPoint(other, d2));
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER T distance(const LineSegment<L, T, Q> &line, const LineSegment<L, T, Q> &other, T &d, T &d2) {
-    const vec<L, T, Q> point = closestPoint(line, other, d, d2);
+  GLM_GEOM_QUALIFIER T distance(const LineSegment<L, T, Q> &line, const LineSegment<L, T, Q> &other, T &d1, T &d2) {
+    const vec<L, T, Q> point = closestPoint(line, other, d1, d2);
     return distance(point, getPoint(other, d2));
   }
 
@@ -382,20 +382,20 @@ namespace glm {
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER T distance(const LineSegment<L, T, Q> &line, const Ray<L, T, Q> &other) {
-     T d(0), d2(0);
-    return distance(line, other, d, d2);
+    T d1(0), d2(0);
+    return distance(line, other, d1, d2);
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER T distance(const LineSegment<L, T, Q> &line, const Line<L, T, Q> &other) {
-    T d(0), d2(0);
-    return distance(line, other, d, d2);
+    T d1(0), d2(0);
+    return distance(line, other, d1, d2);
   }
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER T distance(const LineSegment<L, T, Q> &line, const LineSegment<L, T, Q> &other) {
-    T d(0), d2(0);
-    return distance(line, other, d, d2);
+    T d1(0), d2(0);
+    return distance(line, other, d1, d2);
   }
 
   template<length_t L, typename T, qualifier Q>
@@ -404,8 +404,8 @@ namespace glm {
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER T distance2(const LineSegment<L, T, Q> &line, const LineSegment<L, T, Q> &other, T &d, T &d2) {
-    const vec<L, T, Q> point = closestPoint(line, other, d, d2);
+  GLM_GEOM_QUALIFIER T distance2(const LineSegment<L, T, Q> &line, const LineSegment<L, T, Q> &other, T &d1, T &d2) {
+    const vec<L, T, Q> point = closestPoint(line, other, d1, d2);
     return distance2(point, getPoint(other, d2));
   }
 
@@ -417,8 +417,8 @@ namespace glm {
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER T distance2(const LineSegment<L, T, Q> &line, const LineSegment<L, T, Q> &other) {
-    T d(0), d2(0);
-    return distance2(line, other, d, d2);
+    T d1(0), d2(0);
+    return distance2(line, other, d1, d2);
   }
 
   template<length_t L, typename T, qualifier Q>
@@ -439,13 +439,13 @@ namespace glm {
   /// Tests whether the segment and the given object intersect.
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER int intersects(const LineSegment<L, T, Q> &line, const Sphere<L, T, Q> &sphere, T &d, T &d2) {
-    return intersects(sphere, line, d, d2);
+  GLM_GEOM_QUALIFIER int intersects(const LineSegment<L, T, Q> &line, const Sphere<L, T, Q> &sphere, T &d1, T &d2) {
+    return intersects(sphere, line, d1, d2);
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER bool intersects(const LineSegment<L, T, Q> &line, const AABB<L, T, Q> &aabb, T &d, T &d2) {
-    return intersects(aabb, line, d, d2);
+  GLM_GEOM_QUALIFIER bool intersects(const LineSegment<L, T, Q> &line, const AABB<L, T, Q> &aabb, T &d1, T &d2) {
+    return intersects(aabb, line, d1, d2);
   }
 
   template<length_t L, typename T, qualifier Q>
@@ -459,8 +459,8 @@ namespace glm {
   }
 
   template<length_t L, typename T, qualifier Q>
-  GLM_GEOM_QUALIFIER bool intersects(const LineSegment<L, T, Q> &line, const LineSegment<L, T, Q> &other, T &d, T &d2, T eps = epsilon<T>()) {
-    return distance(line, other, d, d2) <= eps;
+  GLM_GEOM_QUALIFIER bool intersects(const LineSegment<L, T, Q> &line, const LineSegment<L, T, Q> &other, T &d1, T &d2, T eps = epsilon<T>()) {
+    return distance(line, other, d1, d2) <= eps;
   }
 
   template<length_t L, typename T, qualifier Q>
@@ -482,8 +482,8 @@ namespace glm {
 
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER bool intersects(const LineSegment<L, T, Q> &line, const LineSegment<L, T, Q> &other, T eps = epsilon<T>()) {
-    T d(0), d2(0);
-    return distance(line, other, d, d2) <= eps;
+    T d1(0), d2(0);
+    return distance(line, other, d1, d2) <= eps;
   }
 
   template<length_t L, typename T, qualifier Q>
