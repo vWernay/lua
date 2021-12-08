@@ -649,7 +649,6 @@ Note, not all Lua-specific options are listed.
   + **EMERGENCYGCTESTS**: Force an emergency collection at every single allocation.
   + **EXTERNMEMCHECK**: Removes internal consistency checking of blocks being deallocated.
 * **LuaGLM Options**:
-  + **LUAGLM_APICHECK**: Enable additional apicheck handling.
   + **LUAGLM_EPS_EQUAL**: `luaV_equalobj` uses approximately equal (within glm::epsilon) for vector/matrix types (beware of hashing caveats).
   + **LUAGLM_MUL_DIRECTION**: Define how the runtime handles `TM_MUL(mat4x4, vec3)`.
   + **LUAGLM_NUMBER_TYPE**: Use lua\_Number as the vector primitive; float otherwise.
@@ -742,7 +741,6 @@ these added features.
 
 Ordered by priority.
 
-1. (C API) Fix vector lua_geti/lua_getfield regression: piggybacking/using luaV_finishget may lead to typeerrors instead of nil being returned.
 1. Cleanup testing scripts/environment and publish.
 1. Rewrite build scripts.
 1. Utility API that resembles `glUniformMatrix*v`-style functions, i.e., extracting/parsing array of matrices/vectors.

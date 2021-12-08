@@ -490,10 +490,6 @@ OPTION(LUA_NO_PARSER "Compile the Lua core so it does not contain the parsing \
 OPTION(LUAGLM_NUMBER_TYPE "Use lua_Number as the vector primitive; float otherwise" OFF)
 OPTION(LUAGLM_EPS_EQUAL "luaV_equalobj uses approximately equal (within glm::epsilon) for vector/matrix types (beware of hashing caveats)" OFF)
 OPTION(LUAGLM_MUL_DIRECTION "How operator*(glm::mat4x4, glm::vec3) is handled" OFF)
-OPTION(LUAGLM_APICHECK
-  "Throw runtime errors when accessing matrices/vectors with invalid \
-  keys/key-types. Otherwise, follow tables and set the result to nil" OFF
-)
 
 OPTION(LUAGLM_COMPAT_IPAIRS "Reintroduce compatibility for the __ipairs metamethod that was deprecated in 5.3 and removed in 5.4" OFF)
 OPTION(LUAGLM_EXT_DEFER "Enable the defer statement" OFF)
@@ -531,10 +527,6 @@ ENDIF()
 
 IF( LUAGLM_EPS_EQUAL )
   ADD_COMPILE_DEFINITIONS(LUAGLM_EPS_EQUAL)
-ENDIF()
-
-IF( LUAGLM_APICHECK )
-  ADD_COMPILE_DEFINITIONS(LUAGLM_APICHECK)
 ENDIF()
 
 IF( LUAGLM_EXT_DEFER )

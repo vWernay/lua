@@ -245,34 +245,32 @@ static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
 static void vec_finishget(lua_State *L, const TValue *obj, TValue *key, StkId res) {
   const TValue *tm = luaT_gettmbyobj(L, obj, TM_INDEX);
   if (notm(tm)) {
-    if (!ttisstring(key))
-      luaG_typeerror(L, obj, "index");
-    else if (ttisquat(obj)) {
-      if (strcmp(svalue(key), "angle") == 0) {
+    if (ttisstring(key) && ttisquat(obj)) {
+      const char *str = svalue(key);
+      if (strcmp(str, "angle") == 0) {
         setfltvalue(s2v(res), glm::degrees(cast_num(glm::angle(glm_qvalue(obj)))));
+        return;
       }
-      else if (strcmp(svalue(key), "axis") == 0) {
+      else if (strcmp(str, "axis") == 0) {
         glmVector out(glm::axis(glm_qvalue(obj)));
         glm_setvvalue2s(res, out, LUA_VVECTOR3);
-      }
-      else {
-#if defined(LUAGLM_APICHECK)
-        luaG_runerror(L, "invalid " GLM_STRING_QUATERN " field: '%s'", svalue(key));
-#else
-        setnilvalue(s2v(res));
-#endif
+        return;
       }
     }
-    else {
-#if defined(LUAGLM_APICHECK)
-      luaG_runerror(L, "invalid " GLM_STRING_VECTOR " field: '%s'", svalue(key));
-#else
-      setnilvalue(s2v(res));
-#endif
-    }
+    setnilvalue(s2v(res));
   }
-  else {  // Finish the vector access and try the metamethod
-    luaV_finishget(L, obj, key, res, GLM_NULLPTR);
+  // Finish the vector access and try the metamethod
+  else if (ttisfunction(tm))  /* is metamethod a function? */
+    luaT_callTMres(L, tm, obj, key, res); /* call it */
+  else {
+    // This logic would be considered the first 'loop' of luaV_finishget
+    const TValue *slot = GLM_NULLPTR;
+    const TValue *t = tm;  /* else try to access 'tm[key]' */
+    if (luaV_fastget(L, t, key, slot, luaH_get)) {  /* fast track? */
+      setobj2s(L, res, slot);  /* done */
+      return;
+    }
+    luaV_finishget(L, t, key, res, slot);
   }
 }
 
@@ -311,20 +309,26 @@ static LUA_INLINE glm::length_t swizzle(const glm::qua<T, Q> &q, const char *key
 }
 
 int glmVec_rawgeti(const TValue *obj, lua_Integer n, StkId res) {
-  if (vecgeti(obj, n, res) == LUA_TNONE) {
+  const int result = vecgeti(obj, n, res);
+  if (result == LUA_TNONE) {
     setnilvalue(s2v(res));
+    return LUA_TNIL;
   }
-  return ttype(s2v(res));
+  return result;
 }
 
+/// This function is to interface with 'lua_getfield'. The length of the string
+/// must be recomputed.
+///
+/// @TODO: Instead of calculating the length of the string just ensure the
+/// second element is '\0'
 int glmVec_rawgets(const TValue *obj, const char *k, StkId res) {
-  // This function is to interface with 'lua_getfield'. The length of the string
-  // must be recomputed.
   const int result = strlen(k) == 1 ? vecgets(obj, k, res) : LUA_TNONE;
   if (result == LUA_TNONE) {
     setnilvalue(s2v(res));
+    return LUA_TNIL;
   }
-  return ttype(s2v(res));
+  return result;
 }
 
 int glmVec_rawget(const TValue *obj, TValue *key, StkId res) {
@@ -349,15 +353,16 @@ int glmVec_rawget(const TValue *obj, TValue *key, StkId res) {
 
   if (result == LUA_TNONE) {
     setnilvalue(s2v(res));
+    return LUA_TNIL;
   }
-  return ttype(s2v(res));
+  return result;
 }
 
 void glmVec_geti(lua_State *L, const TValue *obj, lua_Integer c, StkId res) {
   if (vecgeti(obj, c, res) == LUA_TNONE) {  // Attempt metatable access
     TValue key;
     setivalue(&key, c);
-    luaV_finishget(L, obj, &key, res, GLM_NULLPTR);
+    vec_finishget(L, obj, &key, res);
   }
 }
 
@@ -694,10 +699,12 @@ GCMatrix *glmMat_new(lua_State *L) {
 }
 
 int glmMat_rawgeti(const TValue *obj, lua_Integer n, StkId res) {
-  if (matgeti(obj, n, res) == LUA_TNONE) {
+  const int result = matgeti(obj, n, res);
+  if (result == LUA_TNONE) {
     setnilvalue(s2v(res));
+    return LUA_TNIL;
   }
-  return ttype(s2v(res));
+  return result;
 }
 
 int glmMat_vmgeti(const TValue *obj, lua_Integer n, StkId res) {
@@ -705,12 +712,11 @@ int glmMat_vmgeti(const TValue *obj, lua_Integer n, StkId res) {
 }
 
 int glmMat_rawget(const TValue *obj, TValue *key, StkId res) {
-  if (ttisnumber(key)) {
-    return glmMat_rawgeti(obj, glm_tointeger(key), res);
+  if (!ttisnumber(key)) {  // Allow float-to-int coercion
+    setnilvalue(s2v(res));
+    return LUA_TNIL;
   }
-
-  setnilvalue(s2v(res));
-  return LUA_TNIL;
+  return glmMat_rawgeti(obj, glm_tointeger(key), res);
 }
 
 void glmMat_rawset(lua_State *L, const TValue *obj, TValue *key, TValue *val) {
@@ -719,7 +725,7 @@ void glmMat_rawset(lua_State *L, const TValue *obj, TValue *key, TValue *val) {
 
 void glmMat_get(lua_State *L, const TValue *obj, TValue *key, StkId res) {
   if (!ttisnumber(key) || matgeti(obj, glm_tointeger(key), res) == LUA_TNONE) {
-    luaV_finishget(L, obj, key, res, GLM_NULLPTR);
+    vec_finishget(L, obj, key, res);
   }
 }
 
@@ -727,7 +733,7 @@ void glmMat_geti(lua_State *L, const TValue *obj, lua_Integer c, StkId res) {
   if (matgeti(obj, c, res) == LUA_TNONE) {
     TValue key;
     setivalue(&key, c);
-    luaV_finishget(L, obj, &key, res, GLM_NULLPTR);
+    vec_finishget(L, obj, &key, res);
   }
 }
 

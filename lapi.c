@@ -728,14 +728,13 @@ l_sinline int auxgetstr (lua_State *L, const TValue *t, const char *k) {
 
 
 LUA_API int lua_getglobal (lua_State *L, const char *name) {
-  const TValue *G;
   int result = LUA_TNONE;
 
+  const TValue *G;
   lua_lock(L);
   G = getGtable(L);
   result = auxgetstr(L, G, name);
   lua_unlock(L);
-
   return result;
 }
 
@@ -760,21 +759,17 @@ LUA_API int lua_gettable (lua_State *L, int idx) {
 
 
 LUA_API int lua_getfield (lua_State *L, int idx, const char *k) {
-  TValue *v;
   int result = LUA_TNONE;
 
+  TValue *v;
   lua_lock(L);
   v = index2value(L, idx);
-  if (ttisvector(v)) {  /* hot-path single character field access */
-    result = glmVec_rawgets(v, k, L->top);
-    if (result == LUA_TNIL)  /* failure, attempt swizzle/metatable lookup. */
-      result = auxgetstr(L, v, k);
-    else {
-      api_incr_top(L);
-    }
+  if (ttisvector(v) && (result = glmVec_rawgets(v, k, L->top)) != LUA_TNIL) {
+    api_incr_top(L);  /* fast-path for single character field access */
   }
-  else  /* otherwise, matrix or table */
+  else {  /* otherwise, matrix or table */
     result = auxgetstr(L, v, k);
+  }
   lua_unlock(L);
   return result;
 }
@@ -782,20 +777,22 @@ LUA_API int lua_getfield (lua_State *L, int idx, const char *k) {
 
 LUA_API int lua_geti (lua_State *L, int idx, lua_Integer n) {
   TValue *t;
-  const TValue *slot;
   lua_lock(L);
   t = index2value(L, idx);
-  if (luaV_fastgeti(L, t, n, slot)) {
-    setobj2s(L, L->top, slot);
-  }
-  else if (ttisvector(t))
+  if (ttisvector(t))
     glmVec_geti(L, t, n, L->top);
   else if (ttismatrix(t))
     glmMat_rawgeti(t, n, L->top);
   else {
-    TValue aux;
-    setivalue(&aux, n);
-    luaV_finishget(L, t, &aux, L->top, slot);
+    const TValue *slot;
+    if (luaV_fastgeti(L, t, n, slot)) {
+      setobj2s(L, L->top, slot);
+    }
+    else {
+      TValue aux;
+      setivalue(&aux, n);
+      luaV_finishget(L, t, &aux, L->top, slot);
+    }
   }
   api_incr_top(L);
   lua_unlock(L);
@@ -820,9 +817,9 @@ static Table *ensuretable (lua_State *L, const TValue *t) {
 
 
 LUA_API int lua_rawget (lua_State *L, int idx) {
-  const TValue *o;
   int result = LUA_TNONE;
 
+  const TValue *o;
   lua_lock(L);
   api_checknelems(L, 1);
   o = index2value(L, idx);
@@ -842,9 +839,9 @@ LUA_API int lua_rawget (lua_State *L, int idx) {
 
 
 LUA_API int lua_rawgeti (lua_State *L, int idx, lua_Integer n) {
-  const TValue *o;
   int result = LUA_TNONE;
 
+  const TValue *o;
   lua_lock(L);
   o = index2value(L, idx);
   if (ttisvector(o)) {
@@ -865,16 +862,15 @@ LUA_API int lua_rawgeti (lua_State *L, int idx, lua_Integer n) {
 
 
 LUA_API int lua_rawgetp (lua_State *L, int idx, const void *p) {
+  int result = LUA_TNONE;
+
   TValue *t;
   TValue k;
-  int result = LUA_TNONE;
   lua_lock(L);
-
   t = index2value(L, idx);
   api_check(L, ttistable(t), "table expected");
   setpvalue(&k, cast_voidp(p));
   result = finishrawget(L, luaH_get(hvalue(t), &k));
-
   lua_unlock(L);
   return result;
 }
