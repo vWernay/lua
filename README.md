@@ -737,7 +737,7 @@ Define `-DLUA_CRT_ALLOC="path/to/rpmalloc"`.
 See [libs/scripts](libs/scripts) for a collection of example/test scripts using
 these added features.
 
-### Tweaks/TODO
+### TODO
 
 Ordered by priority.
 

@@ -503,7 +503,7 @@ OPTION(LUAGLM_EXT_SAFENAV "An indexing operation that suppresses errors on acces
 OPTION(LUAGLM_EXT_CCOMMENT "Support for C-style block comments" ON)
 OPTION(LUAGLM_EXT_SCOPE_RESOLUTION "Allow double-colon tokens to be used as field selection (emulate C++ scope resolution operator)" OFF)
 OPTION(LUAGLM_EXT_API "Expose lua_createtable and other WowLua compatibility functions" ON)
-OPTION(LUAGLM_EXT_READONLY "Enable readonly table API" OFF)
+OPTION(LUAGLM_EXT_READONLY "Enable readonly table API" ON)
 OPTION(LUAGLM_EXT_CHRONO "Enable nanosecond resolution timers and x86 rdtsc sampling" ON)
 OPTION(LUAGLM_EXT_EACH "__iter metamethod support; see documentation" ON)
 OPTION(LUAGLM_EXT_BLOB "Enable an API to create non-internalized contiguous byte sequences" ON)
