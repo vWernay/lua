@@ -14,13 +14,12 @@
 #endif
 
 #include "lua.hpp"
-
 #include <glm/glm.hpp>
 
 /*
-** @COMPAT Fix for missing "ext/quaternion_common.hpp" include in type_quat.hpp
-**  introduced in 0.9.9.9. Note, "detail/qualifier.hpp" will forward declare the
-**  quaternion type. And this include must be placed before "type_quat.hpp".
+** @COMPAT: Fix for missing "ext/quaternion_common.hpp" include in type_quat.hpp
+**  was introduced in 0.9.9.9. Note, "detail/qualifier.hpp" forward declares the
+**  quaternion type so this include must be placed before "type_quat.hpp".
 */
 #if GLM_VERSION < 999
   #include <glm/gtc/quaternion.hpp>
@@ -37,17 +36,17 @@
   #error "GLM error: unsupported version"
 #endif
 
-/* @COMPAT GLM_DEFAULT_CTOR introduced in 0.9.9.9 */
+/* @COMPAT: GLM_DEFAULT_CTOR introduced in 0.9.9.9 */
 #if !defined(GLM_DEFAULT_CTOR)
   #define GLM_DEFAULT_CTOR GLM_DEFAULT
 #endif
 
-/* @COMPAT GLM_IF_CONSTEXPR introduced in 0.9.9.5 */
+/* @COMPAT: GLM_IF_CONSTEXPR introduced in 0.9.9.5 */
 #if !defined(GLM_IF_CONSTEXPR)
   #define GLM_IF_CONSTEXPR if
 #endif
 
-/* @COMPAT GLM_CONFIG_DEFAULTED_DEFAULT_CTOR introduced in 0.9.9.9 */
+/* @COMPAT: GLM_CONFIG_DEFAULTED_DEFAULT_CTOR introduced in 0.9.9.9 */
 #if !defined(GLM_CONFIG_DEFAULTED_DEFAULT_CTOR)
   #define GLM_CONFIG_DEFAULTED_DEFAULT_CTOR GLM_CONFIG_DEFAULTED_FUNCTIONS
 #endif
@@ -59,13 +58,26 @@
 #endif
 
 /*
-** @COMPAT defaulted constructors fixed in PR #1027
+** @COMPAT: defaulted constructors fixed in PR #1027
 **  Compensating for that change will require expanding the glmVector, glmMatrix,
 **  and GLM boundary structs to handle the implicitly deleted constructors and
 **  assignment operators.
 */
 #if GLM_HAS_DEFAULTED_FUNCTIONS && GLM_CONFIG_DEFAULTED_FUNCTIONS == GLM_DISABLE
   #error "GLM error: invalid GLM_FORCE_CTOR_INIT configuration (WIP)"
+#endif
+
+/*
+** {==================================================================
+** Configuration
+** ===================================================================
+*/
+
+/*
+@@ LUAGLM_API A mark for all core GLM API functions.
+*/
+#if !defined(LUAGLM_API)
+  #define LUAGLM_API LUA_API
 #endif
 
 /*
@@ -113,18 +125,13 @@ typedef GLM_INT_TYPE glm_Integer;
 #define GLM_STRING_MATRIX "matrix"
 #define GLM_STRING_SYMMATRIX "symmetric " GLM_STRING_MATRIX
 
+/* }================================================================== */
+
 /*
 ** {==================================================================
 ** GLM Interface
 ** ===================================================================
 */
-
-/*
-@@ LUAGLM_API A mark for all core GLM API functions.
-*/
-#if !defined(LUAGLM_API)
-  #define LUAGLM_API LUA_API
-#endif
 
 /*
 ** Return true if the element at the given index is a vector, setting "size" to
@@ -340,7 +347,7 @@ LUAGLM_ALIGNED_TYPE(struct, glmMatrix) {
 ** Pushes a vector with dimensions 'd' represented by 'v' onto the stack.
 ** Returning one on success (i.e., valid dimension argument), zero otherwise.
 **
-** @NOTE If Lua is compiled with LUA_USE_APICHECK, a runtime error will be
+** @NOTE: If Lua is compiled with LUA_USE_APICHECK, a runtime error will be
 **  thrown instead of returning zero.
 */
 LUAGLM_API int glm_pushvec(lua_State *L, const glmVector &v, glm::length_t d);
@@ -349,7 +356,7 @@ LUAGLM_API int glm_pushvec(lua_State *L, const glmVector &v, glm::length_t d);
 ** Pushes a quaternion represented by 'q' onto the stack. Returning one on
 ** success, zero otherwise.
 **
-** @NOTE This function is identical to glm_pushquat, but without the (implicit)
+** @NOTE: This function is identical to glm_pushquat, but without the (implicit)
 **  conversion.
 */
 LUAGLM_API int glm_pushvec_quat(lua_State *L, const glmVector &q);
@@ -358,7 +365,7 @@ LUAGLM_API int glm_pushvec_quat(lua_State *L, const glmVector &q);
 ** Creates a new Matrix object, represented by 'm', and places it onto the stack.
 ** Returning one on success, zero otherwise (invalid glmMatrix dimensions).
 **
-** @NOTE If Lua is compiled with LUA_USE_APICHECK, a runtime error with be
+** @NOTE: If Lua is compiled with LUA_USE_APICHECK, a runtime error with be
 **  thrown instead of returning zero.
 */
 LUAGLM_API int glm_pushmat(lua_State *L, const glmMatrix &m);

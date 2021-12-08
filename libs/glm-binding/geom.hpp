@@ -340,7 +340,7 @@ struct gLuaPlane : gLuaAbstractTrait<glm::Plane<L, T>> {
 /// <summary>
 /// An (explicitly three dimensional) polygon trait.
 ///
-/// @TODO More creative casting rules for generalized polygons, e.g., the
+/// @TODO: More creative casting rules for generalized polygons, e.g., the
 ///   userdata also storing the dimensions to each point.
 /// </summary>
 template<typename T = glm_Float>
@@ -516,7 +516,7 @@ static const luaL_Reg luaglm_aabblib[] = {
   { "intersection", glm_aabb_intersection },
   { "slabs", glm_aabb_slabs },
   { "projectToAxis", glm_aabb_projectToAxis },
-  /* @DEPRECATED intersectsObject */
+  /* @DEPRECATED: intersectsObject */
   { "intersectAABB", glm_aabb_intersectsAABB },
   { "intersectSphere", glm_aabb_intersectsSphere },
   { "intersectPlane", glm_aabb_intersectsPlane },
@@ -632,7 +632,7 @@ static const luaL_Reg luaglm_aabb2dlib[] = {
   { "intersectsRay", glm_aabb2d_intersectsRay },
   { "intersection", glm_aabb2d_intersection },
   { "projectToAxis", glm_aabb2d_projectToAxis },
-  /* @DEPRECATED intersectsObject */
+  /* @DEPRECATED: intersectsObject */
   { "intersectAABB", glm_aabb2d_intersectsAABB },
   { "intersectLine", glm_aabb2d_intersectsLine },
   { "intersectSegment", glm_aabb2d_intersectsSegment },
@@ -711,7 +711,7 @@ static const luaL_Reg luaglm_linelib[] = {
   { "intersectsPlane", glm_line_intersectsPlane },
   { "intersectsTriangle", glm_line_intersectsTriangle },
   { "projectToAxis", glm_line_projectToAxis },
-  /* @DEPRECATED intersectsObject */
+  /* @DEPRECATED: intersectsObject */
   { "intersectAABB", glm_line_intersectsAABB },
   { "intersectSphere", glm_line_intersectsSphere },
   { "intersectPlane", glm_line_intersectsPlane },
@@ -783,7 +783,7 @@ static const luaL_Reg luaglm_raylib[] = {
   { "intersectsTriangle", glm_ray_intersectsTriangle },
   { "intersectPlane", glm_ray_intersectsPlane },
   { "projectToAxis", glm_ray_projectToAxis },
-  /* @DEPRECATED intersectsObject */
+  /* @DEPRECATED: intersectsObject */
   { "intersectSphere", glm_ray_intersectsSphere },
   { "intersectAABB", glm_ray_intersectsAABB },
   { "intersectPlane", glm_ray_intersectsPlane },
@@ -1176,7 +1176,7 @@ static const luaL_Reg luaglm_spherelib[] = {
   { "fitThroughPoints", glm_sphere_fitThroughPoints },
   //{ "optimalEnclosingSphere", glm_sphere_optimalEnclosingSphere },  // @TODO(Bloat)
   { "projectToAxis", glm_sphere_projectToAxis },
-  /* @DEPRECATED intersectsObject */
+  /* @DEPRECATED: intersectsObject */
   { "intersectSphere", glm_sphere_intersectsSphere },
   { "intersectAABB", glm_sphere_intersectsAABB },
   { "intersectLine", glm_sphere_intersectsLine },
@@ -1271,7 +1271,7 @@ static const luaL_Reg luaglm_circlelib[] = {
   { "extendRadiusToContainCircle", glm_circle_extendRadiusToContainCircle },
   { "maximalContainedAABB", glm_circle_maximalContainedAABB },
   { "projectToAxis", glm_circle_projectToAxis },
-  /* @DEPRECATED intersectsObject */
+  /* @DEPRECATED: intersectsObject */
   { "intersectCircle", glm_circle_intersectsCircle },
   { "intersectAABB", glm_circle_intersectsAABB },
   { "intersectLine", glm_circle_intersectsLine },

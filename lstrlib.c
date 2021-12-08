@@ -1965,14 +1965,14 @@ static int str_unpack (lua_State *L) {
 /* blob_pack(blob, pos (optional), fmt, v1, v2, ···) */
 static int str_blobpack (lua_State *L) {
   luaL_Buffer b;
-
   char *blob;
   const char *format;  /* string.pack format string */
   size_t blob_len = 0;  /* length of current blob */
   size_t offset = 0;  /* offset into blob */
   int format_idx = 2;  /* stack index of format string */
-  if (!lua_isstringblob(L, 1))
+  if (!lua_isstringblob(L, 1)) {
     return luaL_typeerror(L, 1, "blob");
+  }
 
   blob = lua_tostringblob(L, 1, &blob_len);
   if (lua_type(L, format_idx) == LUA_TNUMBER) {
@@ -1988,11 +1988,14 @@ static int str_blobpack (lua_State *L) {
   ** given function parameters; ensuring the original blob is unaltered in case
   ** of error.
   **
-  ** On success: if the resulting pack cannot be safely copied into the
-  ** current blob instance, a new blob object must be made.
+  ** On success: if the resulting pack cannot be safely copied into the given
+  ** blob instance, a new blob object must be made.
+  **
+  ** @TODO: Consider alleviating the all-or-nothing nature of blobpack. The
+  **  current implementation is quite slow.
   */
   lua_pushnil(L);  /* [..., mark]; mark to separate arguments from string buffer */
-  luaL_buffinit(L, &b); /* [..., mark, buff_placeholder]*/
+  luaL_buffinit(L, &b);  /* [..., mark, buff_placeholder]*/
   shared_pack(L, &b, format, format_idx);
   if ((blob_len - offset) < b.n) {  /* Create a new blob of increased size */
     char *new_blob = lua_pushblob(L, offset + b.n);
@@ -2002,14 +2005,14 @@ static int str_blobpack (lua_State *L) {
   }
   else {
     memcpy(blob + offset, b.b, b.n);
-    lua_pushvalue(L, 1); /* [..., mark, buff_placeholder, result] */
+    lua_pushvalue(L, 1);  /* [..., mark, buff_placeholder, result] */
   }
 
-  if (b.b != b.init.b) /* @HACK: buffonstack */
+  /* lauxlib luaL_pushresult */
+  if (b.b != b.init.b)
     lua_closeslot(L, -2);  /* close the box */
-
-  lua_rotate(L, -3, -2); /* remove box/placeholder and 'mark' */
-  lua_pop(L, 2);
+  lua_rotate(L, -3, -2);  /* [..., result, mark, buff_placeholder] */
+  lua_pop(L, 2);  /* [..., result] */
   return 1;
 }
 

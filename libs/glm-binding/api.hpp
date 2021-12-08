@@ -62,7 +62,7 @@
 #include <glm/gtx/matrix_factorisation.hpp>
 #include <glm/detail/_vectorize.hpp>
 #if GLM_VERSION >= 994 && GLM_VERSION <= 997
-/* @COMPAT introduced in 0.9.9.4 and missing from ext.hpp until 0.9.9.8 */
+/* @COMPAT: introduced in 0.9.9.4 and missing from ext.hpp until 0.9.9.8 */
 #include <glm/ext/matrix_common.hpp>
 #endif
 #if GLM_HAS_CXX11_STL
@@ -197,9 +197,9 @@
 ** the size of the binding library (if ever?).
 */
 #if GLM_VERSION < 999
-  #undef GTX_PCA_HPP /* @COMPAT pca.hpp introduced in 0.9.9.9 */
+  #undef GTX_PCA_HPP /* @COMPAT: pca.hpp introduced in 0.9.9.9 */
   #if GLM_VERSION < 994
-    #undef EXT_MATRIX_COMMON_HPP /* @COMPAT ext/matrix_common.hpp introduced in 0.9.9.4 */
+    #undef EXT_MATRIX_COMMON_HPP /* @COMPAT: ext/matrix_common.hpp introduced in 0.9.9.4 */
   #endif
 #endif
 
@@ -532,7 +532,7 @@ INTEGER_VECTOR_DEFN(usubBorrow, glm::usubBorrow, LAYOUT_ADD_CARRY, glm::uint)
 #endif
 
 #if defined(EXT_SCALAR_INTEGER_HPP) || defined(EXT_VECTOR_INTEGER_HPP)
-#if GLM_VERSION >= 996  // @COMPAT Added in 0.9.9.6
+#if GLM_VERSION >= 996  // @COMPAT: Added in 0.9.9.6
 INTEGER_VECTOR_DEFN(findNSB, glm::findNSB, LAYOUT_VECTOR_INT, lua_Unsigned)
 #endif
 #endif
@@ -656,7 +656,7 @@ TRAITS_DEFN(unpackUint2x32, glm::unpackUint2x32, gLuaTrait<glm::uint64>)
 #endif
 
 #if defined(GTC_ULP_HPP) || defined(EXT_SCALAR_ULP_HPP)
-#if GLM_VERSION >= 993  // @COMPAT float_distance incorrectly declared until 0.9.9.3
+#if GLM_VERSION >= 993  // @COMPAT: float_distance incorrectly declared until 0.9.9.3
 NUMBER_VECTOR_DEFN(float_distance, glm::float_distance, LAYOUT_BINARY)
 #endif
 #endif
@@ -673,7 +673,7 @@ NUMBER_VECTOR_DEFN(float_distance, glm::float_distance, LAYOUT_BINARY)
     TRAITS_FUNC(LB, F, Tr, gLuaBoundedBelow<Tr::as_type<int>>); \
   LUA_MLM_END
 
-#if GLM_VERSION >= 993  // @COMPAT vector support added in 0.9.9.3
+#if GLM_VERSION >= 993  // @COMPAT: vector support added in 0.9.9.3
 NUMBER_VECTOR_DEFN(next_float, glm::next_float, LAYOUT_NEXT_FLOAT)
 NUMBER_VECTOR_DEFN(prev_float, glm::prev_float, LAYOUT_NEXT_FLOAT)
 #else
@@ -925,14 +925,14 @@ TRAITS_LAYOUT_DEFN(containsProjection, glm::containsProjection, LAYOUT_BINARY_EP
   LAYOUT_MATRIX_ACCESS(LB, F, Tr, Tr::col_type, Tr::row_type, gLuaTrait<glm::length_t>)
 #define LAYOUT_MATRIX_ACCESS_ROW(LB, F, Tr, ...) \
   LAYOUT_MATRIX_ACCESS(LB, F, Tr, Tr::row_type, Tr::col_type, gLuaTrait<glm::length_t>)
-#define LAYOUT_MATRIX_ACCESS(LB, F, Tr, TrComp, TrDims, TrIdx)                        \
-  LUA_MLM_BEGIN                                                                       \
-  glm::length_t __idx = cast(glm::length_t, luaL_checkinteger((LB).L, (LB).idx + 1)); \
-  if (__idx < 0 || __idx >= TrDims::length())                                         \
-    return luaL_argerror((LB).L, (LB).idx + 1, "matrix index");                       \
-  else if (TrComp::Is((LB.L), (LB).idx + 2)) /* Set */                                \
-    TRAITS_FUNC(LB, F, Tr, TrIdx, TrComp);                                            \
-  TRAITS_FUNC(LB, F, Tr, TrIdx); /* Get */                                            \
+#define LAYOUT_MATRIX_ACCESS(LB, F, Tr, TrComp, TrDims, TrIdx)       \
+  LUA_MLM_BEGIN                                                      \
+  const lua_Integer __idx = luaL_checkinteger((LB).L, (LB).idx + 1); \
+  if (__idx < 0 || __idx >= cast(lua_Integer, TrDims::length()))     \
+    return luaL_argerror((LB).L, (LB).idx + 1, "matrix index");      \
+  else if (TrComp::Is((LB.L), (LB).idx + 2)) /* Set */               \
+    TRAITS_FUNC(LB, F, Tr, TrIdx, TrComp);                           \
+  TRAITS_FUNC(LB, F, Tr, TrIdx); /* Get */                           \
   LUA_MLM_END
 
 MATRIX_DEFN(column, glm::column, LAYOUT_MATRIX_ACCESS_COLUMN)
@@ -1112,7 +1112,7 @@ MATRIX_GENERAL_MAJOR_DEFN(rowMajor, glm::rowMajor)
 #endif
 
 #if defined(GTX_MATRIX_OPERATION_HPP)
-#if GLM_VERSION >= 993  // @COMPAT Added in 0.9.9.3
+#if GLM_VERSION >= 993  // @COMPAT: Added in 0.9.9.3
 SYMMETRIC_MATRIX_DEFN(adjugate, glm::adjugate, LAYOUT_UNARY)
 #endif
 TRAITS_DEFN(diagonal2x2, glm::diagonal2x3, gLuaVec2<>)
@@ -1158,7 +1158,7 @@ TRAITS_LAYOUT_DEFN(shearX, glm::shearX, LAYOUT_BINARY_SCALAR, gLuaMat3x3<>)
 TRAITS_LAYOUT_DEFN(shearY, glm::shearY, LAYOUT_BINARY_SCALAR, gLuaMat3x3<>)
 #endif
 
-#if defined(GTX_PCA_HPP) /* @COMPAT pca.hpp introduced in 0.9.9.9 */
+#if defined(GTX_PCA_HPP) /* @COMPAT: pca.hpp introduced in 0.9.9.9 */
 #include <glm/gtx/pca.hpp>
 #define LAYOUT_FIND_EIGEN(LB, F, Tr, ...)                                      \
   LUA_MLM_BEGIN                                                                \
@@ -1394,7 +1394,7 @@ GLM_BINDING_QUALIFIER(max) { /* Ported: static int math_max (lua_State *L) */
 #if defined(COMMON_HPP) || defined(EXT_MATRIX_COMMON_HPP)
 GLM_BINDING_QUALIFIER(mix) {
   GLM_BINDING_BEGIN
-#if GLM_VERSION >= 994  // @COMPAT ext/matrix_common.hpp introduced in 0.9.9.4
+#if GLM_VERSION >= 994  // @COMPAT: ext/matrix_common.hpp introduced in 0.9.9.4
   const TValue *o = glm_i2v(LB.L, LB.idx);
   if (ttismatrix(o))
     PARSE_SYMMETRIC_MATRIX(LB, glm::__mix, LAYOUT_TERNARY_OPTIONAL);
@@ -1530,15 +1530,15 @@ NUMBER_VECTOR_DEFN(sincos, glm::sincos, LAYOUT_SINCOS) /* LUA_VECTOR_EXTENSIONS 
 #endif
 
 #if defined(EXT_SCALAR_INTEGER_HPP) || defined(EXT_VECTOR_INTEGER_HPP)
-#if GLM_VERSION >= 999  // @COMPAT isMultiple fixed in 0.9.9.9
+#if GLM_VERSION >= 999  // @COMPAT: isMultiple fixed in 0.9.9.9
 INTEGER_VECTOR_DEFN(isMultiple, glm::isMultiple, LAYOUT_BINARY_SCALAR, lua_Unsigned)
 #endif
-#if GLM_VERSION >= 996  // @COMPAT Fixed in 0.9.9.6
+#if GLM_VERSION >= 996  // @COMPAT: Fixed in 0.9.9.6
 INTEGER_VECTOR_DEFN(isPowerOfTwo, glm::isPowerOfTwo, LAYOUT_UNARY, lua_Unsigned)
 #else
 TRAITS_DEFN(isPowerOfTwo, glm::isPowerOfTwo, gLuaInteger)
 #endif
-#if GLM_VERSION >= 996  // @COMPAT Added in 0.9.9.6
+#if GLM_VERSION >= 996  // @COMPAT: Added in 0.9.9.6
 INTEGER_VECTOR_DEFN(nextMultiple, glm::nextMultiple, LAYOUT_BINARY_OPTIONAL, lua_Unsigned)
 INTEGER_VECTOR_DEFN(nextPowerOfTwo, glm::nextPowerOfTwo, LAYOUT_UNARY, lua_Unsigned)
 INTEGER_VECTOR_DEFN(prevMultiple, glm::prevMultiple, LAYOUT_BINARY_OPTIONAL, lua_Unsigned)
@@ -1736,7 +1736,7 @@ NUMBER_VECTOR_DEFN(fastDistance, glm::fastDistance, LAYOUT_BINARY)
 NUMBER_VECTOR_DEFN(fastInverseSqrt, glm::fastInverseSqrt, LAYOUT_UNARY)
 NUMBER_VECTOR_DEFN(fastLength, glm::fastLength, LAYOUT_UNARY)
 NUMBER_VECTOR_DEFN(fastSqrt, glm::fastSqrt, LAYOUT_UNARY)
-#if GLM_VERSION >= 999  // @COMPAT fastNormalize ambiguity fixed in 0.9.9.9
+#if GLM_VERSION >= 999  // @COMPAT: fastNormalize ambiguity fixed in 0.9.9.9
 NUMBER_VECTOR_QUAT_DEFN(fastNormalize, glm::fastNormalize, LAYOUT_UNARY)
 #endif
 #endif
@@ -1876,7 +1876,7 @@ NUMBER_VECTOR_DEFN(distance2, glm::distance2, LAYOUT_BINARY)
 TRAITS_LAYOUT_DEFN(l1Norm, glm::l1Norm, LAYOUT_UNARY_OR_BINARY, gLuaVec3<>)
 TRAITS_LAYOUT_DEFN(l2Norm, glm::l2Norm, LAYOUT_UNARY_OR_BINARY, gLuaVec3<>)
 NUMBER_VECTOR_DEFN(length2, glm::length2, LAYOUT_UNARY) /* glm/gtx/quaternion.hpp */
-#if GLM_VERSION >= 996  // @COMPAT Added in 0.9.9.6
+#if GLM_VERSION >= 996  // @COMPAT: Added in 0.9.9.6
 TRAITS_LAYOUT_DEFN(lMaxNorm, glm::lMaxNorm, LAYOUT_UNARY_OR_BINARY, gLuaVec3<>)
 #endif
 TRAITS_LAYOUT_DEFN(lxNorm, glm::lxNorm, LAYOUT_UNARY_OR_BINARY, gLuaVec3<>, gLuaTrait<unsigned>)
@@ -1995,7 +1995,7 @@ TRAITS_BINARY_LAYOUT_DEFN(rotateZ, glm::rotateZ, LAYOUT_BINARY_SCALAR, gLuaVec3<
 #endif
 
 #if defined(GTX_ROTATE_VECTOR_HPP) || defined(EXT_QUATERNION_COMMON_HPP)
-#if GLM_VERSION >= 998  /* @COMPAT slerp + 'additional spin count' introduced in 0.9.9.8 */
+#if GLM_VERSION >= 998  /* @COMPAT: slerp + 'additional spin count' introduced in 0.9.9.8 */
 #define LAYOUT_QUAT_SLERP(LB, F, Tr, ...)                                                                     \
   LUA_MLM_BEGIN                                                                                               \
   if (gLuaTrait<int>::Is((LB).L, (LB).idx + 3))                                                                 \

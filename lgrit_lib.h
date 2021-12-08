@@ -88,8 +88,8 @@ LUA_API int glm_unpack_matrix (lua_State *L, int idx);
 ** boolean and numeric values are casted to lua_Integer; otherwise, zero is
 ** returned.
 **
-** @PARAM ignore_case: A string value is hashed as-is. Otherwise, the lowercase
-**  of each string character is computed then hashed.
+** ignore_case: A string value is hashed as-is. Otherwise, the lowercase of each
+**  string character is computed then hashed.
 **
 ** @TODO: Possibly consider allow the potentially destructive lua_tolstring.
 */
@@ -99,7 +99,7 @@ LUA_API lua_Integer glm_tohash (lua_State *L, int idx, int ignore_case);
 
 /*
 ** {==================================================================
-** @DEPRECATED grit-lua API
+** @DEPRECATED: grit-lua API
 ** ===================================================================
 */
 
@@ -124,7 +124,7 @@ LUA_API void lua_pushquat (lua_State *L, lua_VecF w, lua_VecF x, lua_VecF y, lua
 
 /*
 ** {==================================================================
-** @DEPRECATED Extended grit-lua API
+** @DEPRECATED: Extended grit-lua API
 ** ===================================================================
 */
 
@@ -156,7 +156,7 @@ LUA_API void lua_pushmatrix (lua_State *L, const lua_Mat4 *matrix);
 
 /*
 ** {==================================================================
-** @DEPRECATED grit-lua base library compatibility
+** @DEPRECATED: grit-lua base library compatibility
 ** ===================================================================
 */
 

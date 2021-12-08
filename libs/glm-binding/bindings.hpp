@@ -99,9 +99,11 @@ extern LUA_API_LINKAGE {
 #endif
 
 /*
-@@ LUAGLM_FALLTHROUGH Macro for informing the compiler a fallthrough is intentional
+@@ LUAGLM_FALLTHROUGH Macro for informing the compiler a fallthrough is intentional.
+**
+** Note, ICC/ICPC (as of 2021.4.0) will generate an incorrect warnings for [[fallthrough]].
 */
-#if defined __has_cpp_attribute && __has_cpp_attribute(fallthrough)
+#if defined __has_cpp_attribute && __has_cpp_attribute(fallthrough) && !defined(__INTEL_COMPILER)
   #define LUAGLM_FALLTHROUGH [[fallthrough]]
 #elif __has_attribute(__fallthrough__)
   #define LUAGLM_FALLTHROUGH __attribute__((__fallthrough__))
@@ -1718,7 +1720,7 @@ struct gLuaNotZero : gLuaTrait<typename Tr::type, false> {
 ** ===================================================================
 */
 
-/* @COMPAT max ULPs parameters for scalar numbers introduced in 0.9.9.3 */
+/* @COMPAT: max ULPs parameters for scalar numbers introduced in 0.9.9.3 */
 #if GLM_VERSION >= 993
   #define _TR_EQUAL_ULPS(LB, F, A, B, Val)                                        \
     else if (ttisinteger(Val)) {                                                  \

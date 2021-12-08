@@ -32,12 +32,12 @@ cat << EOF >> ${OUTFILE}
 ** Lua core, libraries, and interpreter in a single header. Define
 ** 'LUA_IMPLEMENTATION' in a single unit to build the implementation.
 **
-** @OPTIONS:
+** Options:
 **  MAKE_LUA - include the Lua command line interpreter (lua.c)
 **  MAKE_LUAC - include the Lua command line compiler (luac.c)
 **  LUA_INCLUDE_LIBGLM - include GLM binding library; this library is disabled-by-default.
 **
-** @EXAMPLE: Build the Lua interpreter:
+** Example: Build the Lua interpreter:
 **    #define LUA_IMPLEMENTATION
 **    #define MAKE_LUA
 **    #include \"${OUTFILE}\"
@@ -49,7 +49,7 @@ cat << EOF >> ${OUTFILE}
   #error "LuaGLM must be compiled with cplusplus for GLM integration"
 #endif
 
-/* default is to build the library; @NOTE this deviates from onelua.c */
+/* default is to build the library; Note this deviates from onelua.c */
 #ifndef MAKE_LIB
   #ifndef MAKE_LUAC
     #ifndef MAKE_LUA
@@ -67,7 +67,7 @@ cat << EOF >> ${OUTFILE}
   #define LUA_ANSI
 #endif
 
-/* Automatic system configuration; @NOTE this deciates from onelua.c */
+/* Automatic system configuration; Note this deciates from onelua.c */
 #if !defined(LUA_USE_WINDOWS) && !defined(LUA_USE_LINUX) && !defined(LUA_USE_MACOSX) && !defined(LUA_USE_POSIX) && !defined(LUA_USE_C89)
   #if defined(_WIN32)
     #define LUA_USE_WINDOWS
@@ -200,7 +200,7 @@ echo "#if defined(LUA_IMPLEMENTATION)" >> ${OUTFILE}
   cat ${LUA_DIR}/lauxlib.c >> ${OUTFILE}
 
   echo "#if !defined(MAKE_LUAC)" >> ${OUTFILE}
-    echo "#if defined(LUA_INCLUDE_LIBGLM)" >> ${OUTFILE} # GLM Binding: @WIP
+    echo "#if defined(LUA_INCLUDE_LIBGLM)" >> ${OUTFILE} # GLM Binding: WIP
       cat ${LUA_DIR}/libs/glm-binding/ext/vector_extensions.hpp >> ${OUTFILE}
       cat ${LUA_DIR}/libs/glm-binding/ext/matrix_extensions.hpp >> ${OUTFILE}
       cat ${LUA_DIR}/libs/glm-binding/ext/quat_extensions.hpp >> ${OUTFILE}

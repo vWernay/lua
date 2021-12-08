@@ -212,17 +212,17 @@ GLM_LUA_REG(tan),
 GLM_LUA_REG(tanh),
 GLM_LUA_REG(sincos), /* LUA_VECTOR_EXTENSION */
 #if defined(LUAGLM_ALIASES)
-{ "deg", GLM_NAME(degrees) }, /* NOTE: lmathlib compat */
-{ "rad", GLM_NAME(radians) }, /* NOTE: lmathlib compat */
+{ "deg", GLM_NAME(degrees) }, /* @NOTE: lmathlib compat */
+{ "rad", GLM_NAME(radians) }, /* @NOTE: lmathlib compat */
 #endif
 #endif
 
 #if defined(EXT_SCALAR_INTEGER_HPP) || defined(EXT_VECTOR_INTEGER_HPP)
-#if GLM_VERSION >= 999  // @COMPAT isMultiple fixed in 0.9.9.9
+#if GLM_VERSION >= 999  // @COMPAT: isMultiple fixed in 0.9.9.9
 GLM_LUA_REG(isMultiple),
 #endif
 GLM_LUA_REG(isPowerOfTwo),
-#if GLM_VERSION >= 996  // @COMPAT Added in 0.9.9.6
+#if GLM_VERSION >= 996  // @COMPAT: Added in 0.9.9.6
 GLM_LUA_REG(nextMultiple),
 GLM_LUA_REG(nextPowerOfTwo),
 GLM_LUA_REG(prevMultiple),
@@ -402,7 +402,7 @@ GLM_LUA_REG(fastPow),
 GLM_LUA_REG(fastDistance),
 GLM_LUA_REG(fastInverseSqrt),
 GLM_LUA_REG(fastLength),
-#if GLM_VERSION >= 999  // @COMPAT function ambiguity fixed in 0.9.9.9
+#if GLM_VERSION >= 999  // @COMPAT: function ambiguity fixed in 0.9.9.9
 GLM_LUA_REG(fastNormalize),
 #endif
 GLM_LUA_REG(fastSqrt),
@@ -467,7 +467,7 @@ GLM_LUA_REG(l1Norm),
 GLM_LUA_REG(l2Norm),
 GLM_LUA_REG(length2),
 GLM_LUA_REG(lxNorm),
-#if GLM_VERSION >= 996  // @COMPAT Added in 0.9.9.6
+#if GLM_VERSION >= 996  // @COMPAT: Added in 0.9.9.6
 GLM_LUA_REG(lMaxNorm),
 #endif
 #if defined(LUAGLM_ALIASES)
@@ -646,7 +646,7 @@ GLM_LUA_REG(usubBorrow),
 #endif
 
 #if defined(EXT_SCALAR_INTEGER_HPP) || defined(EXT_VECTOR_INTEGER_HPP)
-#if GLM_VERSION >= 996  // @COMPAT Added in 0.9.9.6
+#if GLM_VERSION >= 996  // @COMPAT: Added in 0.9.9.6
 GLM_LUA_REG(findNSB),
 #endif
 #endif
@@ -755,7 +755,7 @@ GLM_LUA_REG(unpackUint2x32),
 #endif
 
 #if defined(GTC_ULP_HPP) || defined(EXT_SCALAR_ULP_HPP)
-#if GLM_VERSION >= 993  // @COMPAT float_distance incorrectly declared until 0.9.9.3
+#if GLM_VERSION >= 993  // @COMPAT: float_distance incorrectly declared until 0.9.9.3
 GLM_LUA_REG(float_distance),
 { "floatDistance", glm_float_distance },  /* scalar_ulp.hpp */
 #endif
@@ -1032,7 +1032,7 @@ GLM_LUA_REG(rowMajor),
 #endif
 
 #if defined(GTX_MATRIX_OPERATION_HPP)
-#if GLM_VERSION >= 993  // @COMPAT Added in 0.9.9.3
+#if GLM_VERSION >= 993  // @COMPAT: Added in 0.9.9.3
 GLM_LUA_REG(adjugate),
 #endif
 GLM_LUA_REG(diagonal2x2),

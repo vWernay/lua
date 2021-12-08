@@ -25,10 +25,10 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
-#if GLM_VERSION >= 996 /* @COMPAT Added in 0.9.9.6 */
+#if GLM_VERSION >= 996 /* @COMPAT: Added in 0.9.9.6 */
 #include <glm/ext/scalar_integer.hpp>
 #endif
-#if GLM_VERSION >= 991 /* @COMPAT Changed to ext/scale_constants in 0.9.9.1 */
+#if GLM_VERSION >= 991 /* @COMPAT: Changed to ext/scale_constants in 0.9.9.1 */
 #include <glm/ext/scalar_constants.hpp>
 #else
 #include <glm/gtc/constants.hpp>
@@ -115,7 +115,7 @@ static const luaL_Reg luaglm_lib[] = {
   { "FP_NORMAL", GLM_NULLPTR },
   /* Constants */
 #if defined(CONSTANTS_HPP) || defined(EXT_SCALAR_CONSTANTS_HPP)
-  #if GLM_VERSION >= 997  // @COMPAT Added in 0.9.9.7
+  #if GLM_VERSION >= 997  // @COMPAT: Added in 0.9.9.7
   { "cos_one_over_two", GLM_NULLPTR },
   #endif
   { "e", GLM_NULLPTR },
@@ -198,7 +198,7 @@ extern "C" {
     glm_newmetatable(L, LUAGLM_POLYGON_META, "polygon", luaglm_polylib);
 #endif
 #if defined(CONSTANTS_HPP) || defined(EXT_SCALAR_CONSTANTS_HPP)
-  #if GLM_VERSION >= 997  // @COMPAT Added in 0.9.9.7
+  #if GLM_VERSION >= 997  // @COMPAT: Added in 0.9.9.7
     GLM_CONSTANT(L, cos_one_over_two);
   #endif
     GLM_CONSTANT(L, e);

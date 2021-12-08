@@ -1,9 +1,9 @@
 /*
 ** Geometric setup
 **
-** @TODO GLM_EXTERNAL_TEMPLATE support
-** @TODO GLM_CONFIG_DEFAULTED_FUNCTIONS support
-** @TODO Each structure should be including their required glm headers/functions
+** @TODO: GLM_EXTERNAL_TEMPLATE support
+** @TODO: GLM_CONFIG_DEFAULTED_FUNCTIONS support
+** @TODO: Each structure should be including their required glm headers/functions
 **  rather than depending on the bulk-include below.
 **
 ** See Copyright Notice at the end of this file
@@ -28,12 +28,12 @@
 #include "ext/matrix_extensions.hpp"
 #include <lglm_string.hpp> // @LuaGLM
 
-/* @COMPAT GLM_CONFIG_DEFAULTED_DEFAULT_CTOR introduced in 0.9.9.9 */
+/* @COMPAT: GLM_CONFIG_DEFAULTED_DEFAULT_CTOR introduced in 0.9.9.9 */
 #if !defined(GLM_CONFIG_DEFAULTED_DEFAULT_CTOR)
   #define GLM_CONFIG_DEFAULTED_DEFAULT_CTOR GLM_CONFIG_DEFAULTED_FUNCTIONS
 #endif
 
-/* @COMPAT GLM_COMPILER_HIP introduced in 0.9.9.9 */
+/* @COMPAT: GLM_COMPILER_HIP introduced in 0.9.9.9 */
 #if !defined(GLM_COMPILER_HIP)
   #define GLM_COMPILER_HIP 0
 #endif
@@ -80,7 +80,7 @@
   ** should be the result to some binary operation, e.g., _mm_xor_ps, _mm_or_ps,
   ** _mm_and_ps, etc.
   **
-  ** @NOTE Experimental until the geom/ SIMD changes are completed, 'set_epi32'
+  ** @NOTE: Experimental until the geom/ SIMD changes are completed, 'set_epi32'
   **  takes int parameters anyway.
   */
   #define _mm_vec3_allzero(v) _mm_testz_si128(_mm_castps_si128(v), _mm_set_epi32(0, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU))

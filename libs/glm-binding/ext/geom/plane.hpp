@@ -355,7 +355,7 @@ namespace glm {
   // }
 
   /// <summary>
-  /// @NOTE "t1" or "t2" cannot be references to "triangle".
+  /// @NOTE: "t1" or "t2" cannot be references to "triangle".
   /// </summary>
   template<length_t L, typename T, qualifier Q>
   GLM_GEOM_QUALIFIER int clip(const Plane<L, T, Q> &plane, const Triangle<L, T, Q> &triangle, Triangle<L, T, Q> &t1, Triangle<L, T, Q> &t2) {

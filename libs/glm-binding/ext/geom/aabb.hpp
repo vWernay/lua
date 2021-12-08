@@ -669,9 +669,7 @@ namespace glm {
   }
 
 #if GLM_CONFIG_ALIGNED_GENTYPES == GLM_ENABLE && (GLM_ARCH & GLM_ARCH_SSE41_BIT)
-  /// <summary>
-  /// @NOTE Experimental
-  /// </summary>
+  // @EXPERIMENT
   GLM_GEOM_QUALIFIER bool contains(const AABB<4, float, aligned_highp> &aabb, const vec<4, float, aligned_highp> &point) {
     const glm_vec4 a = _mm_cmplt_ps(point.data, aabb.minPoint.data);
     const glm_vec4 b = _mm_cmpgt_ps(point.data, aabb.maxPoint.data);
@@ -705,9 +703,7 @@ namespace glm {
   }
 
 #if GLM_CONFIG_ALIGNED_GENTYPES == GLM_ENABLE && (GLM_ARCH & GLM_ARCH_SSE41_BIT)
-  /// <summary>
-  /// @NOTE Experimental
-  /// </summary>
+  // @EXPERIMENT
   GLM_GEOM_QUALIFIER bool contains(const AABB<4, float, aligned_highp> &aabb, const AABB<4, float, aligned_highp> &otheraabb) {
     const glm_vec4 a = _mm_cmplt_ps(otheraabb.minPoint.data, aabb.minPoint.data);
     const glm_vec4 b = _mm_cmpgt_ps(otheraabb.maxPoint.data, aabb.maxPoint.data);

@@ -841,7 +841,7 @@
 
 /*
 ** {==================================================================
-** @DEPRECATED grit-lua vector API
+** @DEPRECATED: grit-lua vector API
 **
 ** Libraries linked against this runtime that use any GLM/vector feature will
 ** require knowledge of changes to:
@@ -871,7 +871,7 @@
 #endif
 
 /*
-** @EXPERIMENT Alignment macro for improved compiler intrinsics. This macro is
+** @EXPERIMENT: Alignment macro for improved compiler intrinsics. This macro is
 ** temporary and will likely change in future commits.
 **
 ** @TODO: Technically should follow GLM and only allow alignment when:
@@ -898,15 +898,12 @@
 #endif
 
 /*
-** Helpers for packing matrix dimensions into a single unit. @TODO Optimize.
+** Helpers for packing matrix dimensions into a single unit.
 **
 @@ LUAGLM_MATRIX_COLS Unpack the number of matrix columns for a given type.
 @@ LUAGLM_MATRIX_ROWS Unpack the number of matrix rows for a given type.
 @@ LUAGLM_MATRIX_TYPE Utility macro for packing column/row dimensions into
 **  a single value. Type-casting related to this macro should be considered.
-**
-** @TODO Consider creating macros (or future-proofing) for the chance that this
-** runtime offers the option to represent Lua matrices in a row-major format.
 **
 ** @NOTE: Previous definition:
 **  #define LUAGLM_MATRIX_TYPE(C, R) ((C) | ((R) << 8))
@@ -956,8 +953,8 @@ LUAGLM_ALIGNED_TYPEDEF(struct, lua_CFloat4) lua_Float4;
 ** byte-wise equivalent to glmMatrix in lglm.hpp and operates within the C
 ** boundaries of the Lua runtime.
 **
-** @NOTE: When GLM_FORCE_DEFAULT_ALIGNED_GENTYPES is enabled (attempt to) mirror
-** the alignment specified in glm/detail/qualifier.hpp. Note GLM uses unions to
+** When GLM_FORCE_DEFAULT_ALIGNED_GENTYPES is enabled (attempt to) mirror the
+** alignment specified in glm/detail/qualifier.hpp. Note GLM uses unions to
 ** implicitly load and store values instead of explicit _mm_loadu_ps and
 ** _mm_storeu_ps calls.
 **
@@ -970,6 +967,7 @@ LUAGLM_ALIGNED_TYPEDEF(struct, lua_CFloat4) lua_Float4;
 ** defined in lglm.hpp
 **
 ** @ImplicitAlign:
+**
 ** @TODO: Compensate for: detail::storage<3, T, detail::is_aligned<Q>::value>::type
 ** data implicitly aligning vec3 types. This requires 'GLM_HAS_ALIGNOF' emulation.
 **

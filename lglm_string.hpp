@@ -12,7 +12,7 @@
 #include <glm/glm.hpp>
 
 /*
-** @COMPAT GCC explicitly forbids using forceinline on variadic functions.
+** @COMPAT: GCC explicitly forbids using forceinline on variadic functions.
 **  Compiling with glm/gtx/string_cast with GLM_FORCE_INLINE will lead to errors
 */
 #if (GLM_COMPILER & GLM_COMPILER_GCC)
@@ -71,7 +71,7 @@ namespace detail {
   struct lglmliteral { GLM_FUNC_QUALIFIER static char const *value() { return "%d"; } };
 
   /// <summary>
-  /// @TODO Use the predefined literal floating-point format defined in
+  /// @TODO: Use the predefined literal floating-point format defined in
   /// luaconf.h if possible
   /// </summary>
   template<typename T>

@@ -24,7 +24,7 @@
 #include <glm/gtx/projection.hpp>
 #include <glm/gtx/spline.hpp>
 #include <glm/gtx/vector_angle.hpp>
-#if GLM_VERSION < 998  /* @COMPAT ext/scalar_common.hpp introduced in 0.9.9.8 */
+#if GLM_VERSION < 998  /* @COMPAT: ext/scalar_common.hpp introduced in 0.9.9.8 */
 #include <glm/gtx/extended_min_max.hpp>
 #elif GLM_VERSION == 998
 #include <glm/ext/scalar_common.hpp>
@@ -88,7 +88,7 @@ namespace glm {
     }
   }
 
-  /* glm::all(glm::equal(...)) shorthand ; @TODO Optimize */
+  /* glm::all(glm::equal(...)) shorthand ; @TODO: Optimize */
 
   template<typename genIUType>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool equal(genIUType x, genIUType y) {
@@ -135,7 +135,7 @@ namespace glm {
     return all(equal(x, y, MaxULPs));
   }
 
-  /* glm::any(glm::notEqual(...)) shorthand ; @TODO Optimize */
+  /* glm::any(glm::notEqual(...)) shorthand ; @TODO: Optimize */
 
   template<typename genIUType>
   GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool notEqual(genIUType x, genIUType y) {
@@ -264,7 +264,7 @@ namespace glm {
   }
 
   /// <summary>
-  /// @Compat: Old versions of GLM include unnecessary precision qualifiers for
+  /// @COMPAT: Old versions of GLM include unnecessary precision qualifiers for
   /// glm::atan2 and glm::saturate.
   /// </summary>
   template<typename T>

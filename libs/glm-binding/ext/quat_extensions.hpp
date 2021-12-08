@@ -24,7 +24,7 @@
 #endif
 
 #include <glm/glm.hpp>
-#if GLM_VERSION >= 991  // @COMPAT Changed to ext/quaternion_common in 0.9.9.1
+#if GLM_VERSION >= 991  // @COMPAT: Changed to ext/quaternion_common in 0.9.9.1
 #include <glm/ext/quaternion_common.hpp>
 #else
 #include <glm/gtc/quaternion.hpp>

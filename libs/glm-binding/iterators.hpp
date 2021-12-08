@@ -129,17 +129,17 @@ public:
       return *this;
     }
 
+    const Iterator &operator++(int) {  // @HACK
+      gLuaBase::idx++;
+      return *this;
+    }
+
     bool operator==(const Iterator &rhs) const {
       return (gLuaBase::idx == rhs.idx) || (!valid() && !rhs.valid());
     }
 
     bool operator!=(const Iterator &rhs) const {
       return !operator==(rhs);
-    }
-
-    const Iterator &operator++(int) {
-      gLuaBase::idx++;  // @HACK
-      return *this;
     }
   };
 
@@ -188,7 +188,7 @@ private:
   /// <summary>
   /// Cached array length.
   ///
-  /// @TODO Method to invalidate if table is mutated.
+  /// @TODO: Method to invalidate if table is mutated.
   /// </summary>
   size_type arraySize = 0;
 
@@ -238,10 +238,7 @@ public:
       return *this;
     }
 
-    /// <summary>
-    /// @HACK
-    /// </summary>
-    const Iterator &operator++(int) {
+    const Iterator &operator++(int) {  // @HACK
       arrayIdx++;
       return *this;
     }

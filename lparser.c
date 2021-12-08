@@ -1232,9 +1232,14 @@ static void safe_navigation (LexState *ls, expdesc *v) {
       codename(ls, &key);
       luaK_indexed(fs, v, &key);
       break;
-    /* @TODO: case ':': */
-    default:
+    /*
+    ** case ':':
+    ** @TODO: The stashed solution is rough; will revisit in the future.
+    */
+    default: {
       luaX_syntaxerror(ls, "unexpected symbol");
+      break;
+    }
   }
 
   luaK_exp2nextreg(fs, v);
@@ -1555,37 +1560,36 @@ static void check_conflict (LexState *ls, struct LHS_assign *lh, expdesc *v) {
 
 
 #if defined(LUAGLM_EXT_COMPOUND)
-static void compound_assignment (LexState *ls, expdesc* v) {
-  expdesc e, infix;
+static void compound_assignment (LexState *ls, expdesc *v) {
+  expdesc e;
+  expdesc infix;
   lu_byte top;
-  int nextra, i;
+  int nextra;
 
   BinOpr op = getbinopr(ls->t.token);
-  FuncState * fs = ls->fs;
-  int tolevel = fs->nactvar;
-  int old_free = fs->freereg;
-  int line = ls->linenumber;
-
+  FuncState *fs = ls->fs;
+  const int tolevel = fs->nactvar;
+  const int old_free = fs->freereg;
+  const int line = ls->linenumber;
   luaX_next(ls);
 
   /*
   ** create temporary local variables to lock up any registers needed by indexed
-  ** lvalues.
+  ** lvalues. Also, protect both the table and index result registers, ensuring
+  ** that they will not be overwritten prior to the storevar calls.
   */
-  top=fs->nactvar;
-  /*
-  ** protect both the table and index result registers, ensuring that they won't
-  ** be overwritten prior to the storevar calls.
-  */
+  top = fs->nactvar;
   if (vkisindexed(v->k)) {
-    if (v->u.ind.t>=top)
-      top = v->u.ind.t+1;
+    if (v->u.ind.t >= top)
+      top = v->u.ind.t + 1;
     if (v->k == VINDEXED && v->u.ind.idx >= top)
-      top = v->u.ind.idx+1;
+      top = v->u.ind.idx + 1;
   }
-  nextra=top-fs->nactvar;
-  if(nextra) {
-    for(i=0;i<nextra;i++) {
+
+  nextra = top - fs->nactvar;
+  if (nextra) {
+    int i;
+    for (i = 0; i < nextra; i++) {
       new_localvarliteral(ls, "(temp)");
     }
     adjustlocalvars(ls, nextra);
@@ -1597,8 +1601,7 @@ static void compound_assignment (LexState *ls, expdesc* v) {
   luaK_posfix(fs, op, &infix, &e, line);
   luaK_storevar(fs, v, &infix);
   removevars(fs, tolevel);
-
-  if(old_free<fs->freereg) {
+  if (old_free < fs->freereg) {
     fs->freereg = old_free;
   }
 }
@@ -1637,14 +1640,17 @@ static int get_table_unpack(LexState *ls, struct LHS_assign *lh, expdesc *e) {
       case VINDEXUP:
         init_exp(&key, VK, v->u.info);
         break;
-      default:
+      default: {
         luaX_syntaxerror(ls, "syntax error in \"in\" vars");
+        break;
+      }
     }
     luaK_indexed(ls->fs, e, &key);
     luaK_storevar(ls->fs, v, e);
     lh = lh->prev;
-    if (lh)
+    if (lh) {
       init_exp(e, VNONRELOC, ls->fs->freereg - 1);
+    }
   }
   removevars(ls->fs, from_var);
   return RET_ASSIGN_SKIP_ASSIGNMENTS;

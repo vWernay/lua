@@ -227,7 +227,7 @@ static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
 ** ===================================================================
 */
 
-/* @NOTE equal objects must have equal hashes; use with caution. */
+/* @NOTE: equal objects must have equal hashes; use with caution. */
 #if defined(LUAGLM_EPS_EQUAL)
   #define _glmeq(a, b) (glm::all(glm::equal((a), (b), glm::epsilon<glm_Float>())))
 #else
@@ -238,7 +238,7 @@ static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
 /// The vector-type equivalent to luaV_finishget. The 'angle' and 'axis' fields
 /// are grit-lua compatibility fields for quaternion types.
 ///
-/// @NOTE If the quaternion type has a metatable then the 'angle' and 'axis'
+/// @NOTE: If the quaternion type has a metatable then the 'angle' and 'axis'
 ///   fields are no longer parsed. Ideally all compatibility bloat will be
 ///   removed from this codebase. It is already ugly enough as-is.
 /// </summary>
@@ -989,7 +989,7 @@ LUAGLM_API glm::mat<4, 4, glm_Float> glm_tomat4x4(lua_State *L, int idx) { retur
 
 /*
 ** {==================================================================
-** @DEPRECATED grit-lua lbaselib
+** @DEPRECATED: grit-lua lbaselib
 ** ===================================================================
 */
 
@@ -1292,8 +1292,10 @@ static glm::length_t PopulateVector(lua_State *L, int idx, glm::vec<4, T> &vec, 
 /// columns vectors and their dimensions.
 /// </summary>
 static bool PopulateMatrix(lua_State *L, int idx, int top, bool fixed_size, glmMatrix &m) {
-  // Maximum number of stack values to parse from the starting "idx"
-  // idx = lua_absindex(L, idx); @NOTE: Assume 'idx' is positive.
+  // Maximum number of stack values to parse from the starting "idx". Assume
+  // 'idx' is positive.
+  //
+  // idx = lua_absindex(L, idx);
   const int stack_count = (top - idx + 1);
   const TValue *o = glm_index2value(L, idx);
 
@@ -1679,7 +1681,7 @@ LUA_API lua_Integer glm_tohash(lua_State *L, int idx, int ignore_case) {
 
 /*
 ** {==================================================================
-** @DEPRECATED grit-lua API
+** @DEPRECATED: grit-lua API
 ** ===================================================================
 */
 
@@ -1722,11 +1724,11 @@ static int glmH_tovector(lua_State *L, const TValue *o, glmVector *v) {
   Table* t = hvalue(o);
   for (int i = 0; i < 4; ++i) {
     TString *key = luaS_newlstr(L, dims[i], 1);  // luaS_newliteral
-    const TValue *slot = luaH_getstr(t, key);  // @TODO: Eventually allow TM_INDEX
+    const TValue *slot = luaH_getstr(t, key);  // @TODO: Allow TM_INDEX instead of raw-accessing
     if (ttisnumber(slot)) {
-      if (v != GLM_NULLPTR)
+      if (v != GLM_NULLPTR) {
         v->v4[i] = glm_castfloat(nvalue(slot));
-
+      }
       count++;
     }
     else {
@@ -1855,7 +1857,7 @@ LUA_API void lua_pushquat(lua_State *L, lua_VecF w, lua_VecF x, lua_VecF y, lua_
 
 /*
 ** {==================================================================
-** @DEPRECATED Extended grit-lua API
+** @DEPRECATED: Extended grit-lua API
 ** ===================================================================
 */
 
@@ -1941,7 +1943,7 @@ LUA_API void lua_pushmatrix(lua_State *L, const lua_Mat4 *matrix) {
 
 /*
 ** {==================================================================
-** Tag Method implementations. Ugly.
+** Metamethod implementations. Ugly.
 **
 ** @TODO: Profile/tune statements below.
 **

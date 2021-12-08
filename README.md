@@ -743,6 +743,7 @@ Ordered by priority.
 
 1. Cleanup testing scripts/environment and publish.
 1. Rewrite build scripts.
+1. Experiment with allowing the binding library to be compiled with ALIGNED_GENTYPES while the runtime is not. This would enable a variety of optimizations, at a small cost, while avoiding alignment headaches within the runtime.
 1. Utility API that resembles `glUniformMatrix*v`-style functions, i.e., extracting/parsing array of matrices/vectors.
 1. Improve `lua_CFloatX` struct definitions, i.e., mimic `glm::detail::storage` when anonymous structs are supported. While the struct definitions are intended to mimic the C++ GLM implementation, the strictly C-types defined with arrays-by-default would probably be better.
 1. Optimize runtime swizzling: `swizzle` and `glmVec_get`. It is likely possible to improve this operation by 15/20 percent.

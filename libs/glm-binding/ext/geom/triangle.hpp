@@ -252,7 +252,7 @@ namespace glm {
 
   /// <summary>
   /// Compute all face normals of the triangle.
-  /// @TODO @LuaGLM Commented out until binding implementation is complete.
+  /// @TODO: @LuaGLM Commented out until binding implementation is complete.
   /// </summary>
   // template<length_t L, typename T, qualifier Q>
   // GLM_GEOM_QUALIFIER void faceNormals(const Triangle<L, T, Q> &t, vec<L, T, Q> (&normals)[4]) {
@@ -264,7 +264,7 @@ namespace glm {
 
   /// <summary>
   /// Compute the directions of each edge.
-  /// @TODO @LuaGLM Commented out until binding implementation is complete.
+  /// @TODO: @LuaGLM Commented out until binding implementation is complete.
   /// </summary>
   // template<length_t L, typename T, qualifier Q>
   // GLM_GEOM_QUALIFIER void faceNormals(const Triangle<L, T, Q> &t, vec<L, T, Q> (&directions)[3]) {
@@ -692,7 +692,7 @@ namespace glm {
   }
 
   /// <summary>
-  /// @TODO Compute the closest point between two triangles.
+  /// @TODO: Compute the closest point between two triangles.
   /// </summary>
   // template<typename T, qualifier Q>
   // GLM_GEOM_QUALIFIER vec<3, T, Q> closestPoint(const Triangle<3, T, Q> &t, const Triangle<3, T, Q> &other, vec<L, T, Q> &otherPt) {
