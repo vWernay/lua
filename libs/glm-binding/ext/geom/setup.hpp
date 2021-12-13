@@ -26,7 +26,6 @@
 #include "ext/vector_extensions.hpp"
 #include "ext/quat_extensions.hpp"
 #include "ext/matrix_extensions.hpp"
-#include <lglm_string.hpp> // @LuaGLM
 
 /* @COMPAT: GLM_CONFIG_DEFAULTED_DEFAULT_CTOR introduced in 0.9.9.9 */
 #if !defined(GLM_CONFIG_DEFAULTED_DEFAULT_CTOR)

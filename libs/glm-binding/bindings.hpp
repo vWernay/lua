@@ -20,13 +20,13 @@
 #ifndef BINDING_LUA_BINDINGS_HPP
 #define BINDING_LUA_BINDINGS_HPP
 
-#define LUA_LIB
+/* Ensure linkage specification is defined; compensate for unity builds. */
 #if !defined(LUA_API_LINKAGE)
-#if defined(LUA_C_LINKAGE)
-  #define LUA_API_LINKAGE "C"
-#else
-  #define LUA_API_LINKAGE "C++"
-#endif
+  #if defined(LUA_C_LINKAGE)
+    #define LUA_API_LINKAGE "C"
+  #else
+    #define LUA_API_LINKAGE "C++"
+  #endif
 #endif
 
 #include <glm/glm.hpp>
@@ -38,13 +38,13 @@
 #include <lua.hpp>
 #include <lglm.hpp>
 extern LUA_API_LINKAGE {
-  #include "lgrit_lib.h"
-  #include "lapi.h"
-  #include "lobject.h"
-  #include "lgc.h"
-  #include "lstate.h"
-  #include "lvm.h"
-  #include "lglm_core.h"
+#include "lgrit_lib.h"
+#include "lapi.h"
+#include "lobject.h"
+#include "lgc.h"
+#include "lstate.h"
+#include "lvm.h"
+#include "lglm_core.h"
 }
 
 #if defined(LUAGLM_INCLUDE_GEOM)
@@ -59,13 +59,6 @@ extern LUA_API_LINKAGE {
   #include "ext/geom/polygon.hpp"
 #endif
 
-/* Lua Definitions */
-#define GLM_NAME(F) glm_##F
-#define GLM_NAMESPACE(NAME) glm::NAME
-
-/* Metatable name for polygon userdata. */
-#define LUAGLM_POLYGON_META "GLM_POLYGON"
-
 /* Macro for implicitly handling floating point drift where possible */
 #if defined(LUAGLM_DRIFT)
   #define glm_drift_compensate(x) glm::normalize((x))
@@ -73,29 +66,13 @@ extern LUA_API_LINKAGE {
   #define glm_drift_compensate(x) x
 #endif
 
-/* lua_gettop() macro */
-#if !defined(_gettop)
-#define _gettop(L) cast_int((L)->top - ((L)->ci->func + 1))
-#define _isvalid(L, o) (!ttisnil(o) || o != &G(L)->nilvalue)
-#endif
-
-/* TValue -> glmVector */
-#if !defined(glm_vvalue)
-#define glm_mvalue(o) glm_constmat_boundary(mvalue_ref(o))
-#define glm_vvalue(o) check_exp(ttisvector(o), glm_constvec_boundary(&vvalue_(o)))
-#define glm_v2value(o) glm_vvalue(o).v2
-#define glm_v3value(o) glm_vvalue(o).v3
-#define glm_v4value(o) glm_vvalue(o).v4
-#define glm_qvalue(o) glm_vvalue(o).q
-#endif
-
 /*
 @@ LUAGLM_ALIGNED compensate for some SIMD library functions being broken in GLM.
 */
 #if !defined(LUAGLM_ALIGNED)
-#if GLM_CONFIG_ALIGNED_GENTYPES == GLM_ENABLE && defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
-  #define LUAGLM_ALIGNED
-#endif
+  #if GLM_CONFIG_ALIGNED_GENTYPES == GLM_ENABLE && defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
+    #define LUAGLM_ALIGNED
+  #endif
 #endif
 
 /*
@@ -108,7 +85,9 @@ extern LUA_API_LINKAGE {
 #elif __has_attribute(__fallthrough__)
   #define LUAGLM_FALLTHROUGH __attribute__((__fallthrough__))
 #else
-  #define LUAGLM_FALLTHROUGH do {} while (0)  /* FALLTHROUGH */
+  #define LUAGLM_FALLTHROUGH \
+    do {                     \
+    } while (0) /* FALLTHROUGH */
 #endif
 
 /*
@@ -122,6 +101,24 @@ extern LUA_API_LINKAGE {
   #define LUAGLM_UNREACHABLE() __assume(false)
 #else
   #define LUAGLM_UNREACHABLE() lua_assert(false)
+#endif
+
+/* Inlined Lua functions */
+
+/* lua_gettop() macro */
+#if !defined(_gettop)
+  #define _gettop(L) cast_int((L)->top - ((L)->ci->func + 1))
+  #define _isvalid(L, o) (!ttisnil(o) || o != &G(L)->nilvalue)
+#endif
+
+/* TValue -> glmVector */
+#if !defined(glm_vvalue)
+  #define glm_mvalue(o) glm_constmat_boundary(mvalue_ref(o))
+  #define glm_vvalue(o) check_exp(ttisvector(o), glm_constvec_boundary(&vvalue_(o)))
+  #define glm_v2value(o) glm_vvalue(o).v2
+  #define glm_v3value(o) glm_vvalue(o).v3
+  #define glm_v4value(o) glm_vvalue(o).v4
+  #define glm_qvalue(o) glm_vvalue(o).q
 #endif
 
 /*
@@ -1564,6 +1561,9 @@ struct gLuaNotZero : gLuaTrait<typename Tr::type, false> {
 ** Generic Function API
 ** ===================================================================
 */
+
+/* Lua library function name. */
+#define GLM_NAME(F) glm_##F
 
 /* Common function declaration for all Lua-binded GLM functions. */
 #define GLM_BINDING_QUALIFIER(NAME) static int GLM_NAME(NAME)(lua_State *L)

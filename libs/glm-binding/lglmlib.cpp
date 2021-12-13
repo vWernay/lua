@@ -17,30 +17,28 @@
 
 #define lglmlib_cpp
 #if !defined(LUA_LIB)
-#define LUA_LIB
+  #define LUA_LIB
 #endif
 
-#include <functional>
 #include <algorithm>
+#include <functional>
+
+#include <lua.hpp>
+#include <lglm.hpp>
+#include "lglmlib.hpp"
+
+#include "api.hpp"
+#if defined(LUAGLM_INCLUDE_GEOM)
+  #include "geom.hpp"
+#endif
 
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 #if GLM_VERSION >= 996 /* @COMPAT: Added in 0.9.9.6 */
-#include <glm/ext/scalar_integer.hpp>
+  #include <glm/ext/scalar_integer.hpp>
 #endif
 #if GLM_VERSION >= 991 /* @COMPAT: Changed to ext/scale_constants in 0.9.9.1 */
-#include <glm/ext/scalar_constants.hpp>
-#else
-#include <glm/gtc/constants.hpp>
-#endif
-
-#include <lua.hpp>
-#include <lglm.hpp>
-
-#include "api.hpp"
-#include "lglmlib.hpp"
-#if defined(LUAGLM_INCLUDE_GEOM)
-  #include "geom.hpp"
+  #include <glm/ext/scalar_constants.hpp>
 #endif
 
 /* @TEMP: The GLM library will be force-installed by default */
@@ -48,10 +46,19 @@
   #define LUAGLM_INSTALL_METATABLES
 #endif
 
+/*
+** {==================================================================
+** Library
+** ===================================================================
+*/
+
 /* Create a "{ function, glm_function }" registry instance */
 #define REG_STR(C) #C
 #define GLM_LUA_REG(NAME) \
   { "" REG_STR(NAME), GLM_NAME(NAME) }
+
+/* glm::Name */
+#define GLM_NAMESPACE(NAME) glm::NAME
 
 /* Set a GLM constant value into the table on top of the stack. */
 #define GLM_CONSTANT(L, Name)                             \
@@ -59,12 +66,6 @@
   lua_pushnumber((L), GLM_NAMESPACE(Name)<glm_Number>()); \
   lua_setfield((L), -2, "" REG_STR(Name));                \
   LUA_MLM_END
-
-/*
-** {==================================================================
-** Library
-** ===================================================================
-*/
 
 /// <summary>
 /// Pushes onto the stack the value GLM[k], where GLM is the binding library
@@ -195,7 +196,7 @@ extern "C" {
     luaL_newlib(L, luaglm_segment2dlib); lua_setfield(L, -2, "segment2d");
     luaL_newlib(L, luaglm_circlelib); lua_setfield(L, -2, "circle");
     // The "polygon" API is a reference to the polygon metatable stored in the registry.
-    glm_newmetatable(L, LUAGLM_POLYGON_META, "polygon", luaglm_polylib);
+    glm_newmetatable(L, gLuaPolygon<>::Metatable(), "polygon", luaglm_polylib);
 #endif
 #if defined(CONSTANTS_HPP) || defined(EXT_SCALAR_CONSTANTS_HPP)
   #if GLM_VERSION >= 997  // @COMPAT: Added in 0.9.9.7

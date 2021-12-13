@@ -10,20 +10,45 @@
 /*
 ** For default builds this file will be compiled as C++ and then linked against
 ** the rest of the Lua compiled in C. Some care is required when crossing
-** language boundaries and linking against the rest of the code base.
-** lglm_string.hpp is a supplemental header used for emulating GLM specific
-** features with the above in mind.
+** language boundaries and linking. lglm_string.hpp is a supplemental header
+** used for emulating GLM specific features with that in mind.
 **
-@@ LUA_C_LINKAGE is a marker for linking objects against a Lua runtime built
-**  with a different linkage specification, e.g., linking C++ objects against
-**  a runtime compiled with C.
-@@ LUA_API_LINKAGE is a mark for the linkage specification to core API functions
+@@ LUA_C_LINKAGE is a flag for defining the linkage specification of the Lua
+** core, libraries, and interpreter.
+@@ LUA_API_LINKAGE is a mark for the above linkage specification.
 */
 #if defined(LUA_C_LINKAGE)
   #define LUA_API_LINKAGE "C"
 #else
   #define LUA_API_LINKAGE "C++"
 #endif
+
+/* Ensure the experimental flag is enabled for GLM headers. */
+#if !defined(GLM_ENABLE_EXPERIMENTAL)
+  #define GLM_ENABLE_EXPERIMENTAL
+#endif
+
+/* strlen / strcmp */
+#include <cstring>
+
+/*
+** @COMPAT: Fix for missing "ext/quaternion_common.hpp" include in type_quat.hpp
+**  was introduced in 0.9.9.9. Note, "detail/qualifier.hpp" forward declares the
+**  quaternion type so this include must be placed before "type_quat.hpp".
+*/
+#include <glm/glm.hpp>
+#if GLM_VERSION < 999
+#include <glm/gtc/quaternion.hpp>
+#endif
+#include <glm/detail/type_quat.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/common.hpp>
+#include <glm/gtx/compatibility.hpp>
+#include <glm/gtx/exterior_product.hpp>
+#include <glm/gtx/vector_query.hpp>
+#include <glm/ext/scalar_relational.hpp>
+#include <glm/ext/matrix_relational.hpp>
+#include <glm/ext/matrix_transform.hpp>
 
 extern LUA_API_LINKAGE {
 #include "luaconf.h"
@@ -44,16 +69,6 @@ extern LUA_API_LINKAGE {
 
 #include "lglm.hpp"
 #include "lglm_string.hpp"
-
-#include <glm/glm.hpp>
-#include <glm/fwd.hpp>
-#include <glm/ext.hpp>
-
-#include <glm/gtx/quaternion.hpp>
-#include <glm/gtx/common.hpp>
-#include <glm/gtx/exterior_product.hpp>
-#include <glm/ext/matrix_relational.hpp>
-#include <glm/ext/matrix_transform.hpp>
 
 /* Ensure C boundary references correct GLM library. */
 #if LUAGLM_LIBVERSION != GLM_VERSION

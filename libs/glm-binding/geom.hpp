@@ -6,9 +6,6 @@
 */
 #ifndef BINDING_GEOM_HPP
 #define BINDING_GEOM_HPP
-#if defined(LUAGLM_INCLUDE_GEOM)
-
-#include "lapi.h"
 
 #include "lglm.hpp"
 #include "lglm_core.h"
@@ -352,18 +349,19 @@ struct gLuaPolygon : gLuaAbstractTrait<glm::Polygon<3, T>> {
   using point_trait = gLuaTrait<typename glm::Polygon<3, T>::point_type>;  // @PointBinding
 
   static GLM_CONSTEXPR const char *Label() { return "Polygon"; }
+  static GLM_CONSTEXPR const char *Metatable() { return "GLM_POLYGON"; }
 
   LUA_TRAIT_QUALIFIER GLM_CONSTEXPR glm::Polygon<3, T> zero() {
     return glm::Polygon<3, T>(GLM_NULLPTR);
   }
 
   LUA_TRAIT_QUALIFIER bool Is(lua_State *L, int idx) {
-    return luaL_testudata(L, idx, LUAGLM_POLYGON_META) != GLM_NULLPTR;
+    return luaL_testudata(L, idx, Metatable()) != GLM_NULLPTR;
   }
 
   LUA_TRAIT_QUALIFIER glm::Polygon<3, T> Next(gLuaBase &LB) {
     void *ptr = GLM_NULLPTR;
-    if ((ptr = luaL_checkudata(LB.L, LB.idx++, LUAGLM_POLYGON_META)) != GLM_NULLPTR) {
+    if ((ptr = luaL_checkudata(LB.L, LB.idx++, Metatable())) != GLM_NULLPTR) {
       glm::Polygon<3, T> result = *(static_cast<glm::Polygon<3, T> *>(ptr));
       result.stack_idx = LB.idx - 1;
       result.p->Validate(LB.L);
@@ -1550,7 +1548,7 @@ GLM_BINDING_QUALIFIER(polygon_new) {
   polygon->p = GLM_NULLPTR;
 
   // Setup metatable.
-  if (luaL_getmetatable(LB.L, LUAGLM_POLYGON_META) == LUA_TTABLE) {  // [..., poly, meta]
+  if (luaL_getmetatable(LB.L, gLuaPolygon<>::Metatable()) == LUA_TTABLE) {  // [..., poly, meta]
     lua_setmetatable(LB.L, -2);  // [..., poly]
     LuaCrtAllocator<gLuaPolygon<>::point_trait::type> allocator(LB.L);
 
@@ -1591,7 +1589,7 @@ GLM_BINDING_QUALIFIER(polygon_new) {
 }
 
 GLM_BINDING_QUALIFIER(polygon_to_string) {
-  gLuaPolygon<>::type *ud = static_cast<gLuaPolygon<>::type *>(luaL_checkudata(L, 1, LUAGLM_POLYGON_META));
+  gLuaPolygon<>::type *ud = static_cast<gLuaPolygon<>::type *>(luaL_checkudata(L, 1, gLuaPolygon<>::Metatable()));
   if (l_likely(ud->p != GLM_NULLPTR)) {
     ud->p->Validate(L);
     lua_pushfstring(L, "Polygon<%I>", ud->p->size());
@@ -1605,7 +1603,7 @@ GLM_BINDING_QUALIFIER(polygon_to_string) {
 /// Garbage collect an allocated polygon userdata.
 /// </summary>
 GLM_BINDING_QUALIFIER(polygon__gc) {
-  gLuaPolygon<>::type *ud = static_cast<gLuaPolygon<>::type *>(luaL_checkudata(L, 1, LUAGLM_POLYGON_META));
+  gLuaPolygon<>::type *ud = static_cast<gLuaPolygon<>::type *>(luaL_checkudata(L, 1, gLuaPolygon<>::Metatable()));
   if (l_likely(ud->p != GLM_NULLPTR)) {
     LuaCrtAllocator<void> allocator(L);
     ud->p->Validate(L);
@@ -1647,7 +1645,7 @@ GLM_BINDING_QUALIFIER(polygon__index) {
     return gLuaBase::Push(LB);  // nil
   }
   // Attempt to fetch the contents from the polygon library.
-  else if (luaL_getmetatable(LB.L, LUAGLM_POLYGON_META) == LUA_TTABLE) {
+  else if (luaL_getmetatable(LB.L, gLuaPolygon<>::Metatable()) == LUA_TTABLE) {
     lua_pushvalue(LB.L, LB.idx);
     lua_rawget(LB.L, -2);
     return 1;  // Have Lua remove the polygon metatable from the stack.
@@ -1773,5 +1771,4 @@ static const luaL_Reg luaglm_polylib[] = {
 
 /* }================================================================== */
 
-#endif
 #endif

@@ -25,9 +25,9 @@
 
 #include <glm/glm.hpp>
 #if GLM_VERSION >= 991  // @COMPAT: Changed to ext/quaternion_common in 0.9.9.1
-#include <glm/ext/quaternion_common.hpp>
+  #include <glm/ext/quaternion_common.hpp>
 #else
-#include <glm/gtc/quaternion.hpp>
+  #include <glm/gtc/quaternion.hpp>
 #endif
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/fast_square_root.hpp>
@@ -38,7 +38,7 @@
 #include "matrix_extensions.hpp"
 
 #if GLM_MESSAGES == GLM_ENABLE && !defined(GLM_EXT_INCLUDED)
-#	pragma message("GLM: GLM_EXT_quat_ext extension included")
+  #pragma message("GLM: GLM_EXT_quat_ext extension included")
 #endif
 
 namespace glm {

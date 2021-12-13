@@ -9,9 +9,6 @@
 */
 #ifndef lglm_h
 #define lglm_h
-#if !defined(GLM_ENABLE_EXPERIMENTAL)
-  #define GLM_ENABLE_EXPERIMENTAL
-#endif
 
 #include "lua.hpp"
 #include <glm/glm.hpp>

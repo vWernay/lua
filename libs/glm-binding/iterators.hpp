@@ -8,8 +8,8 @@
 #ifndef BINDING_ITERATORS_HPP
 #define BINDING_ITERATORS_HPP
 
-#include <iterator>
 #include <functional>
+#include <iterator>
 #include <lua.hpp>
 
 #include "bindings.hpp"

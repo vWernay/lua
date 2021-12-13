@@ -16,7 +16,7 @@
 #include "triangle.hpp"
 
 #if GLM_MESSAGES == GLM_ENABLE && !defined(GLM_EXT_INCLUDED)
-#	pragma message("GLM: GLM_EXT_GEOM_polygon extension included")
+  #pragma message("GLM: GLM_EXT_GEOM_polygon extension included")
 #endif
 
 namespace glm {

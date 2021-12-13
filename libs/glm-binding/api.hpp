@@ -10,6 +10,11 @@
 #ifndef BINDING_API_HPP
 #define BINDING_API_HPP
 
+/* Ensure experimental headers are included with glm/ext.hpp */
+#if !defined(GLM_ENABLE_EXPERIMENTAL)
+  #define GLM_ENABLE_EXPERIMENTAL
+#endif
+
 /*
 ** Flags used by the binding API.
 **
@@ -61,12 +66,12 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/matrix_factorisation.hpp>
 #include <glm/detail/_vectorize.hpp>
-#if GLM_VERSION >= 994 && GLM_VERSION <= 997
 /* @COMPAT: introduced in 0.9.9.4 and missing from ext.hpp until 0.9.9.8 */
-#include <glm/ext/matrix_common.hpp>
+#if GLM_VERSION >= 994 && GLM_VERSION <= 997
+  #include <glm/ext/matrix_common.hpp>
 #endif
 #if GLM_HAS_CXX11_STL
-#include <glm/gtx/hash.hpp>
+  #include <glm/gtx/hash.hpp>
 #endif
 
 #include "ext/vector_extensions.hpp"
