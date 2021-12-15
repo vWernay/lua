@@ -105,9 +105,9 @@ typedef GLM_INT_TYPE glm_Integer;
 ** 'const detail::float_t<long double>'" compilation errors.
 */
 #if LUA_FLOAT_TYPE == LUA_FLOAT_LONGDOUBLE
-  typedef double glm_Number;
+typedef double glm_Number;
 #else
-  typedef lua_Number glm_Number;
+typedef lua_Number glm_Number;
 #endif
 
 /* lib:LuaGLM requirements */
@@ -416,14 +416,23 @@ union glmMatrixBoundary {
 /* Additional defensive checks around the aliasing and alignment of lua_Mat4 and glmMatrix. */
 #if GLM_HAS_STATIC_ASSERT
   GLM_STATIC_ASSERT(true
+    && sizeof(lua_CFloat4) == sizeof(lua_Float4)
     && sizeof(lua_Float4) == sizeof(glmVector)
-    && offsetof(lua_Float4, x) == offsetof(glmVector, v4.x)
-    && offsetof(lua_Float4, y) == offsetof(glmVector, v4.y)
-    && offsetof(lua_Float4, z) == offsetof(glmVector, v4.z)
-    && offsetof(lua_Float4, w) == offsetof(glmVector, v4.w)
+    && offsetof(lua_Float4, raw[0]) == offsetof(glmVector, v4.x)
+    && offsetof(lua_Float4, raw[1]) == offsetof(glmVector, v4.y)
+    && offsetof(lua_Float4, raw[2]) == offsetof(glmVector, v4.z)
+    && offsetof(lua_Float4, raw[3]) == offsetof(glmVector, v4.w)
     && offsetof(glmVector, v2.x) == offsetof(glmVector, v4.x)
     && offsetof(glmVector, v3.x) == offsetof(glmVector, v4.x), "Inconsistent Structures: lua_Float4 / glm::vec<4, glm_Float>"
   );
+
+  #if LUAGLM_USE_ANONYMOUS_STRUCT
+  GLM_STATIC_ASSERT(true
+    && offsetof(lua_Float4, x) == offsetof(glmVector, v4.x)
+    && offsetof(lua_Float4, y) == offsetof(glmVector, v4.y)
+    && offsetof(lua_Float4, z) == offsetof(glmVector, v4.z)
+    && offsetof(lua_Float4, w) == offsetof(glmVector, v4.w), "Inconsistent Offsets");
+  #endif
 
   GLM_STATIC_ASSERT(true
     && sizeof(grit_length_t) == sizeof(glm::length_t)

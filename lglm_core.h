@@ -87,7 +87,7 @@ static LUA_INLINE int vecgeti (const TValue *obj, lua_Integer n, StkId res) {
 #endif
 
     /* Assumes a packed x,y,z,w struct */
-    setfltvalue(s2v(res), cast_num((&(vvalue_(obj).x))[n - 1]));
+    setfltvalue(s2v(res), cast_num(vvalue_(obj).raw[n - 1]));
     return LUA_TNUMBER;
   }
   return LUA_TNONE;
@@ -115,7 +115,7 @@ static LUA_INLINE int vecgets (const TValue *obj, const char *k, StkId res) {
 #if LUAGLM_QUAT_WXYZ  /* quaternion has WXYZ layout */
     if (ttypetag(obj) == LUA_VQUAT) _n = ((_n + 1) % 4);
 #endif
-    setfltvalue(s2v(res), cast_num((&(vvalue_(obj).x))[_n]));
+    setfltvalue(s2v(res), cast_num(vvalue_(obj).raw[_n]));
     return LUA_TNUMBER;
   }
   return LUA_TNONE;

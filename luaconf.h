@@ -793,7 +793,9 @@
 ** without modifying the main part of the file.
 */
 
-#if defined(_MSC_VER)
+#if defined(LUA_USE_C89)
+  #define LUA_INLINE
+#elif defined(_MSC_VER)
   #define LUA_INLINE __forceinline
 #elif __has_attribute(__always_inline__)
   #define LUA_INLINE inline __attribute__((__always_inline__))
@@ -871,8 +873,7 @@
 #endif
 
 /*
-** @EXPERIMENT: Alignment macro for improved compiler intrinsics. This macro is
-** temporary and will likely change in future commits.
+@@ LUAGLM_ALIGN Alignment macro for improved compiler intrinsics.
 **
 ** @TODO: Technically should follow GLM and only allow alignment when:
 **    1. GLM_CONFIG_XYZW_ONLY is not enabled; and
@@ -895,6 +896,25 @@
 #else
   #define LUAGLM_ALIGNED_TYPE(type, name) type name
   #define LUAGLM_ALIGNED_TYPEDEF(type, name) typedef type name
+#endif
+
+/*
+@@ LUAGLM_USE_ANONYMOUS_STRUCT If the compiler supports anonymous structs. This
+** implementation should still be C89/C99 compatible where possible; inspired by
+** cglm.
+*/
+#if !defined(LUAGLM_USE_ANONYMOUS_STRUCT)
+  #if defined(LUAGLM_NO_ANONYMOUS_STRUCT)
+    #define LUAGLM_USE_ANONYMOUS_STRUCT 0
+  #elif defined(_MSVC_VER)                                     \
+  || (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 20112L) \
+  || (defined(__cplusplus) && __cplusplus >= 201103L)
+    #define LUAGLM_USE_ANONYMOUS_STRUCT 1
+  #elif defined(_MSC_VER) && _MSC_VER >= 1900
+    #define LUAGLM_USE_ANONYMOUS_STRUCT 1
+  #else
+    #define LUAGLM_USE_ANONYMOUS_STRUCT 0
+  #endif
 #endif
 
 /*
@@ -937,16 +957,27 @@
 
 /* vector/matrix floating point type */
 typedef LUA_VEC_NUMBER lua_VecF;
-typedef struct lua_CFloat4 { lua_VecF x, y, z, w; } lua_CFloat4;
-typedef struct lua_CFloat3 { lua_VecF x, y, z; } lua_CFloat3;
-typedef struct lua_CFloat2 { lua_VecF x, y; } lua_CFloat2;
+typedef lua_VecF lua_CFloat2[2];
+typedef lua_VecF lua_CFloat3[3];
+typedef lua_VecF lua_CFloat4[4];
 
 /*
 ** grit-lua vector and quat extension. This structure is intended to be a
 ** byte-wise equivalent/alias to glmVector in lglm.hpp and operates within the C
 ** boundaries of the Lua runtime.
 */
-LUAGLM_ALIGNED_TYPEDEF(struct, lua_CFloat4) lua_Float4;
+LUAGLM_ALIGNED_TYPEDEF(union, lua_Float4) {
+  lua_CFloat4 raw;
+#if LUAGLM_USE_ANONYMOUS_STRUCT
+  struct {
+    lua_VecF x;
+    lua_VecF y;
+    lua_VecF z;
+    lua_VecF w;
+  };
+#endif
+}
+lua_Float4;
 
 /*
 ** grit-lua column-oriented matrix extension. This structure is intended to be a
@@ -974,6 +1005,8 @@ LUAGLM_ALIGNED_TYPEDEF(struct, lua_CFloat4) lua_Float4;
 ** @TODO: Consider preventing the use of 'GLM_FORCE_DEFAULT_ALIGNED_GENTYPES'
 ** without 'GLM_FORCE_XYZW_ONLY' being defined in the meantime. 'matgeti' in
 ** lglm.cpp compensates for this issue, however, external dependencies may not.
+**
+** @TODO: LUAGLM_USE_ANONYMOUS_STRUCT support?
 */
 LUAGLM_ALIGNED_TYPEDEF(struct, lua_Mat4) {
   union Columns {

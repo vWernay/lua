@@ -294,33 +294,21 @@ static void vec_finishget(lua_State *L, const TValue *obj, TValue *key, StkId re
 ///
 /// Returning the number of copied vector fields on success, zero on failure.
 /// </summary>
-template<glm::length_t L, typename T, glm::qualifier Q>
-static glm::length_t swizzle(const glm::vec<L, T, Q> &v, const char *key, lua_Float4 &out) {
+template<glm::length_t L>
+static glm::length_t swizzle(const lua_Float4 &v, const char *key, lua_Float4 &out) {
   glm::length_t i = 0;
   for (; i < 4 && key[i] != '\0'; ++i) {
     switch (key[i]) {
-      case 'x': GLM_IF_CONSTEXPR (L < 1) return 0; (&out.x)[i] = static_cast<lua_VecF>(v[0]); break;
-      case 'y': GLM_IF_CONSTEXPR (L < 2) return 0; (&out.x)[i] = static_cast<lua_VecF>(v[1]); break;
-      case 'z': GLM_IF_CONSTEXPR (L < 3) return 0; (&out.x)[i] = static_cast<lua_VecF>(v[2]); break;
-      case 'w': GLM_IF_CONSTEXPR (L < 4) return 0; (&out.x)[i] = static_cast<lua_VecF>(v[3]); break;
+      case 'x': GLM_IF_CONSTEXPR (L < 1) return 0; out.raw[i] = static_cast<lua_VecF>(v.raw[0]); break;
+      case 'y': GLM_IF_CONSTEXPR (L < 2) return 0; out.raw[i] = static_cast<lua_VecF>(v.raw[1]); break;
+      case 'z': GLM_IF_CONSTEXPR (L < 3) return 0; out.raw[i] = static_cast<lua_VecF>(v.raw[2]); break;
+      case 'w': GLM_IF_CONSTEXPR (L < 4) return 0; out.raw[i] = static_cast<lua_VecF>(v.raw[3]); break;
       default: {
         return 0;
       }
     }
   }
   return i;
-}
-
-/// <summary>
-/// Runtime swizzle operation for quaternions. This implementation is
-/// GLM_FORCE_QUAT_DATA_XYZW agnostic.
-///
-/// Returning the number of copied quaternion fields on success, zero on failure.
-/// </summary>
-template<typename T, glm::qualifier Q>
-static LUA_INLINE glm::length_t swizzle(const glm::qua<T, Q> &q, const char *key, lua_Float4 &out) {
-  const glm::vec<4, T, Q> v(q.x, q.y, q.z, q.w);
-  return swizzle(v, key, out);
 }
 
 int glmVec_rawgeti(const TValue *obj, lua_Integer n, StkId res) {
@@ -397,22 +385,29 @@ void glmVec_get(lua_State *L, const TValue *obj, TValue *key, StkId res) {
     }
     // Allow runtime swizzle operations prior to metamethod access.
     else if (str_len <= 4) {
-      const glmVector &v = glm_vvalue(obj);
-
       lua_Float4 out;
       glm::length_t count = 0;
       switch (ttypetag(obj)) {
-        case LUA_VVECTOR2: count = swizzle(v.v2, str, out); break;
-        case LUA_VVECTOR3: count = swizzle(v.v3, str, out); break;
-        case LUA_VVECTOR4: count = swizzle(v.v4, str, out); break;
-        case LUA_VQUAT: count = swizzle(v.q, str, out); break;
+        case LUA_VVECTOR2: count = swizzle<2>(vvalue_(obj), str, out); break;
+        case LUA_VVECTOR3: count = swizzle<3>(vvalue_(obj), str, out); break;
+        case LUA_VVECTOR4: count = swizzle<4>(vvalue_(obj), str, out); break;
+        case LUA_VQUAT: {
+#if LUAGLM_QUAT_WXYZ  // quaternion has WXYZ layout
+          const lua_Float4& v = vvalue_(obj);
+          const lua_Float4 swap = { { v.raw[1], v.raw[2], v.raw[3], v.raw[0] } };
+          count = swizzle<4>(swap, str, out);
+#else
+          count = swizzle<4>(vvalue_(obj), str, out);
+#endif
+          break;
+        }
         default: {
           break;
         }
       }
 
       switch (count) {
-        case 1: setfltvalue(s2v(res), cast_num(out.x)); return;
+        case 1: setfltvalue(s2v(res), cast_num(out.raw[0])); return;
         case 2: setvvalue(s2v(res), out, LUA_VVECTOR2); return;
         case 3: setvvalue(s2v(res), out, LUA_VVECTOR3); return;
         case 4: {
@@ -420,8 +415,8 @@ void glmVec_get(lua_State *L, const TValue *obj, TValue *key, StkId res) {
           // Keep quaternion semantics.
           if (ttisquat(obj) && glm::isNormalized(glm_vec_boundary(&out).v4, glm::epsilon<glm_Float>())) {
 #if LUAGLM_QUAT_WXYZ  // quaternion has WXYZ layout
-            lua_Float4 swap = out;
-            out = { swap.w, swap.x, swap.y, swap.z };
+            const lua_Float4& swap = out;
+            out = { { swap.raw[3], swap.raw[0], swap.raw[1], swap.raw[2] } };
 #endif
             setvvalue(s2v(res), out, LUA_VQUAT);
           }
@@ -918,7 +913,6 @@ LUAGLM_API int glm_pushvec_quat(lua_State *L, const glmVector &q) {
 
 LUAGLM_API int glm_pushmat(lua_State *L, const glmMatrix &m) {
   GCMatrix *mat = GLM_NULLPTR;
-
 #if defined(LUA_USE_APICHECK)
   const glm::length_t m_size = LUAGLM_MATRIX_COLS(m.dimensions);
   const glm::length_t m_secondary = LUAGLM_MATRIX_ROWS(m.dimensions);
@@ -1629,19 +1623,19 @@ LUA_API int glm_unpack_vector(lua_State *L, int idx) {
   const TValue *o = glm_index2value(L, idx);
   switch (ttypetag(o)) {
     case LUA_VVECTOR2:
-      lua_pushnumber(L, cast_num(vecvalue(o).x));
-      lua_pushnumber(L, cast_num(vecvalue(o).y));
+      lua_pushnumber(L, cast_num(vecvalue(o).raw[0]));
+      lua_pushnumber(L, cast_num(vecvalue(o).raw[1]));
       return 2;
     case LUA_VVECTOR3:
-      lua_pushnumber(L, cast_num(vecvalue(o).x));
-      lua_pushnumber(L, cast_num(vecvalue(o).y));
-      lua_pushnumber(L, cast_num(vecvalue(o).z));
+      lua_pushnumber(L, cast_num(vecvalue(o).raw[0]));
+      lua_pushnumber(L, cast_num(vecvalue(o).raw[1]));
+      lua_pushnumber(L, cast_num(vecvalue(o).raw[2]));
       return 3;
     case LUA_VVECTOR4:
-      lua_pushnumber(L, cast_num(vecvalue(o).x));
-      lua_pushnumber(L, cast_num(vecvalue(o).y));
-      lua_pushnumber(L, cast_num(vecvalue(o).z));
-      lua_pushnumber(L, cast_num(vecvalue(o).w));
+      lua_pushnumber(L, cast_num(vecvalue(o).raw[0]));
+      lua_pushnumber(L, cast_num(vecvalue(o).raw[1]));
+      lua_pushnumber(L, cast_num(vecvalue(o).raw[2]));
+      lua_pushnumber(L, cast_num(vecvalue(o).raw[3]));
       return 4;
     case LUA_VQUAT:
       lua_pushnumber(L, cast_num(glm_qvalue(o).w));
@@ -1706,7 +1700,7 @@ LUA_API lua_Integer glm_tohash(lua_State *L, int idx, int ignore_case) {
 
 /* Workaround for GCC 4.8.X warning; GLM supports GCC 4.6 and higher */
 #if defined(__GNUC__) && __GNUC__ < 5
-  #define FLOAT4_INIT() {0, 0, 0, 0}
+  #define FLOAT4_INIT() { {0, 0, 0, 0} }
 #else
   #define FLOAT4_INIT() {}
 #endif
@@ -1798,19 +1792,19 @@ static int tovector(lua_State *L, int idx, lua_Float4 *f4) {
   if (f4 != GLM_NULLPTR) {
     if (novariant(variant) == LUA_TVECTOR) {
   #if LUAGLM_QUAT_WXYZ
-      f4->x = ((variant == LUA_VQUAT) ? v.q.x : v.v4.x);
-      f4->y = ((variant == LUA_VQUAT) ? v.q.y : v.v4.y);
-      f4->z = ((variant == LUA_VQUAT) ? v.q.z : v.v4.z);
-      f4->w = ((variant == LUA_VQUAT) ? v.q.w : v.v4.w);
+      f4->raw[0] = ((variant == LUA_VQUAT) ? v.q.x : v.v4.x);
+      f4->raw[1] = ((variant == LUA_VQUAT) ? v.q.y : v.v4.y);
+      f4->raw[2] = ((variant == LUA_VQUAT) ? v.q.z : v.v4.z);
+      f4->raw[3] = ((variant == LUA_VQUAT) ? v.q.w : v.v4.w);
   #else
-      f4->x = v.v4.x;
-      f4->y = v.v4.y;
-      f4->z = v.v4.z;
-      f4->w = v.v4.w;
+      f4->raw[0] = v.v4.x;
+      f4->raw[1] = v.v4.y;
+      f4->raw[2] = v.v4.z;
+      f4->raw[3] = v.v4.w;
   #endif
     }
     else if (variant == LUA_VVECTOR1) {
-      f4->x = v.v4.x;
+      f4->raw[0] = v.v4.x;
     }
   }
 
@@ -1824,47 +1818,47 @@ LUA_API int lua_isquat(lua_State *L, int idx) { return isvector(L, idx) == LUA_V
 
 LUA_API void lua_checkvector2(lua_State *L, int idx, lua_VecF *x, lua_VecF *y) {
   checkvector(L, idx, LUA_VVECTOR2, GLM_STRING_VECTOR2);
-  if (x != GLM_NULLPTR) *x = f4.x;
-  if (y != GLM_NULLPTR) *y = f4.y;
+  if (x != GLM_NULLPTR) *x = f4.raw[0];
+  if (y != GLM_NULLPTR) *y = f4.raw[1];
 }
 
 LUA_API void lua_checkvector3(lua_State *L, int idx, lua_VecF *x, lua_VecF *y, lua_VecF *z) {
   checkvector(L, idx, LUA_VVECTOR3, GLM_STRING_VECTOR3);
-  if (x != GLM_NULLPTR) *x = f4.x;
-  if (y != GLM_NULLPTR) *y = f4.y;
-  if (z != GLM_NULLPTR) *z = f4.z;
+  if (x != GLM_NULLPTR) *x = f4.raw[0];
+  if (y != GLM_NULLPTR) *y = f4.raw[1];
+  if (z != GLM_NULLPTR) *z = f4.raw[2];
 }
 
 LUA_API void lua_checkvector4(lua_State *L, int idx, lua_VecF *x, lua_VecF *y, lua_VecF *z, lua_VecF *w) {
   checkvector(L, idx, LUA_VVECTOR4, GLM_STRING_VECTOR4);
-  if (x != GLM_NULLPTR) *x = f4.x;
-  if (y != GLM_NULLPTR) *y = f4.y;
-  if (z != GLM_NULLPTR) *z = f4.z;
-  if (w != GLM_NULLPTR) *w = f4.w;
+  if (x != GLM_NULLPTR) *x = f4.raw[0];
+  if (y != GLM_NULLPTR) *y = f4.raw[1];
+  if (z != GLM_NULLPTR) *z = f4.raw[2];
+  if (w != GLM_NULLPTR) *w = f4.raw[3];
 }
 
 LUA_API void lua_checkquat(lua_State *L, int idx, lua_VecF *w, lua_VecF *x, lua_VecF *y, lua_VecF *z) {
   checkvector(L, idx, LUA_VQUAT, GLM_STRING_QUATERN);
-  if (w != GLM_NULLPTR) *w = f4.w;
-  if (x != GLM_NULLPTR) *x = f4.x;
-  if (y != GLM_NULLPTR) *y = f4.y;
-  if (z != GLM_NULLPTR) *z = f4.z;
+  if (w != GLM_NULLPTR) *w = f4.raw[3];
+  if (x != GLM_NULLPTR) *x = f4.raw[0];
+  if (y != GLM_NULLPTR) *y = f4.raw[1];
+  if (z != GLM_NULLPTR) *z = f4.raw[2];
 }
 
 LUA_API void lua_pushvector2(lua_State *L, lua_VecF x, lua_VecF y) {
-  lua_pushvector(L, lua_Float4{ x, y, 0, 0 }, LUA_VVECTOR2);
+  lua_pushvector(L, lua_Float4{ { x, y, 0, 0 } }, LUA_VVECTOR2);
 }
 
 LUA_API void lua_pushvector3(lua_State *L, lua_VecF x, lua_VecF y, lua_VecF z) {
-  lua_pushvector(L, lua_Float4{ x, y, z, 0 }, LUA_VVECTOR3);
+  lua_pushvector(L, lua_Float4{ { x, y, z, 0 } }, LUA_VVECTOR3);
 }
 
 LUA_API void lua_pushvector4(lua_State *L, lua_VecF x, lua_VecF y, lua_VecF z, lua_VecF w) {
-  lua_pushvector(L, lua_Float4{ x, y, z, w }, LUA_VVECTOR4);
+  lua_pushvector(L, lua_Float4{ { x, y, z, w } }, LUA_VVECTOR4);
 }
 
 LUA_API void lua_pushquat(lua_State *L, lua_VecF w, lua_VecF x, lua_VecF y, lua_VecF z) {
-  lua_pushvector(L, lua_Float4{ x, y, z, w }, LUA_VQUAT);
+  lua_pushvector(L, lua_Float4{ { x, y, z, w } }, LUA_VQUAT);
 }
 
 /* }================================================================== */
@@ -1888,7 +1882,7 @@ LUA_API void lua_pushvector(lua_State *L, lua_Float4 f4, int variant) {
   if (l_likely(novariant(variant) == LUA_TVECTOR)) {
 #if LUAGLM_QUAT_WXYZ  // quaternion has WXYZ layout
     if (variant == LUA_VQUAT)
-      f4 = lua_Float4{ f4.w, f4.x, f4.y, f4.z };
+      f4 = lua_Float4{ { f4.raw[3], f4.raw[0], f4.raw[1], f4.raw[2] } };
 #endif
     lua_lock(L);
     setvvalue(s2v(L->top), f4, cast_byte(withvariant(variant)));
@@ -1896,7 +1890,7 @@ LUA_API void lua_pushvector(lua_State *L, lua_Float4 f4, int variant) {
     lua_unlock(L);
   }
   else if (variant == LUA_VVECTOR1)
-    lua_pushnumber(L, cast_num(f4.x));
+    lua_pushnumber(L, cast_num(f4.raw[0]));
   else {
 #if defined(LUA_USE_APICHECK)
     luaG_runerror(L, INVALID_VECTOR_TYPE);
@@ -1908,7 +1902,7 @@ LUA_API void lua_pushvector(lua_State *L, lua_Float4 f4, int variant) {
 
 LUA_API void lua_pushquatf4(lua_State *L, lua_Float4 f4) {
 #if LUAGLM_QUAT_WXYZ  // quaternion has WXYZ layout
-  f4 = lua_Float4{ f4.w, f4.x, f4.y, f4.z };
+  f4 = lua_Float4{ { f4.raw[3], f4.raw[0], f4.raw[1], f4.raw[2] } };
 #endif
   lua_lock(L);
   setvvalue(s2v(L->top), f4, LUA_VQUAT);

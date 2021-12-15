@@ -99,20 +99,20 @@ static void dumpInteger (DumpState *D, lua_Integer x) {
 static void dumpVectorType(DumpState *D, lua_Float4 v, int t) {
   switch (t) {
     case LUA_VVECTOR2:
-      dumpVar(D, v.x);
-      dumpVar(D, v.y);
+      dumpVar(D, v.raw[0]);
+      dumpVar(D, v.raw[1]);
       break;
     case LUA_VVECTOR3:
-      dumpVar(D, v.x);
-      dumpVar(D, v.y);
-      dumpVar(D, v.z);
+      dumpVar(D, v.raw[0]);
+      dumpVar(D, v.raw[1]);
+      dumpVar(D, v.raw[2]);
       break;
     case LUA_VVECTOR4:
     case LUA_VQUAT:
-      dumpVar(D, v.x);
-      dumpVar(D, v.y);
-      dumpVar(D, v.z);
-      dumpVar(D, v.w);
+      dumpVar(D, v.raw[0]);
+      dumpVar(D, v.raw[1]);
+      dumpVar(D, v.raw[2]);
+      dumpVar(D, v.raw[3]);
       break;
     default:
       break;
