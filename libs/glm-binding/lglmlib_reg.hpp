@@ -145,6 +145,12 @@ GLM_LUA_REG(ilogb),
 
 #if defined(EXPONENTIAL_HPP) || defined(GTX_EXTERIOR_PRODUCT_HPP) || defined(EXT_QUATERNION_GEOMETRIC_HPP)
 GLM_LUA_REG(cross),
+GLM_LUA_REG(crossXAxis), /* LUA_VECTOR_EXTENSIONS */
+GLM_LUA_REG(crossYAxis),
+GLM_LUA_REG(crossZAxis),
+GLM_LUA_REG(xAxisCross),
+GLM_LUA_REG(yAxisCross),
+GLM_LUA_REG(zAxisCross),
 #endif
 
 #if defined(GEOMETRIC_HPP)

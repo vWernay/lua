@@ -77,8 +77,6 @@ extern LUA_API_LINKAGE {
 
 /*
 @@ LUAGLM_FALLTHROUGH Macro for informing the compiler a fallthrough is intentional.
-**
-** Note, ICC/ICPC (as of 2021.4.0) will generate an incorrect warnings for [[fallthrough]].
 */
 #if defined __has_cpp_attribute && __has_cpp_attribute(fallthrough) && !defined(__INTEL_COMPILER)
   #define LUAGLM_FALLTHROUGH [[fallthrough]]
@@ -1162,30 +1160,30 @@ struct gLuaNotZero : gLuaTrait<typename Tr::type, false> {
 #define _VA_NARGS_COUNT_MAX(...) _VA_NARGS_EXPAND((__VA_ARGS__, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0))
 #define _VA_NARGS_COUNT 10
 
-#define _VA_NARGS_OVERLOAD_MACRO2(name, count) name##count
-#define _VA_NARGS_OVERLOAD_MACRO1(name, count) _VA_NARGS_OVERLOAD_MACRO2(name, count)
-#define _VA_NARGS_OVERLOAD_MACRO(name, count) _VA_NARGS_OVERLOAD_MACRO1(name, count)
-#define VA_NARGS_CALL_OVERLOAD(name, ...) _VA_NARGS_GLUE(_VA_NARGS_OVERLOAD_MACRO(name, _VA_NARGS_COUNT_MAX(__VA_ARGS__)), (__VA_ARGS__))
+#define _VA_NARGS_OVERLOAD_MACRO2(Name, count) Name##count
+#define _VA_NARGS_OVERLOAD_MACRO1(Name, count) _VA_NARGS_OVERLOAD_MACRO2(Name, count)
+#define _VA_NARGS_OVERLOAD_MACRO(Name, count) _VA_NARGS_OVERLOAD_MACRO1(Name, count)
+#define VA_CALL(Name, ...) _VA_NARGS_GLUE(_VA_NARGS_OVERLOAD_MACRO(Name, _VA_NARGS_COUNT_MAX(__VA_ARGS__)), (__VA_ARGS__))
 
 /* Mapping Lua stack values to function parameters */
-#define TRAITS_FUNC(...) VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, __VA_ARGS__)
+#define BIND_FUNC(...) VA_CALL(BIND_FUNC, __VA_ARGS__)
 
 /* fail */
-#define TRAITS_FUNC1(LB, F) \
+#define BIND_FUNC1(LB, F) \
   return gLuaBase::Push(LB)
 
 /* F() */
-#define TRAITS_FUNC2(LB, F) \
+#define BIND_FUNC2(LB, F) \
   return gLuaBase::Push(LB, F())
 
 /* F(a) */
-#define TRAITS_FUNC3(LB, F, A)               \
+#define BIND_FUNC3(LB, F, A)                 \
   LUA_MLM_BEGIN                              \
   return gLuaBase::Push(LB, F(A::Next(LB))); \
   LUA_MLM_END
 
 /* F(a, b) */
-#define TRAITS_FUNC4(LB, F, A, B)         \
+#define BIND_FUNC4(LB, F, A, B)           \
   LUA_MLM_BEGIN                           \
   const A::type __a = A::Next(LB);        \
   const B::type __b = B::Next(LB);        \
@@ -1193,7 +1191,7 @@ struct gLuaNotZero : gLuaTrait<typename Tr::type, false> {
   LUA_MLM_END
 
 /* F(a, b, c)) */
-#define TRAITS_FUNC5(LB, F, A, B, C)           \
+#define BIND_FUNC5(LB, F, A, B, C)             \
   LUA_MLM_BEGIN                                \
   const A::type __a = A::Next(LB);             \
   const B::type __b = B::Next(LB);             \
@@ -1202,80 +1200,80 @@ struct gLuaNotZero : gLuaTrait<typename Tr::type, false> {
   LUA_MLM_END
 
 /* F(a, b, c, d) */
-#define TRAITS_FUNC6(LB, F, A, B, C, D) \
-  LUA_MLM_BEGIN                         \
-  const A::type __a = A::Next(LB);      \
-  const B::type __b = B::Next(LB);      \
-  const C::type __c = C::Next(LB);      \
-  const D::type __d = D::Next(LB);      \
-  return gLuaBase::Push(LB, F(          \
-    __a, __b, __c, __d                  \
-  ));                                   \
+#define BIND_FUNC6(LB, F, A, B, C, D) \
+  LUA_MLM_BEGIN                       \
+  const A::type __a = A::Next(LB);    \
+  const B::type __b = B::Next(LB);    \
+  const C::type __c = C::Next(LB);    \
+  const D::type __d = D::Next(LB);    \
+  return gLuaBase::Push(LB, F(        \
+    __a, __b, __c, __d                \
+  ));                                 \
   LUA_MLM_END
 
 /* F(a, b, c, d, e) */
-#define TRAITS_FUNC7(LB, F, A, B, C, D, E) \
-  LUA_MLM_BEGIN                            \
-  const A::type __a = A::Next(LB);         \
-  const B::type __b = B::Next(LB);         \
-  const C::type __c = C::Next(LB);         \
-  const D::type __d = D::Next(LB);         \
-  const E::type __e = E::Next(LB);         \
-  return gLuaBase::Push(LB, F(             \
-    __a, __b, __c, __d, __e                \
-  ));                                      \
+#define BIND_FUNC7(LB, F, A, B, C, D, E) \
+  LUA_MLM_BEGIN                          \
+  const A::type __a = A::Next(LB);       \
+  const B::type __b = B::Next(LB);       \
+  const C::type __c = C::Next(LB);       \
+  const D::type __d = D::Next(LB);       \
+  const E::type __e = E::Next(LB);       \
+  return gLuaBase::Push(LB, F(           \
+    __a, __b, __c, __d, __e              \
+  ));                                    \
   LUA_MLM_END
 
 /* F(a, b, c, d, e, g) */
-#define TRAITS_FUNC8(LB, F, A, B, C, D, E, G) \
-  LUA_MLM_BEGIN                               \
-  const A::type __a = A::Next(LB);            \
-  const B::type __b = B::Next(LB);            \
-  const C::type __c = C::Next(LB);            \
-  const D::type __d = D::Next(LB);            \
-  const E::type __e = E::Next(LB);            \
-  const G::type __g = G::Next(LB);            \
-  return gLuaBase::Push(LB, F(                \
-    __a, __b, __c, __d, __e, __g              \
-  ));                                         \
+#define BIND_FUNC8(LB, F, A, B, C, D, E, G) \
+  LUA_MLM_BEGIN                             \
+  const A::type __a = A::Next(LB);          \
+  const B::type __b = B::Next(LB);          \
+  const C::type __c = C::Next(LB);          \
+  const D::type __d = D::Next(LB);          \
+  const E::type __e = E::Next(LB);          \
+  const G::type __g = G::Next(LB);          \
+  return gLuaBase::Push(LB, F(              \
+    __a, __b, __c, __d, __e, __g            \
+  ));                                       \
   LUA_MLM_END
 
 /* F(a, b, c, d, e, g, h) */
-#define TRAITS_FUNC9(LB, F, A, B, C, D, E, G, H) \
-  LUA_MLM_BEGIN                                  \
-  const A::type __a = A::Next(LB);               \
-  const B::type __b = B::Next(LB);               \
-  const C::type __c = C::Next(LB);               \
-  const D::type __d = D::Next(LB);               \
-  const E::type __e = E::Next(LB);               \
-  const G::type __g = G::Next(LB);               \
-  const H::type __h = H::Next(LB);               \
-  return gLuaBase::Push(LB, F(                   \
-    __a, __b, __c, __d, __e, __g, __h            \
-  ));                                            \
+#define BIND_FUNC9(LB, F, A, B, C, D, E, G, H) \
+  LUA_MLM_BEGIN                                \
+  const A::type __a = A::Next(LB);             \
+  const B::type __b = B::Next(LB);             \
+  const C::type __c = C::Next(LB);             \
+  const D::type __d = D::Next(LB);             \
+  const E::type __e = E::Next(LB);             \
+  const G::type __g = G::Next(LB);             \
+  const H::type __h = H::Next(LB);             \
+  return gLuaBase::Push(LB, F(                 \
+    __a, __b, __c, __d, __e, __g, __h          \
+  ));                                          \
   LUA_MLM_END
 
 /* F(a, b, c, d, e, g, h, i) */
-#define TRAITS_FUNC10(LB, F, A, B, C, D, E, G, H, I) \
-  LUA_MLM_BEGIN                                      \
-  const A::type __a = A::Next(LB);                   \
-  const B::type __b = B::Next(LB);                   \
-  const C::type __c = C::Next(LB);                   \
-  const D::type __d = D::Next(LB);                   \
-  const E::type __e = E::Next(LB);                   \
-  const G::type __g = G::Next(LB);                   \
-  const H::type __h = H::Next(LB);                   \
-  const I::type __i = I::Next(LB);                   \
-  return gLuaBase::Push(LB, F(                       \
-    __a, __b, __c, __d, __e, __g, __h, __i           \
-  ));                                                \
+#define BIND_FUNC10(LB, F, A, B, C, D, E, G, H, I) \
+  LUA_MLM_BEGIN                                    \
+  const A::type __a = A::Next(LB);                 \
+  const B::type __b = B::Next(LB);                 \
+  const C::type __c = C::Next(LB);                 \
+  const D::type __d = D::Next(LB);                 \
+  const E::type __e = E::Next(LB);                 \
+  const G::type __g = G::Next(LB);                 \
+  const H::type __h = H::Next(LB);                 \
+  const I::type __i = I::Next(LB);                 \
+  return gLuaBase::Push(LB, F(                     \
+    __a, __b, __c, __d, __e, __g, __h, __i         \
+  ));                                              \
   LUA_MLM_END
 
 /*
 ** Place values onto the Lua stack in an order-of-evaluation independent
 ** fashion; returning the number of values placed onto the Lua stack.
 */
-#define TRAITS_PUSH(...) VA_NARGS_CALL_OVERLOAD(TRAITS_PUSH, __VA_ARGS__)
+#define TRAITS_PUSH(...) VA_CALL(TRAITS_PUSH, __VA_ARGS__)
 
 #define TRAITS_PUSH1(LB) \
   return gLuaBase::Push(LB)
@@ -1339,88 +1337,93 @@ struct gLuaNotZero : gLuaTrait<typename Tr::type, false> {
 */
 
 /* Trait repetition */
-#define LAYOUT_UNARY(LB, F, Tr, ...) VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, ##__VA_ARGS__)
-#define LAYOUT_BINARY(LB, F, Tr, ...) VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, ##__VA_ARGS__)
-#define LAYOUT_TERNARY(LB, F, Tr, ...) VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::safe, ##__VA_ARGS__)
-#define LAYOUT_QUATERNARY(LB, F, Tr, ...) VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::safe, Tr::safe, ##__VA_ARGS__)
-#define LAYOUT_QUINARY(LB, F, Tr, ...) VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::safe, Tr::safe, Tr::safe, ##__VA_ARGS__)
-#define LAYOUT_SENARY(LB, F, Tr, ...) VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::safe, Tr::safe, Tr::safe, Tr::safe, ##__VA_ARGS__)
+#define LAYOUT_UNARY(LB, F, Tr, ...) VA_CALL(BIND_FUNC, LB, F, Tr, ##__VA_ARGS__)
+#define LAYOUT_BINARY(LB, F, Tr, ...) VA_CALL(BIND_FUNC, LB, F, Tr, Tr::safe, ##__VA_ARGS__)
+#define LAYOUT_TERNARY(LB, F, Tr, ...) VA_CALL(BIND_FUNC, LB, F, Tr, Tr::safe, Tr::safe, ##__VA_ARGS__)
+#define LAYOUT_QUATERNARY(LB, F, Tr, ...) VA_CALL(BIND_FUNC, LB, F, Tr, Tr::safe, Tr::safe, Tr::safe, ##__VA_ARGS__)
+#define LAYOUT_QUINARY(LB, F, Tr, ...) VA_CALL(BIND_FUNC, LB, F, Tr, Tr::safe, Tr::safe, Tr::safe, Tr::safe, ##__VA_ARGS__)
+#define LAYOUT_SENARY(LB, F, Tr, ...) VA_CALL(BIND_FUNC, LB, F, Tr, Tr::safe, Tr::safe, Tr::safe, Tr::safe, Tr::safe, ##__VA_ARGS__)
 
 /* trait + eps op */
 #define LAYOUT_BINARY_EPS(LB, F, Tr, ...) \
-  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::eps_trait, ##__VA_ARGS__)
+  VA_CALL(BIND_FUNC, LB, F, Tr, Tr::eps_trait, ##__VA_ARGS__)
 
-/* trait + trait::primitive op */
+/* trait + trait::value_trait op */
 #define LAYOUT_BINARY_SCALAR(LB, F, Tr, ...) \
-  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::value_trait, ##__VA_ARGS__)
+  VA_CALL(BIND_FUNC, LB, F, Tr, Tr::value_trait, ##__VA_ARGS__)
 
 /* trait + trait + eps op */
 #define LAYOUT_TERNARY_EPS(LB, F, Tr, ...) \
-  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::eps_trait, ##__VA_ARGS__)
+  VA_CALL(BIND_FUNC, LB, F, Tr, Tr::safe, Tr::eps_trait, ##__VA_ARGS__)
 
-/* trait + trait + trait::primitive op */
+/* trait + trait + trait::value_trait op */
 #define LAYOUT_TERNARY_SCALAR(LB, F, Tr, ...) \
-  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::value_trait, ##__VA_ARGS__)
+  VA_CALL(BIND_FUNC, LB, F, Tr, Tr::safe, Tr::value_trait, ##__VA_ARGS__)
 
-/* trait + trait + trait + trait + trait::primitive op */
+/* trait + trait + trait + trait + trait::value_trait op */
 #define LAYOUT_QUINARY_SCALAR(LB, F, Tr, ...) \
-  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::safe, Tr::safe, Tr::value_trait, ##__VA_ARGS__)
+  VA_CALL(BIND_FUNC, LB, F, Tr, Tr::safe, Tr::safe, Tr::safe, Tr::value_trait, ##__VA_ARGS__)
 
 /* trait + trait<int> op */
 #define LAYOUT_VECTOR_INT(LB, F, Tr, ...) \
-  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::as_type<int>, ##__VA_ARGS__)
+  VA_CALL(BIND_FUNC, LB, F, Tr, Tr::as_type<int>, ##__VA_ARGS__)
 
-/* trait + trait + trait + trait::primitive + trait::primitive op */
+/* trait + trait + trait + trait::value_trait + trait::value_trait op */
 #define LAYOUT_BARYCENTRIC(LB, F, Tr, ...) \
-  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::safe, Tr::value_trait, Tr::value_trait, ##__VA_ARGS__)
+  VA_CALL(BIND_FUNC, LB, F, Tr, Tr::safe, Tr::safe, Tr::value_trait, Tr::value_trait, ##__VA_ARGS__)
 
 /* unary or binary operator depending on the state of the Lua stack */
-#define LAYOUT_UNARY_OR_BINARY(LB, F, Tr, ...)                               \
-  LUA_MLM_BEGIN                                                              \
-  if (Tr::Is((LB).L, (LB).idx + 1))                                          \
-    VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, ##__VA_ARGS__); \
-  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, ##__VA_ARGS__);             \
+#define LAYOUT_UNARY_OR_BINARY(LB, F, Tr, ...)              \
+  LUA_MLM_BEGIN                                             \
+  if (Tr::Is((LB).L, (LB).idx + 1))                         \
+    VA_CALL(BIND_FUNC, LB, F, Tr, Tr::safe, ##__VA_ARGS__); \
+  else                                                      \
+    VA_CALL(BIND_FUNC, LB, F, Tr, ##__VA_ARGS__);           \
   LUA_MLM_END
 
-/* trait + {nil || trait::primitive} op */
-#define LAYOUT_UNARY_OPTIONAL(LB, F, Tr, ...)                                     \
-  LUA_MLM_BEGIN                                                                   \
-  if (lua_isnoneornil((LB).L, (LB).idx + 1))                                      \
-    VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, ##__VA_ARGS__);                \
-  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::value_trait, ##__VA_ARGS__); \
+/* trait + {nil || trait::value_trait} op */
+#define LAYOUT_UNARY_OPTIONAL(LB, F, Tr, ...)                      \
+  LUA_MLM_BEGIN                                                    \
+  if (lua_isnoneornil((LB).L, (LB).idx + 1))                       \
+    VA_CALL(BIND_FUNC, LB, F, Tr, ##__VA_ARGS__);                  \
+  else                                                             \
+    VA_CALL(BIND_FUNC, LB, F, Tr, Tr::value_trait, ##__VA_ARGS__); \
   LUA_MLM_END
 
 /* unary or ternary operator depending on state of Lua stack */
-#define LAYOUT_UNARY_OR_TERNARY(LB, F, Tr, ...)                                      \
-  LUA_MLM_BEGIN                                                                      \
-  if (lua_isnoneornil((LB).L, (LB).idx + 1))                                         \
-    VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, ##__VA_ARGS__);                   \
-  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::safe, ##__VA_ARGS__); \
+#define LAYOUT_UNARY_OR_TERNARY(LB, F, Tr, ...)                       \
+  LUA_MLM_BEGIN                                                       \
+  if (lua_isnoneornil((LB).L, (LB).idx + 1))                          \
+    VA_CALL(BIND_FUNC, LB, F, Tr, ##__VA_ARGS__);                     \
+  else                                                                \
+    VA_CALL(BIND_FUNC, LB, F, Tr, Tr::safe, Tr::safe, ##__VA_ARGS__); \
   LUA_MLM_END
 
-/* trait + {trait || trait::primitive} op */
-#define LAYOUT_BINARY_OPTIONAL(LB, F, Tr, ...)                                      \
-  LUA_MLM_BEGIN                                                                     \
-  if (Tr::value_trait::Is((LB).L, (LB).idx + 1))                                    \
-    VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::value_trait, ##__VA_ARGS__); \
-  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, ##__VA_ARGS__);          \
+/* trait + {trait || trait::value_trait} op */
+#define LAYOUT_BINARY_OPTIONAL(LB, F, Tr, ...)                     \
+  LUA_MLM_BEGIN                                                    \
+  if (Tr::value_trait::Is((LB).L, (LB).idx + 1))                   \
+    VA_CALL(BIND_FUNC, LB, F, Tr, Tr::value_trait, ##__VA_ARGS__); \
+  else                                                             \
+    VA_CALL(BIND_FUNC, LB, F, Tr, Tr::safe, ##__VA_ARGS__);        \
   LUA_MLM_END
 
-/* trait + trait + {trait || trait::primitive} op */
-#define LAYOUT_TERNARY_OPTIONAL(LB, F, Tr, ...)                                               \
-  LUA_MLM_BEGIN                                                                               \
-  if (Tr::value_trait::Is((LB).L, (LB).idx + 2))                                              \
-    VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::value_trait, ##__VA_ARGS__); \
-  VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, Tr::safe, Tr::safe, ##__VA_ARGS__);          \
+/* trait + trait + {trait || trait::value_trait} op */
+#define LAYOUT_TERNARY_OPTIONAL(LB, F, Tr, ...)                              \
+  LUA_MLM_BEGIN                                                              \
+  if (Tr::value_trait::Is((LB).L, (LB).idx + 2))                             \
+    VA_CALL(BIND_FUNC, LB, F, Tr, Tr::safe, Tr::value_trait, ##__VA_ARGS__); \
+  else                                                                       \
+    VA_CALL(BIND_FUNC, LB, F, Tr, Tr::safe, Tr::safe, ##__VA_ARGS__);        \
   LUA_MLM_END
 
 /* A binary integer layout that sanitizes the second argument (division/modulo zero) */
-#define LAYOUT_MODULO(LB, F, Tr, ...)                                                            \
-  LUA_MLM_BEGIN                                                                                  \
-  if (Tr::value_trait::Is((LB).L, (LB).idx + 1))                                                 \
-    VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, gLuaNotZero<Tr::value_trait>, ##__VA_ARGS__); \
-  else                                                                                           \
-    VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, Tr, gLuaNotZero<Tr::safe>, ##__VA_ARGS__);        \
+#define LAYOUT_MODULO(LB, F, Tr, ...)                                           \
+  LUA_MLM_BEGIN                                                                 \
+  if (Tr::value_trait::Is((LB).L, (LB).idx + 1))                                \
+    VA_CALL(BIND_FUNC, LB, F, Tr, gLuaNotZero<Tr::value_trait>, ##__VA_ARGS__); \
+  else                                                                          \
+    VA_CALL(BIND_FUNC, LB, F, Tr, gLuaNotZero<Tr::safe>, ##__VA_ARGS__);        \
   LUA_MLM_END
 
 /* }================================================================== */
@@ -1602,11 +1605,11 @@ struct gLuaNotZero : gLuaTrait<typename Tr::type, false> {
 #endif
 
 /* GLM function that corresponds to one unique set of function parameters */
-#define TRAITS_DEFN(Name, F, ...)                              \
-  GLM_BINDING_QUALIFIER(Name) {                                \
-    GLM_BINDING_BEGIN                                          \
-    VA_NARGS_CALL_OVERLOAD(TRAITS_FUNC, LB, F, ##__VA_ARGS__); \
-    GLM_BINDING_END                                            \
+#define TRAITS_DEFN(Name, F, ...)             \
+  GLM_BINDING_QUALIFIER(Name) {               \
+    GLM_BINDING_BEGIN                         \
+    VA_CALL(BIND_FUNC, LB, F, ##__VA_ARGS__); \
+    GLM_BINDING_END                           \
   }
 
 /* A GLM function where the first argument (Tr) is sufficient in template argument deduction; */
@@ -1626,7 +1629,7 @@ struct gLuaNotZero : gLuaTrait<typename Tr::type, false> {
   GLM_BINDING_QUALIFIER(Name) {                                             \
     GLM_BINDING_BEGIN                                                       \
     if (A::Is((LB).L, (LB).idx)) ArgLayout(LB, F, A, ##__VA_ARGS__);        \
-    if (B::Is((LB).L, (LB).idx)) ArgLayout(LB, F, B, ##__VA_ARGS__);        \
+    else if (B::Is((LB).L, (LB).idx)) ArgLayout(LB, F, B, ##__VA_ARGS__);   \
     return luaL_error((LB).L, "%s or %s expected", A::Label(), B::Label()); \
     GLM_BINDING_END                                                         \
   }
@@ -1735,19 +1738,19 @@ struct gLuaNotZero : gLuaTrait<typename Tr::type, false> {
 **
 ** Allows @UnsafeBinding when Tr_Row is a non-coerced type.
 */
-#define LAYOUT_GENERIC_EQUAL(LB, F, Tr, Tr_Row)                                                          \
-  LUA_MLM_BEGIN                                                                                          \
-  const Tr::type __a = Tr::Next(LB);                                                                     \
-  const Tr::safe::type __b = Tr::safe::Next(LB);                                                         \
-  const TValue *_tv3 = glm_i2v((LB).L, (LB).idx);                                                        \
-  if (!_isvalid((LB).L, _tv3)) /* <Tr, Tr> */                                                            \
-    return gLuaBase::Push(LB, F(__a, __b));                                                              \
-  else if (ttisfloat(_tv3)) /* <Tr, Tr, eps> */                                                          \
-    return gLuaBase::Push(LB, F(__a, __b, Tr::eps_trait::fast::Next(LB)));                               \
-  else if (Tr_Row::Is((LB).L, (LB).idx)) /* <Tr, Tr, vec> */                                             \
-    return gLuaBase::Push(LB, F(__a, __b, Tr_Row::Next(LB)));                                            \
-  _TR_EQUAL_ULPS(LB, F, __a, __b, _tv3) /* <Tr, Tr, ULPs> */                                             \
-  return luaL_typeerror((LB).L, (LB).idx, "expected none, " GLM_STRING_NUMBER " or " GLM_STRING_VECTOR); \
+#define LAYOUT_GENERIC_EQUAL(LB, F, Tr, Tr_Row)                                                 \
+  LUA_MLM_BEGIN                                                                                 \
+  const Tr::type __a = Tr::Next(LB);                                                            \
+  const Tr::safe::type __b = Tr::safe::Next(LB);                                                \
+  const TValue *_tv3 = glm_i2v((LB).L, (LB).idx);                                               \
+  if (!_isvalid((LB).L, _tv3)) /* <Tr, Tr> */                                                   \
+    return gLuaBase::Push(LB, F(__a, __b));                                                     \
+  else if (ttisfloat(_tv3)) /* <Tr, Tr, eps> */                                                 \
+    return gLuaBase::Push(LB, F(__a, __b, Tr::eps_trait::fast::Next(LB)));                      \
+  else if (Tr_Row::Is((LB).L, (LB).idx)) /* <Tr, Tr, vec> */                                    \
+    return gLuaBase::Push(LB, F(__a, __b, Tr_Row::Next(LB)));                                   \
+  _TR_EQUAL_ULPS(LB, F, __a, __b, _tv3) /* <Tr, Tr, ULPs> */                                    \
+  return luaL_typeerror((LB).L, (LB).idx, "none, " GLM_STRING_NUMBER " or " GLM_STRING_VECTOR); \
   LUA_MLM_END
 
 /* }================================================================== */

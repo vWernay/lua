@@ -227,7 +227,7 @@ namespace glm {
     m[2].x = T(-2) * z * x;
     m[2].y = T(-2) * y * z;
     m[2].z = T(1) - T(2) * z * z;
-    GLM_IF_CONSTEXPR (C >= 4) {
+    GLM_IF_CONSTEXPR(C >= 4) {
       m[3].x = T(2) * d * x;
       m[3].y = T(2) * d * y;
       m[3].z = T(2) * d * z;
@@ -254,7 +254,7 @@ namespace glm {
     m[2].x = -z * x;
     m[2].y = -y * z;
     m[2].z = T(1) - z * z;
-    GLM_IF_CONSTEXPR (C >= 4) {
+    GLM_IF_CONSTEXPR(C >= 4) {
       m[3].x = d * x;
       m[3].y = d * y;
       m[3].z = d * z;
@@ -295,7 +295,7 @@ namespace glm {
     Result[0] = s;
     Result[1] = u;
     Result[2] = f;
-    GLM_IF_CONSTEXPR (C > 3) {
+    GLM_IF_CONSTEXPR(C > 3) {
       Result[3].x = T(0);
       Result[3].y = T(0);
       Result[3].z = T(0);
@@ -321,7 +321,7 @@ namespace glm {
     Result[0] = s;
     Result[1] = u;
     Result[2] = fwd;
-    GLM_IF_CONSTEXPR (C > 3) {
+    GLM_IF_CONSTEXPR(C > 3) {
       Result[3].x = T(0);
       Result[3].y = T(0);
       Result[3].z = T(0);
@@ -370,12 +370,12 @@ namespace glm {
     Result[0].z = difference.x;
     Result[1].z = difference.y;
     Result[2].z = difference.z;
-    GLM_IF_CONSTEXPR (R > 3) {
+    GLM_IF_CONSTEXPR(R > 3) {
       Result[0].x = object.x;
       Result[1].y = object.y;
       Result[2].z = object.z;
     }
-    GLM_IF_CONSTEXPR (C > 3) {
+    GLM_IF_CONSTEXPR(C > 3) {
       Result[3].x = T(0);
       Result[3].y = T(0);
       Result[3].z = T(0);
@@ -411,12 +411,12 @@ namespace glm {
     Result[0].z = difference.x;
     Result[1].z = difference.y;
     Result[2].z = difference.z;
-    GLM_IF_CONSTEXPR (R > 3) {
+    GLM_IF_CONSTEXPR(R > 3) {
       Result[0].x = object.x;
       Result[1].y = object.y;
       Result[2].z = object.z;
     }
-    GLM_IF_CONSTEXPR (C > 3) {
+    GLM_IF_CONSTEXPR(C > 3) {
       Result[3].x = T(0);
       Result[3].y = T(0);
       Result[3].z = T(0);
@@ -627,7 +627,50 @@ namespace glm {
     t3 = T3;
   }
 
-  /* Fixes */
+  /// <summary>
+  /// @TODO
+  /// </summary>
+  template<typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER mat<2, 2, T, Q> affineInverse(mat<2, 2, T, Q> const &m) {
+    return inverse(mat<2, 2, T, Q>(m));
+  }
+
+  template<length_t C, length_t R, typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER mat<C, R, T, Q> rotateNormalizedAxis(mat<C, R, T, Q> const &m, T const &angle, vec<3, T, Q> const &v) {
+    GLM_STATIC_ASSERT(C >= 3 && R >= 3, "invalid rotation matrix");
+    GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'rotateNormalizedAxis' only accept floating-point inputs");
+
+    const T a = angle;
+    const T c = cos(a);
+    const T s = sin(a);
+    const vec<3, T, Q> axis(v);
+    const vec<3, T, Q> temp((static_cast<T>(1) - c) * axis);
+
+    mat<3, 3, T, Q> Rotate;
+    Rotate[0].x = c + temp[0] * axis[0];
+    Rotate[0].y = 0 + temp[0] * axis[1] + s * axis[2];
+    Rotate[0].z = 0 + temp[0] * axis[2] - s * axis[1];
+    Rotate[1].x = 0 + temp[1] * axis[0] - s * axis[2];
+    Rotate[1].y = c + temp[1] * axis[1];
+    Rotate[1].z = 0 + temp[1] * axis[2] + s * axis[0];
+    Rotate[2].x = 0 + temp[2] * axis[0] + s * axis[1];
+    Rotate[2].y = 0 + temp[2] * axis[1] - s * axis[0];
+    Rotate[2].z = c + temp[2] * axis[2];
+
+    mat<C, R, T, Q> Result;
+    Result[0] = m[0] * Rotate[0].x + m[1] * Rotate[0].y + m[2] * Rotate[0].z;
+    Result[1] = m[0] * Rotate[1].x + m[1] * Rotate[1].y + m[2] * Rotate[1].z;
+    Result[2] = m[0] * Rotate[2].x + m[1] * Rotate[2].y + m[2] * Rotate[2].z;
+    GLM_IF_CONSTEXPR(C > 3)
+      Result[3] = m[3];
+    return Result;
+  }
+
+  /*
+  ** {======================================================
+  ** Fixes
+  ** =======================================================
+  */
 
   /// <summary>
   /// @GLMFix: glm::scaleBias that ensures the matrix is initialized.
@@ -692,45 +735,6 @@ namespace glm {
   }
 
   /// <summary>
-  /// @TODO
-  /// </summary>
-  template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER mat<2, 2, T, Q> affineInverse(mat<2, 2, T, Q> const &m) {
-    return inverse(mat<2, 2, T, Q>(m));
-  }
-
-  template<length_t C, length_t R, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER mat<C, R, T, Q> rotateNormalizedAxis(mat<C, R, T, Q> const &m, T const &angle, vec<3, T, Q> const &v) {
-    GLM_STATIC_ASSERT(C >= 3 && R >= 3, "invalid rotation matrix");
-    GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'rotateNormalizedAxis' only accept floating-point inputs");
-
-    const T a = angle;
-    const T c = cos(a);
-    const T s = sin(a);
-    const vec<3, T, Q> axis(v);
-    const vec<3, T, Q> temp((static_cast<T>(1) - c) * axis);
-
-    mat<3, 3, T, Q> Rotate;
-    Rotate[0].x = c + temp[0] * axis[0];
-    Rotate[0].y = 0 + temp[0] * axis[1] + s * axis[2];
-    Rotate[0].z = 0 + temp[0] * axis[2] - s * axis[1];
-    Rotate[1].x = 0 + temp[1] * axis[0] - s * axis[2];
-    Rotate[1].y = c + temp[1] * axis[1];
-    Rotate[1].z = 0 + temp[1] * axis[2] + s * axis[0];
-    Rotate[2].x = 0 + temp[2] * axis[0] + s * axis[1];
-    Rotate[2].y = 0 + temp[2] * axis[1] - s * axis[0];
-    Rotate[2].z = c + temp[2] * axis[2];
-
-    mat<C, R, T, Q> Result;
-    Result[0] = m[0] * Rotate[0].x + m[1] * Rotate[0].y + m[2] * Rotate[0].z;
-    Result[1] = m[0] * Rotate[1].x + m[1] * Rotate[1].y + m[2] * Rotate[1].z;
-    Result[2] = m[0] * Rotate[2].x + m[1] * Rotate[2].y + m[2] * Rotate[2].z;
-    GLM_IF_CONSTEXPR (C > 3)
-      Result[3] = m[3];
-    return Result;
-  }
-
-  /// <summary>
   /// @GLMFix: bypass aligned implementation
   /// </summary>
   template<length_t C, length_t R, typename T, qualifier Q>
@@ -750,6 +754,8 @@ namespace glm {
   GLM_FUNC_QUALIFIER mat<C, R, T, Q> __mix(mat<C, R, T, Q> const &x, mat<C, R, T, Q> const &y, mat<C, R, U, Q> const &a) {
     return __matrixCompMult(mat<C, R, U, Q>(x), static_cast<U>(1) - a) + __matrixCompMult(mat<C, R, U, Q>(y), a);
   }
+
+  /* }====================================================== */
 }
 
 #endif

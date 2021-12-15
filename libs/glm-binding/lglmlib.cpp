@@ -172,6 +172,7 @@ static const luaL_Reg luaglm_lib[] = {
   { "_COPYRIGHT", GLM_NULLPTR },
   { "_DESCRIPTION", GLM_NULLPTR },
   { "_GLM_VERSION", GLM_NULLPTR },
+  { "_GLM_SIMD", GLM_NULLPTR },
   { GLM_NULLPTR, GLM_NULLPTR }
 };
 
@@ -255,6 +256,11 @@ extern "C" {
     lua_pushliteral(L, LUAGLM_COPYRIGHT); lua_setfield(L, -2, "_COPYRIGHT");
     lua_pushliteral(L, LUAGLM_DESCRIPTION); lua_setfield(L, -2, "_DESCRIPTION");
     lua_pushinteger(L, GLM_VERSION); lua_setfield(L, -2, "_GLM_VERSION");
+#if defined(LUAGLM_ALIGNED)
+    lua_pushboolean(L, 1); lua_setfield(L, -2, "_GLM_SIMD");
+#else
+    lua_pushboolean(L, 0); lua_setfield(L, -2, "_GLM_SIMD");
+#endif
 
     /* Copy lmathlib functions not supported by library. */
     if (lua_getfield(L, LUA_REGISTRYINDEX, LUA_LOADED_TABLE) == LUA_TTABLE) {  // [..., glm, load_tab]

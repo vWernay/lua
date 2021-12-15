@@ -304,31 +304,6 @@ namespace glm {
   }
 
   /// <summary>
-  /// API completeness for vector_extensions.
-  /// </summary>
-  template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER T __angle(qua<T, Q> const &q) {
-    const T n = length(vec<3, T, Q>(q.x, q.y, q.z));
-    if (epsilonNotEqual(n, T(0), epsilon<T>()))
-      return T(2) * atan2(n, abs(q.w));
-    return T(0);
-  }
-
-  template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER T __angle(const qua<T, Q> &x, const qua<T, Q> &y) {
-    return __angle(y * conjugate(x));
-  }
-
-  /// <summary>
-  /// Return the oriented angle between two quaternions based on a reference axis.
-  /// </summary>
-  template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER T __orientedAngle(const qua<T, Q> &x, const qua<T, Q> &y, const vec<3, T, Q> &ref) {
-    const qua<T, Q> rot = y * conjugate(x);
-    return __angle(rot) * sign(dot(ref, axis(rot)));
-  }
-
-  /// <summary>
   /// Create a quaternion in barycentric coordinates.
   /// </summary>
   template<typename T, qualifier Q>
@@ -386,6 +361,37 @@ namespace glm {
 #endif
   }
 
+  /*
+  ** {======================================================
+  ** Fixes
+  ** =======================================================
+  */
+
+  /// <summary>
+  /// API completeness for vector_extensions.
+  /// </summary>
+  template<typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER T __angle(qua<T, Q> const &q) {
+    const T n = length(vec<3, T, Q>(q.x, q.y, q.z));
+    if (epsilonNotEqual(n, T(0), epsilon<T>()))
+      return T(2) * atan2(n, abs(q.w));
+    return T(0);
+  }
+
+  template<typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER T __angle(const qua<T, Q> &x, const qua<T, Q> &y) {
+    return __angle(y * conjugate(x));
+  }
+
+  /// <summary>
+  /// Return the oriented angle between two quaternions based on a reference axis.
+  /// </summary>
+  template<typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER T __orientedAngle(const qua<T, Q> &x, const qua<T, Q> &y, const vec<3, T, Q> &ref) {
+    const qua<T, Q> rot = y * conjugate(x);
+    return __angle(rot) * sign(dot(ref, axis(rot)));
+  }
+
 #if GLM_CONFIG_ALIGNED_GENTYPES == GLM_ENABLE && defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
   /// <summary>
   /// non-aligned implementation
@@ -395,6 +401,8 @@ namespace glm {
     return detail::compute_quat_mul_vec4<T, Q, false>::call(q, v);
   }
 #endif
+
+  /* }====================================================== */
 }
 
 #endif

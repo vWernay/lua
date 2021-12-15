@@ -1056,10 +1056,10 @@ GLM_BINDING_QUALIFIER(sphere_fitThroughPoints) {
   GLM_BINDING_BEGIN
   using point_trait = gLuaSphere<>::point_trait;
   switch (LB.top()) {
-    case 2: TRAITS_FUNC(LB, glm::fitThroughPoints, point_trait, point_trait); break;
-    case 3: TRAITS_FUNC(LB, glm::fitThroughPoints, point_trait, point_trait, point_trait); break;
+    case 2: BIND_FUNC(LB, glm::fitThroughPoints, point_trait, point_trait); break;
+    case 3: BIND_FUNC(LB, glm::fitThroughPoints, point_trait, point_trait, point_trait); break;
     default: {
-      TRAITS_FUNC(LB, glm::fitThroughPoints, point_trait, point_trait, point_trait, point_trait);
+      BIND_FUNC(LB, glm::fitThroughPoints, point_trait, point_trait, point_trait, point_trait);
       break;
     }
   }
@@ -1071,9 +1071,9 @@ GLM_BINDING_QUALIFIER(sphere_fitThroughPoints) {
 //  GLM_BINDING_BEGIN
 //  using point_trait = gLuaSphere<>::point_trait;
 //  switch (LB.top()) {
-//    case 2: TRAITS_FUNC(LB, glm::optimalEnclosingSphere, point_trait, point_trait); break;
-//    case 3: TRAITS_FUNC(LB, glm::optimalEnclosingSphere, point_trait, point_trait, point_trait); break;
-//    case 4: TRAITS_FUNC(LB, glm::optimalEnclosingSphere, point_trait, point_trait, point_trait, point_trait); break;
+//    case 2: BIND_FUNC(LB, glm::optimalEnclosingSphere, point_trait, point_trait); break;
+//    case 3: BIND_FUNC(LB, glm::optimalEnclosingSphere, point_trait, point_trait, point_trait); break;
+//    case 4: BIND_FUNC(LB, glm::optimalEnclosingSphere, point_trait, point_trait, point_trait, point_trait); break;
 //    default: {
 //      luaL_checktype(L, LB.idx, LUA_TTABLE);
 //      glmLuaArray<point_trait> lArray(LB.L, LB.idx);
@@ -1348,8 +1348,8 @@ TRAITS_DEFN(plane_clipSegment, glm::clip, gLuaPlane<>, gLuaSegment<>)
 GLM_BINDING_QUALIFIER(plane_point) {
   GLM_BINDING_BEGIN
   if (LB.top() > 3)
-    TRAITS_FUNC(LB, glm::point, gLuaPlane<>, gLuaPlane<>::value_trait, gLuaPlane<>::value_trait, gLuaPlane<>::point_trait);
-  TRAITS_FUNC(LB, glm::point, gLuaPlane<>, gLuaPlane<>::value_trait, gLuaPlane<>::value_trait);
+    BIND_FUNC(LB, glm::point, gLuaPlane<>, gLuaPlane<>::value_trait, gLuaPlane<>::value_trait, gLuaPlane<>::point_trait);
+  BIND_FUNC(LB, glm::point, gLuaPlane<>, gLuaPlane<>::value_trait, gLuaPlane<>::value_trait);
   GLM_BINDING_END
 }
 
@@ -1514,8 +1514,8 @@ TRAITS_LAYOUT_DEFN(polygon_projectToAxis, glm::projectToAxis, GEOM_PROJECTION, g
 GLM_BINDING_QUALIFIER(polygon_mapTo2D) {
   GLM_BINDING_BEGIN
   if (gLuaTrait<size_t>::Is(LB.L, LB.idx + 1))
-    TRAITS_FUNC(LB, glm::mapTo2D, gLuaPolygon<>, gLuaTrait<size_t>);
-  TRAITS_FUNC(LB, glm::mapTo2D, gLuaPolygon<>, gLuaPolygon<>::point_trait);
+    BIND_FUNC(LB, glm::mapTo2D, gLuaPolygon<>, gLuaTrait<size_t>);
+  BIND_FUNC(LB, glm::mapTo2D, gLuaPolygon<>, gLuaPolygon<>::point_trait);
   GLM_BINDING_END
 }
 

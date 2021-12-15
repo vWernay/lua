@@ -228,6 +228,33 @@ namespace glm {
     return (v > 0) ? genType(1) : genType(-1);
   }
 
+  /* API Completeness */
+
+  template<typename genType>
+  GLM_FUNC_QUALIFIER genType fclamp(genType x) {
+    return fclamp(x, genType(0), genType(1));
+  }
+
+  template<length_t L, typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER vec<L, T, Q> fclamp(vec<L, T, Q> const &x) {
+    return fclamp(x, T(0), T(1));
+  }
+
+  template<length_t L, typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER vec<L, T, Q> ceilMultiple(vec<L, T, Q> const &Source, T const &Multiple) {
+    return ceilMultiple(Source, vec<L, T, Q>(Multiple));
+  }
+
+  template<length_t L, typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER vec<L, T, Q> floorMultiple(vec<L, T, Q> const &Source, T const &Multiple) {
+    return floorMultiple(Source, vec<L, T, Q>(Multiple));
+  }
+
+  template<length_t L, typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER vec<L, T, Q> roundMultiple(vec<L, T, Q> const &Source, T const &Multiple) {
+    return roundMultiple(Source, vec<L, T, Q>(Multiple));
+  }
+
   /* Numeric extensions */
 
   /// <summary>
@@ -322,6 +349,38 @@ namespace glm {
   template<typename genType>
   GLM_FUNC_QUALIFIER genType scaleLength(genType x, genType newLength) {
     return scaleLength(vec<1, genType>(x), newLength).x;
+  }
+
+  /* Cross produce with specific axis */
+
+  template<typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER vec<3, T, Q> crossXAxis(const vec<3, T, Q> &v) {
+    return vec<3, T, Q>(0.0f, v.z, -v.y);
+  }
+
+  template<typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER vec<3, T, Q> crossYAxis(const vec<3, T, Q> &v) {
+    return vec<3, T, Q>(-v.z, 0.0f, v.x);
+  }
+
+  template<typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER vec<3, T, Q> crossZAxis(const vec<3, T, Q> &v) {
+    return vec<3, T, Q>(v.y, -v.x, 0.0f);
+  }
+
+  template<typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER vec<3, T, Q> xAxisCross(const vec<3, T, Q> &v) {
+    return vec<3, T, Q>(0.0f, -v.z, v.y);
+  }
+
+  template<typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER vec<3, T, Q> yAxisCross(const vec<3, T, Q> &v) {
+    return vec<3, T, Q>(v.z, 0.0f, -v.x);
+  }
+
+  template<typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER vec<3, T, Q> zAxisCross(const vec<3, T, Q> &v) {
+    return vec<3, T, Q>(-v.y, v.x, 0.0f);
   }
 
   /// <summary>
@@ -477,97 +536,6 @@ namespace glm {
   template<typename genType>
   GLM_FUNC_QUALIFIER genType barycentric(genType value1, genType value2, genType value3, genType amount1, genType amount2) {
     return barycentric(vec<1, genType>(value1), vec<1, genType>(value2), vec<1, genType>(value3), amount1, amount2).x;
-  }
-
-  /// <summary>
-  /// A implementation of glm::angle that's numerically stable at all angles.
-  /// </summary>
-  template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER T __angle(const vec<L, T, Q> &x, const vec<L, T, Q> &y) {
-    GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'angle' only accept floating-point inputs");
-    const vec<L, T, Q> xyl = x * length(y);
-    const vec<L, T, Q> yxl = y * length(x);
-    const T n = length(xyl - yxl);
-    if (epsilonNotEqual(n, T(0), epsilon<T>()))
-      return T(2) * atan2_(n, length(xyl + yxl));
-    return T(0);
-  }
-
-  template<typename genType>
-  GLM_FUNC_QUALIFIER genType __angle(const genType &x, const genType &y) {
-    return angle<genType>(x, y);
-  }
-
-  template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER T __orientedAngle(vec<2, T, Q> const &x, vec<2, T, Q> const &y) {
-    GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'orientedAngle' only accept floating-point inputs");
-    const T Angle = __angle(x, y);
-    const T partialCross = x.x * y.y - y.x * x.y;
-    return (partialCross > T(0)) ? Angle : -Angle;
-  }
-
-  template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER T __orientedAngle(vec<3, T, Q> const &x, vec<3, T, Q> const &y, vec<3, T, Q> const &ref) {
-    GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'orientedAngle' only accept floating-point inputs");
-    const T Angle = __angle(x, y);
-    return mix(Angle, -Angle, dot(ref, cross(x, y)) < T(0));
-  }
-
-  /// <summary>
-  /// @GLMFix: Generalized slerp implementation
-  /// </summary>
-  template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER vec<L, T, Q> __slerp(vec<L, T, Q> const &x, vec<L, T, Q> const &y, T const &a) {
-    GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'slerp' only accept floating-point inputs");
-
-    // Perform a linear interpolation when CosAlpha is close to 1 to avoid side
-    // effect of sin(angle) becoming a zero denominator
-    const T CosAlpha = dot(x, y);
-    if (CosAlpha > static_cast<T>(1) - epsilon<T>())
-      return mix(x, y, a);
-
-    const T Alpha = acos(CosAlpha);  // get angle (0 -> pi)
-    const T SinAlpha = sin(Alpha);  // get sine of angle between vectors (0 -> 1)
-    const T t1 = sin((static_cast<T>(1) - a) * Alpha) / SinAlpha;
-    const T t2 = sin(a * Alpha) / SinAlpha;
-    return x * t1 + y * t2;
-  }
-
-  template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER qua<T, Q> __slerp(qua<T, Q> const &x, qua<T, Q> const &y, T const &a) {
-    return slerp(x, y, a);
-  }
-
-  template<typename T, typename S, qualifier Q>
-  GLM_FUNC_QUALIFIER qua<T, Q> __slerp(qua<T, Q> const &x, qua<T, Q> const &y, T a, S k) {
-    return slerp(x, y, a, k);
-  }
-
-  template<typename genType>
-  GLM_FUNC_QUALIFIER genType __slerp(genType x, genType y, genType a) {
-    return __slerp(vec<1, genType>(x), vec<1, genType>(y), a).x;
-  }
-
-  /// <summary>
-  /// @GLMFix: Generalized closestPointOnLine implementation
-  /// </summary>
-  template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER vec<L, T, Q> closestPointOnLine(vec<L, T, Q> const &point, vec<L, T, Q> const &a, vec<L, T, Q> const &b) {
-    const T LineLength = distance(a, b);
-    const vec<L, T, Q> Vector = point - a;
-    const vec<L, T, Q> LineDirection = (b - a) / LineLength;
-
-    const T Distance = dot(Vector, LineDirection);
-    if (Distance <= T(0))
-      return a;
-    if (Distance >= LineLength)
-      return b;
-    return a + LineDirection * Distance;
-  }
-
-  template<typename genType>
-  GLM_FUNC_QUALIFIER genType closestPointOnLine(genType point, genType a, genType b) {
-    return closestPointOnLine(vec<1, genType>(point), vec<1, genType>(a), vec<1, genType>(b)).x;
   }
 
   /// <summary>
@@ -774,6 +742,44 @@ namespace glm {
     return normalize(vec<3, T, Q>(worldPos));  // Direction of the ray; originating at the camera position.
   }
 
+  template<typename genType>
+  GLM_FUNC_QUALIFIER genType snap(const genType value, const genType step) {
+    if (step != genType(0))  // @TODO: notEqual(step, genType(0), epsilon<genType>())
+      return floor((value / step) + genType(0.5)) * step;
+    return value;
+  }
+
+  template<length_t L, typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER vec<L, T, Q> snap(const vec<L, T, Q> &x, const vec<L, T, Q> &y) {
+    return detail::functor2<vec, L, T, Q>::call(snap, x, y);
+  }
+
+  /// <summary>
+  /// Inverse of each vector component
+  /// </summary>
+  template<length_t L, typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR vec<L, T, Q> inverse(const vec<L, T, Q> &x) {
+    return vec<L, T, Q>(T(1)) / x;
+  }
+
+  template<typename T>
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR T inverse(const T &x) {
+    return T(1) / x;
+  }
+
+  /// <summary>
+  /// Returns the normalized vector pointing to "y" from "x".
+  /// </summary>
+  template<length_t L, typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR vec<L, T, Q> direction(const vec<L, T, Q> &x, const vec<L, T, Q> &y) {
+    return normalize(y - x);
+  }
+
+  template<typename T>
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR T direction(const T x, const T y) {
+    return normalize(vec<1, T>(y - x)).x;
+  }
+
   /* Functions with additional integral type support. */
 
   template<typename T>
@@ -854,34 +860,9 @@ namespace glm {
       return x >= T(0) ? T(1) : T(-1);
 
     T result = x;
-    for (unsigned i = 1; i < y; ++i)
+    for (uint i = 1; i < y; ++i)
       result *= x;
     return result;
-  }
-
-  template<typename genType>
-  GLM_FUNC_QUALIFIER genType fclamp(genType x) {
-    return fclamp(x, genType(0), genType(1));
-  }
-
-  template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER vec<L, T, Q> fclamp(vec<L, T, Q> const &x) {
-    return fclamp(x, T(0), T(1));
-  }
-
-  template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER vec<L, T, Q> ceilMultiple(vec<L, T, Q> const &Source, T const &Multiple) {
-    return ceilMultiple(Source, vec<L, T, Q>(Multiple));
-  }
-
-  template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER vec<L, T, Q> floorMultiple(vec<L, T, Q> const &Source, T const &Multiple) {
-    return floorMultiple(Source, vec<L, T, Q>(Multiple));
-  }
-
-  template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER vec<L, T, Q> roundMultiple(vec<L, T, Q> const &Source, T const &Multiple) {
-    return roundMultiple(Source, vec<L, T, Q>(Multiple));
   }
 
   /* Missing implicit genType support. */
@@ -1003,6 +984,26 @@ namespace glm {
     return closeBounded(vec<1, genType>(Value), vec<1, genType>(Min), vec<1, genType>(Max)).x;
   }
 
+  template<typename floatType, typename T>
+  GLM_FUNC_QUALIFIER floatType compNormalize(T x) {
+    return compNormalize<floatType>(vec<1, T>(x)).x;
+  }
+
+  template<typename T, typename floatType>
+  GLM_FUNC_QUALIFIER T compScale(floatType x) {
+    return compScale<T>(vec<1, floatType>(x)).x;
+  }
+
+  template<typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER vec<1, T, Q> lerp(const vec<1, T, Q> &x, const vec<1, T, Q> &y, T a) {
+    return mix(x, y, a);
+  }
+
+  template<typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER vec<1, T, Q> lerp(const vec<1, T, Q> &x, const vec<1, T, Q> &y, const vec<1, T, Q> &a) {
+    return mix(x, y, a);
+  }
+
   GLM_FUNC_QUALIFIER uint16 packHalf(float v) {
     return packHalf<1, defaultp>(vec<1, float>(v)).x;
   }
@@ -1029,16 +1030,6 @@ namespace glm {
   template<typename floatType, typename intType>
   GLM_FUNC_QUALIFIER floatType unpackSnorm(intType v) {
     return unpackSnorm<floatType, 1, intType, defaultp>(vec<1, intType>(v)).x;
-  }
-
-  template<typename floatType, typename T>
-  GLM_FUNC_QUALIFIER floatType compNormalize(T x) {
-    return compNormalize<floatType>(vec<1, T>(x)).x;
-  }
-
-  template<typename T, typename floatType>
-  GLM_FUNC_QUALIFIER T compScale(floatType x) {
-    return compScale<T>(vec<1, floatType>(x)).x;
   }
 
   template<typename genType>
@@ -1076,55 +1067,102 @@ namespace glm {
     return convertSRGBToLinear(vec<1, genType>(ColorSRGB), Gamma).x;
   }
 
-  template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER vec<1, T, Q> lerp(const vec<1, T, Q> &x, const vec<1, T, Q> &y, T a) {
-    return mix(x, y, a);
-  }
+  /*
+  ** {======================================================
+  ** Functions are generally not used in single-dimensional vector spaces and
+  ** only exist to simplify the bindings.
+  ** =======================================================
+  */
 
   template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER vec<1, T, Q> lerp(const vec<1, T, Q> &x, const vec<1, T, Q> &y, const vec<1, T, Q> &a) {
-    return mix(x, y, a);
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool areCollinear(vec<1, T, Q> const &v0, vec<1, T, Q> const &v1, T eps = epsilon<T>) {
+    ((void)v0);
+    ((void)v1);
+    ((void)eps);
+    return true;
   }
 
   template<typename genType>
-  GLM_FUNC_QUALIFIER genType snap(const genType value, const genType step) {
-    if (step != genType(0))  // @TODO: notEqual(step, genType(0), epsilon<genType>())
-      return floor((value / step) + genType(0.5)) * step;
-    return value;
+  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool areCollinear(genType v0, genType v1, genType eps = epsilon<genType>()) {
+    ((void)v0);
+    ((void)v1);
+    ((void)eps);
+    return true;
   }
 
-  template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER vec<L, T, Q> snap(const vec<L, T, Q> &x, const vec<L, T, Q> &y) {
-    return detail::functor2<vec, L, T, Q>::call(snap, x, y);
+  template<typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER T simplex(vec<1, T, Q> const &v) {
+    ((void)v);
+    return T(0);
   }
 
-  /// <summary>
-  /// Inverse of each vector component
-  /// </summary>
-  template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR vec<L, T, Q> inverse(const vec<L, T, Q> &x) {
-    return vec<L, T, Q>(T(1)) / x;
+  template<typename genType>
+  GLM_FUNC_QUALIFIER genType simplex(genType v) {
+    return simplex(vec<1, genType>(v));
+  }
+
+  template<typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER T perlin(vec<1, T, Q> const &Position) {
+    ((void)Position);
+    return T(0);
+  }
+
+  template<typename genType>
+  GLM_FUNC_QUALIFIER genType perlin(genType Position) {
+    return perlin(vec<1, genType>(Position));
+  }
+
+  template<typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER T perlin(vec<1, T, Q> const &Position, vec<1, T, Q> const &rep) {
+    ((void)Position);
+    ((void)rep);
+    return T(0);
+  }
+
+  template<typename genType>
+  GLM_FUNC_QUALIFIER genType perlin(genType Position, genType rep) {
+    return perlin(vec<1, genType>(Position), vec<1, genType>(rep));
   }
 
   template<typename T>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR T inverse(const T &x) {
-    return T(1) / x;
-  }
-
-  /// <summary>
-  /// Returns the normalized vector pointing to "y" from "x".
-  /// </summary>
-  template<length_t L, typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR vec<L, T, Q> direction(const vec<L, T, Q> &x, const vec<L, T, Q> &y) {
-    return normalize(y - x);
+  GLM_FUNC_QUALIFIER bool intersectLineSphere(T const &point0, T const &point1, T const &sphereCenter, T sphereRadius,
+  T &intersectionPoint1, T &intersectionNormal1, T &intersectionPoint2, T &intersectionNormal2) {
+    ((void)point0);
+    ((void)point1);
+    ((void)sphereCenter);
+    ((void)sphereRadius);
+    intersectionNormal1 = intersectionPoint1 = T(0);
+    intersectionPoint2 = intersectionNormal2 = T(0);
+    return false;
   }
 
   template<typename T>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR T direction(const T x, const T y) {
-    return normalize(y - x);
+  GLM_FUNC_QUALIFIER bool intersectRayPlane(T const &orig, T const &dir, T const &planeOrig, T const &planeNormal, T &intersectionDistance) {
+    ((void)orig);
+    ((void)dir);
+    ((void)planeOrig);
+    ((void)planeNormal);
+    intersectionDistance = T(0);
+    return false;
   }
 
-  /* C++-11/C99 wrappers. */
+  template<typename T>
+  GLM_FUNC_QUALIFIER bool intersectRaySphere(T const &rayStarting, T const &rayNormalizedDirection, T const &sphereCenter, const T sphereRadius, T &intersectionPosition, T &intersectionNormal) {
+    ((void)rayStarting);
+    ((void)rayNormalizedDirection);
+    ((void)sphereCenter);
+    ((void)sphereRadius);
+    intersectionPosition = intersectionNormal = T(0);
+    return false;
+  }
+
+  /* }====================================================== */
+
+  /*
+  ** {======================================================
+  ** C++-11/C99 wrappers
+  ** =======================================================
+  */
 
 #if GLM_HAS_CXX11_STL
   template<typename genType>
@@ -1353,6 +1391,36 @@ namespace glm {
   }
 #endif
 
+  /* }====================================================== */
+
+  /*
+  ** {======================================================
+  ** Monkey Patches
+  ** =======================================================
+  */
+
+  /// <summary>
+  /// @GLMFix: Generalized closestPointOnLine implementation
+  /// </summary>
+  template<length_t L, typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER vec<L, T, Q> closestPointOnLine(vec<L, T, Q> const &point, vec<L, T, Q> const &a, vec<L, T, Q> const &b) {
+    const T LineLength = distance(a, b);
+    const vec<L, T, Q> Vector = point - a;
+    const vec<L, T, Q> LineDirection = (b - a) / LineLength;
+
+    const T Distance = dot(Vector, LineDirection);
+    if (Distance <= T(0))
+      return a;
+    if (Distance >= LineLength)
+      return b;
+    return a + LineDirection * Distance;
+  }
+
+  template<typename genType>
+  GLM_FUNC_QUALIFIER genType closestPointOnLine(genType point, genType a, genType b) {
+    return closestPointOnLine(vec<1, genType>(point), vec<1, genType>(a), vec<1, genType>(b)).x;
+  }
+
   /// <summary>
   /// @GLMFix: -Werror when using bitfieldFillOne and bitfieldFillZero:
   ///
@@ -1378,93 +1446,73 @@ namespace glm {
     };
   }
 
-  /*
-  ** {======================================================
-  ** @TODO: These functions are generally not used in single-dimensional vector
-  ** spaces and only exist to simplify the bindings.
-  ** =======================================================
-  */
-
-  template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool areCollinear(vec<1, T, Q> const &v0, vec<1, T, Q> const &v1, T eps = epsilon<T>) {
-    ((void)v0);
-    ((void)v1);
-    ((void)eps);
-    return true;
-  }
-
-  template<typename genType>
-  GLM_FUNC_QUALIFIER GLM_CONSTEXPR bool areCollinear(genType v0, genType v1, genType eps = epsilon<genType>()) {
-    ((void)v0);
-    ((void)v1);
-    ((void)eps);
-    return true;
-  }
-
-  template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER T simplex(vec<1, T, Q> const &v) {
-    ((void)v);
+  /// <summary>
+  /// @GLMFix: A implementation of glm::angle that's numerically stable at all angles.
+  /// </summary>
+  template<length_t L, typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER T __angle(const vec<L, T, Q> &x, const vec<L, T, Q> &y) {
+    GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'angle' only accept floating-point inputs");
+    const vec<L, T, Q> xyl = x * length(y);
+    const vec<L, T, Q> yxl = y * length(x);
+    const T n = length(xyl - yxl);
+    if (epsilonNotEqual(n, T(0), epsilon<T>()))
+      return T(2) * atan2_(n, length(xyl + yxl));
     return T(0);
   }
 
   template<typename genType>
-  GLM_FUNC_QUALIFIER genType simplex(genType v) {
-    return simplex(vec<1, genType>(v));
+  GLM_FUNC_QUALIFIER genType __angle(const genType &x, const genType &y) {
+    return angle<genType>(x, y);
   }
 
   template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER T perlin(vec<1, T, Q> const &Position) {
-    ((void)Position);
-    return T(0);
-  }
-
-  template<typename genType>
-  GLM_FUNC_QUALIFIER genType perlin(genType Position) {
-    return perlin(vec<1, genType>(Position));
+  GLM_FUNC_QUALIFIER T __orientedAngle(vec<2, T, Q> const &x, vec<2, T, Q> const &y) {
+    GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'orientedAngle' only accept floating-point inputs");
+    const T Angle = __angle(x, y);
+    const T partialCross = x.x * y.y - y.x * x.y;
+    return (partialCross > T(0)) ? Angle : -Angle;
   }
 
   template<typename T, qualifier Q>
-  GLM_FUNC_QUALIFIER T perlin(vec<1, T, Q> const &Position, vec<1, T, Q> const &rep) {
-    ((void)Position);
-    ((void)rep);
-    return T(0);
+  GLM_FUNC_QUALIFIER T __orientedAngle(vec<3, T, Q> const &x, vec<3, T, Q> const &y, vec<3, T, Q> const &ref) {
+    GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'orientedAngle' only accept floating-point inputs");
+    const T Angle = __angle(x, y);
+    return mix(Angle, -Angle, dot(ref, cross(x, y)) < T(0));
+  }
+
+  /// <summary>
+  /// @GLMFix: Generalized slerp implementation
+  /// </summary>
+  template<length_t L, typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER vec<L, T, Q> __slerp(vec<L, T, Q> const &x, vec<L, T, Q> const &y, T const &a) {
+    GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'slerp' only accept floating-point inputs");
+
+    // Perform a linear interpolation when CosAlpha is close to 1 to avoid side
+    // effect of sin(angle) becoming a zero denominator
+    const T CosAlpha = dot(x, y);
+    if (CosAlpha > static_cast<T>(1) - epsilon<T>())
+      return mix(x, y, a);
+
+    const T Alpha = acos(CosAlpha);  // get angle (0 -> pi)
+    const T SinAlpha = sin(Alpha);  // get sine of angle between vectors (0 -> 1)
+    const T t1 = sin((static_cast<T>(1) - a) * Alpha) / SinAlpha;
+    const T t2 = sin(a * Alpha) / SinAlpha;
+    return x * t1 + y * t2;
+  }
+
+  template<typename T, qualifier Q>
+  GLM_FUNC_QUALIFIER qua<T, Q> __slerp(qua<T, Q> const &x, qua<T, Q> const &y, T const &a) {
+    return slerp(x, y, a);
+  }
+
+  template<typename T, typename S, qualifier Q>
+  GLM_FUNC_QUALIFIER qua<T, Q> __slerp(qua<T, Q> const &x, qua<T, Q> const &y, T a, S k) {
+    return slerp(x, y, a, k);
   }
 
   template<typename genType>
-  GLM_FUNC_QUALIFIER genType perlin(genType Position, genType rep) {
-    return perlin(vec<1, genType>(Position), vec<1, genType>(rep));
-  }
-
-  template<typename T>
-  GLM_FUNC_QUALIFIER bool intersectLineSphere(T const &point0, T const &point1, T const &sphereCenter, T sphereRadius,
-  T &intersectionPoint1, T &intersectionNormal1, T &intersectionPoint2, T &intersectionNormal2) {
-    ((void)point0);
-    ((void)point1);
-    ((void)sphereCenter);
-    ((void)sphereRadius);
-    intersectionNormal1 = intersectionPoint1 = T(0);
-    intersectionPoint2 = intersectionNormal2 = T(0);
-    return false;
-  }
-
-  template<typename T>
-  GLM_FUNC_QUALIFIER bool intersectRayPlane(T const &orig, T const &dir, T const &planeOrig, T const &planeNormal, T &intersectionDistance) {
-    ((void)orig);
-    ((void)dir);
-    ((void)planeOrig);
-    ((void)planeNormal);
-    intersectionDistance = T(0);
-    return false;
-  }
-
-  template<typename T>
-  GLM_FUNC_QUALIFIER bool intersectRaySphere(T const &rayStarting, T const &rayNormalizedDirection, T const &sphereCenter, const T sphereRadius, T &intersectionPosition, T &intersectionNormal) {
-    ((void)rayStarting);
-    ((void)rayNormalizedDirection);
-    ((void)sphereCenter);
-    ((void)sphereRadius);
-    intersectionPosition = intersectionNormal = T(0);
-    return false;
+  GLM_FUNC_QUALIFIER genType __slerp(genType x, genType y, genType a) {
+    return __slerp(vec<1, genType>(x), vec<1, genType>(y), a).x;
   }
 
   /* }====================================================== */
