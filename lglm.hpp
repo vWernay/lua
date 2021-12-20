@@ -110,6 +110,28 @@ typedef double glm_Number;
 typedef lua_Number glm_Number;
 #endif
 
+/*
+@@ LUAGLM_Q Specifies how vector, quat, and matrix types are qualified in terms
+** of alignment and precision by the runtime/API. In practice, this is used to
+** allow libraries to use different GLM alignment configurations.
+**
+** @ICCAlign:
+** @TODO: Improve compiler warnings/errors for when GLM_CONFIG_ALIGNED_GENTYPES
+** is disabled.
+*/
+#if !defined(LUAGLM_Q)
+#if defined(LUAGLM_FORCES_ALIGNED_GENTYPES)
+  #if GLM_CONFIG_ALIGNED_GENTYPES == GLM_ENABLE
+    #define LUAGLM_Q glm::qualifier::aligned_highp
+  #else
+    #define LUAGLM_Q glm::qualifier::highp
+    #error "Invalid ALIGNED_GENTYPES configuration; compiler does not support aligned types"
+  #endif
+#else
+  #define LUAGLM_Q glm::qualifier::highp
+#endif
+#endif
+
 /* lib:LuaGLM requirements */
 #define GLM_STRING_INTEGER "integer"
 #define GLM_STRING_NUMBER "number"
@@ -147,11 +169,11 @@ LUAGLM_API bool glm_isquat(lua_State *L, int idx);
 LUAGLM_API bool glm_ismatrix(lua_State *L, int idx, glm::length_t &dimensions);
 
 /* Push a vector/quaternion onto the Lua stack. */
-LUAGLM_API int glm_pushvec1(lua_State *L, const glm::vec<1, glm_Float> &v);
-LUAGLM_API int glm_pushvec2(lua_State *L, const glm::vec<2, glm_Float> &v);
-LUAGLM_API int glm_pushvec3(lua_State *L, const glm::vec<3, glm_Float> &v);
-LUAGLM_API int glm_pushvec4(lua_State *L, const glm::vec<4, glm_Float> &v);
-LUAGLM_API int glm_pushquat(lua_State *L, const glm::qua<glm_Float> &q);
+LUAGLM_API int glm_pushvec1(lua_State *L, const glm::vec<1, glm_Float, LUAGLM_Q> &v);
+LUAGLM_API int glm_pushvec2(lua_State *L, const glm::vec<2, glm_Float, LUAGLM_Q> &v);
+LUAGLM_API int glm_pushvec3(lua_State *L, const glm::vec<3, glm_Float, LUAGLM_Q> &v);
+LUAGLM_API int glm_pushvec4(lua_State *L, const glm::vec<4, glm_Float, LUAGLM_Q> &v);
+LUAGLM_API int glm_pushquat(lua_State *L, const glm::qua<glm_Float, LUAGLM_Q> &q);
 
 /*
 ** Convert the element at the given index into a vector/quaternion if
@@ -159,22 +181,22 @@ LUAGLM_API int glm_pushquat(lua_State *L, const glm::qua<glm_Float> &q);
 ** dimensions of the conversion.
 */
 
-LUAGLM_API glm::vec<1, glm_Float> glm_tovec1(lua_State *L, int idx);
-LUAGLM_API glm::vec<2, glm_Float> glm_tovec2(lua_State *L, int idx);
-LUAGLM_API glm::vec<3, glm_Float> glm_tovec3(lua_State *L, int idx);
-LUAGLM_API glm::vec<4, glm_Float> glm_tovec4(lua_State *L, int idx);
-LUAGLM_API glm::qua<glm_Float> glm_toquat(lua_State *L, int idx);
+LUAGLM_API glm::vec<1, glm_Float, LUAGLM_Q> glm_tovec1(lua_State *L, int idx);
+LUAGLM_API glm::vec<2, glm_Float, LUAGLM_Q> glm_tovec2(lua_State *L, int idx);
+LUAGLM_API glm::vec<3, glm_Float, LUAGLM_Q> glm_tovec3(lua_State *L, int idx);
+LUAGLM_API glm::vec<4, glm_Float, LUAGLM_Q> glm_tovec4(lua_State *L, int idx);
+LUAGLM_API glm::qua<glm_Float, LUAGLM_Q> glm_toquat(lua_State *L, int idx);
 
 /* Push a matrix onto the Lua stack. */
-LUAGLM_API int glm_pushmat2x2(lua_State *L, const glm::mat<2, 2, glm_Float> &m);
-LUAGLM_API int glm_pushmat2x3(lua_State *L, const glm::mat<2, 3, glm_Float> &m);
-LUAGLM_API int glm_pushmat2x4(lua_State *L, const glm::mat<2, 4, glm_Float> &m);
-LUAGLM_API int glm_pushmat3x2(lua_State *L, const glm::mat<3, 2, glm_Float> &m);
-LUAGLM_API int glm_pushmat3x3(lua_State *L, const glm::mat<3, 3, glm_Float> &m);
-LUAGLM_API int glm_pushmat3x4(lua_State *L, const glm::mat<3, 4, glm_Float> &m);
-LUAGLM_API int glm_pushmat4x2(lua_State *L, const glm::mat<4, 2, glm_Float> &m);
-LUAGLM_API int glm_pushmat4x3(lua_State *L, const glm::mat<4, 3, glm_Float> &m);
-LUAGLM_API int glm_pushmat4x4(lua_State *L, const glm::mat<4, 4, glm_Float> &m);
+LUAGLM_API int glm_pushmat2x2(lua_State *L, const glm::mat<2, 2, glm_Float, LUAGLM_Q> &m);
+LUAGLM_API int glm_pushmat2x3(lua_State *L, const glm::mat<2, 3, glm_Float, LUAGLM_Q> &m);
+LUAGLM_API int glm_pushmat2x4(lua_State *L, const glm::mat<2, 4, glm_Float, LUAGLM_Q> &m);
+LUAGLM_API int glm_pushmat3x2(lua_State *L, const glm::mat<3, 2, glm_Float, LUAGLM_Q> &m);
+LUAGLM_API int glm_pushmat3x3(lua_State *L, const glm::mat<3, 3, glm_Float, LUAGLM_Q> &m);
+LUAGLM_API int glm_pushmat3x4(lua_State *L, const glm::mat<3, 4, glm_Float, LUAGLM_Q> &m);
+LUAGLM_API int glm_pushmat4x2(lua_State *L, const glm::mat<4, 2, glm_Float, LUAGLM_Q> &m);
+LUAGLM_API int glm_pushmat4x3(lua_State *L, const glm::mat<4, 3, glm_Float, LUAGLM_Q> &m);
+LUAGLM_API int glm_pushmat4x4(lua_State *L, const glm::mat<4, 4, glm_Float, LUAGLM_Q> &m);
 
 /*
 ** Convert the element at the given index into a matrix if permissible, i.e.,
@@ -182,15 +204,15 @@ LUAGLM_API int glm_pushmat4x4(lua_State *L, const glm::mat<4, 4, glm_Float> &m);
 ** dimensions of the conversion.
 */
 
-LUAGLM_API glm::mat<2, 2, glm_Float> glm_tomat2x2(lua_State *L, int idx);
-LUAGLM_API glm::mat<2, 3, glm_Float> glm_tomat2x3(lua_State *L, int idx);
-LUAGLM_API glm::mat<2, 4, glm_Float> glm_tomat2x4(lua_State *L, int idx);
-LUAGLM_API glm::mat<3, 2, glm_Float> glm_tomat3x2(lua_State *L, int idx);
-LUAGLM_API glm::mat<3, 3, glm_Float> glm_tomat3x3(lua_State *L, int idx);
-LUAGLM_API glm::mat<3, 4, glm_Float> glm_tomat3x4(lua_State *L, int idx);
-LUAGLM_API glm::mat<4, 2, glm_Float> glm_tomat4x2(lua_State *L, int idx);
-LUAGLM_API glm::mat<4, 3, glm_Float> glm_tomat4x3(lua_State *L, int idx);
-LUAGLM_API glm::mat<4, 4, glm_Float> glm_tomat4x4(lua_State *L, int idx);
+LUAGLM_API glm::mat<2, 2, glm_Float, LUAGLM_Q> glm_tomat2x2(lua_State *L, int idx);
+LUAGLM_API glm::mat<2, 3, glm_Float, LUAGLM_Q> glm_tomat2x3(lua_State *L, int idx);
+LUAGLM_API glm::mat<2, 4, glm_Float, LUAGLM_Q> glm_tomat2x4(lua_State *L, int idx);
+LUAGLM_API glm::mat<3, 2, glm_Float, LUAGLM_Q> glm_tomat3x2(lua_State *L, int idx);
+LUAGLM_API glm::mat<3, 3, glm_Float, LUAGLM_Q> glm_tomat3x3(lua_State *L, int idx);
+LUAGLM_API glm::mat<3, 4, glm_Float, LUAGLM_Q> glm_tomat3x4(lua_State *L, int idx);
+LUAGLM_API glm::mat<4, 2, glm_Float, LUAGLM_Q> glm_tomat4x2(lua_State *L, int idx);
+LUAGLM_API glm::mat<4, 3, glm_Float, LUAGLM_Q> glm_tomat4x3(lua_State *L, int idx);
+LUAGLM_API glm::mat<4, 4, glm_Float, LUAGLM_Q> glm_tomat4x4(lua_State *L, int idx);
 
 /*
 ** Return the dimensions of the vector at the given index; zero on failure. This
@@ -213,70 +235,84 @@ static LUA_INLINE glm::length_t glm_vector_length(lua_State *L, int idx) {
 ** Utility macros for casting vectors as integer/boolean vectors are not
 ** supported for this iteration of LuaGLM.
 */
-#define cast_vec1(V, T) glm::vec<1, T>(static_cast<T>((V).x))
-#define cast_vec2(V, T) glm::vec<2, T>(static_cast<T>((V).x), static_cast<T>((V).y))
-#define cast_vec3(V, T) glm::vec<3, T>(static_cast<T>((V).x), static_cast<T>((V).y), static_cast<T>((V).z))
-#define cast_vec4(V, T) glm::vec<4, T>(static_cast<T>((V).x), static_cast<T>((V).y), static_cast<T>((V).z), static_cast<T>((V).w))
-#define cast_quat(Q, T) glm::qua<T>(static_cast<T>((Q).w), static_cast<T>((Q).x), static_cast<T>((Q).y), static_cast<T>((Q).z))
+#define cast_vec1(V, T) glm::vec<1, T, LUAGLM_Q>(static_cast<T>((V).x))
+#define cast_vec2(V, T) glm::vec<2, T, LUAGLM_Q>(static_cast<T>((V).x), static_cast<T>((V).y))
+#define cast_vec3(V, T) glm::vec<3, T, LUAGLM_Q>(static_cast<T>((V).x), static_cast<T>((V).y), static_cast<T>((V).z))
+#define cast_vec4(V, T) glm::vec<4, T, LUAGLM_Q>(static_cast<T>((V).x), static_cast<T>((V).y), static_cast<T>((V).z), static_cast<T>((V).w))
+#define cast_quat(Q, T) glm::qua<T, LUAGLM_Q>(static_cast<T>((Q).w), static_cast<T>((Q).x), static_cast<T>((Q).y), static_cast<T>((Q).z))
 
 /// <summary>
 /// Internal vector definition
 /// </summary>
 union glmVector {
-  glm::vec<1, glm_Float> v1;
-  glm::vec<2, glm_Float> v2;
-  glm::vec<3, glm_Float> v3;
-  glm::vec<4, glm_Float> v4;
-  glm::qua<glm_Float> q;
+  glm::vec<1, glm_Float, LUAGLM_Q> v1;
+  glm::vec<2, glm_Float, LUAGLM_Q> v2;
+  glm::vec<3, glm_Float, LUAGLM_Q> v3;
+  glm::vec<4, glm_Float, LUAGLM_Q> v4;
+  glm::qua<glm_Float, LUAGLM_Q> q;
 
 #if GLM_CONFIG_DEFAULTED_FUNCTIONS == GLM_DISABLE
 #if GLM_CONFIG_CTOR_INIT == GLM_CTOR_INITIALIZER_LIST
-  glmVector() : v4(glm::vec<4, glm_Float>()) { }
+  glmVector() : v4(glm::vec<4, glm_Float, LUAGLM_Q>()) { }
 #else
-  glmVector() { v4 = glm::vec<4, glm_Float>(); }
+  glmVector() { v4 = glm::vec<4, glm_Float, LUAGLM_Q>(); }
 #endif
 #else
   glmVector() GLM_DEFAULT_CTOR;
 #endif
-  glmVector(const glm::vec<1, glm_Float> &_v) : v1(_v) { }
-  glmVector(const glm::vec<2, glm_Float> &_v) : v2(_v) { }
-  glmVector(const glm::vec<3, glm_Float> &_v) : v3(_v) { }
-  glmVector(const glm::vec<4, glm_Float> &_v) : v4(_v) { }
-  glmVector(const glm::qua<glm_Float> &_q) : q(_q) { }
+  glmVector(const glm::vec<1, glm_Float, LUAGLM_Q> &_v) : v1(_v) { }
+  glmVector(const glm::vec<2, glm_Float, LUAGLM_Q> &_v) : v2(_v) { }
+  glmVector(const glm::vec<3, glm_Float, LUAGLM_Q> &_v) : v3(_v) { }
+  glmVector(const glm::vec<4, glm_Float, LUAGLM_Q> &_v) : v4(_v) { }
+  glmVector(const glm::qua<glm_Float, LUAGLM_Q> &_q) : q(_q) { }
 
-  template<class T> glmVector(const glm::vec<1, T> &_v) : v1(cast_vec1(_v, glm_Float)) { }
-  template<class T> glmVector(const glm::vec<2, T> &_v) : v2(cast_vec2(_v, glm_Float)) { }
-  template<class T> glmVector(const glm::vec<3, T> &_v) : v3(cast_vec3(_v, glm_Float)) { }
-  template<class T> glmVector(const glm::vec<4, T> &_v) : v4(cast_vec4(_v, glm_Float)) { }
-  template<class T> glmVector(const glm::qua<T> &_q) : q(cast_quat(_q, glm_Float)) { }
+  template<class T> glmVector(const glm::vec<1, T, LUAGLM_Q> &_v) : v1(cast_vec1(_v, glm_Float)) { }
+  template<class T> glmVector(const glm::vec<2, T, LUAGLM_Q> &_v) : v2(cast_vec2(_v, glm_Float)) { }
+  template<class T> glmVector(const glm::vec<3, T, LUAGLM_Q> &_v) : v3(cast_vec3(_v, glm_Float)) { }
+  template<class T> glmVector(const glm::vec<4, T, LUAGLM_Q> &_v) : v4(cast_vec4(_v, glm_Float)) { }
+  template<class T> glmVector(const glm::qua<T, LUAGLM_Q> &_q) : q(cast_quat(_q, glm_Float)) { }
+
+  // Realignment Constructors
+
+  template<glm::qualifier P> glmVector(const glm::vec<1, glm_Float, P> &_v) : v1(_v) { }
+  template<glm::qualifier P> glmVector(const glm::vec<2, glm_Float, P> &_v) : v2(_v) { }
+  template<glm::qualifier P> glmVector(const glm::vec<3, glm_Float, P> &_v) : v3(_v) { }
+  template<glm::qualifier P> glmVector(const glm::vec<4, glm_Float, P> &_v) : v4(_v) { }
+  template<glm::qualifier P> glmVector(const glm::qua<glm_Float, P> &_q) : q(_q) { }
+
+  template<glm::qualifier P, class T> glmVector(const glm::vec<1, T, P> &_v) : v1(cast_vec1(_v, glm_Float)) { }
+  template<glm::qualifier P, class T> glmVector(const glm::vec<2, T, P> &_v) : v2(cast_vec2(_v, glm_Float)) { }
+  template<glm::qualifier P, class T> glmVector(const glm::vec<3, T, P> &_v) : v3(cast_vec3(_v, glm_Float)) { }
+  template<glm::qualifier P, class T> glmVector(const glm::vec<4, T, P> &_v) : v4(cast_vec4(_v, glm_Float)) { }
+  template<glm::qualifier P, class T> glmVector(const glm::qua<T, P> &_q) : q(cast_quat(_q, glm_Float)) { }
 
   // Assignment Operators
 
-  inline void operator=(const glm::vec<1, glm_Float> &_v) { v1 = _v; }
-  inline void operator=(const glm::vec<2, glm_Float> &_v) { v2 = _v; }
-  inline void operator=(const glm::vec<3, glm_Float> &_v) { v3 = _v; }
-  inline void operator=(const glm::vec<4, glm_Float> &_v) { v4 = _v; }
-  inline void operator=(const glm::qua<glm_Float> &_q) { q = _q; }
+  inline void operator=(const glm::vec<1, glm_Float, LUAGLM_Q> &_v) { v1 = _v; }
+  inline void operator=(const glm::vec<2, glm_Float, LUAGLM_Q> &_v) { v2 = _v; }
+  inline void operator=(const glm::vec<3, glm_Float, LUAGLM_Q> &_v) { v3 = _v; }
+  inline void operator=(const glm::vec<4, glm_Float, LUAGLM_Q> &_v) { v4 = _v; }
+  inline void operator=(const glm::qua<glm_Float, LUAGLM_Q> &_q) { q = _q; }
 
-  template <typename T> inline void operator=(const glm::vec<1, T> &_v) { v1 = cast_vec1(_v, glm_Float); }
-  template <typename T> inline void operator=(const glm::vec<2, T> &_v) { v2 = cast_vec2(_v, glm_Float); }
-  template <typename T> inline void operator=(const glm::vec<3, T> &_v) { v3 = cast_vec3(_v, glm_Float); }
-  template <typename T> inline void operator=(const glm::vec<4, T> &_v) { v4 = cast_vec4(_v, glm_Float); }
-  template <typename T> inline void operator=(const glm::qua<T> &_q) { q = cast_quat(_q, glm_Float); }
+  template <typename T> inline void operator=(const glm::vec<1, T, LUAGLM_Q> &_v) { v1 = cast_vec1(_v, glm_Float); }
+  template <typename T> inline void operator=(const glm::vec<2, T, LUAGLM_Q> &_v) { v2 = cast_vec2(_v, glm_Float); }
+  template <typename T> inline void operator=(const glm::vec<3, T, LUAGLM_Q> &_v) { v3 = cast_vec3(_v, glm_Float); }
+  template <typename T> inline void operator=(const glm::vec<4, T, LUAGLM_Q> &_v) { v4 = cast_vec4(_v, glm_Float); }
+  template <typename T> inline void operator=(const glm::qua<T, LUAGLM_Q> &_q) { q = cast_quat(_q, glm_Float); }
 
   // Reassignment; glm::vec = glmVector.
 
-  inline int Get(glm::vec<1, glm_Float> &_v) const { _v = v1; return 1; }
-  inline int Get(glm::vec<2, glm_Float> &_v) const { _v = v2; return 1; }
-  inline int Get(glm::vec<3, glm_Float> &_v) const { _v = v3; return 1; }
-  inline int Get(glm::vec<4, glm_Float> &_v) const { _v = v4; return 1; }
-  inline int Get(glm::qua<glm_Float> &_q) const { _q = q; return 1; }
+  inline int Get(glm::vec<1, glm_Float, LUAGLM_Q> &_v) const { _v = v1; return 1; }
+  inline int Get(glm::vec<2, glm_Float, LUAGLM_Q> &_v) const { _v = v2; return 1; }
+  inline int Get(glm::vec<3, glm_Float, LUAGLM_Q> &_v) const { _v = v3; return 1; }
+  inline int Get(glm::vec<4, glm_Float, LUAGLM_Q> &_v) const { _v = v4; return 1; }
+  inline int Get(glm::qua<glm_Float, LUAGLM_Q> &_q) const { _q = q; return 1; }
 
-  template <typename T> inline int Get(glm::vec<1, T> &_v) const { _v = cast_vec1(v1, T); return 1; }
-  template <typename T> inline int Get(glm::vec<2, T> &_v) const { _v = cast_vec2(v2, T); return 1; }
-  template <typename T> inline int Get(glm::vec<3, T> &_v) const { _v = cast_vec3(v3, T); return 1; }
-  template <typename T> inline int Get(glm::vec<4, T> &_v) const { _v = cast_vec4(v4, T); return 1; }
-  template <typename T> inline int Get(glm::qua<T> &_q) const { _q = cast_quat(q, T); return 1; }
+  template <typename T> inline int Get(glm::vec<1, T, LUAGLM_Q> &_v) const { _v = cast_vec1(v1, T); return 1; }
+  template <typename T> inline int Get(glm::vec<2, T, LUAGLM_Q> &_v) const { _v = cast_vec2(v2, T); return 1; }
+  template <typename T> inline int Get(glm::vec<3, T, LUAGLM_Q> &_v) const { _v = cast_vec3(v3, T); return 1; }
+  template <typename T> inline int Get(glm::vec<4, T, LUAGLM_Q> &_v) const { _v = cast_vec4(v4, T); return 1; }
+  template <typename T> inline int Get(glm::qua<T, LUAGLM_Q> &_q) const { _q = cast_quat(q, T); return 1; }
 };
 
 /// <summary>
@@ -284,60 +320,72 @@ union glmVector {
 /// </summary>
 LUAGLM_ALIGNED_TYPE(struct, glmMatrix) {
   union {
-    glm::mat<2, 2, glm_Float> m22;
-    glm::mat<2, 3, glm_Float> m23;
-    glm::mat<2, 4, glm_Float> m24;
-    glm::mat<3, 2, glm_Float> m32;
-    glm::mat<3, 3, glm_Float> m33;
-    glm::mat<3, 4, glm_Float> m34;
-    glm::mat<4, 2, glm_Float> m42;
-    glm::mat<4, 3, glm_Float> m43;
-    glm::mat<4, 4, glm_Float> m44;
+    glm::mat<2, 2, glm_Float, LUAGLM_Q> m22;
+    glm::mat<2, 3, glm_Float, LUAGLM_Q> m23;
+    glm::mat<2, 4, glm_Float, LUAGLM_Q> m24;
+    glm::mat<3, 2, glm_Float, LUAGLM_Q> m32;
+    glm::mat<3, 3, glm_Float, LUAGLM_Q> m33;
+    glm::mat<3, 4, glm_Float, LUAGLM_Q> m34;
+    glm::mat<4, 2, glm_Float, LUAGLM_Q> m42;
+    glm::mat<4, 3, glm_Float, LUAGLM_Q> m43;
+    glm::mat<4, 4, glm_Float, LUAGLM_Q> m44;
   };
   glm::length_t dimensions;
 
 #if GLM_CONFIG_DEFAULTED_DEFAULT_CTOR == GLM_DISABLE
 #if GLM_CONFIG_CTOR_INIT == GLM_CTOR_INITIALIZER_LIST
-  glmMatrix() : m44(glm::mat<4, 4, glm_Float>()), dimensions(LUAGLM_MATRIX_4x4) { }
+  glmMatrix() : m44(glm::mat<4, 4, glm_Float, LUAGLM_Q>()), dimensions(LUAGLM_MATRIX_4x4) { }
 #else
-  glmMatrix() { dimensions = LUAGLM_MATRIX_4x4; m44 = glm::mat<4, 4, glm_Float>(); }
+  glmMatrix() { dimensions = LUAGLM_MATRIX_4x4; m44 = glm::mat<4, 4, glm_Float, LUAGLM_Q>(); }
 #endif
 #else
   glmMatrix() GLM_DEFAULT_CTOR;
 #endif
-  glmMatrix(const glm::mat<2, 2, glm_Float> &_m) : m22(_m), dimensions(LUAGLM_MATRIX_2x2) { }
-  glmMatrix(const glm::mat<2, 3, glm_Float> &_m) : m23(_m), dimensions(LUAGLM_MATRIX_2x3) { }
-  glmMatrix(const glm::mat<2, 4, glm_Float> &_m) : m24(_m), dimensions(LUAGLM_MATRIX_2x4) { }
-  glmMatrix(const glm::mat<3, 2, glm_Float> &_m) : m32(_m), dimensions(LUAGLM_MATRIX_3x2) { }
-  glmMatrix(const glm::mat<3, 3, glm_Float> &_m) : m33(_m), dimensions(LUAGLM_MATRIX_3x3) { }
-  glmMatrix(const glm::mat<3, 4, glm_Float> &_m) : m34(_m), dimensions(LUAGLM_MATRIX_3x4) { }
-  glmMatrix(const glm::mat<4, 2, glm_Float> &_m) : m42(_m), dimensions(LUAGLM_MATRIX_4x2) { }
-  glmMatrix(const glm::mat<4, 3, glm_Float> &_m) : m43(_m), dimensions(LUAGLM_MATRIX_4x3) { }
-  glmMatrix(const glm::mat<4, 4, glm_Float> &_m) : m44(_m), dimensions(LUAGLM_MATRIX_4x4) { }
+  glmMatrix(const glm::mat<2, 2, glm_Float, LUAGLM_Q> &_m) : m22(_m), dimensions(LUAGLM_MATRIX_2x2) { }
+  glmMatrix(const glm::mat<2, 3, glm_Float, LUAGLM_Q> &_m) : m23(_m), dimensions(LUAGLM_MATRIX_2x3) { }
+  glmMatrix(const glm::mat<2, 4, glm_Float, LUAGLM_Q> &_m) : m24(_m), dimensions(LUAGLM_MATRIX_2x4) { }
+  glmMatrix(const glm::mat<3, 2, glm_Float, LUAGLM_Q> &_m) : m32(_m), dimensions(LUAGLM_MATRIX_3x2) { }
+  glmMatrix(const glm::mat<3, 3, glm_Float, LUAGLM_Q> &_m) : m33(_m), dimensions(LUAGLM_MATRIX_3x3) { }
+  glmMatrix(const glm::mat<3, 4, glm_Float, LUAGLM_Q> &_m) : m34(_m), dimensions(LUAGLM_MATRIX_3x4) { }
+  glmMatrix(const glm::mat<4, 2, glm_Float, LUAGLM_Q> &_m) : m42(_m), dimensions(LUAGLM_MATRIX_4x2) { }
+  glmMatrix(const glm::mat<4, 3, glm_Float, LUAGLM_Q> &_m) : m43(_m), dimensions(LUAGLM_MATRIX_4x3) { }
+  glmMatrix(const glm::mat<4, 4, glm_Float, LUAGLM_Q> &_m) : m44(_m), dimensions(LUAGLM_MATRIX_4x4) { }
+
+  // Realignment Constructors
+
+  template<glm::qualifier P> glmMatrix(const glm::mat<2, 2, glm_Float, P> &_m) : m22(_m), dimensions(LUAGLM_MATRIX_2x2) { }
+  template<glm::qualifier P> glmMatrix(const glm::mat<2, 3, glm_Float, P> &_m) : m23(_m[0], _m[1]), dimensions(LUAGLM_MATRIX_2x3) { }
+  template<glm::qualifier P> glmMatrix(const glm::mat<2, 4, glm_Float, P> &_m) : m24(_m), dimensions(LUAGLM_MATRIX_2x4) { }
+  template<glm::qualifier P> glmMatrix(const glm::mat<3, 2, glm_Float, P> &_m) : m32(_m), dimensions(LUAGLM_MATRIX_3x2) { }
+  template<glm::qualifier P> glmMatrix(const glm::mat<3, 3, glm_Float, P> &_m) : m33(_m), dimensions(LUAGLM_MATRIX_3x3) { }
+  template<glm::qualifier P> glmMatrix(const glm::mat<3, 4, glm_Float, P> &_m) : m34(_m), dimensions(LUAGLM_MATRIX_3x4) { }
+  template<glm::qualifier P> glmMatrix(const glm::mat<4, 2, glm_Float, P> &_m) : m42(_m), dimensions(LUAGLM_MATRIX_4x2) { }
+  template<glm::qualifier P> glmMatrix(const glm::mat<4, 3, glm_Float, P> &_m) : m43(_m), dimensions(LUAGLM_MATRIX_4x3) { }
+  template<glm::qualifier P> glmMatrix(const glm::mat<4, 4, glm_Float, P> &_m) : m44(_m), dimensions(LUAGLM_MATRIX_4x4) { }
 
   // Assignment Operators
 
-  inline void operator=(const glm::mat<2, 2, glm_Float> &_m) { dimensions = LUAGLM_MATRIX_2x2; m22 = _m; }
-  inline void operator=(const glm::mat<2, 3, glm_Float> &_m) { dimensions = LUAGLM_MATRIX_2x3; m23 = _m; }
-  inline void operator=(const glm::mat<2, 4, glm_Float> &_m) { dimensions = LUAGLM_MATRIX_2x4; m24 = _m; }
-  inline void operator=(const glm::mat<3, 2, glm_Float> &_m) { dimensions = LUAGLM_MATRIX_3x2; m32 = _m; }
-  inline void operator=(const glm::mat<3, 3, glm_Float> &_m) { dimensions = LUAGLM_MATRIX_3x3; m33 = _m; }
-  inline void operator=(const glm::mat<3, 4, glm_Float> &_m) { dimensions = LUAGLM_MATRIX_3x4; m34 = _m; }
-  inline void operator=(const glm::mat<4, 2, glm_Float> &_m) { dimensions = LUAGLM_MATRIX_4x2; m42 = _m; }
-  inline void operator=(const glm::mat<4, 3, glm_Float> &_m) { dimensions = LUAGLM_MATRIX_4x3; m43 = _m; }
-  inline void operator=(const glm::mat<4, 4, glm_Float> &_m) { dimensions = LUAGLM_MATRIX_4x4; m44 = _m; }
+  inline void operator=(const glm::mat<2, 2, glm_Float, LUAGLM_Q> &_m) { dimensions = LUAGLM_MATRIX_2x2; m22 = _m; }
+  inline void operator=(const glm::mat<2, 3, glm_Float, LUAGLM_Q> &_m) { dimensions = LUAGLM_MATRIX_2x3; m23 = _m; }
+  inline void operator=(const glm::mat<2, 4, glm_Float, LUAGLM_Q> &_m) { dimensions = LUAGLM_MATRIX_2x4; m24 = _m; }
+  inline void operator=(const glm::mat<3, 2, glm_Float, LUAGLM_Q> &_m) { dimensions = LUAGLM_MATRIX_3x2; m32 = _m; }
+  inline void operator=(const glm::mat<3, 3, glm_Float, LUAGLM_Q> &_m) { dimensions = LUAGLM_MATRIX_3x3; m33 = _m; }
+  inline void operator=(const glm::mat<3, 4, glm_Float, LUAGLM_Q> &_m) { dimensions = LUAGLM_MATRIX_3x4; m34 = _m; }
+  inline void operator=(const glm::mat<4, 2, glm_Float, LUAGLM_Q> &_m) { dimensions = LUAGLM_MATRIX_4x2; m42 = _m; }
+  inline void operator=(const glm::mat<4, 3, glm_Float, LUAGLM_Q> &_m) { dimensions = LUAGLM_MATRIX_4x3; m43 = _m; }
+  inline void operator=(const glm::mat<4, 4, glm_Float, LUAGLM_Q> &_m) { dimensions = LUAGLM_MATRIX_4x4; m44 = _m; }
 
   // Reassignment; glm::mat = glmMatrix.
 
-  inline int Get(glm::mat<2, 2, glm_Float> &_m) const { _m = m22; return 1; }
-  inline int Get(glm::mat<2, 3, glm_Float> &_m) const { _m = m23; return 1; }
-  inline int Get(glm::mat<2, 4, glm_Float> &_m) const { _m = m24; return 1; }
-  inline int Get(glm::mat<3, 2, glm_Float> &_m) const { _m = m32; return 1; }
-  inline int Get(glm::mat<3, 3, glm_Float> &_m) const { _m = m33; return 1; }
-  inline int Get(glm::mat<3, 4, glm_Float> &_m) const { _m = m34; return 1; }
-  inline int Get(glm::mat<4, 2, glm_Float> &_m) const { _m = m42; return 1; }
-  inline int Get(glm::mat<4, 3, glm_Float> &_m) const { _m = m43; return 1; }
-  inline int Get(glm::mat<4, 4, glm_Float> &_m) const { _m = m44; return 1; }
+  inline int Get(glm::mat<2, 2, glm_Float, LUAGLM_Q> &_m) const { _m = m22; return 1; }
+  inline int Get(glm::mat<2, 3, glm_Float, LUAGLM_Q> &_m) const { _m = m23; return 1; }
+  inline int Get(glm::mat<2, 4, glm_Float, LUAGLM_Q> &_m) const { _m = m24; return 1; }
+  inline int Get(glm::mat<3, 2, glm_Float, LUAGLM_Q> &_m) const { _m = m32; return 1; }
+  inline int Get(glm::mat<3, 3, glm_Float, LUAGLM_Q> &_m) const { _m = m33; return 1; }
+  inline int Get(glm::mat<3, 4, glm_Float, LUAGLM_Q> &_m) const { _m = m34; return 1; }
+  inline int Get(glm::mat<4, 2, glm_Float, LUAGLM_Q> &_m) const { _m = m42; return 1; }
+  inline int Get(glm::mat<4, 3, glm_Float, LUAGLM_Q> &_m) const { _m = m43; return 1; }
+  inline int Get(glm::mat<4, 4, glm_Float, LUAGLM_Q> &_m) const { _m = m44; return 1; }
 };
 
 /*

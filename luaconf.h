@@ -793,12 +793,12 @@
 ** without modifying the main part of the file.
 */
 
-#if defined(LUA_USE_C89)
-  #define LUA_INLINE
-#elif defined(_MSC_VER)
+#if defined(_MSC_VER)
   #define LUA_INLINE __forceinline
 #elif __has_attribute(__always_inline__)
   #define LUA_INLINE inline __attribute__((__always_inline__))
+#elif defined(LUA_USE_C89)
+  #define LUA_INLINE
 #else
   #define LUA_INLINE inline
 #endif
@@ -880,7 +880,7 @@
 **    2. GLM_CONFIG_ANONYMOUS_STRUCT == GLM_ENABLE
 */
 #if !defined(RC_INVOKED) /* ignore MSVC resource compiler issues */
-#if defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
+#if defined(LUAGLM_FORCES_ALIGNED_GENTYPES)
   #if LUA_VEC_TYPE == LUA_FLOAT_DOUBLE
     #error "__m256 advanced vector extnesions are not supported!"
   #else
@@ -958,7 +958,7 @@
 /* vector/matrix floating point type */
 typedef LUA_VEC_NUMBER lua_VecF;
 typedef lua_VecF lua_CFloat2[2];
-typedef lua_VecF lua_CFloat3[3];
+typedef lua_VecF lua_CFloat3[3]; /* @TODO: @ImplicitAlign */
 typedef lua_VecF lua_CFloat4[4];
 
 /*
@@ -998,7 +998,6 @@ lua_Float4;
 ** defined in lglm.hpp
 **
 ** @ImplicitAlign:
-**
 ** @TODO: Compensate for: detail::storage<3, T, detail::is_aligned<Q>::value>::type
 ** data implicitly aligning vec3 types. This requires 'GLM_HAS_ALIGNOF' emulation.
 **

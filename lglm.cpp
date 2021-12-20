@@ -87,6 +87,16 @@ extern LUA_API_LINKAGE {
 #endif
 
 /*
+@@ LUAGLM_FORCES_ALIGNED_GENTYPES: Force LuaGLM to use aligned types by default;
+** requires GLM_FORCE_DEFAULT_ALIGNED_GENTYPES to also be enabled.
+*/
+#if defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES) && !defined(LUAGLM_FORCES_ALIGNED_GENTYPES)
+  #error "GLM_FORCE_DEFAULT_ALIGNED_GENTYPES: Requires LUAGLM_FORCES_ALIGNED_GENTYPES"
+#elif !defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES) && defined(LUAGLM_FORCES_ALIGNED_GENTYPES)
+  #error "LUAGLM_FORCES_ALIGNED_GENTYPES: Requires GLM_FORCE_DEFAULT_ALIGNED_GENTYPES"
+#endif
+
+/*
 ** @GCCHack: Functions with C linkage should avoid SIMD functions that directly
 ** reference __builtin_*, e.g., _mm_shuffle_ps and ia32_shufps (avoid gxx_personality).
 **
@@ -211,7 +221,7 @@ static int mat_trybinTM(lua_State *L, const TValue *p1, const TValue *p2, StkId 
 #define glm_qvalue_raw(o) glm_vvalue_raw(o).q
 
 /* glm::type references */
-#define glm_vvalue(o) check_exp(ttisvector(o), glm_constvec_boundary(&vvalue_(o)))
+#define glm_vvalue(o) glm_constvec_boundary(vvalue_ref(o))
 #define glm_v2value(o) glm_vvalue(o).v2
 #define glm_v3value(o) glm_vvalue(o).v3
 #define glm_v4value(o) glm_vvalue(o).v4
@@ -886,6 +896,7 @@ static glm::mat<C, R, T> glm_tomat(lua_State *L, int idx) {
 }
 
 LUAGLM_API int glm_pushvec(lua_State *L, const glmVector &v, glm::length_t dimensions) {
+  GLM_STATIC_ASSERT(LUAGLM_Q == glm::defaultp, "LUAGLM_QUALIFIER");  // Sanitize LUAGLM_FORCES_ALIGNED_GENTYPES
   if (l_likely(dimensions >= 2 && dimensions <= 4)) {
     lua_lock(L);
     glm_setvvalue2s(L->top, v, glm_variant(dimensions));
@@ -904,6 +915,7 @@ LUAGLM_API int glm_pushvec(lua_State *L, const glmVector &v, glm::length_t dimen
 }
 
 LUAGLM_API int glm_pushvec_quat(lua_State *L, const glmVector &q) {
+  GLM_STATIC_ASSERT(LUAGLM_Q == glm::defaultp, "LUAGLM_QUALIFIER");
   lua_lock(L);
   glm_setvvalue2s(L->top, q, LUA_VQUAT);
   api_incr_top(L);
@@ -912,6 +924,7 @@ LUAGLM_API int glm_pushvec_quat(lua_State *L, const glmVector &q) {
 }
 
 LUAGLM_API int glm_pushmat(lua_State *L, const glmMatrix &m) {
+  GLM_STATIC_ASSERT(LUAGLM_Q == glm::defaultp, "LUAGLM_QUALIFIER");
   GCMatrix *mat = GLM_NULLPTR;
 #if defined(LUA_USE_APICHECK)
   const glm::length_t m_size = LUAGLM_MATRIX_COLS(m.dimensions);

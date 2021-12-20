@@ -701,6 +701,7 @@ For all GLM preprocessor, see the [GLM manual](https://github.com/g-truc/glm/blo
 * **LUAGLM_INCLUDE_GTC**: Include gtc headers: Recommended extensions not specified by GLSL specification.
 * **LUAGLM_INCLUDE_GTX**: Include gtx headers: Experimental extensions not specified by GLSL specification.
 * **LUAGLM_INCLUDE_GEOM**: Include support for geometric structures (`ext/geom/`).
+* **LUAGLM_BINDING_ALIGNED**: Enable **GLM_FORCE_DEFAULT_ALIGNED_GENTYPES** *only* for the binding library.
 * **LUAGLM_ALIASES**: Create aliases for common (alternate) names when registering the library.
 * **LUAGLM_SAFELIB**: Enable a general try/catch wrapper for all binding functions.
 * **LUAGLM_TYPE_COERCION**: Enable string-to-number type coercion when parsing arguments from the Lua stack.
@@ -743,18 +744,15 @@ Ordered by priority.
 
 1. Cleanup testing scripts/environment and publish.
 1. Rewrite build scripts.
-1. Experiment with allowing the binding library to be compiled with ALIGNED_GENTYPES while the runtime is not. This would enable a variety of optimizations, at a small cost, while avoiding alignment headaches within the runtime.
+1. Improve `lua_CFloatX` struct definitions, i.e., mimic `glm::detail::storage` when anonymous structs are supported.
 1. Utility API that resembles `glUniformMatrix*v`-style functions, i.e., extracting/parsing array of matrices/vectors.
-1. Improve `lua_CFloatX` struct definitions, i.e., mimic `glm::detail::storage` when anonymous structs are supported. While the struct definitions are intended to mimic the C++ GLM implementation, the strictly C-types defined with arrays-by-default would probably be better.
-1. Optimize runtime swizzling: `swizzle` and `glmVec_get`. It is likely possible to improve this operation by 15/20 percent.
-1. [ext](libs/glm-binding/ext): allow configurable epsilon values for the variety of intersection functions.
+1. [binding](libs/glm-binding): Replace `glm/gtc/random.{inl,hpp}` with a variant that takes advantage of CXX11s [Pseudo-random number generation](https://en.cppreference.com/w/cpp/numeric/random) facilities (and unify it with `math.random`).
+1. [ext](libs/glm-binding/ext): Allow configurable epsilon values for the variety of intersection functions.
 1. [ext](libs/glm-binding/ext): Improve SIMD support.
-1. Replace `glm/gtc/random.{inl,hpp}` with a variant that takes advantage of CXX11s [Pseudo-random number generation](https://en.cppreference.com/w/cpp/numeric/random) facilities (and unify it with `math.random`).
-1. Add support for two-dimensional structures: Ray2D, Line2D, Plane2D.
+1. [geom](libs/glm-binding/ext/geom): Support for two-dimensional structures: Ray2D, Line2D, Plane2D.
 1. Optimize `glm_createMatrix`. Profiling case '4x4 matrix creation (lua\_Alloc)' is the one of the slowest operations in the added vector/matrix API. Worse when using the default Windows allocator.
 1. Modify implementation to follow updated "Avoid taking the address of a 'TValue' field" (or reference) convention.
 1. `glmMat_set` support for tables, e.g., `mat[i] = { ... }`, by using `glmH_tovector`.
-1. Improve support for `glm::mat3x4` and `glm::mat4x3`.
 
 ### Planned Features
 

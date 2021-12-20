@@ -101,6 +101,77 @@ extern LUA_API_LINKAGE {
   #define LUAGLM_UNREACHABLE() lua_assert(false)
 #endif
 
+/*
+@@ LUAGLM_REALIGN Used to mark that the alignment requirements of the LuaGLM
+** runtime and this binding library are different. See @ICCAlign.
+*/
+#undef LUAGLM_REALIGN
+#if GLM_CONFIG_ALIGNED_GENTYPES == GLM_ENABLE && defined(GLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
+  #if !defined(LUAGLM_FORCES_ALIGNED_GENTYPES)
+    #define LUAGLM_REALIGN
+  #endif
+#elif defined(LUAGLM_FORCES_ALIGNED_GENTYPES)
+  #error "Runtime is compiled with aligned types; so should the binding!"
+#endif
+
+/*
+** @GLMFix: The glm::mat<2, 3, ...> constructor will throw a compilation error
+** when the template context is different.
+**
+** ./glm/./ext/../detail/.././ext/../detail/type_mat2x3.inl:23:14: error: ‘glm::mat<2, 3, float, glm::packed_lowp>::col_type glm::mat<2, 3, float, glm::packed_lowp>::value [2]’ is private within this context
+**    23 |    : value{m.value[0], m.value[1]}
+*/
+#if defined(LUAGLM_REALIGN)
+namespace glm {
+  template<length_t C, length_t R, typename T, qualifier Q>
+  struct fixed_mat : public mat<C, R, T, Q> {
+    template<qualifier P>
+    GLM_FUNC_QUALIFIER GLM_CONSTEXPR fixed_mat(mat<C, R, T, P> const &m)
+      : mat<C, R, T, Q>(m) {
+    }
+
+    template<length_t CC, length_t RR, qualifier P>
+    GLM_FUNC_QUALIFIER GLM_CONSTEXPR fixed_mat(mat<CC, RR, T, P> const &m)
+      : mat<C, R, T, Q>(m) {
+    }
+
+    template<qualifier P>
+    GLM_FUNC_QUALIFIER GLM_CONSTEXPR fixed_mat(mat<2, 3, T, P> const &m)
+      : mat<C, R, T, Q>(fixed_mat<2, 3, T, Q>(m)) {
+    }
+  };
+
+  template<typename T, qualifier Q>
+  struct fixed_mat<2, 3, T, Q> : public mat<2, 3, T, Q> {
+    using col_type = typename mat<2, 3, T, Q>::col_type;
+
+    template<qualifier P = Q>
+    GLM_FUNC_QUALIFIER GLM_CONSTEXPR fixed_mat(mat<2, 3, T, P> const &m)
+      : mat<2, 3, T, Q>(col_type(m[0]), col_type(m[1])) {
+    }
+
+    template<length_t CC, length_t RR, qualifier P>
+    GLM_FUNC_QUALIFIER GLM_CONSTEXPR fixed_mat(mat<CC, RR, T, P> const &m)
+      : mat<2, 3, T, Q>(m) {
+    }
+  };
+}
+
+  #define glm_qua_realign(Qua, T, Q) glm::qua<T, Q>(glm_drift_compensate(Qua))
+  #define glm_vec_realign(Vec, L, T, Q) glm::vec<L, T, Q>((Vec))
+  #define glm_mat_realign(Mat, C, R, T, Q) glm::fixed_mat<C, R, T, Q>((Mat))
+  #if GLM_MESSAGES == GLM_ENABLE
+    #pragma message("LuaGLM: binding and runtime compiled with different alignments")
+  #endif
+#else
+  #define glm_qua_realign(Qua, T, Q) glm_drift_compensate(Qua)
+  #define glm_vec_realign(Vec, L, T, Q) (Vec)
+  #define glm_mat_realign(Mat, C, R, T, Q) (Mat)
+  #if GLM_MESSAGES == GLM_ENABLE
+    #pragma message("LuaGLM: binding and runtime compiled with same alignment")
+  #endif
+#endif
+
 /* Inlined Lua functions */
 
 /* lua_gettop() macro */
@@ -112,7 +183,7 @@ extern LUA_API_LINKAGE {
 /* TValue -> glmVector */
 #if !defined(glm_vvalue)
   #define glm_mvalue(o) glm_constmat_boundary(mvalue_ref(o))
-  #define glm_vvalue(o) check_exp(ttisvector(o), glm_constvec_boundary(&vvalue_(o)))
+  #define glm_vvalue(o) glm_constvec_boundary(vvalue_ref(o))
   #define glm_v2value(o) glm_vvalue(o).v2
   #define glm_v3value(o) glm_vvalue(o).v3
   #define glm_v4value(o) glm_vvalue(o).v4
@@ -429,14 +500,35 @@ struct gLuaBase {
 
   template<glm::length_t L, typename T>
   LUA_TRAIT_QUALIFIER int Push(const gLuaBase &LB, const glm::vec<L, T> &v) {
-    return glm_pushvec(LB.L, glmVector(v), L);
+    lua_lock(LB.L);
+    GLM_IF_CONSTEXPR(L >= 2 && L <= 4) {
+      TValue *o = s2v(LB.L->top);  // glm_setvvalue2s
+      glm_vec_boundary(&vvalue_(o)) = glmVector(v);
+      settt_(o, glm_variant(L));
+    }
+    else GLM_IF_CONSTEXPR(L == 1) {
+      setfltvalue(s2v(LB.L->top), cast_num(v.x));
+    }
+    else {
+      lua_assert(false);  // should never be hit
+      setnilvalue(s2v(LB.L->top));
+    }
+    api_incr_top(LB.L);
+    lua_unlock(LB.L);
+    return 1;  // glm_pushvec(LB.L, glmVector(v), L);
   }
 
   /// <summary>
   /// Convert the provided glm::qua into a Lua suitable value(s).
   /// </summary>
   LUA_TRAIT_QUALIFIER int Push(const gLuaBase &LB, const glm::qua<glm_Float> &q) {
-    return glm_pushquat(LB.L, glm_drift_compensate(q));
+    lua_lock(LB.L);
+    TValue *io = s2v(LB.L->top);
+    glm_vec_boundary(&vvalue_(io)) = glmVector(q);
+    settt_(io, LUA_VQUAT);
+    api_incr_top(LB.L);
+    lua_unlock(LB.L);
+    return 1;  // glm_pushvec_quat(LB.L, glmVector(glm_drift_compensate(q)));
   }
 
   template<glm::length_t C, glm::length_t R>
@@ -449,7 +541,7 @@ struct gLuaBase {
       if (l_likely(ttismatrix(o))) {
         LB.idx++;
 
-        glm_mat_boundary(mvalue_ref(o)) = m;
+        glm_mat_boundary(mvalue_ref(o)) = glm_mat_realign(m, C, R, glm_Float, LUAGLM_Q);
         setobj2s(L_, L_->top, o);  // lua_pushvalue
         api_incr_top(L_);
         lua_unlock(L_);
@@ -783,9 +875,9 @@ struct gLuaTrait<glm::qua<T>, FastPath> : gLuaAbstractTrait<glm::qua<T>> {
     const TValue *o = glm_i2v(LB.L, LB.idx++);
     if (FastPath || l_likely(ttisquat(o))) {
       GLM_IF_CONSTEXPR(std::is_same<T, glm_Float>::value)
-        return glm_drift_compensate(glm_qvalue(o));
+        return glm_qua_realign(glm_qvalue(o), T, glm::defaultp);
       else {
-        const glm::qua<glm_Float>& tq = glm_drift_compensate(glm_qvalue(o));
+        const glm::qua<glm_Float>& tq = glm_qua_realign(glm_qvalue(o), T, glm::defaultp);
         return cast_quat(tq, T);
       }
     }
@@ -833,7 +925,7 @@ struct gLuaTrait<glm::vec<2, T>, FastPath> : gLuaAbstractVector<2, T, FastPath> 
   LUA_TRAIT_QUALIFIER glm::vec<2, T> Next(gLuaBase &LB) {
     const TValue *o = glm_i2v(LB.L, LB.idx++);
     if (FastPath || l_likely(ttisvector2(o))) {
-      const glm::vec<2, glm_Float> &_v = glm_v2value(o);
+      const glm::vec<2, glm_Float> &_v = glm_vec_realign(glm_v2value(o), 2, T, glm::defaultp);
       GLM_IF_CONSTEXPR(!std::is_same<T, glm_Float>::value)
         return cast_vec2(_v, T);
       return _v;
@@ -863,7 +955,7 @@ struct gLuaTrait<glm::vec<3, T>, FastPath> : gLuaAbstractVector<3, T, FastPath> 
   LUA_TRAIT_QUALIFIER glm::vec<3, T> Next(gLuaBase &LB) {
     const TValue *o = glm_i2v(LB.L, LB.idx++);
     if (FastPath || l_likely(ttisvector3(o))) {
-      const glm::vec<3, glm_Float> &_v = glm_v3value(o);
+      const glm::vec<3, glm_Float> &_v = glm_vec_realign(glm_v3value(o), 3, T, glm::defaultp);
       GLM_IF_CONSTEXPR(!std::is_same<T, glm_Float>::value)
         return cast_vec3(_v, T);
       return _v;
@@ -893,7 +985,7 @@ struct gLuaTrait<glm::vec<4, T>, FastPath> : gLuaAbstractVector<4, T, FastPath> 
   LUA_TRAIT_QUALIFIER glm::vec<4, T> Next(gLuaBase &LB) {
     const TValue *o = glm_i2v(LB.L, LB.idx++);
     if (FastPath || l_likely(ttisvector4(o))) {
-      const glm::vec<4, glm_Float> &_v = glm_v4value(o);
+      const glm::vec<4, glm_Float> &_v = glm_vec_realign(glm_v4value(o), 4, T, glm::defaultp);
       GLM_IF_CONSTEXPR(!std::is_same<T, glm_Float>::value)
         return cast_vec4(_v, T);
       return _v;
@@ -974,15 +1066,15 @@ struct gLuaTrait<glm::mat<C, R, T>, FastPath> : gLuaAbstractTrait<glm::mat<C, R,
       const glmMatrix &mat = glm_mvalue(o);
       if (l_likely(FastPath || mat.dimensions == LUAGLM_MATRIX_TYPE(C, R))) {
         static const GLM_CONSTEXPR glm::length_t D = LUAGLM_MATRIX_TYPE(C, R);
-        GLM_IF_CONSTEXPR(D == LUAGLM_MATRIX_2x2) return mat.m22;
-        GLM_IF_CONSTEXPR(D == LUAGLM_MATRIX_2x3) return mat.m23;
-        GLM_IF_CONSTEXPR(D == LUAGLM_MATRIX_2x4) return mat.m24;
-        GLM_IF_CONSTEXPR(D == LUAGLM_MATRIX_3x2) return mat.m32;
-        GLM_IF_CONSTEXPR(D == LUAGLM_MATRIX_3x3) return mat.m33;
-        GLM_IF_CONSTEXPR(D == LUAGLM_MATRIX_3x4) return mat.m34;
-        GLM_IF_CONSTEXPR(D == LUAGLM_MATRIX_4x2) return mat.m42;
-        GLM_IF_CONSTEXPR(D == LUAGLM_MATRIX_4x3) return mat.m43;
-        GLM_IF_CONSTEXPR(D == LUAGLM_MATRIX_4x4) return mat.m44;
+        GLM_IF_CONSTEXPR(D == LUAGLM_MATRIX_2x2) return glm_mat_realign(mat.m22, C, R, T, glm::defaultp);
+        GLM_IF_CONSTEXPR(D == LUAGLM_MATRIX_2x3) return glm_mat_realign(mat.m23, C, R, T, glm::defaultp);
+        GLM_IF_CONSTEXPR(D == LUAGLM_MATRIX_2x4) return glm_mat_realign(mat.m24, C, R, T, glm::defaultp);
+        GLM_IF_CONSTEXPR(D == LUAGLM_MATRIX_3x2) return glm_mat_realign(mat.m32, C, R, T, glm::defaultp);
+        GLM_IF_CONSTEXPR(D == LUAGLM_MATRIX_3x3) return glm_mat_realign(mat.m33, C, R, T, glm::defaultp);
+        GLM_IF_CONSTEXPR(D == LUAGLM_MATRIX_3x4) return glm_mat_realign(mat.m34, C, R, T, glm::defaultp);
+        GLM_IF_CONSTEXPR(D == LUAGLM_MATRIX_4x2) return glm_mat_realign(mat.m42, C, R, T, glm::defaultp);
+        GLM_IF_CONSTEXPR(D == LUAGLM_MATRIX_4x3) return glm_mat_realign(mat.m43, C, R, T, glm::defaultp);
+        GLM_IF_CONSTEXPR(D == LUAGLM_MATRIX_4x4) return glm_mat_realign(mat.m44, C, R, T, glm::defaultp);
       }
     }
 
