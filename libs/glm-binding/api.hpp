@@ -932,15 +932,15 @@ TRAITS_LAYOUT_DEFN(containsProjection, glm::containsProjection, LAYOUT_BINARY_EP
   LAYOUT_MATRIX_ACCESS(LB, F, Tr, Tr::col_type, Tr::row_type, gLuaTrait<glm::length_t>, ##__VA_ARGS__)
 #define LAYOUT_MATRIX_ACCESS_ROW(LB, F, Tr, ...) \
   LAYOUT_MATRIX_ACCESS(LB, F, Tr, Tr::row_type, Tr::col_type, gLuaTrait<glm::length_t>, ##__VA_ARGS__)
-#define LAYOUT_MATRIX_ACCESS(LB, F, Tr, TrComp, TrDims, TrIdx, ...)  \
-  LUA_MLM_BEGIN                                                      \
-  const lua_Integer __idx = luaL_checkinteger((LB).L, (LB).idx + 1); \
-  if (__idx < 0 || __idx >= cast(lua_Integer, TrDims::length()))     \
-    return luaL_argerror((LB).L, (LB).idx + 1, "matrix index");      \
-  else if (TrComp::Is((LB.L), (LB).idx + 2)) /* Set */               \
-    VA_CALL(BIND_FUNC, LB, F, Tr, TrIdx, TrComp, ##__VA_ARGS__);     \
-  else                                                               \
-    VA_CALL(BIND_FUNC, LB, F, Tr, TrIdx, ##__VA_ARGS__); /* Get */   \
+#define LAYOUT_MATRIX_ACCESS(LB, F, Tr, TrComp, TrDims, TrIdx, ...) \
+  LUA_MLM_BEGIN                                                     \
+  const lua_Integer _idx = luaL_checkinteger((LB).L, (LB).idx + 1); \
+  if (_idx < 0 || _idx >= cast(lua_Integer, TrDims::length()))      \
+    return luaL_argerror((LB).L, (LB).idx + 1, "matrix index");     \
+  else if (TrComp::Is((LB.L), (LB).idx + 2)) /* Set */              \
+    VA_CALL(BIND_FUNC, LB, F, Tr, TrIdx, TrComp, ##__VA_ARGS__);    \
+  else                                                              \
+    VA_CALL(BIND_FUNC, LB, F, Tr, TrIdx, ##__VA_ARGS__); /* Get */  \
   LUA_MLM_END
 
 MATRIX_DEFN(column, glm::column, LAYOUT_MATRIX_ACCESS_COLUMN)
@@ -1229,13 +1229,13 @@ GLM_BINDING_QUALIFIER(computeCovarianceMatrix) {
   TRAITS_PUSH(LB, v3, v2);                 \
   LUA_MLM_END
 
-#define LAYOUT_MODF(LB, F, Tr, ...)             \
-  LUA_MLM_BEGIN                                 \
-  Tr::type v2;                                  \
-  const Tr::type v3 = F(Tr::Next(LB), v2);      \
-  const int __a = gLuaBase::PushNumInt(LB, v2); \
-  const int __b = gLuaBase::Push(LB, v3);       \
-  return __a + __b;                             \
+#define LAYOUT_MODF(LB, F, Tr, ...)            \
+  LUA_MLM_BEGIN                                \
+  Tr::type v2;                                 \
+  const Tr::type v3 = F(Tr::Next(LB), v2);     \
+  const int _a = gLuaBase::PushNumInt(LB, v2); \
+  const int _b = gLuaBase::Push(LB, v3);       \
+  return _a + _b;                              \
   LUA_MLM_END
 
 #define LAYOUT_UNARY_NUMINT(LB, F, Tr, ...) \

@@ -405,8 +405,8 @@ struct gLuaBase {
   /// </summary>
   template<typename T>
   LUA_TRAIT_QUALIFIER int Push(lua_State *L, const T &v) {
-    gLuaBase _LB(L, _gettop(L) + 1);
-    return gLuaBase::Push(_LB, v);
+    gLuaBase base(L, _gettop(L) + 1);
+    return gLuaBase::Push(base, v);
   }
 
   /// <summary>
@@ -1275,89 +1275,89 @@ struct gLuaNotZero : gLuaTrait<typename Tr::type, false> {
   LUA_MLM_END
 
 /* F(a, b) */
-#define BIND_FUNC4(LB, F, A, B)           \
-  LUA_MLM_BEGIN                           \
-  const A::type __a = A::Next(LB);        \
-  const B::type __b = B::Next(LB);        \
-  return gLuaBase::Push(LB, F(__a, __b)); \
+#define BIND_FUNC4(LB, F, A, B)         \
+  LUA_MLM_BEGIN                         \
+  const A::type _a = A::Next(LB);       \
+  const B::type _b = B::Next(LB);       \
+  return gLuaBase::Push(LB, F(_a, _b)); \
   LUA_MLM_END
 
 /* F(a, b, c)) */
-#define BIND_FUNC5(LB, F, A, B, C)             \
-  LUA_MLM_BEGIN                                \
-  const A::type __a = A::Next(LB);             \
-  const B::type __b = B::Next(LB);             \
-  const C::type __c = C::Next(LB);             \
-  return gLuaBase::Push(LB, F(__a, __b, __c)); \
+#define BIND_FUNC5(LB, F, A, B, C)          \
+  LUA_MLM_BEGIN                             \
+  const A::type _a = A::Next(LB);           \
+  const B::type _b = B::Next(LB);           \
+  const C::type _c = C::Next(LB);           \
+  return gLuaBase::Push(LB, F(_a, _b, _c)); \
   LUA_MLM_END
 
 /* F(a, b, c, d) */
 #define BIND_FUNC6(LB, F, A, B, C, D) \
   LUA_MLM_BEGIN                       \
-  const A::type __a = A::Next(LB);    \
-  const B::type __b = B::Next(LB);    \
-  const C::type __c = C::Next(LB);    \
-  const D::type __d = D::Next(LB);    \
+  const A::type _a = A::Next(LB);     \
+  const B::type _b = B::Next(LB);     \
+  const C::type _c = C::Next(LB);     \
+  const D::type _d = D::Next(LB);     \
   return gLuaBase::Push(LB, F(        \
-    __a, __b, __c, __d                \
+    _a, _b, _c, _d                    \
   ));                                 \
   LUA_MLM_END
 
 /* F(a, b, c, d, e) */
 #define BIND_FUNC7(LB, F, A, B, C, D, E) \
   LUA_MLM_BEGIN                          \
-  const A::type __a = A::Next(LB);       \
-  const B::type __b = B::Next(LB);       \
-  const C::type __c = C::Next(LB);       \
-  const D::type __d = D::Next(LB);       \
-  const E::type __e = E::Next(LB);       \
+  const A::type _a = A::Next(LB);        \
+  const B::type _b = B::Next(LB);        \
+  const C::type _c = C::Next(LB);        \
+  const D::type _d = D::Next(LB);        \
+  const E::type _e = E::Next(LB);        \
   return gLuaBase::Push(LB, F(           \
-    __a, __b, __c, __d, __e              \
+    _a, _b, _c, _d, _e                   \
   ));                                    \
   LUA_MLM_END
 
 /* F(a, b, c, d, e, g) */
 #define BIND_FUNC8(LB, F, A, B, C, D, E, G) \
   LUA_MLM_BEGIN                             \
-  const A::type __a = A::Next(LB);          \
-  const B::type __b = B::Next(LB);          \
-  const C::type __c = C::Next(LB);          \
-  const D::type __d = D::Next(LB);          \
-  const E::type __e = E::Next(LB);          \
-  const G::type __g = G::Next(LB);          \
+  const A::type _a = A::Next(LB);           \
+  const B::type _b = B::Next(LB);           \
+  const C::type _c = C::Next(LB);           \
+  const D::type _d = D::Next(LB);           \
+  const E::type _e = E::Next(LB);           \
+  const G::type _g = G::Next(LB);           \
   return gLuaBase::Push(LB, F(              \
-    __a, __b, __c, __d, __e, __g            \
+    _a, _b, _c, _d, _e, _g                  \
   ));                                       \
   LUA_MLM_END
 
 /* F(a, b, c, d, e, g, h) */
 #define BIND_FUNC9(LB, F, A, B, C, D, E, G, H) \
   LUA_MLM_BEGIN                                \
-  const A::type __a = A::Next(LB);             \
-  const B::type __b = B::Next(LB);             \
-  const C::type __c = C::Next(LB);             \
-  const D::type __d = D::Next(LB);             \
-  const E::type __e = E::Next(LB);             \
-  const G::type __g = G::Next(LB);             \
-  const H::type __h = H::Next(LB);             \
+  const A::type _a = A::Next(LB);              \
+  const B::type _b = B::Next(LB);              \
+  const C::type _c = C::Next(LB);              \
+  const D::type _d = D::Next(LB);              \
+  const E::type _e = E::Next(LB);              \
+  const G::type _g = G::Next(LB);              \
+  const H::type _h = H::Next(LB);              \
   return gLuaBase::Push(LB, F(                 \
-    __a, __b, __c, __d, __e, __g, __h          \
+    _a, _b, _c, _d, _e, _g, _h                 \
   ));                                          \
   LUA_MLM_END
 
 /* F(a, b, c, d, e, g, h, i) */
 #define BIND_FUNC10(LB, F, A, B, C, D, E, G, H, I) \
   LUA_MLM_BEGIN                                    \
-  const A::type __a = A::Next(LB);                 \
-  const B::type __b = B::Next(LB);                 \
-  const C::type __c = C::Next(LB);                 \
-  const D::type __d = D::Next(LB);                 \
-  const E::type __e = E::Next(LB);                 \
-  const G::type __g = G::Next(LB);                 \
-  const H::type __h = H::Next(LB);                 \
-  const I::type __i = I::Next(LB);                 \
+  const A::type _a = A::Next(LB);                  \
+  const B::type _b = B::Next(LB);                  \
+  const C::type _c = C::Next(LB);                  \
+  const D::type _d = D::Next(LB);                  \
+  const E::type _e = E::Next(LB);                  \
+  const G::type _g = G::Next(LB);                  \
+  const H::type _h = H::Next(LB);                  \
+  const I::type _i = I::Next(LB);                  \
   return gLuaBase::Push(LB, F(                     \
-    __a, __b, __c, __d, __e, __g, __h, __i         \
+    _a, _b, _c, _d, _e, _g, _h, _i                 \
   ));                                              \
   LUA_MLM_END
 
@@ -1375,36 +1375,36 @@ struct gLuaNotZero : gLuaTrait<typename Tr::type, false> {
 
 #define TRAITS_PUSH3(LB, A, B)             \
   LUA_MLM_BEGIN                            \
-  const int __a = gLuaBase::Push(LB, (A)); \
-  const int __b = gLuaBase::Push(LB, (B)); \
-  return __a + __b;                        \
+  const int _aR = gLuaBase::Push(LB, (A)); \
+  const int _bR = gLuaBase::Push(LB, (B)); \
+  return _aR + _bR;                        \
   LUA_MLM_END
 
 #define TRAITS_PUSH4(LB, A, B, C)          \
   LUA_MLM_BEGIN                            \
-  const int __a = gLuaBase::Push(LB, (A)); \
-  const int __b = gLuaBase::Push(LB, (B)); \
-  const int __c = gLuaBase::Push(LB, (C)); \
-  return __a + __b + __c;                  \
+  const int _aR = gLuaBase::Push(LB, (A)); \
+  const int _bR = gLuaBase::Push(LB, (B)); \
+  const int _cR = gLuaBase::Push(LB, (C)); \
+  return _aR + _bR + _cR;                  \
   LUA_MLM_END
 
 #define TRAITS_PUSH5(LB, A, B, C, D)       \
   LUA_MLM_BEGIN                            \
-  const int __a = gLuaBase::Push(LB, (A)); \
-  const int __b = gLuaBase::Push(LB, (B)); \
-  const int __c = gLuaBase::Push(LB, (C)); \
-  const int __d = gLuaBase::Push(LB, (D)); \
-  return __a + __b + __c + __d;            \
+  const int _aR = gLuaBase::Push(LB, (A)); \
+  const int _bR = gLuaBase::Push(LB, (B)); \
+  const int _cR = gLuaBase::Push(LB, (C)); \
+  const int _dR = gLuaBase::Push(LB, (D)); \
+  return _aR + _bR + _cR + _dR;            \
   LUA_MLM_END
 
 #define TRAITS_PUSH6(LB, A, B, C, D, E)    \
   LUA_MLM_BEGIN                            \
-  const int __a = gLuaBase::Push(LB, (A)); \
-  const int __b = gLuaBase::Push(LB, (B)); \
-  const int __c = gLuaBase::Push(LB, (C)); \
-  const int __d = gLuaBase::Push(LB, (D)); \
-  const int __e = gLuaBase::Push(LB, (E)); \
-  return __a + __b + __c + __d + __e;      \
+  const int _aR = gLuaBase::Push(LB, (A)); \
+  const int _bR = gLuaBase::Push(LB, (B)); \
+  const int _cR = gLuaBase::Push(LB, (C)); \
+  const int _dR = gLuaBase::Push(LB, (D)); \
+  const int _eR = gLuaBase::Push(LB, (E)); \
+  return _aR + _bR + _cR + _dR + _eR;      \
   LUA_MLM_END
 
 /* }================================================================== */
@@ -1832,16 +1832,16 @@ struct gLuaNotZero : gLuaTrait<typename Tr::type, false> {
 */
 #define LAYOUT_GENERIC_EQUAL(LB, F, Tr, Tr_Row)                                                 \
   LUA_MLM_BEGIN                                                                                 \
-  const Tr::type __a = Tr::Next(LB);                                                            \
-  const Tr::safe::type __b = Tr::safe::Next(LB);                                                \
+  const Tr::type _a = Tr::Next(LB);                                                             \
+  const Tr::safe::type _b = Tr::safe::Next(LB);                                                 \
   const TValue *_tv3 = glm_i2v((LB).L, (LB).idx);                                               \
   if (!_isvalid((LB).L, _tv3)) /* <Tr, Tr> */                                                   \
-    return gLuaBase::Push(LB, F(__a, __b));                                                     \
+    return gLuaBase::Push(LB, F(_a, _b));                                                       \
   else if (ttisfloat(_tv3)) /* <Tr, Tr, eps> */                                                 \
-    return gLuaBase::Push(LB, F(__a, __b, Tr::eps_trait::fast::Next(LB)));                      \
+    return gLuaBase::Push(LB, F(_a, _b, Tr::eps_trait::fast::Next(LB)));                        \
   else if (Tr_Row::Is((LB).L, (LB).idx)) /* <Tr, Tr, vec> */                                    \
-    return gLuaBase::Push(LB, F(__a, __b, Tr_Row::Next(LB)));                                   \
-  _TR_EQUAL_ULPS(LB, F, __a, __b, _tv3) /* <Tr, Tr, ULPs> */                                    \
+    return gLuaBase::Push(LB, F(_a, _b, Tr_Row::Next(LB)));                                     \
+  _TR_EQUAL_ULPS(LB, F, _a, _b, _tv3) /* <Tr, Tr, ULPs> */                                      \
   return luaL_typeerror((LB).L, (LB).idx, "none, " GLM_STRING_NUMBER " or " GLM_STRING_VECTOR); \
   LUA_MLM_END
 

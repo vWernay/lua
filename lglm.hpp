@@ -280,11 +280,11 @@ union glmVector {
   template<glm::qualifier P> glmVector(const glm::vec<4, glm_Float, P> &_v) : v4(_v) { }
   template<glm::qualifier P> glmVector(const glm::qua<glm_Float, P> &_q) : q(_q) { }
 
-  template<glm::qualifier P, class T> glmVector(const glm::vec<1, T, P> &_v) : v1(cast_vec1(_v, glm_Float)) { }
-  template<glm::qualifier P, class T> glmVector(const glm::vec<2, T, P> &_v) : v2(cast_vec2(_v, glm_Float)) { }
-  template<glm::qualifier P, class T> glmVector(const glm::vec<3, T, P> &_v) : v3(cast_vec3(_v, glm_Float)) { }
-  template<glm::qualifier P, class T> glmVector(const glm::vec<4, T, P> &_v) : v4(cast_vec4(_v, glm_Float)) { }
-  template<glm::qualifier P, class T> glmVector(const glm::qua<T, P> &_q) : q(cast_quat(_q, glm_Float)) { }
+  template<class T, glm::qualifier P> glmVector(const glm::vec<1, T, P> &_v) : v1(cast_vec1(_v, glm_Float)) { }
+  template<class T, glm::qualifier P> glmVector(const glm::vec<2, T, P> &_v) : v2(cast_vec2(_v, glm_Float)) { }
+  template<class T, glm::qualifier P> glmVector(const glm::vec<3, T, P> &_v) : v3(cast_vec3(_v, glm_Float)) { }
+  template<class T, glm::qualifier P> glmVector(const glm::vec<4, T, P> &_v) : v4(cast_vec4(_v, glm_Float)) { }
+  template<class T, glm::qualifier P> glmVector(const glm::qua<T, P> &_q) : q(cast_quat(_q, glm_Float)) { }
 
   // Assignment Operators
 

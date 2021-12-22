@@ -1602,7 +1602,7 @@ GLM_BINDING_QUALIFIER(polygon_to_string) {
 /// <summary>
 /// Garbage collect an allocated polygon userdata.
 /// </summary>
-GLM_BINDING_QUALIFIER(polygon__gc) {
+GLM_BINDING_QUALIFIER(polygon_gc) {
   gLuaPolygon<>::type *ud = static_cast<gLuaPolygon<>::type *>(luaL_checkudata(L, 1, gLuaPolygon<>::Metatable()));
   if (l_likely(ud->p != GLM_NULLPTR)) {
     LuaCrtAllocator<void> allocator(L);
@@ -1617,12 +1617,12 @@ GLM_BINDING_QUALIFIER(polygon__gc) {
 /// <summary>
 /// The number of points within a polygon.
 /// </summary>
-TRAITS_DEFN(polygon__len, glm::length, gLuaPolygon<>)
+TRAITS_DEFN(polygon_len, glm::length, gLuaPolygon<>)
 
 /// <summary>
 /// Create an array of points.
 /// </summary>
-GLM_BINDING_QUALIFIER(polygon__call) {
+GLM_BINDING_QUALIFIER(polygon_call) {
   GLM_BINDING_BEGIN
   const gLuaPolygon<>::type poly = gLuaPolygon<>::Next(LB);
   lua_createtable(LB.L, static_cast<int>(poly.size()), 0);
@@ -1635,7 +1635,7 @@ GLM_BINDING_QUALIFIER(polygon__call) {
   GLM_BINDING_END
 }
 
-GLM_BINDING_QUALIFIER(polygon__index) {
+GLM_BINDING_QUALIFIER(polygon_index) {
   GLM_BINDING_BEGIN
   const gLuaPolygon<>::type poly = gLuaPolygon<>::Next(LB);
   if (gLuaTrait<size_t>::Is(LB.L, LB.idx)) {
@@ -1656,7 +1656,7 @@ GLM_BINDING_QUALIFIER(polygon__index) {
   GLM_BINDING_END
 }
 
-GLM_BINDING_QUALIFIER(polygon__newindex) {
+GLM_BINDING_QUALIFIER(polygon_newindex) {
   GLM_BINDING_BEGIN
   gLuaPolygon<>::type poly = gLuaPolygon<>::Next(LB);
   if (l_likely(poly.p != GLM_NULLPTR)) {
@@ -1680,7 +1680,7 @@ extern "C" {
   /// <summary>
   /// Iterator function for polygon vertices.
   /// </summary>
-  static int polygon__iterator(lua_State *L) {
+  static int polygon_iterator(lua_State *L) {
     GLM_BINDING_BEGIN
     if (!gLuaPolygon<>::Is(LB.L, LB.idx))
       return luaL_argerror(LB.L, LB.idx, gLuaPolygon<>::Label());
@@ -1701,20 +1701,20 @@ extern "C" {
   }
 }
 
-GLM_BINDING_QUALIFIER(polygon__pairs) {
-  lua_pushcfunction(L, polygon__iterator);  // will return generator,
+GLM_BINDING_QUALIFIER(polygon_pairs) {
+  lua_pushcfunction(L, polygon_iterator);  // will return generator,
   lua_pushvalue(L, 1);  // state,
   lua_pushnil(L);  // and initial value
   return 3;
 }
 
 static const luaL_Reg luaglm_polylib[] = {
-  { "__gc", glm_polygon__gc },
-  { "__index", glm_polygon__index },  // Array access
-  { "__newindex", glm_polygon__newindex },  // Only allow append
-  { "__len", glm_polygon__len },  // # of Points
-  { "__call", glm_polygon__call },  // Generate a table.
-  { "__pairs", glm_polygon__pairs },
+  { "__gc", glm_polygon_gc },
+  { "__index", glm_polygon_index },  // Array access
+  { "__newindex", glm_polygon_newindex },  // Only allow append
+  { "__len", glm_polygon_len },  // # of Points
+  { "__call", glm_polygon_call },  // Generate a table.
+  { "__pairs", glm_polygon_pairs },
   { "__unm", glm_polygon_operator_negate },  // Negate all points.
   { "__eq", glm_polygon_operator_equals },
   { "__add", glm_polygon_operator_add },

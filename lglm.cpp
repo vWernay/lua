@@ -943,7 +943,7 @@ LUAGLM_API int glm_pushmat(lua_State *L, const glmMatrix &m) {
   luaC_checkGC(L);
   lua_unlock(L);
   return 1;
-};
+}
 
 LUAGLM_API bool glm_isvector(lua_State *L, int idx, glm::length_t &size) {
   bool result = true;
